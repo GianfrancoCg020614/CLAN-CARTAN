@@ -5198,7 +5198,7 @@ if(panel){
  actions.innerHTML='<button type="button" onclick="cy53.close()">← Volver a CLAN CARTAN</button><button type="button" class="cc54-exit" onclick="cc54SwitchAccount()">Salir y entrar con otra cuenta</button>';
  panel.insertBefore(actions,panel.firstChild);
 }
-window.cc54SwitchAccount=async function(){
+window.cc54SwitchAccount=async function(){const adminButton=document.getElementById('cc92-admin-button');if(adminButton)adminButton.style.display='none';
  try{
   const s=window.CC_V53_SESSION;
   if(s?.jwt)await fetch(s.root+'/auth/v1/logout',{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+s.jwt}});
@@ -5276,7 +5276,7 @@ const cy55refresh=cy54.refreshAuth;cy54.refreshAuth=async function(){await cy55r
 </style>
 <section id="cc77home" aria-label="Página principal CLAN CARTAN">
  <div class="cc77wrap">
-  <header class="cc77top"><div class="cc77brand"><span class="cc78main-logo" aria-label="Logo original de CLAN CARTAN"></span><span>CLAN CARTAN<small>EIRL. · Plataforma de negocios digitales</small></span></div><div class="cc77actions"><button type="button" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="primary" onclick="cc77Auth(true)">Crear cuenta</button></div></header>
+  <header class="cc77top"><div class="cc77brand"><span class="cc78main-logo" aria-label="Logo original de CLAN CARTAN"></span><span>CLAN CARTAN<small>EIRL. · Plataforma de negocios digitales</small></span></div><div class="cc77actions"><button type="button" id="cc92-admin-button" style="display:none;background:#f0c76c;color:#111b2d;font-weight:900;border-color:#f0c76c" onclick="cc92OpenAdmin()">⚙ PANEL ADMIN</button><button type="button" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="primary" onclick="cc77Auth(true)">Crear cuenta</button></div></header>
   <div class="cc77intro"><h1>CLAN CARTAN · Una cuenta, todos tus servicios</h1><p>Conservamos nuestra luna y nuestros logos. Explora Stream Bull's gratis o gestiona Cobra Ya desde una sola cuenta; cada negocio habilita sus beneficios cuando realizas su pago correspondiente.</p></div>
   <div class="cc77cards">
    <article class="cc77card"><div class="cc77tag">CATÁLOGO PÚBLICO · SIN REGISTRO</div><div class="cc78service"><span class="cc78service-logo cc78stream" role="img" aria-label="Logo original de Stream Bull’s"></span><h2>STREAM BULL'S</h2></div><p>Streaming y software digital. Puedes explorar el catálogo y consultar los precios públicos sin iniciar sesión. Los precios especiales requieren afiliación de pago único de S/ 20 cuando esté conectada al backend.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc77Store()">Ver catálogo público</button><button type="button" onclick="cc79StreamBenefits()">Acceder a beneficios</button></div></article>
@@ -5307,6 +5307,15 @@ function cc79AfterLogin(){
   const back=document.getElementById('cc77back');if(back)back.style.display='none';
   const box=document.getElementById('cc79logged');if(box){box.hidden=false;box.textContent='✓ Sesión única CLAN CARTAN iniciada. Elige tu negocio.'}
   const banner=document.getElementById('cc-real-banner');if(banner)banner.style.display='none';
+  const adminBtn=document.getElementById('cc92-admin-button');if(adminBtn)adminBtn.style.display=window.CC_V53_SESSION?.isAdmin===true?'inline-flex':'none';
+}
+function cc92OpenAdmin(){
+ const session=window.CC_V53_SESSION;
+ if(!session || session.isAdmin!==true){alert('Acceso exclusivo de ADMIN. Inicia sesión con una cuenta autorizada.');return;}
+ const home=document.getElementById('cc77home');if(home)home.style.display='none';
+ const back=document.getElementById('cc77back');if(back)back.style.display='block';
+ if(typeof loginDemo==='function'){loginDemo('admin');}
+ else {alert('No se encontró el panel administrativo.');cc77Home();}
 }
 function cc79Cobra(){
  const session=window.CC_V53_SESSION;
