@@ -5283,7 +5283,7 @@ const cy55refresh=cy54.refreshAuth;cy54.refreshAuth=async function(){await cy55r
    <article class="cc77card"><div class="cc77tag">SISTEMA PARA PRESTAMISTAS</div><div class="cc78service"><span class="cc78service-logo cc78cobra" role="img" aria-label="Logo original de Cobra Ya"></span><h2>COBRA YA</h2></div><p>Control de clientes, préstamos, abonos y vencimientos. La suscripción es voluntaria: S/ 15 por 30 días desde la billetera interna, con pago de prueba por ahora.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc79Cobra()">Ingresar a Cobra Ya</button><button type="button" onclick="cc77Auth(true)">Crear cuenta</button></div></article>
   </div>
   <div class="cc77actions" style="margin:18px 0"><button type="button" onclick="cc80.open()" style="background:#e9c67c;color:#15263a;font-weight:800">💼 Mis billeteras · Transferir</button></div>
-  <div id="cc79logged" class="cc79hint" hidden></div><div class="cc77foot">Desarrollado por CLAN CARTAN EIRL. · clancartan@gmail.com<br>Versión piloto · Una cuenta CLAN CARTAN · Stream Bull’s: afiliación única S/ 20 (pendiente de integración) · Cobra Ya: S/ 15 por 30 días con saldo de prueba · Transferencias entre billeteras disponibles con saldo de prueba</div>
+  <div id="cc79logged" class="cc79hint" hidden></div><div class="cc77foot">Desarrollado por CLAN CARTAN EIRL. · clancartan@gmail.com<br>Versión piloto · Una cuenta CLAN CARTAN · Stream Bull’s: afiliación única S/ 20 con saldo ficticio · Cobra Ya: S/ 15 por 30 días con saldo de prueba · Transferencias entre billeteras disponibles con saldo de prueba</div>
  </div>
 </section>
 <button type="button" id="cc77back" onclick="cc77Home()">← CLAN CARTAN</button><div id="cc77demobanner">Stream Bull's · catálogo de DEMOSTRACIÓN. Precios y operaciones comerciales todavía no conectados a Supabase.</div>
@@ -5325,13 +5325,31 @@ function cc79Cobra(){
  if(window.cy53?.open){window.cy53.open()}
  else {alert('No se pudo abrir Cobra Ya. Vuelve a intentar.');cc77Home();}
 }
-function cc79StreamBenefits(){
+async function cc79StreamBenefits(){
  if(!window.CC_V53_SESSION){cc77Auth(false);return;}
- alert('Has iniciado sesión única CLAN CARTAN. Los precios de afiliado de Stream Bull\'s se activarán después del pago único de S/ 20 desde su propia billetera. Esta función está pendiente de integración, no se realizará ningún cobro ahora.');
- cc77Store();
+ const pop=document.getElementById('cc93-affiliate');pop.style.display='flex';
+ const msg=document.getElementById('cc93-message');msg.textContent='Consultando afiliación…';
+ const btn=document.getElementById('cc93-confirm');btn.style.display='none';btn.disabled=true;
+ try{const r=await cc80.api('rpc/sb_my_affiliation_test','POST',{});const active=Boolean(r?.[0]?.is_affiliated);
+ msg.textContent=active?'✅ Afiliación activa; no volverás a pagar.':'Afiliación voluntaria y única por S/ 20 desde tu billetera de prueba Stream Bull\'s.';
+ btn.style.display=active?'none':'inline-block';btn.disabled=false;
+ }catch(e){msg.textContent='No se pudo consultar la afiliación: '+e.message;}
+}
+async function cc93PayAffiliation(){
+ if(!confirm('¿Autorizar descuento de S/ 20 FICTICIOS de Stream Bull\'s?'))return;
+ const btn=document.getElementById('cc93-confirm'),msg=document.getElementById('cc93-message');btn.disabled=true;msg.textContent='Activando afiliación…';
+ try{await cc80.api('rpc/sb_pay_affiliation_test','POST',{});msg.textContent='✅ Afiliación permanente activada. Pago ficticio único registrado.';btn.style.display='none';}
+ catch(e){msg.textContent='No se completó el pago: '+e.message;btn.disabled=false;}
 }
 </script>
 
+<div id="cc93-affiliate" role="dialog" aria-modal="true" aria-label="Afiliación Stream Bull's" style="display:none;position:fixed;inset:0;z-index:2147483646;background:#000b;align-items:center;justify-content:center;padding:15px">
+<div style="width:min(470px,100%);background:#12243a;color:white;border:1px solid #b9a271;border-radius:16px;padding:22px;box-shadow:0 12px 60px #000">
+<h2 style="color:#f2d38a;margin-top:0">STREAM BULL'S — Afiliación</h2><p>Pago voluntario de <b>S/ 20</b> por única vez. Solo saldo ficticio; sin dinero real.</p>
+<p id="cc93-message" role="status">Consultando…</p>
+<button id="cc93-confirm" onclick="cc93PayAffiliation()" style="background:#eac677;color:#172235;border:0;border-radius:9px;padding:12px;cursor:pointer">Activar por S/ 20</button>
+<button onclick="document.getElementById('cc93-affiliate').style.display='none'" style="background:#30465b;color:white;border:0;border-radius:9px;padding:12px;cursor:pointer;margin-left:5px">Cerrar</button>
+</div></div>
 <style>
 #cc80wallet{max-width:930px;margin:24px auto;border:1px solid #a2864a9c;border-radius:18px;background:rgba(7,18,34,.95);padding:22px;color:#f2f6fb;display:none}
 #cc80wallet h2{margin:0 0 10px;color:#e9c67c}#cc80wallet .cc80balances{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0}
