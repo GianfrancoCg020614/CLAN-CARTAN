@@ -5327,13 +5327,38 @@ function cc79Cobra(){
 }
 async function cc79StreamBenefits(){
  if(!window.CC_V53_SESSION){cc77Auth(false);return;}
- const pop=document.getElementById('cc93-affiliate');pop.style.display='flex';
+ const pop=document.getElementById('cc93-affiliate');pop.style.display='flex';document.getElementById('cc94-admin-link').style.display=window.CC_V53_SESSION?.isAdmin?'inline-block':'none';document.getElementById('cc94-review').textContent='';
  const msg=document.getElementById('cc93-message');msg.textContent='Consultando afiliación…';
  const btn=document.getElementById('cc93-confirm');btn.style.display='none';btn.disabled=true;
  try{const r=await cc80.api('rpc/sb_my_affiliation_test','POST',{});const active=Boolean(r?.[0]?.is_affiliated);
  msg.textContent=active?'✅ Afiliación activa; no volverás a pagar.':'Afiliación voluntaria y única por S/ 20 desde tu billetera de prueba Stream Bull\'s.';
  btn.style.display=active?'none':'inline-block';btn.disabled=false;
  }catch(e){msg.textContent='No se pudo consultar la afiliación: '+e.message;}
+}
+async function cc94RequestTopup(){
+ const amountText=prompt('¿Cuánto saldo FICTICIO deseas solicitar para Stream Bull\'s? (S/ 1 a S/ 1,000)','20');
+ if(amountText===null)return;
+ const amount=Number(amountText.replace(',','.'));if(!Number.isFinite(amount)||amount<1||amount>1000||Math.round(amount*100)!==amount*100){alert('Ingresa un importe válido de S/ 1 a S/ 1,000.');return;}
+ const msg=document.getElementById('cc93-message');
+ try{await cc80.api('rpc/cc_request_test_topup','POST',{p_service:'STREAM_BULLS',p_amount:amount});msg.textContent='✅ Solicitud ficticia enviada al ADMIN. Se abonará a tu billetera solo si la aprueba.';}
+ catch(e){msg.textContent='No se pudo solicitar la recarga: '+e.message;}
+}
+async function cc94AdminRequests(){
+ if(!window.CC_V53_SESSION?.isAdmin)return;
+ const container=document.getElementById('cc94-review');container.textContent='Buscando solicitudes…';
+ try{
+ const rows=await cc80.api('cc_test_topup_requests?select=id,user_id,service,amount,created_at&status=eq.PENDING&order=created_at.desc');
+ container.replaceChildren();
+ if(!rows.length){container.textContent='No hay solicitudes pendientes.';return;}
+ for(const r of rows){
+ const line=document.createElement('div');line.style.cssText='border-top:1px solid #4f6b79;padding:9px 0';
+ const title=document.createElement('div');title.textContent=r.service+' · S/ '+r.amount+' · Cuenta '+r.user_id.slice(0,8)+'…';line.appendChild(title);
+ for(const [label,allow] of [['Aprobar',true],['Rechazar',false]]){
+ const btn=document.createElement('button');btn.textContent=label;btn.style.cssText='margin:5px;padding:7px 10px;border-radius:7px;border:0;cursor:pointer';
+ btn.onclick=async()=>{btn.disabled=true;try{await cc80.api('rpc/cc_admin_review_test_topup','POST',{p_request:r.id,p_approve:allow});await cc94AdminRequests();}catch(e){alert(e.message);btn.disabled=false;}};line.appendChild(btn);
+ }container.appendChild(line);
+ }
+ }catch(e){container.textContent='Error al consultar solicitudes: '+e.message;}
 }
 async function cc93PayAffiliation(){
  if(!confirm('¿Autorizar descuento de S/ 20 FICTICIOS de Stream Bull\'s?'))return;
@@ -5348,6 +5373,9 @@ async function cc93PayAffiliation(){
 <h2 style="color:#f2d38a;margin-top:0">STREAM BULL'S — Afiliación</h2><p>Pago voluntario de <b>S/ 20</b> por única vez. Solo saldo ficticio; sin dinero real.</p>
 <p id="cc93-message" role="status">Consultando…</p>
 <button id="cc93-confirm" onclick="cc93PayAffiliation()" style="background:#eac677;color:#172235;border:0;border-radius:9px;padding:12px;cursor:pointer">Activar por S/ 20</button>
+<button onclick="cc94RequestTopup()" style="background:#11888e;color:white;border:0;border-radius:9px;padding:12px;cursor:pointer;margin:7px 5px 0 0">💳 Solicitar recarga</button>
+<button id="cc94-admin-link" onclick="cc94AdminRequests()" style="display:none;background:#a88c53;color:#122135;border:0;border-radius:9px;padding:12px;cursor:pointer;margin-top:7px">Revisar recargas · ADMIN</button>
+<div id="cc94-review" style="margin-top:12px;max-height:240px;overflow:auto"></div>
 <button onclick="document.getElementById('cc93-affiliate').style.display='none'" style="background:#30465b;color:white;border:0;border-radius:9px;padding:12px;cursor:pointer;margin-left:5px">Cerrar</button>
 </div></div>
 <style>
