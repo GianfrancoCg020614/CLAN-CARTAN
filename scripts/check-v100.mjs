@@ -24,6 +24,8 @@ for (const [name, fragment] of required) {
   assert.ok(html.includes(fragment), 'Falta ' + name);
 }
 assert.ok(!html.includes("const CCC_DEMO_PASSWORD="), 'Existe una contraseña maestra demo');
+assert.ok(/<meta name="cc-deploy-version" content="V[0-9]+-[0-9]{8}">/.test(html), 'Falta marca verificable de despliegue');
+assert.ok(!html.includes('gc.kis.v2.scr.kaspersky-labs.com'), 'Dependencia antivirus inyectada ajena al proyecto');
 assert.ok(!/sb_secret_[A-Za-z0-9_-]+/.test(html), 'Posible clave Supabase secreta');
 
 // V102: invariantes comerciales que no deben perderse en nuevas versiones.
