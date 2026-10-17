@@ -9,6 +9,14 @@
 **Sitio principal piloto (despliegue V102 por comprobar):** https://clan-cartan.pages.dev/  
 **Respaldo anterior:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
 
+## Estado actual — V103 (17 de octubre de 2026)
+
+**Supabase:** consultas y créditos administrativos de COBRA YA utilizan la billetera por servicio; 3 RPC de consulta personal redujeron sus privilegios para respetar RLS. Advertencias por RPC privilegiadas: de 18 a 15. Se añadieron 13 índices de claves foráneas y se comprobaron permisos para operaciones de préstamos ajenos sin modificar datos.
+
+**GitHub:** formulario de registro/recuperación con contraseñas nuevas de al menos 12 caracteres; validador estático ampliado y workflow `.github/workflows/validar-portal.yml` para futuras actualizaciones. [Detalle completo](docs/V103-CHANGELOG.md).
+
+**Aún pendientes:** confirmar el despliegue Cloudflare, SMTP transaccional, pruebas reales del navegador y revisión de las 15 funciones privilegiadas restantes. No hay cobros reales, retiros ni pagos de préstamos desde billeteras.
+
 ## Estado actual — V102 (17 de octubre de 2026)
 
 **GitHub:** se corrigió el cambio entre registro/inicio de sesión, se bloquearon los retiros de las billeteras internas en los paneles del prototipo y se desactivaron las renovaciones automáticas de COBRA YA. En modo de pago, los S/15 solo pueden descontarse tras confirmación voluntaria del usuario. Se amplió `node scripts/check-v100.mjs` con pruebas estáticas de estas reglas. [Ver registro V102](docs/V102-CHANGELOG.md).
