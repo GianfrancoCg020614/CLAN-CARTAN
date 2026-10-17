@@ -6,8 +6,21 @@
 **Correo:** clancartan@gmail.com  
 **Negocios:** STREAM BULL'S y COBRA YA  
 **Repositorio:** https://github.com/GianfrancoCg020614/CLAN-CARTAN  
-**Sitio principal piloto (despliegue V102 por comprobar):** https://clan-cartan.pages.dev/  
+**Dominio principal declarado (V105 pendiente de verificación HTTPS/DNS):** https://www.clancartan.com/  
+**Respaldo Cloudflare Pages:** https://clan-cartan.pages.dev/  
 **Respaldo anterior:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
+
+## Estado actual — V105 (17 de octubre de 2026)
+
+**Dominio:** sitio canónico `https://www.clancartan.com/`, con respaldo `clan-cartan.pages.dev` y vigilancia de versión V105 en GitHub Actions. La publicación del dominio y la configuración de Auth en Supabase aún necesitan verificación externa.
+
+**Interfaz:** clientes y préstamos de COBRA YA simplificados a dos pasos, opciones adicionales plegadas y botón «Guardar y continuar». Al ingresar DNI de 8 dígitos ya guardado por el mismo prestamista, se rellenan nombre y WhatsApp y el cliente queda seleccionado para el préstamo sin otro clic.
+
+**Supabase:** `cy_lookup_dni_saved` usa SECURITY INVOKER, autenticación y RLS; índice único parcial impide duplicar el DNI dentro de la misma cartera. Pruebas de titular/no titular e invalidación de formato superadas en transacciones revertidas. **No consulta RENIEC** hasta disponer de servicio y permisos autorizados.
+
+**Documentos:** [Cambios V105](docs/V105-CHANGELOG.md) · [Integración oficial de DNI pendiente](docs/RENIEC-INTEGRACION.md).
+
+**Pendientes:** comprobación DNS/SSL y redirects para `www`, conexión de correo, claves reales y validación de Turnstile (la captura de éxito no constituye una integración), pruebas de navegador y proveedor autorizado de datos DNI. Sin dinero real.
 
 ## Estado actual — V104 (17 de octubre de 2026)
 
@@ -50,7 +63,7 @@
 - PANEL ADMIN visible en la parte superior únicamente cuando ingresa un ADMIN verificado en Supabase; mostrar nombre, iniciales y rol del usuario después del login.
 - Roles y proveedores: SUPER RESELLER, RESELLER y proveedores independientes asumen sus propias obligaciones por sus ofertas y servicios; CLAN CARTAN conserva las responsabilidades legales que correspondan. Borradores legales deben ser revisados antes de operar comercialmente.
 - No mencionar «Vendomix» en la web o textos comerciales. Marca usada: CLAN CARTAN.
-- **Decisión de infraestructura:** utilizar **Cloudflare** para el futuro dominio, alojamiento con Pages y seguridad con Turnstile; mantener **GitHub** para el código y **Supabase** para autenticación, base de datos y permisos. Dominio clancartan.com aún **no comprado**. No migrar ni apagar GitHub Pages antes de probar Cloudflare.
+- **Decisión de infraestructura:** utilizar **Cloudflare** para el futuro dominio, alojamiento con Pages y seguridad con Turnstile; mantener **GitHub** para el código y **Supabase** para autenticación, base de datos y permisos. El titular indicó que el dominio **www.ClanCartan.com** ya está configurado; la conexión DNS/HTTPS y su publicación deben verificarse. No apagar la dirección de respaldo de Cloudflare hasta comprobarlo.
 - Confirmación y recuperación por correo: las URL de Supabase se configuraron visualmente para https://gianfrancocg020614.github.io/CLAN-CARTAN/ ; cuando se migre a Cloudflare Pages, actualizar URLs permitidas sin perder cuentas.
 
 ## Implementación hasta el momento
@@ -70,7 +83,7 @@
 3. **Recargas ficticias y afiliación**: probar solicitud, aprobación ADMIN, saldo, descuento único y rechazo de doble cobro; verificar que usuario sin afiliación solo vea precios públicos.
 4. **Permisos y seguridad**: probar aislamiento de usuarios distintos, JWT, RLS, roles, errores del navegador; corregir la coherencia contable entre préstamos y correcciones.
 5. **Prelanzamiento legal**: revisar textos definitivos, acuerdos de proveedor y protección de datos; evaluar requisitos de pagos/billeteras reales. No habilitar dinero real sin cumplimiento y pasarela regulada.
-6. **Dominio**: comprar/conectar `clancartan.com` solo tras funcionamiento completo.
+6. **Dominio**: comprobar la configuración DNS, SSL, dominio personalizado de Pages y Site URL/Redirect URLs en Supabase antes de anunciar el lanzamiento.
 
 ## Observaciones de seguridad y operaciones
 
