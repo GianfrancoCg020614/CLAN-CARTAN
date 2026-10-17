@@ -26,6 +26,12 @@ for (const [name, fragment] of required) {
 assert.ok(!html.includes("const CCC_DEMO_PASSWORD="), 'Existe una contraseña maestra demo');
 assert.ok(/<meta name="cc-deploy-version" content="V[0-9]+-[0-9]{8}">/.test(html), 'Falta marca verificable de despliegue');
 assert.ok(!html.includes('gc.kis.v2.scr.kaspersky-labs.com'), 'Dependencia antivirus inyectada ajena al proyecto');
+assert.ok(html.includes('<link rel="canonical" href="https://www.clancartan.com/">'), 'Falta dominio canónico de CLAN CARTAN');
+assert.ok(html.includes('www.ClanCartan.com'), 'Falta dirección comercial visible');
+assert.ok(html.includes("rpc/cy_lookup_dni_saved"), 'Falta autocompletado restringido por DNI');
+assert.ok(html.includes('cy105goLoan'), 'Falta acceso directo del cliente al préstamo');
+assert.ok(html.includes('cy105dniStatus'), 'Falta el indicador accesible de consulta de DNI');
+
 assert.ok(!/sb_secret_[A-Za-z0-9_-]+/.test(html), 'Posible clave Supabase secreta');
 
 // V102: invariantes comerciales que no deben perderse en nuevas versiones.
@@ -49,4 +55,4 @@ assert.ok(!html.includes('onclick="lnOpenWithdrawal()"'), 'Botón de retiro Cobr
 assert.ok(!html.includes('onclick="requestWithdrawal()"'), 'Botón de retiro Stream Bulls activo');
 assert.ok(!html.includes("Descuento AUTOMÁTICO DEMO"), 'Mensualidad automática heredada');
 assert.ok(!html.includes("window.setInterval(()=>{const n=lnAutoRenewDue()"), 'Temporizador de cobro automático');
-console.log('V103: ' + inline.length + ' scripts con sintaxis válida, reglas de acceso y pagos voluntarios verificadas de forma estática.');
+console.log('V105: ' + inline.length + ' scripts con sintaxis válida, reglas de acceso y pagos voluntarios verificadas de forma estática.');
