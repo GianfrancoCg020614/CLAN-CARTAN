@@ -5138,6 +5138,7 @@ cy105dniInput.addEventListener('input',()=>{
  clearTimeout(cy105dniTimer);
  const value=cy105dniInput.value.trim();
  const seq=++cy105lastLookup;
+ delete cy105clientForm.dataset.foundClientId;
  cy105dniStatus.textContent='';
  if(!/^[0-9]{8}$/.test(value))return;
  cy105dniStatus.textContent='Buscando únicamente en tus clientes guardados…';
