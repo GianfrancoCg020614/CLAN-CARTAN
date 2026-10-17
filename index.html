@@ -5244,6 +5244,12 @@ const cy55refresh=cy54.refreshAuth;cy54.refreshAuth=async function(){await cy55r
 <style>
 #cc-real-login{display:none}
 #cc77home{position:fixed;inset:0;z-index:2147483638;overflow:auto;background:linear-gradient(95deg,rgba(2,7,16,.68),rgba(2,8,20,.84)),var(--clanPoster) center 38%/cover fixed, #050c16;color:#f0f5ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:25px 18px}
+
+/* V96: evitar doble barra vertical del documento y portal fijo.
+   El portal conserva su scroll propio; el documento solo desplaza al abrir un módulo. */
+html:has(#cc77home[style*="display: block"]),
+body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
+#cc77home{scrollbar-gutter:stable;overscroll-behavior:contain}
 #cc77home *{box-sizing:border-box}
 .cc77wrap{max-width:1080px;margin:auto}
 .cc77top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #46607880;padding-bottom:18px}
