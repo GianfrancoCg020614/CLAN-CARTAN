@@ -47,3 +47,12 @@
 - `gianfrancocarbajal44@gmail.com` es cuenta ADMIN y estaba confirmada.
 - No subir llaves secretas de Supabase, credenciales, contraseñas ni datos personales reales al repositorio público.
 - El correo en Supabase NO está plenamente validado; Cloudflare Email Routing (recepción) y SMTP de envío son servicios distintos, y se debe verificar disponibilidad y precios actuales.
+
+## Avance V97 — 17 de octubre de 2026
+
+- Cloudflare Pages quedó vinculado manualmente por el titular a GitHub y confirmó la dirección gratuita `https://clan-cartan.pages.dev/` (el usuario confirmó que abre). La configuración de GitHub Pages se mantiene temporalmente por seguridad.
+- V96: CSS para reducir doble desplazamiento vertical en la portada; se requiere confirmación visual tras despliegue.
+- V97: reforzada la RPC `cc_request_test_topup`: bloqueo por usuario y servicio, índice único de recarga pendiente por servicio y límite de 5 solicitudes por 24 horas. Saldos exclusivamente ficticios.
+- **Pendiente Turnstile real**: obtener SITE KEY y configurar SECRET KEY en un servidor (Supabase Edge Function, nunca en GitHub/HTML); validar tokens en servidor antes de habilitar protección efectiva. No insertar captcha decorativo ni exponer el secreto.
+- **Pendiente Supabase Auth**: añadir `https://clan-cartan.pages.dev/**` en Redirect URLs; revisar Site URL y corregir los redireccionamientos de registro/recuperación del `index.html` solo cuando se haya confirmado el cambio para no romper confirmaciones.
+- El chequeo de Supabase marcó advertencias para funciones SECURITY DEFINER publicadas intencionalmente y protección contra contraseñas filtradas desactivada: requiere revisar permisos por función, y activar protección de contraseñas desde Auth Settings.
