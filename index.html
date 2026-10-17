@@ -4881,7 +4881,7 @@ async function register(event){
   if(!region||!province||!district)throw Error('Completa tu ubicación.');
   if(password!==document.getElementById('cc-v81-confirm').value)throw Error('Las contraseñas no coinciden.');
   if(!document.getElementById('cc-v81-terms').checked)throw Error('Lee y acepta los Términos y la Política de privacidad.');
-  const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent('https://gianfrancocg020614.github.io/CLAN-CARTAN/'),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V82_BORRADOR',privacy_version:'V82_BORRADOR',legal_accepted:true}})});
+  const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent('https://clan-cartan.pages.dev/'),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V82_BORRADOR',privacy_version:'V82_BORRADOR',legal_accepted:true}})});
   document.getElementById('cc-real-pass').value='';
   if(result?.access_token){setRegisterMode(false);status.textContent='Cuenta creada. Inicia sesión con tu correo y contraseña. Los servicios se activan por separado.';}
   else{
