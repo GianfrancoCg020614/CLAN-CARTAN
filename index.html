@@ -5151,7 +5151,8 @@ cy105dniInput.addEventListener('input',()=>{
     cy105clientForm.elements.name.value=found.full_name||'';
     cy105clientForm.elements.phone.value=found.phone||'';
     cy105clientForm.dataset.foundClientId=found.client_id;
-    cy105dniStatus.textContent='✓ Cliente registrado en tu cartera. Puedes continuar al préstamo.';
+    cy105dniStatus.textContent='✓ Cliente encontrado. Se seleccionó automáticamente para el préstamo.';
+    cy105goLoan(found.client_id);
    }else{
     delete cy105clientForm.dataset.foundClientId;
     cy105dniStatus.textContent='DNI nuevo en tu cartera. Ingresa el nombre; la consulta oficial requiere integración autorizada.';
@@ -5170,11 +5171,15 @@ cy105clientForm.addEventListener('submit',async e=>{
  if(button?.disabled)return;
  if(button)button.disabled=true;
  try{
-  if(form.dataset.foundClientId && /^[0-9]{8}$/.test(doc)){
-   const saved=form.dataset.foundClientId;
-   form.reset();delete form.dataset.foundClientId;cy105dniStatus.textContent='';
-   await refresh();cy105goLoan(saved);notice('Cliente existente seleccionado. Continúa con el préstamo.');
-   return;
+  if(/^[0-9]{8}$/.test(doc)){
+   // Volvemos a comprobar al guardar para evitar duplicados si escribió el DNI muy rápido.
+   const existing=await request('rpc/cy_lookup_dni_saved','POST',{p_dni:doc});
+   const saved=Array.isArray(existing)?existing[0]?.client_id:null;
+   if(saved){
+    form.reset();delete form.dataset.foundClientId;cy105dniStatus.textContent='';
+    await refresh();cy105goLoan(saved);notice('Cliente existente seleccionado. Continúa con el préstamo.');
+    return;
+   }
   }
   const current=session();
   const payload={owner_id:current.userId,full_name:String(f.get('name')||'').trim(),
