@@ -1,12 +1,18 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Actualizado:** 16 de octubre de 2026  
+**Actualizado:** 17 de octubre de 2026  
 **Razón social:** CLAN CARTAN E.I.R.L.  
 **RUC comunicado por el titular:** 20612272078  
 **Correo:** clancartan@gmail.com  
 **Negocios:** STREAM BULL'S y COBRA YA  
 **Repositorio:** https://github.com/GianfrancoCg020614/CLAN-CARTAN  
 **Sitio piloto:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
+
+## Estado actual — V100 (17 de octubre de 2026)
+
+**GitHub:** correcciones de sesiones, etiquetas de entorno ficticio, filtros por fecha real del cronograma y eliminación de la contraseña maestra de demostración. **Supabase:** mejoras de cálculo en correcciones y prórrogas; 4 préstamos ficticios nuevos para pruebas de estados. Consulte [el registro completo de V100](docs/V100-CHANGELOG.md) y ejecute `node scripts/check-v100.mjs` para validar los scripts del portal.
+
+**Pendiente:** verificar despliegue real en Cloudflare, SMTP de autenticación, pruebas E2E y revisión de RPC privilegiadas. Ningún pago real está habilitado.
 
 ## Decisiones que debemos conservar
 
