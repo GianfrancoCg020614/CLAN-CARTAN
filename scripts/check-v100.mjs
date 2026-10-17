@@ -25,4 +25,23 @@ for (const [name, fragment] of required) {
 }
 assert.ok(!html.includes("const CCC_DEMO_PASSWORD="), 'Existe una contraseña maestra demo');
 assert.ok(!/sb_secret_[A-Za-z0-9_-]+/.test(html), 'Posible clave Supabase secreta');
-console.log('V100: ' + inline.length + ' scripts correctos; ' + required.length + ' controles estáticos correctos.');
+
+// V102: invariantes comerciales que no deben perderse en nuevas versiones.
+const invariants = [
+  ['registro e inicio de sesión', "textContent.includes('Registrar mi cuenta')"],
+  ['suscripción voluntaria', "function lnAutoRenewDue(){return 0;}"],
+  ['confirmación de mensualidad', "¿Confirmas pagar VOLUNTARIAMENTE S/ 15"],
+  ['deshabilitar retiros Cobra Ya', "function lnOpenWithdrawal(){return notify("],
+  ['acceso a billeteras exclusivas', "cc_transfer_test_balance"],
+  ['catalogo sin registro', "CATÁLOGO PÚBLICO · SIN REGISTRO"]
+];
+for (const [label,fragment] of invariants) {
+  assert.ok(html.includes(fragment), 'Regla perdida: ' + label);
+}
+const roleBlock=html.slice(html.indexOf('const ROLE_SECTIONS='),html.indexOf('const PANEL_NAMES='));
+assert.ok(roleBlock && !roleBlock.includes("'withdrawals'"), 'Retiros visibles en navegación');
+assert.ok(!html.includes('onclick="lnOpenWithdrawal()"'), 'Botón de retiro Cobra Ya activo');
+assert.ok(!html.includes('onclick="requestWithdrawal()"'), 'Botón de retiro Stream Bulls activo');
+assert.ok(!html.includes("Descuento AUTOMÁTICO DEMO"), 'Mensualidad automática heredada');
+assert.ok(!html.includes("window.setInterval(()=>{const n=lnAutoRenewDue()"), 'Temporizador de cobro automático');
+console.log('V102: ' + inline.length + ' scripts con sintaxis válida, reglas de acceso y pagos voluntarios verificadas de forma estática.');
