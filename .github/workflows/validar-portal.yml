@@ -1,0 +1,26 @@
+name: Validar portal CLAN CARTAN
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar-html-y-reglas:
+    name: Scripts y reglas comerciales
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar sintaxis y reglas de seguridad
+        run: node scripts/check-v100.mjs
