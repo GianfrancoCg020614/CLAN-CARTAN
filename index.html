@@ -5162,6 +5162,7 @@ const cy105goLoan=(id)=>{
  form?.scrollIntoView({behavior:'smooth',block:'start'});
  setTimeout(()=>form?.elements.principal?.focus({preventScroll:true}),300);
 };
+document.getElementById('cy106consent').addEventListener('change',()=>{if(/^\d{8}$/.test(cy105dniInput.value.trim()))cy105dniInput.dispatchEvent(new Event('input'));});
 cy105dniInput.addEventListener('input',()=>{
  clearTimeout(cy105dniTimer);
  const value=cy105dniInput.value.trim();
