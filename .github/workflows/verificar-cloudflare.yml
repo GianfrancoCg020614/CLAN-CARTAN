@@ -28,7 +28,8 @@ jobs:
             exit 1
           fi
           echo "Versión esperada: $expected"
-          url='https://clan-cartan.pages.dev/'
+          url='https://www.clancartan.com/'
+          respaldo='https://clan-cartan.pages.dev/'
           for attempt in $(seq 1 12); do
             echo "Intento $attempt: verificando la publicación..."
             if curl --fail --silent --show-error --location --max-time 25 \
@@ -36,7 +37,7 @@ jobs:
                "${url}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o cloudflare-response.html; then
               if grep -Fq "content=\"$expected\"" cloudflare-response.html; then
                 echo "✓ Cloudflare publica la versión $expected"
-                echo "### Cloudflare Pages: versión confirmada" >> "$GITHUB_STEP_SUMMARY"
+                echo "### www.ClanCartan.com: versión confirmada" >> "$GITHUB_STEP_SUMMARY"
                 echo "La versión **$expected** se encontró en [el sitio público]($url)." >> "$GITHUB_STEP_SUMMARY"
                 exit 0
               fi
@@ -46,7 +47,13 @@ jobs:
             fi
             sleep 20
           done
+          echo "Comprobando si la versión ya se publicó en la dirección de respaldo..."
+          if curl --fail --silent --show-error --location --max-time 25 --header 'Cache-Control: no-cache' \
+            "${respaldo}?clan_check=${GITHUB_RUN_ID}-respaldo" -o cloudflare-backup.html && \
+            grep -Fq "content=\"$expected\"" cloudflare-backup.html; then
+            echo "::warning::La V105 está visible en Pages, pero NO se confirmó en www.clancartan.com."
+          fi
           echo "::error::No se pudo confirmar la versión $expected en Cloudflare Pages."
-          echo "### Cloudflare Pages: publicación sin confirmar" >> "$GITHUB_STEP_SUMMARY"
+          echo "### www.ClanCartan.com: publicación sin confirmar" >> "$GITHUB_STEP_SUMMARY"
           echo "GitHub espera **$expected**, pero no pudo verificar esa versión en [el sitio]($url)." >> "$GITHUB_STEP_SUMMARY"
           exit 1
