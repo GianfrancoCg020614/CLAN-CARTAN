@@ -6,7 +6,16 @@
 **Correo:** clancartan@gmail.com  
 **Negocios:** STREAM BULL'S y COBRA YA  
 **Repositorio:** https://github.com/GianfrancoCg020614/CLAN-CARTAN  
-**Sitio piloto:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
+**Sitio principal piloto (despliegue V102 por comprobar):** https://clan-cartan.pages.dev/  
+**Respaldo anterior:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
+
+## Estado actual — V102 (17 de octubre de 2026)
+
+**GitHub:** se corrigió el cambio entre registro/inicio de sesión, se bloquearon los retiros de las billeteras internas en los paneles del prototipo y se desactivaron las renovaciones automáticas de COBRA YA. En modo de pago, los S/15 solo pueden descontarse tras confirmación voluntaria del usuario. Se amplió `node scripts/check-v100.mjs` con pruebas estáticas de estas reglas. [Ver registro V102](docs/V102-CHANGELOG.md).
+
+**Supabase:** las mejoras de cálculo de V100 siguen activas. Pruebas simuladas de 5 operaciones privilegiadas/ajenas no se completaron. Nueve préstamos ficticios, sin diferencias contables en cuotas/abonos ni saldos negativos al cierre.
+
+**Pendientes para producción:** verificar el despliegue de Cloudflare, correo SMTP, pruebas E2E con cuentas distintas, acceso a precios especiales de afiliados y documentación legal. Sin dinero real ni retiros.
 
 ## Estado actual — V100 (17 de octubre de 2026)
 
