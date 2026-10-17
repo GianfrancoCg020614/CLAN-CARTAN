@@ -4778,7 +4778,7 @@ const gate=document.getElementById('cc-real-login');
 const form=document.getElementById('cc-real-form');
 const status=document.getElementById('cc-real-status');
 const btn=document.getElementById('cc-real-button');
-let verified=false, sessionToken=null;
+let verified=false, sessionToken=null, refreshToken=null, refreshPending=null;
 // V90: permite solicitar un nuevo correo de activación sin revelar información de otras cuentas.
 document.getElementById('cc90-resend').addEventListener('click',async function(){
  const email=document.getElementById('cc-real-email').value.trim();
@@ -4797,6 +4797,26 @@ async function api(path,opts={},jwt=null){
  if(!resp.ok)throw Error(data.msg||data.error_description||data.message||'Error de autenticación ('+resp.status+')');
  return data;
 }
+// V100: mantener activa una sesión Supabase mientras la página permanezca abierta.
+// El refresh token no se guarda en localStorage, y nunca se expone en la interfaz.
+async function refreshSupabaseSession(){
+ if(!refreshToken || !window.CC_V53_SESSION)return;
+ if(refreshPending)return refreshPending;
+ refreshPending=(async()=>{
+  const response=await api('/auth/v1/token?grant_type=refresh_token',{
+   method:'POST',body:JSON.stringify({refresh_token:refreshToken})
+  });
+  if(!response?.access_token || !response?.refresh_token)throw Error('No se pudo renovar la sesión.');
+  sessionToken=response.access_token;
+  refreshToken=response.refresh_token;
+  if(window.CC_V53_SESSION)window.CC_V53_SESSION.jwt=sessionToken;
+ })();
+ try{await refreshPending;}
+ catch(error){console.warn('La sesión requiere revalidación:',error?.message||error);}
+ finally{refreshPending=null;}
+}
+window.setInterval(()=>{if(!document.hidden)refreshSupabaseSession();},20*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSupabaseSession();});
 async function signIn(event){
  event.preventDefault();btn.disabled=true;status.textContent='Verificando sesión y autorización…';
  try{
@@ -4805,6 +4825,7 @@ async function signIn(event){
   const auth=await api('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
   if(!auth.access_token)throw Error('No se recibió una sesión válida.');
   const jwt=auth.access_token;
+  refreshToken=auth.refresh_token||null;
   const me=await api('/auth/v1/user',{},jwt);
   if(!me?.id)throw Error('No se pudo verificar la identidad.');
   const admins=await api('/rest/v1/cc_admins?select=user_id&user_id=eq.'+encodeURIComponent(me.id),{},jwt);
@@ -4816,7 +4837,7 @@ async function signIn(event){
     gate.style.display='none';
     document.getElementById('cc77back').style.display='none';
     document.getElementById('cc54logout').style.display='block';
-    const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent=authorized?'CLAN CARTAN V54 · RESELLER de COBRA YA autenticado · Datos reales':'CLAN CARTAN V54 · Solicitud de acceso a COBRA YA pendiente';document.body.appendChild(banner);
+    const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent=authorized?'CLAN CARTAN · RESELLER autenticado · registros de prueba':'CLAN CARTAN · Solicitud de acceso a COBRA YA pendiente';document.body.appendChild(banner);
     if(typeof loginDemo==='function'){verified=false;} // Nunca otorgar rol local ADMIN a RESELLER.
     document.getElementById('cy53open').style.display='block';
     if(typeof cc79AfterLogin==='function')cc79AfterLogin();
@@ -4826,7 +4847,7 @@ async function signIn(event){
   gate.style.display='none';
   document.getElementById('cc77back').style.display='none';
   document.getElementById('cc54logout').style.display='block';
-  const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent='CLAN CARTAN V54 · ADMIN autenticado. La V51 original sigue siendo DEMO; abre COBRA YA · DATOS REALES desde el botón superior.';document.body.appendChild(banner);
+  const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent='CLAN CARTAN · ADMIN autenticado. Los registros actuales son ficticios; abre COBRA YA desde el botón superior.';document.body.appendChild(banner);
   if(typeof loginDemo==='function')loginDemo('admin');
   if(typeof cc79AfterLogin==='function')cc79AfterLogin();
  }catch(e){
@@ -4901,7 +4922,7 @@ const originalLogin=window.loginDemo;
 window.loginDemo=function(id){if(!verified||id!=='admin'){alert('Acceso no autorizado. Usa el inicio de sesión real de CLAN CARTAN.');return;}return originalLogin(id);};
 window.cccLoginByEmail=function(){alert('Las contraseñas DEMO están deshabilitadas. Este es un piloto de autenticación Supabase.');};
 window.cccOpenBusinessAuth=function(){alert('Acceso comercial real en desarrollo. La autenticación ADMIN está disponible en esta versión piloto.');};
-window.logout=function(){window.CC_V53_SESSION=null;verified=false;if(sessionToken)api('/auth/v1/logout',{method:'POST'},sessionToken).catch(()=>{});sessionToken=null;location.reload();};
+window.logout=function(){window.CC_V53_SESSION=null;verified=false;refreshToken=null;if(sessionToken)api('/auth/v1/logout',{method:'POST'},sessionToken).catch(()=>{});sessionToken=null;location.reload();};
 })();
 </script>
 
@@ -4924,7 +4945,7 @@ document.addEventListener('click',function(e){const button=e.target.closest('[da
 #cy53layer{display:none;position:fixed;inset:0;z-index:1000001;background:#07121eef;color:#e7f2ff;overflow:auto;font-family:system-ui,sans-serif;padding:24px}
 #cy53layer *{box-sizing:border-box}#cy53layer .cywrap{max-width:1100px;margin:0 auto}#cy53layer .cyrow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}#cy53layer .cycards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}#cy53layer section{background:#102338;border:1px solid #36536b;border-radius:14px;padding:16px;margin:15px 0}#cy53layer input,#cy53layer select,#cy53layer textarea{display:block;width:100%;padding:10px;color:#fff;background:#0a1829;border:1px solid #4f667e;border-radius:7px;margin:8px 0}#cy53layer button{padding:10px 14px;border:0;border-radius:8px;background:#12a9ac;color:#fff;cursor:pointer;font-weight:700}#cy53layer button.secondary{background:#3c5169}#cy53layer button:disabled{opacity:.5}#cy53layer table{width:100%;border-collapse:collapse;font-size:13px}#cy53layer th,#cy53layer td{border-bottom:1px solid #32465a;padding:9px;text-align:left}#cy53layer small{color:#b0c1d6}#cy53notice{white-space:pre-line;color:#8debd8;min-height:24px}#cy53layer .scroll{overflow-x:auto}
 </style>
-<button id="cy53open" style="display:none" onclick="cy53.open()">↗ COBRA YA · DATOS REALES</button>
+<button id="cy53open" style="display:none" onclick="cy53.open()">↗ COBRA YA · REGISTROS DE PRUEBA</button>
 <button id="cy54adminShortcut" style="display:none;position:fixed;z-index:1000000;right:18px;top:108px;background:#145e98;color:#fff;border:1px solid #4dc3ed;padding:12px 15px;border-radius:10px;font-weight:bold;cursor:pointer" onclick="cy53.open();cy54.loadRequests().catch(e=>alert(e.message))">📋 SOLICITUDES RESELLER</button>
 <div id="cy53layer"><div class="cywrap">
 <div class="cyrow"><div><h2>COBRA YA · V55</h2><small>Piloto Supabase · Suscripción voluntaria con saldo de prueba · Sin dinero real</small></div><button class="secondary" onclick="cy53.close()">Volver a CLAN CARTAN</button></div>
