@@ -4656,7 +4656,7 @@ function lnApplySubscription(u,source='activación voluntaria'){
  // Prioriza gastar saldo de recargas; luego utiliza las ganancias disponibles de referidos.
  const prePaid=Math.max(0,before-earned);
  u.loanEarnedAvailable=lnFromCents(Math.max(0,earned-Math.max(0,1500-prePaid)));
- const base=today();u.loanPaidUntil=lnAddMonths(base,1);
+ const base=today();u.loanPaidUntil=plusDays(29); // DEMO: 30 fechas calendario, incluyendo hoy. Producción Supabase usa 30 días exactos.
  const id='SUB-'+uid();
  db.loanMoneyMoves.push({id,userId:u.id,type:'subscription',label:'Mensualidad S/15 (DEMO) · '+source,amount:-15,at:now(),paidUntil:u.loanPaidUntil});
  if(u.loanReferrerId){const owner=lnUser(u.loanReferrerId);if(lnCanEarnRef(owner)&&owner.id!==u.id){
