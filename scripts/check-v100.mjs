@@ -33,7 +33,10 @@ const invariants = [
   ['confirmación de mensualidad', "¿Confirmas pagar VOLUNTARIAMENTE S/ 15"],
   ['deshabilitar retiros Cobra Ya', "function lnOpenWithdrawal(){return notify("],
   ['acceso a billeteras exclusivas', "cc_transfer_test_balance"],
-  ['catalogo sin registro', "CATÁLOGO PÚBLICO · SIN REGISTRO"]
+  ['catalogo sin registro', "CATÁLOGO PÚBLICO · SIN REGISTRO"],
+  ['registro de contraseña robusta', 'if(password.length<12)'],
+  ['recuperación de contraseña robusta', 'if(pw.length<12||'],
+  ['ayuda de contraseña robusta', 'La contraseña debe tener al menos 12 caracteres']
 ];
 for (const [label,fragment] of invariants) {
   assert.ok(html.includes(fragment), 'Regla perdida: ' + label);
@@ -44,4 +47,4 @@ assert.ok(!html.includes('onclick="lnOpenWithdrawal()"'), 'Botón de retiro Cobr
 assert.ok(!html.includes('onclick="requestWithdrawal()"'), 'Botón de retiro Stream Bulls activo');
 assert.ok(!html.includes("Descuento AUTOMÁTICO DEMO"), 'Mensualidad automática heredada');
 assert.ok(!html.includes("window.setInterval(()=>{const n=lnAutoRenewDue()"), 'Temporizador de cobro automático');
-console.log('V102: ' + inline.length + ' scripts con sintaxis válida, reglas de acceso y pagos voluntarios verificadas de forma estática.');
+console.log('V103: ' + inline.length + ' scripts con sintaxis válida, reglas de acceso y pagos voluntarios verificadas de forma estática.');
