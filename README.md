@@ -9,6 +9,14 @@
 **Sitio principal piloto (despliegue V102 por comprobar):** https://clan-cartan.pages.dev/  
 **Respaldo anterior:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
 
+## Estado actual — V104 (17 de octubre de 2026)
+
+**GitHub:** una marca pública `cc-deploy-version` permite comprobar automáticamente la versión visible del portal en Cloudflare Pages. Se añadió el workflow [Verificar despliegue Cloudflare Pages](.github/workflows/verificar-cloudflare.yml), que consulta la web después de cada push y diariamente; también se eliminó una referencia externa de antivirus que no forma parte del proyecto.
+
+**Comprobación pendiente:** GitHub Actions deberá confirmar que `clan-cartan.pages.dev` sirve `V104-20261017`. Esta conexión aún no permite administrar la cuenta de Cloudflare ni verificar el estado de un despliegue dentro del panel. [Detalle V104](docs/V104-CHANGELOG.md).
+
+**Se mantienen:** Supabase Free, saldos de prueba, pagos de servicios voluntarios, sin retiros ni cobros reales ni contratación de nuevos planes.
+
 ## Estado actual — V103 (17 de octubre de 2026)
 
 **Supabase:** consultas y créditos administrativos de COBRA YA utilizan la billetera por servicio; 3 RPC de consulta personal redujeron sus privilegios para respetar RLS. Advertencias por RPC privilegiadas: de 18 a 15. Se añadieron 13 índices de claves foráneas y se comprobaron permisos para operaciones de préstamos ajenos sin modificar datos.
