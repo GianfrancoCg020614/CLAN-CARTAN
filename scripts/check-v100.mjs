@@ -62,7 +62,7 @@ assert.ok(nameOrder>0 && dniOrder>nameOrder,'CLAN CARTAN debe tener su formulari
 assert.ok(!html.includes('cc107consent'),'Registro general NO debe consultar DNI automáticamente');
 assert.ok(!html.includes('cc-dni-registro'),'Función de DNI público no debe usarse en el portal');
 assert.ok(html.includes('rpc/cy_lookup_dni_saved'),'COBRA YA debe conservar la consulta de DNI');
-assert.ok(html.includes('content="V112-20261018"'),'Falta marca de versión V111');
+assert.ok(html.includes('content="V113-20261018"'),'Falta marca de versión V111');
 assert.ok(html.includes('id="cc111-business"'),'Falta selector del negocio para el código propio');
 assert.ok(html.includes('invite_business:document.getElementById(\'cc111-business\').value'),'El registro no comunica el negocio elegido');
 assert.ok(html.includes('Puedes registrarte sin código'),'No se informa que el código es opcional');
@@ -80,4 +80,11 @@ assert.ok(html.includes('/rest/v1/rpc/cc_my_invitation_codes'),'Los afiliados no
 assert.ok(html.includes('cc110ShowMyInvitationCodes();'),'Falta mostrar los códigos al ingresar');
 assert.ok(html.includes('^(COBRA|BULL)'),'Falta formato COBRA / BULL');
 assert.ok(html.includes('commercialRole:commercialRole'),'Etiqueta de roles comerciales faltante');
-console.log('V112: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');
+const v113=readFileSync(new URL('../scripts/v113-wallet.js',import.meta.url),'utf8');
+new Script(v113,{filename:'v113-wallet.js'});
+assert.ok(html.includes('styles/v113-wallet.css'),'Falta CSS V113');
+assert.ok(html.includes('scripts/v113-wallet.js'),'Falta la interfaz V113');
+assert.ok(v113.includes('cy55.pay=async function'),'Falta activación de COBRA YA');
+assert.ok(v113.includes('cc_request_test_topup'),'Falta recarga simulada');
+assert.ok(v113.includes('cc_transfer_test_balance'),'Falta transferencia interna propia');
+console.log('V113: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');

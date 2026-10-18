@@ -1,0 +1,72 @@
+/* CLAN CARTAN V113 · Diseño uniforme sin cambiar los módulos históricos. */
+#cy53layer,#cc77home,#cc80wallet,#cc93-affiliate{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}
+#cy53layer .cywrap{max-width:1080px;margin:0 auto}
+#cy53layer .cyrow{align-items:center;gap:12px}
+#cy53layer .cyrow h2{letter-spacing:-.035em;font-weight:850}
+#cy53layer .cy75quick{top:auto;position:static;background:transparent;border-bottom:0;gap:8px;flex-wrap:wrap;padding:12px 0}
+#cy53layer .cy75quick[hidden]{display:none!important}
+#cy53layer .cy75quick button{background:#173e4d;border:1px solid #32677d;border-radius:11px;transition:background .18s}
+#cy53layer .cy75quick button:hover{background:#20536a}
+#cy55subscription.cy113-card{display:block;background:linear-gradient(130deg,#132e43,#102738)!important;border:1px solid #396279!important;border-radius:20px!important;padding:clamp(17px,3vw,27px)!important;box-shadow:0 16px 40px #0003;margin:15px 0 22px!important}
+#cy55subscription.cy113-card[style*="display: none"]{display:none!important}
+#cy55subscription .cy113-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+#cy55subscription .cy113-head h3{margin:4px 0 0;color:#f5faff;font-size:clamp(19px,2.8vw,24px);letter-spacing:-.025em}
+#cy55subscription .cy113-label{color:#8ac7d5;font-size:10px;letter-spacing:.16em;font-weight:800}
+#cy55subscription .cy113-badge{border-radius:24px;font-size:12px;font-weight:800;background:#2b4558;color:#dceaf8;padding:7px 12px}
+#cy55subscription .cy113-badge.active{background:#145d48;color:#aaf5ce}
+#cy55subscription .cy113-badge.blocked{background:#65383e;color:#ffccd5}
+#cy55subscription .cy113-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:17px 0}
+#cy55subscription .cy113-stats>div{background:#0a2032b3;border:1px solid #37566b;border-radius:13px;padding:15px;min-width:0}
+#cy55subscription .cy113-stats small{display:block;color:#adcad9;font-size:12px;margin-bottom:6px}
+#cy55subscription .cy113-stats strong{display:block;color:#fff;font-size:clamp(18px,2.6vw,26px);letter-spacing:-.04em}
+#cy55subscription .cy113-stats strong em{font-style:normal;color:#b4cbd9;font-weight:500;font-size:12px}
+#cy55subscription #cy113due{font-size:clamp(17px,2.3vw,21px)}
+#cy55subscription .cy113-buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#cy55subscription .cy113-buttons button{border-radius:10px;min-height:46px;padding:12px 16px;font-weight:750;cursor:pointer;border:1px solid #4a7589}
+#cy55subscription .cy113-buttons .cy113-pay{background:#139a85;border-color:#139a85;color:white}
+#cy55subscription .cy113-buttons .cy113-secondary{background:#1e4255;color:#eaf6ff}
+#cy55subscription button:focus-visible,#cc80wallet button:focus-visible,#cc93-affiliate button:focus-visible{outline:3px solid #e9cb88;outline-offset:3px}
+#cy55subscription button:disabled{opacity:.55;cursor:not-allowed}
+#cy55subscription .cy113-extra{background:#0c2333;border:1px solid #3d6175;border-radius:13px;padding:14px;margin-top:12px}
+#cy55subscription .cy113-extra[hidden],#cc93-affiliate .cc113-stream-topup[hidden]{display:none!important}
+#cy55subscription .cy113-extra label{color:#eaf8ff;font-size:13px;display:block}
+#cy55subscription .cy113-extra label span{font-size:12px;color:#a9c9d9}
+#cy55subscription .cy113-action{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px}
+#cy55subscription .cy113-action input{background:#193446;color:#fff;border:1px solid #5d8499;border-radius:9px;padding:11px;max-width:170px;min-width:100px;font-size:16px}
+#cy55subscription .cy113-action button{background:#139987;color:#fff;border:0;border-radius:9px;padding:12px 15px;cursor:pointer;font-weight:750}
+#cy55subscription .cy113-extra small{display:block;margin-top:9px;color:#b8c9d7;line-height:1.5}
+#cy55subscription .cy113-message{margin:10px 0 0;color:#b6f2d2;font-size:13px;min-height:0}
+#cy55subscription .cy113-note{font-size:12px;line-height:1.6;color:#b7c9d8;display:block;margin:9px 0 0}
+#cy54membership{display:none!important}
+#cy53layer .cycards>section{border:1px solid #294861;border-radius:15px}
+#cc77home .cc77intro{padding:32px 5px 22px}
+#cc77home .cc77intro h1{letter-spacing:-.035em}
+#cc77home .cc77cards{gap:14px}
+#cc77home .cc77card{min-height:220px;border-radius:17px;padding:clamp(17px,3vw,24px)}
+#cc77home .cc77card p{line-height:1.55}
+#cc80wallet{box-shadow:0 20px 55px #0006}
+#cc80wallet .cc113-central-topup{margin:14px 0;border:1px solid #496984;border-radius:13px;padding:13px;background:#142c40}
+#cc80wallet .cc113-central-topup summary{font-weight:800;cursor:pointer}
+#cc80wallet .cc113-central-topup small{display:block;margin:8px 0;color:#c2d1dc}
+#cc80wallet .cc113-central-topup input,#cc80wallet .cc113-central-topup select{max-width:320px}
+#cc80wallet .cc113-back{background:#28465a;color:#fff}
+#cc93-affiliate>div{max-height:92vh;overflow:auto}
+#cc93-affiliate .cc113-stream-wallet{display:flex;align-items:center;justify-content:space-between;gap:14px;background:#0b2232;border:1px solid #496883;padding:15px;border-radius:13px;margin:13px 0}
+#cc93-affiliate .cc113-stream-wallet span{font-size:14px;font-weight:700}
+#cc93-affiliate .cc113-stream-wallet small{font-size:12px;color:#b7cad7;font-weight:450}
+#cc93-affiliate .cc113-stream-wallet strong{font-size:clamp(20px,3vw,26px);color:#f5d78e;white-space:nowrap}
+#cc93-affiliate .cc113-recharge-btn{background:#145e70;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:750;cursor:pointer}
+#cc93-affiliate .cc113-stream-topup{margin:12px 0;padding:14px;border-radius:13px;background:#102a3c;border:1px solid #476981}
+#cc93-affiliate .cc113-stream-topup label{display:block;font-size:12px}
+#cc93-affiliate .cc113-stream-topup input{background:#122e43;color:#fff;border:1px solid #628497;border-radius:9px;padding:11px;max-width:150px}
+#cc93-affiliate .cc113-stream-topup button{background:#139887;border:0;color:#fff;border-radius:9px;padding:12px;cursor:pointer;margin:6px}
+#cc93-affiliate .cc113-stream-topup small{display:block;color:#bed1dc;margin-top:8px}
+@media(max-width:680px){
+ #cy53layer .cy113-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #cy53layer .cy113-stats>div:first-child{grid-column:1/-1}
+ #cy53layer .cy113-buttons button{flex:1 1 135px}
+ #cy53layer .cy113-action input{flex:1}
+ #cy53layer .cy75quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ #cc93-affiliate .cc113-stream-wallet{align-items:flex-start;flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){#cy53layer .cy75quick button{transition:none}}
