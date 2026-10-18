@@ -7,6 +7,9 @@
 const el=id=>document.getElementById(id);
 const binanceUrl='https://app.binance.com/uni-qr/812BvNys';
 const phone='923319637';
+const referralCodeRaw=document.querySelector('meta[name="cc-binance-referral-code"]')?.content?.trim()||'';
+const referralCode=/^[A-Za-z0-9]{5,32}$/.test(referralCodeRaw)?referralCodeRaw:'';
+const supportMail='clancartan@gmail.com';
 const fmt=(num,currency)=>new Intl.NumberFormat('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(num))+' '+currency;
 let creating=false,quote=null,quoteReq=0;
 function mount(){
@@ -51,17 +54,29 @@ function mount(){
 
  function preview(){
   if(method.value!=='BINANCE')return;
-  if(!quote){quotation.textContent='Cotización no disponible. No envíes USDT hasta ver un importe y equivalente confirmados.';return;}
+  if(!quote||new Date(quote.valid_until).getTime()<=Date.now()+15000){
+   quotation.textContent='Binance pausado: no hay cotización USDT/PEN vigente. No transfieras USDT hasta que esté disponible.';
+   return;
+  }
   const n=Number(amount.value);
-  if(!Number.isFinite(n)||n<0.5||Math.round(n*100)!==Math.round(n*10000)/100){
-   quotation.textContent='Introduce un importe USDT válido, con hasta 2 decimales.';return;
+  if(!Number.isFinite(n)||n<0.5||Math.abs(Math.round(n*100)-n*100)>0.000001){
+   quotation.textContent='Introduce un importe USDT válido, con hasta dos decimales.';
+   return;
+  }
+  if(n>Number(quote.available_usdt)){
+   quotation.textContent='Monto superior a la liquidez verificada para esta tasa (máximo '+fmt(quote.available_usdt,'USDT')+').';
+   return;
   }
   const equivalent=Math.round(n*Number(quote.rate_pen_per_usdt)*100)/100;
-  quotation.textContent='Cotización informativa: 1 USDT = S/ '+Number(quote.rate_pen_per_usdt).toFixed(4)+
-  ' · '+fmt(n,'USDT')+' ≈ S/ '+equivalent.toFixed(2)+
-  ' · Fuente: '+quote.source+
-  ' · Vigente hasta '+new Date(quote.valid_until).toLocaleTimeString('es-PE')+
-  '. El importe definitivo quedará fijado en la solicitud.';
+  const rate=Number(quote.rate_pen_per_usdt).toFixed(6);
+  const gross=Number(quote.market_rate_pen_per_usdt).toFixed(6);
+  quotation.textContent='Referencia de venta USDT/PEN: S/ '+gross+' por USDT · Costo estimado: '+
+  Number(quote.conversion_cost_pct).toFixed(2)+'% · Margen comercial de protección: '+
+  Number(quote.protection_margin_pct).toFixed(2)+'% · Tasa neta ofrecida: S/ '+rate+
+  ' por USDT · '+fmt(n,'USDT')+' = S/ '+equivalent.toFixed(2)+
+  ' de saldo previsto · Fuente: '+quote.source+
+  ' · Vence '+new Date(quote.valid_until).toLocaleTimeString('es-PE')+
+  '. La tasa y monto finales se bloquearán al generar la solicitud, si sigue vigente.';
  }
  async function loadQuote(){
   const serial=++quoteReq;quote=null;
@@ -69,10 +84,10 @@ function mount(){
   if(!session()?.jwt){quotation.textContent='Inicia sesión para consultar la tasa USDT/PEN verificada.';return;}
   quotation.textContent='Consultando tasa USDT/PEN…';
   try{
-   const rows=await api()('rpc/cc_current_usdt_pen_quote','POST',{});
+   const rows=await api()('rpc/cc_current_usdt_pen_quote_v125','POST',{});
    if(serial!==quoteReq||method.value!=='BINANCE')return;
    const latest=Array.isArray(rows)?rows[0]:null;
-   if(!latest||!Number.isFinite(Number(latest.rate_pen_per_usdt)))throw Error('No existe una tasa vigente configurada en el servidor.');
+   if(!latest||!Number.isFinite(Number(latest.rate_pen_per_usdt))||!Number.isFinite(Number(latest.market_rate_pen_per_usdt))||!Number.isFinite(Number(latest.available_usdt)))throw Error('No existe cotización de venta reciente y ejecutable configurada en el servidor.');
    quote=latest;
    preview();
   }catch(e){if(serial===quoteReq)quotation.textContent='Cotización no disponible: '+(e.message||e)+'. No pagues todavía.';}
@@ -84,9 +99,28 @@ function mount(){
   amountLabel.textContent=binance?'Importe a pagar (USDT)':'Importe a pagar (PEN, soles)';
   amount.min=binance?'0.5':'1';amount.max=binance?'1000':'1000';amount.step='0.01';amount.value=binance?'10':'20';
   if(binance){
-   info.innerHTML='<strong>Binance Pay · USDT</strong><p>Pago internacional exclusivamente en USDT. Usuario receptor indicado: <b>User-f81cdb6a</b>. Comprueba el destinatario antes de transferir.</p>'+
-   '<p><a href="'+binanceUrl+'" target="_blank" rel="noopener noreferrer">Abrir código Binance Pay</a></p>'+
-   '<p>El valor de la billetera se expresa en soles usando la cotización registrada en la solicitud. Las comisiones de red/plataforma, cuando apliquen, se informarán antes del pago.</p>';
+   const banner=document.createElement('div');
+   banner.className='cc125-referral';
+   banner.innerHTML='<strong>¿Nuevo en Binance?</strong><p>Si aún no tienes cuenta, regístrate usando nuestro código de invitación de Binance antes de realizar tu primera recarga.</p>';
+   if(referralCode){
+    const code=document.createElement('b');code.className='cc125-refcode';code.textContent='Código de invitación: '+referralCode;
+    banner.appendChild(code);
+    const copy=document.createElement('button');copy.type='button';copy.textContent='Copiar código de invitación';copy.onclick=()=>{
+     navigator.clipboard?.writeText(referralCode).then(()=>status.textContent='Código de Binance copiado.').catch(()=>status.textContent='Código: '+referralCode);
+    };
+    banner.appendChild(copy);
+   }else{
+    const link=document.createElement('a');link.href='mailto:'+supportMail+'?subject=Codigo%20de%20invitacion%20Binance%20CLAN%20CARTAN';
+    link.textContent='Solicitar nuestro código de invitación';banner.appendChild(link);
+   }
+   info.replaceChildren();
+   const title=document.createElement('strong');title.textContent='Binance Pay · USDT';info.appendChild(title);
+   const descr=document.createElement('p');descr.textContent='Pago internacional en USDT. Usuario receptor: User-f81cdb6a. Comprueba el destinatario.';
+   info.appendChild(descr);
+   info.appendChild(banner);
+   const caution=document.createElement('p');
+   caution.textContent='Crea primero una orden con cotización válida. No transfieras fondos sin conocer el importe exacto en USDT, el saldo en PEN y la vigencia. Los pagos por QR personal aún requieren conciliación independiente y no se acreditan automáticamente.';
+   info.appendChild(caution);
    void loadQuote();
   }else{
    quotation.textContent='Soles (PEN) · S/ 1 pagado equivale a S/ 1 de recarga, siempre que el importe íntegro sea recibido y confirmado.';
@@ -113,6 +147,7 @@ function mount(){
   if(binance&&(!quote||new Date(quote.valid_until).getTime()<=Date.now()+15000)){status.textContent='No hay tasa vigente. Vuelve a consultar antes de pagar.';void loadQuote();return;}
   if(!binance&&(n<1||n>1000)){status.textContent='Recarga DALE: de S/ 1 a S/ 1000.';return;}
   if(binance&&n<0.5){status.textContent='Recarga Binance: mínimo 0.50 USDT.';return;}
+  if(binance&&n>Number(quote.available_usdt)){status.textContent='Monto superior a la liquidez cubierta por esta cotización.';return;}
   creating=true;button.disabled=true;status.textContent='Registrando solicitud…';
   try{
    if(binance){
@@ -123,7 +158,8 @@ function mount(){
     ' · Tasa fijada: 1 USDT = S/ '+Number(row.rate_pen_per_usdt).toFixed(4)+
     ' · Crédito previsto: S/ '+Number(row.credited_pen).toFixed(2)+
     ' · Vence '+new Date(row.valid_until).toLocaleTimeString('es-PE')+
-    '. Estado PENDIENTE: no hay saldo acreditado hasta confirmar el pago externamente.';
+    '. Estado PENDIENTE: no se acredita saldo hasta confirmar el pago externamente. '+ 
+    'Costos y margen incluidos en la tasa comercial publicada antes de la orden.';
    }else{
     const id=await api()('rpc/cc_create_pending_real_topup','POST',{p_service:service.value,p_amount:n,p_provider:'LEMON_DALE'});
     status.textContent='Solicitud '+id+' · DALE: pagar S/ '+n.toFixed(2)+
