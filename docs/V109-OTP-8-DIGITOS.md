@@ -9,6 +9,13 @@
 - **La plantilla realmente activa en Supabase NO se modifica automáticamente desde GitHub**; en Auth > Emails > Templates > Confirm signup reemplazar manualmente «código de 6 dígitos» por «código de 8 dígitos» y guardar, sin tocar `{{ .Token }}`.
 - Confirmación por correo al registrar ya enviaba un mensaje real con 8 dígitos; esta corrección sincroniza el frontend con el backend y evita truncamiento del OTP.
 
+## Prueba de acceso comunicada por el titular — 18-OCT-2026
+
+- El titular confirmó en la conversación: **«ya ingreso»** después de la corrección de las ocho casillas. Esto se registra como **prueba de acceso satisfactoria comunicada por el usuario**, no como verificación independiente de los registros de Auth.
+- Previamente, el titular confirmó recepción efectiva de correo de Brevo/Supabase con un código de 8 dígitos.
+- La consulta independiente a las tablas de Auth no pudo completarse por controles de acceso de la integración; no afirmar una verificación directa de la base de datos.
+- No se cambió ningún usuario, correo, clave, token, cliente, préstamo ni regla de COBRA YA para este registro de avance.
+
 ## Alternativa futura
 Supabase permite configurar la longitud de OTP del proveedor Email (entre 6 y 10). Si se decide volver a seis dígitos, cambiar **coordinadamente** la opción Email OTP length del servidor, el número de casillas de la página y el texto de la plantilla. No cambiar solo una pieza.
 
