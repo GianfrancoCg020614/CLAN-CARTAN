@@ -9,7 +9,7 @@ function mount(){
  if(get('cc122section'))return;
  const target=get('cc80wallet')||get('cc77home');if(!target)return;
  const box=document.createElement('section');box.id='cc122section';box.className='cc122-pay';
- box.innerHTML='<h3>Recargas reales · Lemon / DALE y Binance</h3><p>Elige billetera, importe y forma de pago. Las transferencias serán verificadas antes de acreditar saldo. Las billeteras actuales todavía muestran saldos de prueba.</p>'+
+ box.innerHTML='<h3>Recargas reales · Lemon / DALE y Binance</h3><p>Elige billetera, importe y forma de pago. Antes de enviar dinero, verifica el destinatario. Las transferencias serán conciliadas antes de acreditar saldo. Las billeteras actuales todavía muestran saldos de prueba.</p>'+
  '<label>Billetera<select id="cc122service"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option></select></label>'+
  '<label>Importe en soles (PEN)<input id="cc122amount" type="number" min="1" max="1000" step="0.01" value="20"></label>'+
  '<label>Método<select id="cc122method"><option value="LEMON_DALE">Lemon / DALE</option><option value="BINANCE">Binance</option></select></label>'+
@@ -21,8 +21,8 @@ function mount(){
  function showMethod(){
   const k=method.value,m=methods[k];
   info.innerHTML='<strong>'+m.name+'</strong><p>'+m.note+'</p>'+
-  (k==='LEMON_DALE'?'<img src="assets/v122-lemon-qr.png" alt="QR receptor de Lemon aportado por el titular. Verifica los datos en la app antes de transferir.">':
-    '<img src="assets/v122-binance-qr.png" alt="QR Binance de recepción"><p><a href="'+urlBinance+'" target="_blank" rel="noopener noreferrer">Abrir Binance</a></p>');
+  (k==='LEMON_DALE'?'<p>QR Lemon proporcionado: pendiente de validación y publicación; no realices pagos hasta confirmar el destinatario.</p>':
+    '<p><a href="'+urlBinance+'" target="_blank" rel="noopener noreferrer">Abrir mi QR en Binance</a></p>');
  }
  method.addEventListener('change',showMethod);showMethod();
  get('cc122create').addEventListener('click',async()=>{
