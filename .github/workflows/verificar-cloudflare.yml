@@ -44,7 +44,7 @@ jobs:
             echo "Revisa después el registro **CNAME www → clan-cartan.pages.dev** en la zona DNS, sin reemplazar registros MX/TXT." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "DNS OK. Comprobando publicación en HTTPS..."
-            for attempt in 1 4; do
+            for attempt in $(seq 1 4); do
               echo "Intento $attempt de 4"
               if curl --fail --silent --show-error --location --connect-timeout 8 --max-time 20 \
                  --header 'Cache-Control: no-cache' \
