@@ -14,10 +14,26 @@ function mount(){
  '<label>Importe en soles (PEN)<input id="cc122amount" type="number" min="1" max="1000" step="0.01" value="20"></label>'+
  '<label>Método<select id="cc122method"><option value="LEMON_DALE">Lemon / DALE</option><option value="BINANCE">Binance</option></select></label>'+
  '<div id="cc122payinfo" class="cc122-info"></div>'+
+ '<div id="cc123realBalances" role="status">Saldo real confirmado: inicia sesión para consultarlo.</div><button id="cc123refreshReal" type="button">Actualizar saldo real</button>'+
  '<button id="cc122create" type="button">Generar solicitud de recarga</button><p id="cc122status" role="status" aria-live="polite"></p>'+
  '<small>Crear una solicitud no confirma el pago. No se aceptan capturas como confirmación automática. No hay retiros, pagos de préstamos ni transferencias entre usuarios.</small>';
  target.appendChild(box);
  const service=get('cc122service'),amount=get('cc122amount'),method=get('cc122method'),info=get('cc122payinfo'),status=get('cc122status');
+ async function refreshReal(){
+  const slot=get('cc123realBalances'),ses=window.CC_V53_SESSION;
+  if(!ses?.jwt){slot.textContent='Saldo real: inicia sesión para consultarlo.';return;}
+  const userId=ses.userId;slot.textContent='Consultando saldo real…';
+  try{
+   const rows=await window.cc80.api('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+encodeURIComponent(userId));
+   if(window.CC_V53_SESSION?.userId!==userId)return;
+   const money=service=>'S/ '+Number(rows.find(x=>x.service===service)?.balance_pen||0).toFixed(2);
+   slot.textContent='Saldo real confirmado · COBRA YA: '+money('COBRA_YA')+' · STREAM BULL’S: '+money('STREAM_BULLS');
+  }catch(e){slot.textContent='No se pudo consultar el saldo real: '+(e.message||e);}
+ }
+ get('cc123refreshReal').onclick=refreshReal;
+ window.cc123RefreshRealBalances=refreshReal;
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.CC_V53_SESSION?.jwt)refreshReal();});
+ if(window.CC_V53_SESSION?.jwt)void refreshReal();
  function showMethod(){
   const k=method.value,m=methods[k];
   info.innerHTML='<strong>'+m.name+'</strong><p>'+m.note+'</p>'+
@@ -36,7 +52,7 @@ function mount(){
   try{
    const api=window.cc80?.api;if(typeof api!=='function')throw Error('Billetera no disponible');
    const id=await api('rpc/cc_create_pending_real_topup','POST',{p_service:service.value,p_amount:n,p_provider:method.value});
-   status.textContent='Solicitud registrada: '+id+'. Estado: PENDIENTE de conciliación. No se ha acreditado saldo todavía.';
+   status.textContent='Solicitud registrada: '+id+'. Estado: PENDIENTE de conciliación con el receptor. No se ha acreditado saldo todavía.';
   }catch(e){status.textContent='No se registró: '+(e.message||e);}
   finally{working=false;get('cc122create').disabled=false;}
  });
