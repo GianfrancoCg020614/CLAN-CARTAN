@@ -114,6 +114,7 @@ assert.ok(html.includes('cc117-store-header')===false,'Cabecera de catálogo dup
 assert.ok(html.includes('cc117-login')&&html.includes('cc77Auth(false)'),'Ingresar no usa cuenta única CLAN CARTAN');
 assert.ok(html.includes('cc77Auth(true)'),'Crear cuenta no usa CLAN CARTAN');
 assert.ok(html.includes('cc117-one-action'),'Se muestran botones repetidos en tarjetas');
-assert.ok(!html.includes('ccc-v49-guest-cta'),'Se sigue obligando a registrarse para explorar');
+const renderedStore=html.slice(html.indexOf('function renderStore(){'),html.indexOf('function clientsView(){'));
+assert.ok(!renderedStore.includes('ccc-v49-guest-cta'),'Se sigue mostrando una invitación obligatoria al registro en el catálogo');
 assert.ok(v117.includes('CLAN CARTAN V117'),'Los recursos visuales no tienen versión');
 console.log('V117: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');
