@@ -17,7 +17,7 @@ const required = [
   ['renovación sesión', 'refreshSupabaseSession'],
   ['cronogramas Cobra Ya', 'rpc/cy_correct_loan'],
   ['prórroga Cobra Ya', 'cy_extend_loan_one_month'],
-  ['etiqueta de prueba', 'COBRA YA · REGISTROS DE PRUEBA'],
+  ['etiqueta de prueba', 'Piloto con saldo de prueba'],
   ['filtros con datos corregidos', 'state.loans.forEach(x=>{const group=statusForLoan(x).group;']
 ];
 for (const [name, fragment] of required) {
