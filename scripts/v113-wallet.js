@@ -54,6 +54,7 @@ cy55.status=async function(){
   pay.disabled=paying||active||suspended||balance<15;
   const quick=document.querySelector('#cy53layer .cy75quick');
   if(quick&&!session.isAdmin)quick.hidden=!active;
+  ['cy53client','cy53loan','cy53clients','cy60loanrecords'].forEach(id=>{const panel=by(id)?.closest('section');if(panel)panel.style.display=active?'block':'none';});
   document.querySelectorAll('#cy53client button[type="submit"],#cy53loan button[type="submit"],#cy53layer .cy53pay').forEach(b=>b.disabled=!active);
   if(!active){
    const clients=by('cy53clients'),records=by('cy60loanrecords');
@@ -64,6 +65,8 @@ cy55.status=async function(){
  }catch(e){
   state.textContent='No se pudo verificar el acceso';
   pay.disabled=true;
+  const quick=document.querySelector('#cy53layer .cy75quick');if(quick)quick.hidden=true;
+  ['cy53client','cy53loan','cy53clients','cy60loanrecords'].forEach(id=>{const panel=by(id)?.closest('section');if(panel)panel.style.display='none';});
   message.textContent='Reintenta más tarde: '+(e.message||'Error de red');
  }
 };

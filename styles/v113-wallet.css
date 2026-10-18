@@ -7,8 +7,7 @@
 #cy53layer .cy75quick[hidden]{display:none!important}
 #cy53layer .cy75quick button{background:#173e4d;border:1px solid #32677d;border-radius:11px;transition:background .18s}
 #cy53layer .cy75quick button:hover{background:#20536a}
-#cy55subscription.cy113-card{display:block;background:linear-gradient(130deg,#132e43,#102738)!important;border:1px solid #396279!important;border-radius:20px!important;padding:clamp(17px,3vw,27px)!important;box-shadow:0 16px 40px #0003;margin:15px 0 22px!important}
-#cy55subscription.cy113-card[style*="display: none"]{display:none!important}
+#cy55subscription.cy113-card{background:linear-gradient(130deg,#132e43,#102738)!important;border:1px solid #396279!important;border-radius:20px!important;padding:clamp(17px,3vw,27px)!important;box-shadow:0 16px 40px #0003;margin:15px 0 22px!important}
 #cy55subscription .cy113-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
 #cy55subscription .cy113-head h3{margin:4px 0 0;color:#f5faff;font-size:clamp(19px,2.8vw,24px);letter-spacing:-.025em}
 #cy55subscription .cy113-label{color:#8ac7d5;font-size:10px;letter-spacing:.16em;font-weight:800}
