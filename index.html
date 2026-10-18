@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V108-20261018">
+<meta name="cc-deploy-version" content="V109-20261018">
 <style>
 
 :root{
@@ -4744,7 +4744,7 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <fieldset><legend>3. Acceso a tu cuenta</legend><p style="font-size:12px;margin:0 0 8px">Tu correo será el usuario para todos los negocios. Escríbelo arriba junto con tu contraseña.</p><div class="cc-v81-grid"><label class="full">Confirmar contraseña *<input id="cc-v81-confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"></label></div>
 <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0"> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a> y la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a> (borradores para revisión legal).* No autorizo comunicaciones publicitarias por este acto.</span></label>
 <p style="font-size:11px;color:#a6b6c9">Documentos legales en revisión: NO utilizar aún para el lanzamiento comercial. El correo puede requerir confirmación para la seguridad de la cuenta.</p>
-</fieldset></div><p id="cc-register-help" class="cc-small" style="display:none">Registra tu correo y contraseña. La contraseña debe tener al menos 12 caracteres. Luego confirma tu correo electrónico si se solicita.</p><section id="cc91-confirm" role="status" aria-live="polite" style="display:none;text-align:left;background:#0c2c30;border:1px solid #2b9b91;border-radius:14px;padding:17px;margin:12px 0"><h3 style="margin:0 0 8px;color:#aeefd0">✉️ Verificación en dos pasos</h3><p style="margin:0 0 8px">Hemos enviado un código de 6 dígitos a tu correo electrónico:</p><strong id="cc91-email" style="overflow-wrap:anywhere;color:#fff"></strong><div id="cc106otp" style="display:flex;gap:7px;margin:14px 0"><input inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Dígito 1"><input inputmode="numeric" maxlength="1" aria-label="Dígito 2"><input inputmode="numeric" maxlength="1" aria-label="Dígito 3"><input inputmode="numeric" maxlength="1" aria-label="Dígito 4"><input inputmode="numeric" maxlength="1" aria-label="Dígito 5"><input inputmode="numeric" maxlength="1" aria-label="Dígito 6"></div><button id="cc106verify" type="button" style="background:#5a86e5;color:#fff;width:100%;padding:12px;border:0;border-radius:10px;font-weight:700">Verificar cuenta</button><p style="font-size:13px;margin:11px 0 0">Escribe el código de 6 dígitos que recibiste para verificar tu cuenta.</p><p style="font-size:12px;color:#bbccda;margin:8px 0 0">¿No recibiste el código? Revisa Spam o usa Reenviar.</p></section><p id="cc-real-status" class="cc-error" role="status"></p><p class="cc-small">Los permisos se consultan desde la base de datos. No se permite ingresar con contraseñas de la demo. No compartas claves privadas.</p></div></div>
+</fieldset></div><p id="cc-register-help" class="cc-small" style="display:none">Registra tu correo y contraseña. La contraseña debe tener al menos 12 caracteres. Luego confirma tu correo electrónico si se solicita.</p><section id="cc91-confirm" role="status" aria-live="polite" style="display:none;text-align:left;background:#0c2c30;border:1px solid #2b9b91;border-radius:14px;padding:17px;margin:12px 0"><h3 style="margin:0 0 8px;color:#aeefd0">✉️ Verificación de correo electrónico</h3><p style="margin:0 0 8px">Hemos enviado un código de 8 dígitos a tu correo electrónico:</p><strong id="cc91-email" style="overflow-wrap:anywhere;color:#fff"></strong><div id="cc106otp" style="display:flex;gap:7px;margin:14px 0"><input inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Dígito 1"><input inputmode="numeric" maxlength="1" aria-label="Dígito 2"><input inputmode="numeric" maxlength="1" aria-label="Dígito 3"><input inputmode="numeric" maxlength="1" aria-label="Dígito 4"><input inputmode="numeric" maxlength="1" aria-label="Dígito 5"><input inputmode="numeric" maxlength="1" aria-label="Dígito 6"><input inputmode="numeric" maxlength="1" aria-label="Dígito 7"><input inputmode="numeric" maxlength="1" aria-label="Dígito 8"></div><button id="cc106verify" type="button" style="background:#5a86e5;color:#fff;width:100%;padding:12px;border:0;border-radius:10px;font-weight:700">Verificar cuenta</button><p style="font-size:13px;margin:11px 0 0">Escribe el código de 8 dígitos que recibiste para verificar tu cuenta.</p><p style="font-size:12px;color:#bbccda;margin:8px 0 0">¿No recibiste el código? Revisa Spam o usa Reenviar.</p></section><p id="cc-real-status" class="cc-error" role="status"></p><p class="cc-small">Los permisos se consultan desde la base de datos. No se permite ingresar con contraseñas de la demo. No compartas claves privadas.</p></div></div>
 <script>
 /* V52 pilot: server-verified identity + role; UI and all business data remain demonstrative.
    Publishable browser key, not a privileged service-role credential. */
@@ -4755,19 +4755,19 @@ const key='sb_publishable_nsp19gAqsdRak3JqWpusUg_Qd6mQr0n';
 const otpInputs=Array.from(document.querySelectorAll('#cc106otp input'));
 const otpBox=document.getElementById('cc91-confirm');
 otpInputs.forEach((box,index)=>{
- box.style.cssText='min-width:0;flex:1;width:14%;height:48px;text-align:center;font-size:22px;margin:0;padding:0;border:1px solid #829dbb;border-radius:10px;background:#0c233e;color:#fff';
+ box.style.cssText='min-width:0;flex:1;width:12.5%;height:48px;text-align:center;font-size:22px;margin:0;padding:0;border:1px solid #829dbb;border-radius:10px;background:#0c233e;color:#fff';
  box.addEventListener('input',()=>{
   const digits=box.value.replace(/\D/g,'');
-  if(digits.length>1){digits.slice(0,6-index).split('').forEach((v,i)=>{otpInputs[index+i].value=v});otpInputs[Math.min(index+digits.length,5)].focus();}
-  else{box.value=digits;if(digits&&index<5)otpInputs[index+1].focus();}
+  if(digits.length>1){digits.slice(0,otpInputs.length-index).split('').forEach((v,i)=>{otpInputs[index+i].value=v});otpInputs[Math.min(index+digits.length,otpInputs.length-1)].focus();}
+  else{box.value=digits;if(digits&&index<otpInputs.length-1)otpInputs[index+1].focus();}
  });
  box.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!box.value&&index>0)otpInputs[index-1].focus();});
- box.addEventListener('paste',e=>{e.preventDefault();const digits=e.clipboardData.getData('text').replace(/\D/g,'').slice(0,6);digits.split('').forEach((v,i)=>{otpInputs[i].value=v});otpInputs[Math.min(digits.length,5)].focus();});
+ box.addEventListener('paste',e=>{e.preventDefault();const digits=e.clipboardData.getData('text').replace(/\D/g,'').slice(0,otpInputs.length);digits.split('').forEach((v,i)=>{otpInputs[i].value=v});otpInputs[Math.min(digits.length,otpInputs.length-1)].focus();});
 });
 document.getElementById('cc106verify').addEventListener('click',async function(){
  const email=document.getElementById('cc91-email').textContent.trim();
  const token=otpInputs.map(x=>x.value).join('');
- if(!/^\d{6}$/.test(token)){document.getElementById('cc-real-status').textContent='Completa los 6 dígitos recibidos.';return;}
+ if(!/^\d{8}$/.test(token)){document.getElementById('cc-real-status').textContent='Completa los 8 dígitos recibidos por correo.';return;}
  this.disabled=true;
  document.getElementById('cc-real-status').textContent='Verificando código…';
  try{
@@ -4858,7 +4858,7 @@ async function signIn(event){
  }catch(e){
  const err=String(e.message||'Error desconocido');
  const pending=/email not confirmed|email_not_confirmed/i.test(err);
- status.textContent=pending?'Tu correo todavía no está confirmado. Ingresa el código de 6 dígitos que te enviamos.':err;
+ status.textContent=pending?'Tu correo todavía no está confirmado. Ingresa el código de 8 dígitos que te enviamos.':err;
  if(pending){document.getElementById('cc91-email').textContent=document.getElementById('cc-real-email').value.trim();document.getElementById('cc91-confirm').style.display='block';}
  document.getElementById('cc90-resend').style.display=pending?'block':'none';
  document.getElementById('cc-real-pass').value='';
@@ -4919,7 +4919,7 @@ async function register(event){
    document.getElementById('cc91-confirm').style.display='block';
    otpInputs.forEach(x=>x.value='');otpInputs[0].focus();
    document.getElementById('cc90-resend').style.display='block';
-   status.textContent='Registro recibido. Escribe los 6 dígitos enviados a tu correo para confirmar tu cuenta.';
+   status.textContent='Registro recibido. Escribe los 8 dígitos enviados a tu correo para confirmar tu cuenta.';
   }
  }catch(e){status.textContent=e.message||'No se pudo crear la cuenta. Revisa tus datos.';}
  finally{btn.disabled=false;toggle.disabled=false;}
