@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 720" role="img" aria-labelledby="title desc">
+<title id="title">Cobra YA · emblema de cobra</title>
+<desc id="desc">Cobra estilizada con capucha abierta, ojos dorados y detalles turquesa.</desc>
+<defs>
+ <linearGradient id="hood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#226777"/><stop offset=".47" stop-color="#0b3c4b"/><stop offset="1" stop-color="#041d2e"/></linearGradient>
+ <linearGradient id="edge" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#00c9b6"/><stop offset=".5" stop-color="#b0fff2"/><stop offset="1" stop-color="#20d2cf"/></linearGradient>
+ <linearGradient id="body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#208c95"/><stop offset=".53" stop-color="#075665"/><stop offset="1" stop-color="#031b2b"/></linearGradient>
+ <radialGradient id="aura"><stop stop-color="#35ffde" stop-opacity=".24"/><stop offset="1" stop-color="#35ffde" stop-opacity="0"/></radialGradient>
+ <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<ellipse cx="320" cy="352" rx="275" ry="310" fill="url(#aura)"/>
+<g stroke-linejoin="round" stroke-linecap="round">
+ <path d="M320 79C212 70 111 128 92 238c-19 108 17 183 95 232 33 21 63 44 76 77l57-52 57 52c13-33 43-56 76-77 78-49 114-124 95-232C529 128 428 70 320 79Z" fill="url(#hood)" stroke="url(#edge)" stroke-width="14"/>
+ <path d="M304 100c-94-4-162 66-176 157-13 83 12 145 64 180M336 100c94-4 162 66 176 157 13 83-12 145-64 180" fill="none" stroke="#7ffdea" opacity=".54" stroke-width="7"/>
+ <path d="M158 223c-22 70-7 140 31 185M482 223c22 70 7 140-31 185" fill="none" stroke="#32e8cf" opacity=".35" stroke-width="8"/>
+ <path d="M201 187c-24 78-10 148 31 207M439 187c24 78 10 148-31 207" fill="none" stroke="#82fff1" opacity=".35" stroke-width="5"/>
+ <path d="M319 143c-67-3-124 58-130 135-5 75 32 124 75 157l56 35 56-35c43-33 80-82 75-157-6-77-63-138-132-135Z" fill="#031e2d" stroke="#63f6e5" stroke-width="10"/>
+ <path d="M320 173c-57 2-91 48-93 102-1 47 31 74 64 91l29 14 29-14c33-17 65-44 64-91-2-54-36-100-93-102Z" fill="url(#body)"/>
+ <path d="M320 181v172" stroke="#74f1df" stroke-width="4" opacity=".42"/>
+ <path d="M227 267c24-18 49-16 71 0-12 19-30 26-48 18z" fill="#a6ecb6" stroke="#b6ffcf" stroke-width="3"/>
+ <path d="M413 267c-24-18-49-16-71 0 12 19 30 26 48 18z" fill="#a6ecb6" stroke="#b6ffcf" stroke-width="3"/>
+ <path d="M251 269l40 2-29 14Z M389 269l-40 2 29 14Z" fill="#fbbf53"/>
+ <path d="M320 326c-13 21-36 24-55 38 20 7 38 3 55-7 17 10 35 14 55 7-19-14-42-17-55-38Z" fill="#75eee0" opacity=".9"/>
+ <path d="M300 392l20 29 20-29" fill="none" stroke="#9effeb" stroke-width="6"/>
+ <path d="M284 439c-12 55-3 96 32 126-32 5-69 11-87 38-20 31 10 60 75 59 29 0 49-6 72-17 19-9 45-13 64 3" fill="none" stroke="#0b4f5a" stroke-width="79"/>
+ <path d="M284 439c-12 55-3 96 32 126-32 5-69 11-87 38-20 31 10 60 75 59 29 0 49-6 72-17 19-9 45-13 64 3" fill="none" stroke="url(#edge)" stroke-width="10"/>
+ <path d="M277 518c8 17 22 28 40 34M237 611c38-10 63-6 87 2M340 631c28-20 51-21 77-13" fill="none" stroke="#b9ffef" opacity=".28" stroke-width="6"/>
+</g>
+</svg>
