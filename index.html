@@ -10,7 +10,8 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V122-20261018">
+<meta name="cc-deploy-version" content="V123-20261018">
+<meta name="cc-turnstile-sitekey" content="">
 <style>
 
 :root{
@@ -4813,7 +4814,7 @@ async function signIn(event){
  try{
   const email=document.getElementById('cc-real-email').value.trim();
   const password=document.getElementById('cc-real-pass').value;
-  const auth=await api('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
+  const auth=await api('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password,gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
   if(!auth.access_token)throw Error('No se recibió una sesión válida.');
   const jwt=auth.access_token;
   refreshToken=auth.refresh_token||null;
@@ -4915,7 +4916,7 @@ async function register(event){
   }
   const siteHost=window.location.hostname.toLowerCase();
    const authRedirect=['www.clancartan.com','clancartan.com','clan-cartan.pages.dev'].includes(siteHost)?window.location.origin+'/':'https://clan-cartan.pages.dev/';
-   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V82_BORRADOR',privacy_version:'V82_BORRADOR',legal_accepted:true,invitation_code:invitationCode||null,invite_business:document.getElementById('cc111-business').value}})});
+   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V82_BORRADOR',privacy_version:'V82_BORRADOR',legal_accepted:true,invitation_code:invitationCode||null,invite_business:document.getElementById('cc111-business').value},gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
   document.getElementById('cc-real-pass').value='';
   if(result?.access_token){setRegisterMode(false);status.textContent='Cuenta creada. Inicia sesión con tu correo y contraseña. Los servicios se activan por separado.';}
   else{
@@ -5162,6 +5163,7 @@ function openDetail(id){
 }
 function closeDetail(){document.getElementById('cy63detail').style.display='none';state.selectedLoan=null}
 function printDetail(){if(!state.selectedLoan)return;const node=document.getElementById('cy63printable');if(!node)return;const w=window.open('','_blank','width=850,height=750');if(!w){alert('Activa las ventanas emergentes para imprimir.');return;}w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>COBRA YA - Cronograma</title><style>body{font-family:Arial,sans-serif;color:#1d2938;margin:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #777!important;padding:7px!important;text-align:left}h2,h3{color:#163b53}@page{size:A4;margin:16mm}</style></head><body>'+node.innerHTML+'<script src="scripts/v122-recharges.js?v=122"></script>
+<script src="scripts/v123-turnstile.js?v=123"></script>
 </body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
 function open(){session();document.getElementById('cy53layer').style.display='block';cy54.refreshAuth();if(session().isAdmin||session().isReseller)refresh()}
 function close(){document.getElementById('cy53layer').style.display='none'}
