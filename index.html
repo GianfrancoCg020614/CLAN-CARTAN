@@ -4729,7 +4729,7 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 </style><div id="cc-v81-fields">
 <fieldset><legend>1. Identifícate primero</legend><div class="cc-v81-grid">
 <label class="full" style="font-weight:700;color:#a8f5e6">Número de DNI / documento *<input id="cc-v81-doc" inputmode="numeric" maxlength="25" autocomplete="off" placeholder="Escribe los 8 dígitos de tu DNI" aria-describedby="cc107status"></label>
-<label class="full" id="cc107-consent-wrap" style="display:flex;align-items:flex-start;gap:8px;font-weight:400"><input type="checkbox" id="cc107consent" style="width:auto;margin-top:6px;flex:0 0 auto"><span>Confirmo que estoy autorizado a consultar los datos de este DNI para completar mi registro.</span></label>
+<label class="full" id="cc107-consent-wrap" style="display:flex;align-items:flex-start;gap:8px;font-weight:400"><input type="checkbox" id="cc107consent" style="width:auto;margin-top:6px;flex:0 0 auto"><span>Confirmo que este es mi DNI y autorizo la consulta de mi nombre para completar el registro.</span></label>
 <p class="full" id="cc107status" role="status" aria-live="polite" style="font-size:12px;margin:0 0 8px;color:#8ce8f2">Ingresa tu DNI y marca la autorización. Si no hay consulta disponible, podrás escribir tus nombres manualmente.</p>
 <label class="full">Nombres y apellidos *<input id="cc-v81-name" autocomplete="name" maxlength="150" placeholder="Se completará con tu DNI; también puedes escribirlo"></label>
 <label>País *<select id="cc-v81-country"><option value="PE">🇵🇪 Perú</option><option value="MX">🇲🇽 México</option><option value="CL">🇨🇱 Chile</option><option value="CO">🇨🇴 Colombia</option><option value="AR">🇦🇷 Argentina</option><option value="BO">🇧🇴 Bolivia</option><option value="EC">🇪🇨 Ecuador</option><option value="BR">🇧🇷 Brasil</option><option value="US">🇺🇸 Estados Unidos</option><option value="ES">🇪🇸 España</option><option value="VE">🇻🇪 Venezuela</option><option value="UY">🇺🇾 Uruguay</option><option value="PY">🇵🇾 Paraguay</option><option value="CR">🇨🇷 Costa Rica</option><option value="GT">🇬🇹 Guatemala</option><option value="DO">🇩🇴 República Dominicana</option><option value="PA">🇵🇦 Panamá</option><option value="OTHER">🌎 Otro país</option></select></label>
@@ -4940,8 +4940,15 @@ cc107dni.addEventListener('input',()=>{
  }
 });
 cc107consent.addEventListener('change',()=>{if(cc107consent.checked)cc107lookup();else{cc107lookupSequence++;cc107status.textContent='Consulta desactivada. Puedes registrar tus nombres manualmente.';}});
-cc107country.addEventListener('change',()=>{cc107options();cc107lookupSequence++;});
-cc107docType.addEventListener('change',()=>{cc107options();cc107lookupSequence++;});
+function cc107clearStaleName(){
+ const nameField=document.getElementById('cc-v81-name');
+ if(cc107autofilledName&&nameField.value===cc107autofilledName)nameField.value='';
+ cc107autofilledName='';
+ cc107lastResult='';
+ cc107lookupSequence++;
+}
+cc107country.addEventListener('change',()=>{cc107clearStaleName();cc107options();});
+cc107docType.addEventListener('change',()=>{cc107clearStaleName();cc107options();});
 cc107options();
 function setRegisterMode(next){
  registering=next;
