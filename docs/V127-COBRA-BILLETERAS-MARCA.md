@@ -10,6 +10,7 @@ Fecha: 18-10-2026.
 - Muestra saldos separados para pruebas y reales; el selector nunca mezcla saldos. Los dos importes de la cabecera histórica continúan siendo de prueba y se identifican mediante texto informativo de accesibilidad.
 - Recarga y transferencia son acciones diferentes: nunca se considera un depósito no confirmado saldo real.
 - Los saldos de prueba usan el RPC ya existente `cc_transfer_test_balance`. Los reales usan el nuevo RPC `cc_transfer_real_balance`.
+- En la barra superior, COBRA y BULL muestran **saldo real confirmado** como importe principal y un renglón **Prueba** como secundario; el usuario nunca confunde ambos tipos. El modal selecciona el saldo real si existe saldo real positivo, o el de prueba en caso contrario.
 - Supabase migración `v127_real_wallet_self_transfer`: tabla de auditoría `cc_real_wallet_transfers` con RLS y lectura solo del titular, RPC con `auth.uid()`, bloqueo transaccional, saldo insuficiente, protección contra saldos negativos e importe de máximo dos decimales. No se dan permisos directos de INSERT/UPDATE de los saldos reales a usuarios.
 - Refresco de ambas billeteras tras transferir, y de estado de acceso a COBRA YA cuando cambia el saldo de prueba.
 - Portada: texto comercial explicativo de una cuenta/dos negocios/billeteras. Tarjeta COBRA YA explica clientes, préstamos, cronogramas, abonos y vencimientos.
