@@ -10,7 +10,7 @@
 **Respaldo Cloudflare Pages:** https://clan-cartan.pages.dev/  
 **Respaldo anterior:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
 
-**Actualización de autenticación (18-OCT-2026):** Supabase Auth conserva `Confirm email=ON` y `Allow signup=ON`. Se guardó Site URL `https://www.clancartan.com/` y cuatro redirect URLs: www, raíz, respaldo pages.dev y GitHub Pages. Plantilla de seis dígitos preparada, pero **aún sin SMTP externo**, por lo que no se declara envío OTP real ni servicio API Perú activo. [Registro de Auth y pasos pendientes](docs/CONFIGURACION-CORREO-Y-APIPERU-V106.md).
+**Actualización de autenticación y DNI (18-OCT-2026):** Supabase Auth conserva `Confirm email=ON` y `Allow signup=ON`. Se guardó Site URL `https://www.clancartan.com/` y cuatro redirect URLs: www, raíz, respaldo pages.dev y GitHub Pages. Plantilla de seis dígitos preparada, pero **aún sin SMTP externo**. `APIPERU_TOKEN` figura guardado como secreto; falta la prueba de DNI autorizado para validar funcionalidad real. [Registro de Auth y pasos pendientes](docs/CONFIGURACION-CORREO-Y-APIPERU-V106.md).
 
 ## Estado y recuperación — V106 (18 de octubre de 2026, UTC)
 
@@ -20,7 +20,7 @@
 
 **Web:** dominio `clancartan.com` comprado en Cloudflare Registrar, activo con vencimiento indicado el 17-OCT-2027. En Cloudflare Pages se activaron los dominios personalizados `www.clancartan.com` y `clancartan.com` (DNS CNAME proxied hacia `clan-cartan.pages.dev`, HTTPS y certificados habilitados). Comprobación externa exitosa de ambas URL y del respaldo; `www` sirve `V106-20261017` y figura como dirección canónica. **Nota:** ambos hostnames sirven la página; la redirección HTTP 301 de raíz a `www` no se ha confirmado y queda como mejora independiente.
 
-**Registro:** diseño OTP de seis dígitos preparado, pendiente de plantilla `{{ .Token }}`, SMTP y prueba real. **DNI:** llamada externa preparada por Edge Function, pendiente de secreto `APIPERU_TOKEN` y autorización del proveedor; se mantiene ingreso manual y máximo interno de 100 consultas/mes con control de acceso. WhatsApp y correo de clientes pueden quedar vacíos.
+**Registro:** diseño OTP de seis dígitos preparado, pendiente de plantilla `{{ .Token }}`, SMTP y prueba real. **DNI:** Edge Function desplegada y secreto `APIPERU_TOKEN` guardado en Supabase (confirmado en panel el 18-OCT-2026). Contrato API Perú revisado, permisos de cuota verificados y cero consultas registradas durante la inspección. **Prueba real con DNI autorizado aún pendiente.** Ingreso manual sigue funcionando si falla la consulta o se agota el límite interno de 100 usos/mes. WhatsApp y correo de clientes pueden quedar vacíos.
 
 **Continuidad y pendientes exactos:** [Estado y recuperación de V106](docs/ESTADO-Y-RECUPERACION-V106-2026-10-18.md) · [Changelog V106](docs/V106-CHANGELOG.md).
 
