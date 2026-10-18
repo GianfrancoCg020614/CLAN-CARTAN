@@ -1,6 +1,6 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión: V126.** Se retiró la promoción de referidos de Binance por indicación del titular. Se conserva Binance Pay en USDT con cálculo comercial PEN, protección de liquidez, margen y costos visibles. Lemon/DALE se mantiene en PEN. La acreditación automática y Turnstile siguen pendientes de integración externa. [V125: lógica comercial USDT/PEN](docs/V125-POLITICA-USDT-REFERIDOS.md).
+**Última versión: V127.** Transferencia rápida ⇄ entre billeteras COBRA YA y STREAM BULL’S, en ambas direcciones y sin cruzar usuarios ni mezclar fondos reales con saldos de prueba. Portada con descripción comercial mejorada y COBRA YA con logo original y fondo turquesa oscuro. [Detalles V127](docs/V127-COBRA-BILLETERAS-MARCA.md). La acreditación automática de pagos externos continúa pendiente de verificación de proveedor.
 
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
