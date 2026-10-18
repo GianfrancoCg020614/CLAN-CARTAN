@@ -17,7 +17,7 @@ const required = [
   ['renovación sesión', 'refreshSupabaseSession'],
   ['cronogramas Cobra Ya', 'rpc/cy_correct_loan'],
   ['prórroga Cobra Ya', 'cy_extend_loan_one_month'],
-  ['etiqueta de prueba', 'Piloto con saldo de prueba'],
+  ['etiqueta de prueba', 'Gestiona tus clientes y préstamos · Saldo de prueba'],
   ['filtros con datos corregidos', 'state.loans.forEach(x=>{const group=statusForLoan(x).group;']
 ];
 for (const [name, fragment] of required) {
@@ -62,7 +62,7 @@ assert.ok(nameOrder>0 && dniOrder>nameOrder,'CLAN CARTAN debe tener su formulari
 assert.ok(!html.includes('cc107consent'),'Registro general NO debe consultar DNI automáticamente');
 assert.ok(!html.includes('cc-dni-registro'),'Función de DNI público no debe usarse en el portal');
 assert.ok(html.includes('rpc/cy_lookup_dni_saved'),'COBRA YA debe conservar la consulta de DNI');
-assert.ok(html.includes('content="V114-20261018"'),'Falta marca de versión V111');
+assert.ok(html.includes('content="V114-20261018"'),'Falta marca de versión V114');
 assert.ok(html.includes('id="cc111-business"'),'Falta selector del negocio para el código propio');
 assert.ok(html.includes('invite_business:document.getElementById(\'cc111-business\').value'),'El registro no comunica el negocio elegido');
 assert.ok(html.includes('Puedes registrarte sin código'),'No se informa que el código es opcional');
@@ -82,7 +82,7 @@ assert.ok(html.includes('^(COBRA|BULL)'),'Falta formato COBRA / BULL');
 assert.ok(html.includes('commercialRole:commercialRole'),'Etiqueta de roles comerciales faltante');
 const v113=readFileSync(new URL('../scripts/v113-wallet.js',import.meta.url),'utf8');
 new Script(v113,{filename:'v113-wallet.js'});
-assert.ok(html.includes('styles/v113-wallet.css'),'Falta CSS V113');
+assert.ok(html.includes('styles/v113-wallet.css'),'Falta CSS V114');
 assert.ok(html.includes('scripts/v113-wallet.js'),'Falta la interfaz V114');
 assert.ok(v113.includes('cy55.pay=async function'),'Falta activación de COBRA YA');
 assert.ok(v113.includes('cc_request_test_topup'),'Falta recarga simulada');
