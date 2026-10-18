@@ -22,6 +22,14 @@
 - No se tocaron otras plantillas, usuarios, tablas, saldos, roles o DNS. La plantilla de referencia permanece en `supabase/templates/confirm-signup.html`, aunque la plantilla que se guardó directamente en Supabase puede usar diseño distinto.
 - El estado actual es **configuración lista para pruebas**, NO una certificación de envío y recepción.
 
+## Incidencia posterior — correo llega vacío (18-OCT-2026)
+
+- El registro `POST /signup` en Supabase Auth a las 03:31 UTC terminó con HTTP **200**; los intentos anteriores respondían HTTP 500 con SMTP 535. El envío ahora se procesa, pero el usuario mostró en Gmail el mensaje con asunto correcto y **cuerpo vacío**.
+- El bloqueo actual apunta al **contenido de la plantilla Confirm signup**, no a la autenticación SMTP; no se ha verificado el contenido recibido del HTML en bruto.
+- TinyFish pudo acceder al editor de Supabase, pero el editor Monaco no permitió modificar el campo Body ni confirmar un nuevo guardado. **NO afirmar que ya se modificó en Supabase**.
+- Se conservó una plantilla de respaldo legible y mínima en `supabase/templates/confirm-signup-minimal-v108.html`. Para activarla: en Supabase Authentication → Emails → Templates → Confirm signup, conservar asunto, entrar a modo Source del Body, pegar todo el HTML con `{{ .Token }}`, pulsar Save changes y realizar reenvío/prueba con cuenta propia autorizada. Sin proporcionar ningún OTP en chat.
+- No modificar SMTP, DNS, claves, usuarios ni reglas de COBRA YA. Mantener registro de CLAN CARTAN manual (V108).
+
 ## Seguridad y continuidad
 - Conservar snapshots y ramas V106 existentes, incluida `resguardo/v106-dni-configurado-2026-10-18`.
 - No desplegar contraseñas, claves SMTP, API keys ni códigos OTP en frontend, repositorio o documentación.
