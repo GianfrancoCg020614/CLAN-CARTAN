@@ -62,5 +62,10 @@ assert.ok(nameOrder>0 && dniOrder>nameOrder,'CLAN CARTAN debe tener su formulari
 assert.ok(!html.includes('cc107consent'),'Registro general NO debe consultar DNI automáticamente');
 assert.ok(!html.includes('cc-dni-registro'),'Función de DNI público no debe usarse en el portal');
 assert.ok(html.includes('rpc/cy_lookup_dni_saved'),'COBRA YA debe conservar la consulta de DNI');
-assert.ok(html.includes('content="V108-20261018"'),'Falta marca de versión V108');
-console.log('V108: ' + inline.length + ' scripts válidos, registro CLAN CARTAN manual, DNI COBRA YA conservado.');
+assert.ok(html.includes('content="V109-20261018"'),'Falta marca de versión V109');
+const codeBoxes=html.slice(html.indexOf('<div id="cc106otp"'),html.indexOf('</div>',html.indexOf('<div id="cc106otp"')));
+assert.equal((codeBoxes.match(/aria-label="Dígito [0-9]+"/g)||[]).length,8,'Deben ser ocho casillas para OTP de Supabase');
+assert.ok(html.includes("if(!/^\\d{8}$/.test(token))"),'OTP de 8 dígitos no validado');
+assert.ok(html.includes('slice(0,otpInputs.length)'),'Pegado completo de OTP no soportado');
+assert.ok(html.includes('8 dígitos recibidos'),'Texto del OTP de ocho dígitos no actualizado');
+console.log('V109: ' + inline.length + ' scripts válidos, registro CLAN CARTAN manual, OTP de 8 dígitos, DNI COBRA YA conservado.');
