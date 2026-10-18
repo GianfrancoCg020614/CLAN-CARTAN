@@ -1,3 +1,13 @@
+## Comprobación API Perú — 18-OCT-2026
+
+- Se verificó desde el dashboard autorizado el **plan gratuito**, con **100 consultas disponibles de 100** para el periodo **01–31 de octubre de 2026**. No se consultó ningún DNI.
+- La Edge Function `cc-consulta-dni` está desplegada en Supabase, pero la integración **NO está habilitada todavía**: **`APIPERU_TOKEN` no se había guardado en Supabase** al cerrar la verificación.
+- Los intentos de conexión anteriores crearon varios tokens de prueba con nombres visibles (sin copiar sus valores al código). **Revisar y revocar esos tokens no utilizados** antes de lanzamiento; evitar dejar credenciales redundantes.
+- Para completar sin compartir secretos: en `https://app.apiperu.dev/tokens`, generar **un único token** y copiarlo mientras se muestra; en `https://supabase.com/dashboard/project/pqalxtrcyrpmwqdlibqd/functions/secrets`, crear `APIPERU_TOKEN` con su valor. Nunca insertar token en chat, GitHub, frontend o documentación.
+- Comprobar que el secreto aparezca por **nombre**, sin exponer su valor. Solo entonces hacer pruebas funcionales con DNI propio o con autorización expresa del titular.
+- No confundir las 100 consultas gratis del proveedor con 100 consultas ya operativas en la página: el frontend sigue utilizando la entrada manual si no hay secreto.
+
+
 # CLAN CARTAN V106 — Correo OTP y DNI
 
 ## Cambios confirmados en Supabase (18 de octubre de 2026)
