@@ -137,6 +137,44 @@ function mount(){
   }
  });
  renderMethod();
+ if(window.CC_V53_SESSION?.isAdmin){
+  const adminPanel=document.createElement('details');
+  adminPanel.className='cc125-admin';
+  adminPanel.innerHTML='<summary>ADMIN · Publicar cotización USDT/PEN verificada</summary>'+
+   '<p>Comprueba en Binance P2P Perú un anuncio de <b>compra de USDT</b>, su precio PEN/USDT, monto disponible y método de cobro. No uses un precio promedio ni de venta minorista sin liquidez.</p>'+
+   '<label>Precio comprador observado (PEN por USDT)<input id="cc125gross" type="number" min="2" max="6" step="0.000001" placeholder="Precio comprobado, no estimado"></label>'+
+   '<label>Volumen ejecutable en ese precio (USDT)<input id="cc125volume" type="number" min="0.50" max="1000" step="0.01" placeholder="Volumen real del anuncio"></label>'+
+   '<label>Costos de conversión estimados (%)<input id="cc125cost" type="number" min="0.25" max="10" step="0.001" value="0.5"></label>'+
+   '<label>Margen de protección comercial (%)<input id="cc125margin" type="number" min="2" max="20" step="0.001" value="2"></label>'+
+   '<label>Referencia del anuncio, horario y medio de cobro (sin datos privados)<input id="cc125source" type="text" minlength="12" maxlength="160" placeholder="Ej.: oferta compradora P2P, hora, método de pago"></label>'+
+   '<label class="cc125-check"><input id="cc125verify" type="checkbox"> Confirmo que revisé una oferta compradora ejecutable y liquidez suficiente.</label>'+
+   '<button id="cc125publish" type="button">Publicar tasa durante 2 minutos</button>'+
+   '<p id="cc125adminStatus" role="status" aria-live="polite"></p>';
+  box.appendChild(adminPanel);
+  el('cc125publish').onclick=async()=>{
+   const done=el('cc125adminStatus'),publish=el('cc125publish');
+   const fields=['cc125gross','cc125volume','cc125cost','cc125margin'];
+   if(fields.some(id=>!el(id).value.trim())){done.textContent='Completa precio, volumen, costo y margen.';return;}
+   if(!el('cc125verify').checked){done.textContent='Confirma haber revisado el anuncio realmente comprable.';return;}
+   publish.disabled=true;done.textContent='Publicando cotización con control de riesgo…';
+   try{
+    const rows=await api()('rpc/cc_admin_publish_usdt_pen_quote','POST',{
+     p_market_rate:Number(el('cc125gross').value),
+     p_available_usdt:Number(el('cc125volume').value),
+     p_cost_pct:Number(el('cc125cost').value),
+     p_margin_pct:Number(el('cc125margin').value),
+     p_reference:el('cc125source').value.trim(),
+     p_confirm_checked:true
+    });
+    const row=Array.isArray(rows)?rows[0]:null;
+    if(!row)throw Error('El servidor no confirmó la cotización.');
+    done.textContent='Tasa neta publicada: S/ '+Number(row.net_pen_per_usdt).toFixed(6)+
+     ' por USDT; vence '+new Date(row.expires_at).toLocaleTimeString('es-PE')+'.';
+    if(method.value==='BINANCE')void loadQuote();
+   }catch(e){done.textContent='No se publicó: '+(e.message||e);}
+   finally{publish.disabled=false;}
+  };
+ }
  button.addEventListener('click',async()=>{
   if(creating)return;
   const ses=session();
