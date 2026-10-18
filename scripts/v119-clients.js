@@ -1,5 +1,5 @@
 /* CLAN CARTAN V119 · Alta con DNI primero y corrección verificable de clientes COBRA YA.
-   Consulta externa explícita, solo con consentimiento. Nunca sobreescribe datos sin confirmar. */
+   Consulta externa explícita, solo con consentimiento. Actualiza solo el nombre verificado tras consulta autorizada; conserva los otros campos. */
 (function(){
 'use strict';
 const byId=id=>document.getElementById(id);
@@ -68,7 +68,7 @@ window.cc119EditClient=function(client,refresh,notice){
   '<label>Observaciones (opcional)<textarea name="notes" maxlength="500" rows="2"></textarea></label>'+
   '<label class="cc119-consent"><input name="consent" type="checkbox"> Tengo autorización para consultar este DNI con el proveedor externo.</label>'+
   '<button type="button" id="cc119checkDni" class="cc119-verify">Verificar DNI ahora</button>'+
-  '<div id="cc119compare" class="cc119-compare" hidden><small>Resultado de la consulta DNI</small><div><span>Nombre registrado:</span><strong id="cc119original"></strong></div><div><span>Nombre encontrado:</span><strong id="cc119official"></strong></div><button type="button" id="cc119useVerified" class="cc119-verified">Usar nombre consultado</button></div>'+
+  '<div id="cc119compare" class="cc119-compare" hidden><small>Resultado de la consulta DNI</small><div><span>Nombre registrado:</span><strong id="cc119original"></strong></div><div><span>Nombre encontrado:</span><strong id="cc119official"></strong></div></div>'+
   '<p id="cc119editStatus" role="status" aria-live="polite"></p>'+
   '<div class="cc119-edit-actions"><button type="button" class="cc119-secondary" id="cc119editCancel">Cancelar</button><button class="cc119-primary" id="cc119editSave" type="submit">Guardar corrección</button></div>'+
   '</form></section>';
@@ -92,18 +92,28 @@ window.cc119EditClient=function(client,refresh,notice){
    if(!document.body.contains(overlay))return;
    if(doc.value.trim()!==dni){button.disabled=false;say('El DNI cambió durante la consulta; verifica de nuevo.');return;}
    if(response.status==='found'&&typeof response.full_name==='string'&&response.full_name.trim()){
-    resultName=response.full_name.trim();
+    resultName=response.full_name.trim().replace(/\s+/g,' ');
     byId('cc119original').textContent=name.value;
     byId('cc119official').textContent=resultName;
     comparison.hidden=false;
-    say(resultName.localeCompare(name.value.trim(),'es',{sensitivity:'base'})===0?'Coincide con el nombre registrado.':'Hay diferencias. Revisa y decide si quieres usar el nombre consultado.');
+    if(resultName.localeCompare(name.value.trim(),'es',{sensitivity:'base'})===0){
+     say('✓ Identidad verificada. El nombre coincide.');
+     button.disabled=false;
+    }else{
+     say('Guardando nombre verificado sin modificar contacto ni otros datos…');
+     try{
+      await updateClient(client.id,client,{full_name:resultName});
+      if(!document.body.contains(overlay))return;
+      name.value=resultName;
+      client.full_name=resultName;
+      await refresh();
+      say('✓ Nombre oficial corregido y guardado. Teléfono, correo y demás datos conservados.');
+      notice('✓ Nombre actualizado tras verificación autorizada de DNI.');
+     }catch(error){say('Se consultó el DNI, pero no pudo guardarse la corrección: '+(error.message||error));}
+     button.disabled=false;
+    }
    }else{resultName='';say(consentMessage(response.reason||response.status));button.disabled=false;}
   }catch(e){resultName='';say(e.message||'Falló la consulta; puedes corregir manualmente.');button.disabled=false;}
- });
- byId('cc119useVerified').addEventListener('click',()=>{
-  if(!resultName)return;
-  if(!window.confirm('¿Usar el nombre devuelto por API Perú?\n\n'+resultName+'\n\nNo se modificarán el teléfono, correo ni préstamos.'))return;
-  name.value=resultName;say('Nombre consultado aplicado al formulario. Pulsa Guardar corrección para confirmar el cambio.');
  });
  form.addEventListener('submit',async event=>{
   event.preventDefault();
