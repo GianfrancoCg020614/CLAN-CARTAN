@@ -14,15 +14,17 @@
 
 **Brevo y autenticación del correo (18-OCT-2026):** El dominio `clancartan.com` quedó **autenticado en Brevo**, con los cuatro registros DNS verificados. Se creó el remitente unidireccional `no-reply@clancartan.com` y figura como **Verificado**. **SMTP Brevo confirmado habilitado en Supabase** tras configuración manual del titular (host `smtp-relay.brevo.com`, remitente `verificacion@clancartan.com`). Plantilla `Confirm signup` guardada y reabierta con `{{ .Token }}`. No se han enviado correos de prueba ni confirmado recepción del OTP; falta prueba con correo autorizado. [Estado detallado de Brevo](docs/BREVO-AUTENTICACION-V106-2026-10-18.md).
 
-## Estado actual — V107 (18-OCT-2026)
+## Estado actual — V108 (18-OCT-2026)
 
-**Registro DNI primero:** En el portal oficial `www.clancartan.com`, V107 coloca DNI al inicio del alta de CLAN CARTAN y usa `cc-dni-registro` (Supabase) para autocompletar **solo nombres y apellidos** del titular autorizado a través de API Perú. WhatsApp, correo, ubicación y contraseña se ingresan manualmente; el WhatsApp no es obligatorio. El correo sí se necesita para confirmar el registro. Los documentos distintos de DNI peruano mantienen entrada manual.
+**Corrección solicitada por titular:** se revirtió exclusivamente el formulario de alta de CLAN CARTAN al comportamiento **manual original de V106**. Se ingresa nombre completo y documento manualmente, sin consulta externa de DNI en registro. No se exige consentimiento ni se envía el DNI de este formulario a API Perú.
 
-**Seguridad y costo:** La nueva función pública requiere autorización y DNI peruano de ocho cifras; tiene limitación de 2 consultas por IP cada 24 h y comparte el máximo de 100 llamadas al mes del proveedor con COBRA YA. No conserva el DNI ni nombres en el log de consultas. Antes de un lanzamiento comercial abierto hace falta añadir protección adicional anti-bots y realizar revisión legal del tratamiento de datos.
+**Solo COBRA YA** mantiene la opción de autocompletar datos de clientes a partir de DNI, a través de la Edge Function autenticada `cc-consulta-dni` (`verify_jwt=true`). El secreto `APIPERU_TOKEN`, las cuotas de consulta y los datos comerciales no se tocaron.
 
-**Error de registro identificado:** los registros de Supabase mostraron una petición `POST /signup` fallida con SMTP `535 5.7.8 Authentication failed`. Mientras Brevo rechace las credenciales SMTP, no se puede enviar el código de seis dígitos; hace falta corregir la clave SMTP desde Auth > SMTP Settings y comprobar un registro propio. Sin consultas de DNI ni nuevas cuentas de registro creadas durante las verificaciones internas.
+**Endpoint de V107 retirado funcionalmente:** se desactivó `cc-dni-registro` en Supabase; ahora responde HTTP 410, sin consultar DNI ni consumir cuota. Su código previo permanece en `resguardo/v107-antes-reversion-formulario-2026-10-18`. Tabla y RPC auxiliares de V107 se dejan inactivos para preservar el historial y evitar cambios destructivos.
 
-**Código y despliegue:** los cambios están en `index.html` V107; funciones Supabase `cc-dni-registro` y `cc-consulta-dni` versionadas en GitHub. [Detalle técnico y pasos pendientes](docs/V107-REGISTRO-DNI-Y-SMTP.md). Rama anterior protegida: `resguardo/v106-antes-registro-dni-2026-10-18`.
+**Correo de verificación:** continúa configurada la plantilla `{{ .Token }}` y el SMTP en Supabase, pero los registros de Auth mostraron error de contraseña del servidor Brevo `535 5.7.8 Authentication failed` en `POST /signup`. Se debe corregir **la clave SMTP** en Supabase y probar con email propio; este error no está relacionado con el formulario DNI.
+
+**Historial:** `V107` queda documentada como versión de prueba revertida. Nuevo código `index.html` usa etiqueta `V108-20261018`. [Registro de corrección V108](docs/V108-REGISTRO-CLANCARTAN-MANUAL.md).
 
 ## Estado y recuperación — V106 (18 de octubre de 2026, UTC)
 
