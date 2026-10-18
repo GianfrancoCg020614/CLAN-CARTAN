@@ -1,1 +1,12 @@
 /* CLAN CARTAN V122 */.cc122-pay{margin:20px 0;padding:20px;border:1px solid #356277;border-radius:16px;background:#0f2330;color:#e7f5ff;max-width:800px}.cc122-pay h3{margin:0 0 10px}.cc122-pay label{display:block;margin:10px 0;font-size:14px}.cc122-pay select,.cc122-pay input{display:block;width:100%;box-sizing:border-box;padding:11px;margin-top:6px;background:#142f42;color:white;border:1px solid #4d7380;border-radius:8px}.cc122-pay button{padding:12px 16px;border:0;border-radius:9px;background:#16a7ca;color:#061b22;font-weight:700;cursor:pointer}.cc122-pay button:disabled{opacity:.5}.cc122-info{padding:12px;border:1px solid #426073;border-radius:10px;margin:12px 0}.cc122-info img{display:block;max-width:260px;width:100%;background:white;padding:10px;margin:10px auto;border-radius:10px}.cc122-info a{color:#83e5ff}.cc122-pay small{display:block;margin-top:12px;opacity:.9}.cc122-pay #cc122status{font-weight:700;overflow-wrap:anywhere}
+/* V125 · Información de tasa comercial y promoción de invitación Binance */
+.cc125-referral{margin:12px 0;padding:13px;border:1px solid #4c7e8b;background:#162b3b;border-radius:12px}
+.cc125-referral strong{display:block;margin-bottom:7px;color:#f5ce63}
+.cc125-referral p{margin:8px 0}
+.cc125-referral a{display:inline-block;color:#86e7ff;text-decoration:underline;font-weight:700}
+.cc125-refcode{display:block;padding:8px 0;color:#fff}
+.cc125-admin{margin:18px 0;padding:14px;border:1px solid #6a6f42;border-radius:12px}
+.cc125-admin summary{font-weight:700;cursor:pointer;color:#e0d48b}
+.cc125-admin .cc125-check{display:flex;align-items:flex-start;gap:10px}
+.cc125-admin .cc125-check input{width:auto;margin:0}
+#cc124quote{line-height:1.65}
