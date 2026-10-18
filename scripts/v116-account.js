@@ -1,33 +1,41 @@
-/* CLAN CARTAN V116 · Saldos personales y recarga desde una sola acción.
- * Solo muestra saldos de prueba del usuario autenticado. No acredita dinero.
+/* CLAN CARTAN V127 · Saldos confirmados y de prueba separados, visibles desde cuenta personal.
+ * No acredita dinero. Las cifras reales nunca se deducen de saldos ficticios.
  */
 (function(){
 'use strict';
 const el=id=>document.getElementById(id);
-const cobra=el('cc116-cobra'),bull=el('cc116-bull');
+const cobra=el('cc116-cobra'),bull=el('cc116-bull'),cobraTest=el('cc127-cobra-test'),bullTest=el('cc127-bull-test');
 if(!cobra||!bull)return;
 const money=n=>'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
 let inFlight=null;
 async function refreshBalances(){
  const session=window.CC_V53_SESSION;
- if(!session?.jwt){cobra.textContent='S/ --';bull.textContent='S/ --';return;}
+ if(!session?.jwt){cobra.textContent='S/ --';bull.textContent='S/ --';if(cobraTest)cobraTest.textContent='Prueba --';if(bullTest)bullTest.textContent='Prueba --';return;}
  if(inFlight)return inFlight;
  const userId=session.userId;
- cobra.textContent='…';bull.textContent='…';
+ cobra.textContent='…';bull.textContent='…';if(cobraTest)cobraTest.textContent='Prueba …';if(bullTest)bullTest.textContent='Prueba …';
  inFlight=(async()=>{
   try{
    if(!window.cc80?.api)throw Error('Billeteras no disponibles');
-   const list=await cc80.api('rpc/cc_my_test_wallets','POST',{});
+   const results=await Promise.allSettled([
+    cc80.api('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+encodeURIComponent(userId)),
+    cc80.api('rpc/cc_my_test_wallets','POST',{})
+   ]);
    if(window.CC_V53_SESSION?.userId!==userId)return;
-   if(!Array.isArray(list))throw Error('Formato inválido');
-   for(const [service,field] of [['COBRA_YA',cobra],['STREAM_BULLS',bull]]){
-    const balance=Number(list.find(item=>item.service===service)?.balance_test??0);
-    field.textContent=Number.isFinite(balance)?money(balance):'No disponible';
+   const real=results[0].status==='fulfilled'&&Array.isArray(results[0].value)?results[0].value:null;
+   const trial=results[1].status==='fulfilled'&&Array.isArray(results[1].value)?results[1].value:null;
+   for(const [service,field,testField] of [['COBRA_YA',cobra,cobraTest],['STREAM_BULLS',bull,bullTest]]){
+    const amount=real===null?null:Number(real.find(x=>x.service===service)?.balance_pen??0);
+    field.textContent=amount===null||!Number.isFinite(amount)?'No disp.':money(amount);
+    const testAmount=trial===null?null:Number(trial.find(x=>x.service===service)?.balance_test??0);
+    if(testField)testField.textContent=testAmount===null||!Number.isFinite(testAmount)?'Prueba no disp.':'Prueba '+money(testAmount);
    }
   }catch(error){
    if(window.CC_V53_SESSION?.userId!==userId)return;
    cobra.textContent='No disponible';bull.textContent='No disponible';
-   console.warn('No se pudieron actualizar las billeteras personales:',error?.message||error);
+   if(cobraTest)cobraTest.textContent='Prueba no disponible';
+   if(bullTest)bullTest.textContent='Prueba no disponible';
+   console.warn('No se pudieron actualizar los saldos:',error?.message||error);
   }
  })().finally(()=>{inFlight=null;});
  return inFlight;
