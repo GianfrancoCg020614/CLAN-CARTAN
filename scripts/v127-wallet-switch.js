@@ -6,7 +6,7 @@ const by=id=>document.getElementById(id);
 const nameOf=s=>s==='COBRA_YA'?'COBRA YA':'STREAM BULL’S';
 const other=s=>s==='COBRA_YA'?'STREAM_BULLS':'COBRA_YA';
 const money=n=>'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
-const state={from:'COBRA_YA',busy:false,loading:false,balances:{real:null,test:null},sessionId:null};
+const state={from:'COBRA_YA',busy:false,loading:false,balances:{real:null,test:null},sessionId:null,autoSelectMode:false};
 function mount(){
  if(by('cc127transferModal'))return;
  const balances=by('cc116-account-balances');
@@ -46,7 +46,7 @@ function mount(){
  by('cc127close').onclick=close;
  modal.addEventListener('click',e=>{if(e.target===modal)close()});
  by('cc127swap').onclick=()=>{state.from=other(state.from);render();by('cc127amount').focus()};
- by('cc127mode').onchange=()=>{by('cc127amount').value='';render()};
+ by('cc127mode').onchange=()=>{state.autoSelectMode=false;by('cc127amount').value='';render()};
  by('cc127amount').oninput=render;
  by('cc127all').onclick=()=>{const b=available();if(b===null){msg('No se pudo consultar el saldo.');return;}by('cc127amount').value=b>0?b.toFixed(2):'';render()};
  by('cc127send').onclick=send;
@@ -103,6 +103,11 @@ async function refresh(){
    for(const x of results[1].value){if(x.service in requested.real)requested.real[x.service]=Number(x.balance_pen||0)}
   }
   state.balances=requested;
+  if(state.autoSelectMode){
+   const availableReal=requested.real&&Object.values(requested.real).some(v=>Number.isFinite(v)&&v>0);
+   by('cc127mode').value=availableReal?'real':'test';
+   state.autoSelectMode=false;
+  }
   if(!requested.test&&!requested.real)msg('No se pudieron consultar las billeteras. Reintenta.');
   else if(!requested[by('cc127mode').value])msg('Ese saldo no está disponible temporalmente.');
   else msg('');
@@ -115,7 +120,8 @@ function open(source){
  state.from=source==='STREAM_BULLS'?'STREAM_BULLS':'COBRA_YA';
  state.sessionId=window.CC_V53_SESSION.userId;
  state.balances={real:null,test:null};
- by('cc127mode').value='test';by('cc127amount').value='';
+ state.autoSelectMode=true;
+ by('cc127mode').value='real';by('cc127amount').value='';
  by('cc127transferModal').hidden=false;
  msg('Consultando billeteras…');render();
  void refresh();
