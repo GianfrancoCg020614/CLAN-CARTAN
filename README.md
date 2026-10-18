@@ -10,6 +10,8 @@
 **Respaldo Cloudflare Pages:** https://clan-cartan.pages.dev/  
 **Respaldo anterior:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
 
+**Actualización de autenticación (18-OCT-2026):** Supabase Auth conserva `Confirm email=ON` y `Allow signup=ON`. Se guardó Site URL `https://www.clancartan.com/` y cuatro redirect URLs: www, raíz, respaldo pages.dev y GitHub Pages. Plantilla de seis dígitos preparada, pero **aún sin SMTP externo**, por lo que no se declara envío OTP real ni servicio API Perú activo. [Registro de Auth y pasos pendientes](docs/CONFIGURACION-CORREO-Y-APIPERU-V106.md).
+
 ## Estado y recuperación — V106 (18 de octubre de 2026, UTC)
 
 **Respaldo del código:** rama `resguardo/v106-2026-10-18` conserva exactamente el commit `846577227f356e1f8309c4559c43a6a422334a25`. **Código de la Edge Function** `cc-consulta-dni` ahora versionado en `supabase/functions/cc-consulta-dni/index.ts`, sin secretos.
