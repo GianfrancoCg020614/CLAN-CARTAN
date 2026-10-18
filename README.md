@@ -1,14 +1,26 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Actualizado:** 17 de octubre de 2026  
+**Actualizado:** 18 de octubre de 2026 (UTC)  
 **Razón social:** CLAN CARTAN E.I.R.L.  
 **RUC comunicado por el titular:** 20612272078  
 **Correo:** clancartan@gmail.com  
 **Negocios:** STREAM BULL'S y COBRA YA  
 **Repositorio:** https://github.com/GianfrancoCg020614/CLAN-CARTAN  
-**Dominio principal declarado (V105 pendiente de verificación HTTPS/DNS):** https://www.clancartan.com/  
+**Dominio principal declarado (V106, conexión DNS aún pendiente):** https://www.clancartan.com/  
 **Respaldo Cloudflare Pages:** https://clan-cartan.pages.dev/  
 **Respaldo anterior:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
+
+## Estado y recuperación — V106 (18 de octubre de 2026, UTC)
+
+**Respaldo del código:** rama `resguardo/v106-2026-10-18` conserva exactamente el commit `846577227f356e1f8309c4559c43a6a422334a25`. **Código de la Edge Function** `cc-consulta-dni` ahora versionado en `supabase/functions/cc-consulta-dni/index.ts`, sin secretos.
+
+**Supabase:** proyecto COBRA-YA operativo; copia puntual interna de las 23 tablas `public` en el esquema restringido `cc_snapshot_v106_20261018`, sin modificar tablas originales. Se comprobaron recuentos coincidentes para clientes, préstamos y abonos. **No es un respaldo externo integral y no incluye Auth ni secretos.**
+
+**Web:** V106 validada en GitHub y publicada en `clan-cartan.pages.dev`. Aún no hay DNS válido de `www.clancartan.com`; la asociación del dominio debe completarse en Cloudflare. El verificador de GitHub ya distingue ese error.
+
+**Registro:** diseño OTP de seis dígitos preparado, pendiente de plantilla `{{ .Token }}`, SMTP y prueba real. **DNI:** llamada externa preparada por Edge Function, pendiente de secreto `APIPERU_TOKEN` y autorización del proveedor; se mantiene ingreso manual y máximo interno de 100 consultas/mes con control de acceso. WhatsApp y correo de clientes pueden quedar vacíos.
+
+**Continuidad y pendientes exactos:** [Estado y recuperación de V106](docs/ESTADO-Y-RECUPERACION-V106-2026-10-18.md) · [Changelog V106](docs/V106-CHANGELOG.md).
 
 ## Estado actual — V105 (17 de octubre de 2026)
 
