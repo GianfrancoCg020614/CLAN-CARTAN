@@ -62,7 +62,7 @@ assert.ok(nameOrder>0 && dniOrder>nameOrder,'CLAN CARTAN debe tener su formulari
 assert.ok(!html.includes('cc107consent'),'Registro general NO debe consultar DNI automáticamente');
 assert.ok(!html.includes('cc-dni-registro'),'Función de DNI público no debe usarse en el portal');
 assert.ok(html.includes('rpc/cy_lookup_dni_saved'),'COBRA YA debe conservar la consulta de DNI');
-assert.ok(html.includes('content="V114-20261018"'),'Falta marca de versión V114');
+assert.ok(html.includes('content="V115-20261018"'),'Falta marca de versión V114');
 assert.ok(html.includes('id="cc111-business"'),'Falta selector del negocio para el código propio');
 assert.ok(html.includes('invite_business:document.getElementById(\'cc111-business\').value'),'El registro no comunica el negocio elegido');
 assert.ok(html.includes('Puedes registrarte sin código'),'No se informa que el código es opcional');
@@ -91,4 +91,8 @@ assert.ok(!html.includes('panel.insertBefore(actions,panel.firstChild)'),'Accion
 assert.ok(html.includes('if(!window.cc113)await cy55.status()'),'Evita pedir estado varias veces al abrir');
 assert.ok(html.includes('class="cy114-nav"'),'Falta navegación simplificada');
 assert.ok(v113.includes("setAttribute('aria-expanded'"),'Falta accesibilidad de paneles desplegables');
-console.log('V114: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');
+assert.ok(html.includes('No se pudieron consultar tus saldos.'),'No se informa el error de lectura de billeteras');
+assert.ok(html.includes('Math.abs(Math.round(amount*100)-amount*100)>0.000001'),'La transferencia rechaza decimales correctos');
+assert.ok(v113.includes('cy115refresh'),'Falta actualizar saldo en COBRA YA');
+assert.ok(v113.includes('cc115streamRefresh'),'Falta actualizar saldo Stream Bull');
+console.log('V115: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');

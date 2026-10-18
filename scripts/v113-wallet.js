@@ -1,4 +1,4 @@
-/* CLAN CARTAN V114: UX de billeteras y activación por descuento confirmado.
+/* CLAN CARTAN V115: UX de billeteras y activación por descuento confirmado.
  * SOLO saldo ficticio hasta que exista proveedor de pagos verificados. */
 (function(){
 'use strict';
@@ -6,7 +6,7 @@ const by=id=>document.getElementById(id);
 const money=n=>'S/ '+Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const cards=[
 '<div class="cy113-head"><div><span class="cy113-label">COBRA YA · MI CUENTA</span><h3>Mi acceso y billetera</h3></div><span class="cy113-badge" id="cy55state" role="status" aria-live="polite">Consultando...</span></div>',
-'<div class="cy113-stats"><div><small>Saldo COBRA YA</small><strong id="cy55balance">S/ 0.00</strong></div><div><small>Plan mensual</small><strong>S/ 15.00 <em>/ 30 días</em></strong></div><div><small>Vence</small><strong id="cy113due">Sin activar</strong></div></div>',
+'<div class="cy113-stats"><div><small>Saldo COBRA YA <button id="cy115refresh" type="button" class="cy115-inline-refresh" title="Actualizar saldo y suscripción" aria-label="Actualizar saldo y suscripción">↻ Actualizar</button></small><strong id="cy55balance">S/ 0.00</strong></div><div><small>Plan mensual</small><strong>S/ 15.00 <em>/ 30 días</em></strong></div><div><small>Vence</small><strong id="cy113due">Sin activar</strong></div></div>',
 '<div class="cy113-buttons"><button class="cy113-pay" id="cy55pay" type="button">Activar por S/ 15</button><button class="cy113-secondary" id="cy113recharge" type="button">＋ Recargar</button><button class="cy113-secondary" id="cy113transfer" type="button">⇄ Transferir</button></div>',
 '<div class="cy113-extra" id="cy113topup" hidden><label for="cy113amount">Solicitar saldo de prueba (S/)</label><div class="cy113-action"><input type="number" id="cy113amount" min="1" max="1000" step="0.01" value="30" inputmode="decimal"><button type="button" id="cy113topupGo">Solicitar recarga</button></div><small>Solo simulación. La recarga necesita aprobación antes de acreditarse; no envíes dinero real.</small></div>',
 '<div class="cy113-extra" id="cy113transferArea" hidden><label for="cy113transferAmount">Desde STREAM BULL’S <span id="cy113streamBalance">(saldo: S/ 0.00)</span></label><div class="cy113-action"><input type="number" id="cy113transferAmount" min="0.01" step="0.01" value="15" inputmode="decimal"><button type="button" id="cy113transferGo">Transferir a COBRA YA</button></div><small>Únicamente entre tus billeteras. No permite retiros ni transferencias a otras personas.</small></div>',
@@ -80,6 +80,7 @@ cy55.pay=async function(){
   await cy54.api('rpc/cy_pay_subscription_test','POST',{});charged=true;
   await cy54.refreshAuth();
   if(window.CC_V53_SESSION?.isReseller)await cy53.refresh();
+  for(const id of ['cy113topup','cy113transferArea']){const panel=by(id);if(panel)panel.hidden=true;}
   message.textContent='✓ S/ 15 descontados. Plan activo por 30 días, sin autorización manual.';
   message.dataset.done='yes';
  }catch(e){
@@ -104,6 +105,7 @@ function show(id){
  if(!el.hidden&&id==='cy113transferArea')refreshStream();
 }
 by('cy55pay').addEventListener('click',()=>cy55.pay());
+by('cy115refresh').addEventListener('click',async e=>{const button=e.currentTarget;button.disabled=true;try{await Promise.all([cy55.status(),refreshStream()]);}finally{button.disabled=false;}});
 by('cy113recharge').setAttribute('aria-controls','cy113topup');by('cy113recharge').setAttribute('aria-expanded','false');
 by('cy113transfer').setAttribute('aria-controls','cy113transferArea');by('cy113transfer').setAttribute('aria-expanded','false');
 by('cy113recharge').addEventListener('click',()=>show('cy113topup'));
@@ -148,8 +150,9 @@ const pop=by('cc93-affiliate');
 if(pop){
  const m=by('cc93-message'),badge=document.createElement('div');
  badge.className='cc113-stream-wallet';
- badge.innerHTML='<span>Mi billetera STREAM BULL’S<br><small>Saldo de prueba</small></span><strong id="cc113sbBalance">S/ 0.00</strong>';
+ badge.innerHTML='<span>Mi billetera STREAM BULL’S<br><small>Saldo de prueba</small></span><strong id="cc113sbBalance">S/ 0.00</strong><button type="button" id="cc115streamRefresh" class="cc115-sb-refresh" aria-label="Actualizar billetera Stream Bull’s" title="Actualizar saldo">↻</button>';
  m.before(badge);
+ by('cc115streamRefresh').addEventListener('click',async e=>{e.currentTarget.disabled=true;try{await refreshStream();}finally{e.currentTarget.disabled=false;}});
  const oldRecharge=[...pop.querySelectorAll('button')].find(b=>b.textContent.includes('Solicitar recarga'));
  if(oldRecharge){
   oldRecharge.removeAttribute('onclick');
@@ -164,7 +167,8 @@ if(pop){
  const oldBenefits=window.cc79StreamBenefits;
  if(typeof oldBenefits==='function')window.cc79StreamBenefits=async function(){await oldBenefits();await refreshStream();};
  const oldPay=window.cc93PayAffiliation;
- if(typeof oldPay==='function')window.cc93PayAffiliation=async function(){await oldPay();await refreshStream();};
+ if(typeof oldPay==='function')window.cc93PayAffiliation=async function(){await oldPay();await refreshStream();try{const rows=await cc80.api('rpc/sb_my_affiliation_test','POST',{});if(rows?.[0]?.is_affiliated&&window.CC_V53_SESSION&&!window.CC_V53_SESSION.commercialRole)window.CC_V53_SESSION.commercialRole='AFFILIATE';}catch(e){console.warn('No se pudo refrescar afiliación',e.message);}if(typeof cc95RenderUser==='function')cc95RenderUser();};
+ pop.addEventListener('keydown',e=>{if(e.key==='Escape'){pop.style.display='none';e.preventDefault();}});
 }
 const wallet=by('cc80wallet');
 if(wallet){

@@ -55,7 +55,7 @@ jobs:
                     response_asset="artifact-$(basename "$asset")"
                     if curl --fail --silent --show-error --location --connect-timeout 8 --max-time 20 \
                        "${main}${asset}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o "$response_asset" \
-                       && grep -Fq "CLAN CARTAN V114" "$response_asset"; then
+                       && grep -Fq "CLAN CARTAN V115" "$response_asset"; then
                       echo "✓ Recurso vigente: $asset"
                     else
                       assets_ok=false

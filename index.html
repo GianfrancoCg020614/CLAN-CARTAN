@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V114-20261018">
+<meta name="cc-deploy-version" content="V115-20261018">
 <style>
 
 :root{
@@ -2493,7 +2493,7 @@ body.light .ccc-v50-maker-divider{background:#d7dce2}
 #cy53modal .scroll table th,#cy53modal .scroll table td{white-space:normal;min-width:84px;vertical-align:middle;padding:10px 8px}
 #cy60feedback{margin-top:10px;font-weight:700;line-height:1.5}
 @media(max-width:650px){#cy53modal .scroll table{min-width:880px}#cy53modal button{font-size:13px}}
-</style><link rel="stylesheet" href="styles/v113-wallet.css?v=114">
+</style><link rel="stylesheet" href="styles/v113-wallet.css?v=115">
 </head>
 <body>
 <div id="app"></div>
@@ -5443,7 +5443,7 @@ body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
 </section>
 <button type="button" id="cc77back" onclick="cc77Home()">← CLAN CARTAN</button><div id="cc77demobanner">Stream Bull's · catálogo de DEMOSTRACIÓN. Precios y operaciones comerciales todavía no conectados a Supabase.</div>
 <script>
-function cc77Home(){document.getElementById('cc80wallet').style.display='none';document.getElementById('cc77home').style.display='block';document.getElementById('cc-real-login').style.display='none';document.getElementById('cc77back').style.display='none';document.getElementById('cc77demobanner').style.display='none';}
+function cc77Home(){document.getElementById('cc80wallet').style.display='none';document.getElementById('cy53layer').style.display='none';document.getElementById('cc93-affiliate').style.display='none';document.getElementById('cc77home').style.display='block';document.getElementById('cc-real-login').style.display='none';document.getElementById('cc77back').style.display='none';document.getElementById('cc77demobanner').style.display='none';}
 function cc77Auth(create){document.getElementById('cc77home').style.display='none';document.getElementById('cc77back').style.display='block';document.getElementById('cc77demobanner').style.display='none';const gate=document.getElementById('cc-real-login');gate.style.display='flex';const button=document.getElementById('cc-register-toggle');const isCreate=document.getElementById('cc-real-button').textContent.includes('Registrar mi cuenta');if(button&&isCreate!==create)button.click();}
 function cc77Store(){document.getElementById('cc77home').style.display='none';document.getElementById('cc-real-login').style.display='none';document.getElementById('cc77back').style.display='block';document.getElementById('cc77demobanner').style.display='block';if(typeof ui!=='undefined'&&typeof render==='function'){ui.role='visitor';ui.face='store';render()} }
 </script>
@@ -5598,8 +5598,8 @@ async function cc93PayAffiliation(){
 window.cc80 = {
  fmt(n){return 'S/ '+Number(n||0).toLocaleString('es-PE',{maximumFractionDigits:2})},
  async api(path,method='GET',body){let s=window.CC_V53_SESSION;if(!s)throw Error('Primero inicia sesión');let r=await fetch(s.root+'/rest/v1/'+path,{method,headers:{apikey:s.key,Authorization:'Bearer '+s.jwt,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});let raw=await r.text();let j;try{j=JSON.parse(raw)}catch{j=raw}if(!r.ok)throw Error(j.message||j.error||raw||'No se pudo completar');return j},
- async refresh(){let el=document.getElementById('cc80status');try{let result=await this.api('rpc/cc_my_test_wallets','POST',{});for(const w of result){let id=w.service==='COBRA_YA'?'cc80cobra':'cc80stream';document.getElementById(id).textContent=this.fmt(w.balance_test)}el.textContent='Saldos actualizados';}catch(e){el.textContent=e.message}},
- async transfer(){let s=window.CC_V53_SESSION;if(!s){cc77Auth(false);return}let from=document.getElementById('cc80from').value,to=from==='COBRA_YA'?'STREAM_BULLS':'COBRA_YA',amount=Number(document.getElementById('cc80amount').value),el=document.getElementById('cc80status');if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100){el.textContent='Escribe un monto válido de hasta dos decimales';return}if(!confirm('¿Transferir '+this.fmt(amount)+' de '+from+' a '+to+'?'))return;let btn=document.getElementById('cc80transfer');btn.disabled=true;el.textContent='Procesando transferencia...';try{await this.api('rpc/cc_transfer_test_balance','POST',{p_from:from,p_to:to,p_amount:amount});document.getElementById('cc80amount').value='';await this.refresh();el.textContent='Transferencia de prueba registrada correctamente';}catch(e){el.textContent='No se pudo transferir: '+e.message}finally{btn.disabled=false}},
+ async refresh(){const el=document.getElementById('cc80status');for(const id of ['cc80cobra','cc80stream'])document.getElementById(id).textContent='Consultando…';try{const result=await this.api('rpc/cc_my_test_wallets','POST',{});const wallet=Array.isArray(result)?result:[];for(const [service,id] of [['COBRA_YA','cc80cobra'],['STREAM_BULLS','cc80stream']]){const found=wallet.find(w=>w.service===service);document.getElementById(id).textContent=this.fmt(found?.balance_test||0)}el.textContent='Saldos actualizados';}catch(e){for(const id of ['cc80cobra','cc80stream'])document.getElementById(id).textContent='No disponible';el.textContent='No se pudieron consultar tus saldos. Inténtalo nuevamente.'}},
+ async transfer(){let s=window.CC_V53_SESSION;if(!s){cc77Auth(false);return}let from=document.getElementById('cc80from').value,to=from==='COBRA_YA'?'STREAM_BULLS':'COBRA_YA',amount=Number(document.getElementById('cc80amount').value),el=document.getElementById('cc80status');if(!Number.isFinite(amount)||amount<=0||amount>100000||Math.abs(Math.round(amount*100)-amount*100)>0.000001){el.textContent='Ingresa un monto positivo con máximo dos decimales.';return}if(!confirm('¿Transferir '+this.fmt(amount)+' de '+from+' a '+to+'?'))return;let btn=document.getElementById('cc80transfer');btn.disabled=true;el.textContent='Procesando transferencia...';try{await this.api('rpc/cc_transfer_test_balance','POST',{p_from:from,p_to:to,p_amount:amount});document.getElementById('cc80amount').value='';await this.refresh();el.textContent='Transferencia de prueba registrada correctamente';}catch(e){el.textContent='No se pudo transferir: '+e.message}finally{btn.disabled=false}},
  open(){if(!window.CC_V53_SESSION){cc77Auth(false);return}document.getElementById('cc80wallet').style.display='block';this.refresh();document.getElementById('cc80wallet').scrollIntoView({behavior:'smooth',block:'start'})}
 };
 document.getElementById('cc80transfer').addEventListener('click',()=>cc80.transfer());
@@ -5667,6 +5667,6 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
  if(recoveryToken){open();}
 })();
 </script>
-<script src="scripts/v113-wallet.js?v=114"></script>
+<script src="scripts/v113-wallet.js?v=115"></script>
 </body>
 </html>
