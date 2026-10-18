@@ -6,7 +6,7 @@
 **Correo:** clancartan@gmail.com  
 **Negocios:** STREAM BULL'S y COBRA YA  
 **Repositorio:** https://github.com/GianfrancoCg020614/CLAN-CARTAN  
-**Dominio principal declarado (V106, conexión DNS aún pendiente):** https://www.clancartan.com/  
+**Dominio principal operativo (V106, DNS y HTTPS verificados):** https://www.clancartan.com/  
 **Respaldo Cloudflare Pages:** https://clan-cartan.pages.dev/  
 **Respaldo anterior:** https://gianfrancocg020614.github.io/CLAN-CARTAN/
 
@@ -16,7 +16,7 @@
 
 **Supabase:** proyecto COBRA-YA operativo; copia puntual interna de las 23 tablas `public` en el esquema restringido `cc_snapshot_v106_20261018`, sin modificar tablas originales. Se comprobaron recuentos coincidentes para clientes, préstamos y abonos. **No es un respaldo externo integral y no incluye Auth ni secretos.**
 
-**Web:** V106 validada en GitHub y publicada en `clan-cartan.pages.dev`. Aún no hay DNS válido de `www.clancartan.com`; la asociación del dominio debe completarse en Cloudflare. El verificador de GitHub ya distingue ese error.
+**Web:** dominio `clancartan.com` comprado en Cloudflare Registrar, activo con vencimiento indicado el 17-OCT-2027. En Cloudflare Pages se activaron los dominios personalizados `www.clancartan.com` y `clancartan.com` (DNS CNAME proxied hacia `clan-cartan.pages.dev`, HTTPS y certificados habilitados). Comprobación externa exitosa de ambas URL y del respaldo; `www` sirve `V106-20261017` y figura como dirección canónica. **Nota:** ambos hostnames sirven la página; la redirección HTTP 301 de raíz a `www` no se ha confirmado y queda como mejora independiente.
 
 **Registro:** diseño OTP de seis dígitos preparado, pendiente de plantilla `{{ .Token }}`, SMTP y prueba real. **DNI:** llamada externa preparada por Edge Function, pendiente de secreto `APIPERU_TOKEN` y autorización del proveedor; se mantiene ingreso manual y máximo interno de 100 consultas/mes con control de acceso. WhatsApp y correo de clientes pueden quedar vacíos.
 
