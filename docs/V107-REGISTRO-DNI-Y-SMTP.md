@@ -1,3 +1,5 @@
+> **HISTÓRICO, REVERSIÓN APLICADA EN V108:** el usuario indicó que la consulta DNI corresponde **únicamente a COBRA YA**. Los cambios de registro público que describe V107 fueron revertidos y la Edge Function pública se deshabilitó (HTTP 410). Véase [V108 manual](V108-REGISTRO-CLANCARTAN-MANUAL.md). No seguir estas instrucciones V107 para producción.
+
 # CLAN CARTAN V107 — DNI primero en registro público
 
 **Fecha:** 18-OCT-2026 (UTC). **Producción:** https://www.clancartan.com/
