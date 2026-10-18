@@ -1,6 +1,6 @@
 # V122 — Lemon/DALE y Binance; pagos reales pendientes de conciliación
 
-- Se confirmó «Lemond» = Lemon Perú, con DALE. El QR de Lemon proviene de la captura del titular; no se conoce el teléfono DALE y por tanto no se publica ningún número inventado.
+- Se confirmó «Lemond» = Lemon Perú, con DALE. El QR de Lemon proviene de la captura del titular; teléfono DALE receptor aportado posteriormente: 923319637, visible en interfaz V123. Sin webhook bancario confirmado.
 - Binance Pay: URL obtenida leyendo QR adjunto: https://app.binance.com/uni-qr/812BvNys ; usuario mostrado: User-f81cdb6a. Verificar destinatario dentro de Binance antes de transferir.
 - Se crean solicitudes PENDING en Supabase vía rpc cc_create_pending_real_topup sin acreditar saldo. Máximo 5 diarias, rechazo de segunda solicitud vigente de misma billetera.
 - Los archivos de QR se adjuntan en assets/. No son prueba de pago y no confirman capacidades de webhook.
