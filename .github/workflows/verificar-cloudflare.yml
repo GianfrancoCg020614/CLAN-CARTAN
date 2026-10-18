@@ -10,50 +10,70 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: verificar-cloudflare-pages-main
+  cancel-in-progress: true
+
 jobs:
   comprobar-publicacion:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
       - name: Obtener versión esperada desde GitHub
         uses: actions/checkout@v4
 
-      - name: Comparar V104 y versión servida por Cloudflare
+      - name: Comprobar DNS y versión publicada
         shell: bash
         run: |
           set -euo pipefail
           expected="$(sed -n 's/.*<meta name="cc-deploy-version" content="\([^"]*\)".*/\1/p' index.html | head -n1)"
           if [[ -z "$expected" ]]; then
-            echo "::error::La versión de GitHub no tiene identificador cc-deploy-version."
+            echo "::error::index.html no contiene cc-deploy-version"
             exit 1
           fi
+          host='www.clancartan.com'
+          main='https://www.clancartan.com/'
+          backup='https://clan-cartan.pages.dev/'
           echo "Versión esperada: $expected"
-          url='https://www.clancartan.com/'
-          respaldo='https://clan-cartan.pages.dev/'
-          for attempt in $(seq 1 12); do
-            echo "Intento $attempt: verificando la publicación..."
-            if curl --fail --silent --show-error --location --max-time 25 \
-               --header 'Cache-Control: no-cache' \
-               "${url}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o cloudflare-response.html; then
-              if grep -Fq "content=\"$expected\"" cloudflare-response.html; then
-                echo "✓ Cloudflare publica la versión $expected"
-                echo "### www.ClanCartan.com: versión confirmada" >> "$GITHUB_STEP_SUMMARY"
-                echo "La versión **$expected** se encontró en [el sitio público]($url)." >> "$GITHUB_STEP_SUMMARY"
-                exit 0
+          echo "Verificando DNS de $host..."
+          if ! getent ahosts "$host" >/dev/null; then
+            echo "::error::DNS: $host no resuelve. Configura el dominio personalizado en Cloudflare Pages y confirma su CNAME (www -> clan-cartan.pages.dev)."
+            echo "### Error de DNS en el dominio principal" >> "$GITHUB_STEP_SUMMARY"
+            echo "GitHub no pudo resolver **$host**; el código no demuestra por sí solo la conexión del dominio." >> "$GITHUB_STEP_SUMMARY"
+            echo "En **Cloudflare → Workers & Pages → clan-cartan → Custom domains**, asocia **www.clancartan.com**." >> "$GITHUB_STEP_SUMMARY"
+            echo "Revisa después el registro **CNAME www → clan-cartan.pages.dev** en la zona DNS, sin reemplazar registros MX/TXT." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "DNS OK. Comprobando publicación en HTTPS..."
+            for attempt in 1 4; do
+              echo "Intento $attempt de 4"
+              if curl --fail --silent --show-error --location --connect-timeout 8 --max-time 20 \
+                 --header 'Cache-Control: no-cache' \
+                 "${main}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o cloudflare-response.html; then
+                if grep -Fq "content=\"$expected\"" cloudflare-response.html; then
+                  echo "✓ DNS, HTTPS y versión $expected correctos"
+                  echo "### Sitio público verificado" >> "$GITHUB_STEP_SUMMARY"
+                  echo "Cloudflare publica **$expected** en [www.clancartan.com]($main)." >> "$GITHUB_STEP_SUMMARY"
+                  exit 0
+                fi
+                echo "HTTPS responde, pero todavía no muestra $expected."
               fi
-              echo "La página respondió, pero aún no contiene la versión esperada."
-            else
-              echo "No se pudo consultar Cloudflare en este intento."
-            fi
-            sleep 20
-          done
-          echo "Comprobando si la versión ya se publicó en la dirección de respaldo..."
-          if curl --fail --silent --show-error --location --max-time 25 --header 'Cache-Control: no-cache' \
-            "${respaldo}?clan_check=${GITHUB_RUN_ID}-respaldo" -o cloudflare-backup.html && \
-            grep -Fq "content=\"$expected\"" cloudflare-backup.html; then
-            echo "::warning::La V105 está visible en Pages, pero NO se confirmó en www.clancartan.com."
+              if [[ "$attempt" != '4' ]]; then sleep 15; fi
+            done
+            echo "::error::El dominio resuelve, pero no fue posible verificar la versión $expected."
+            echo "### Despliegue no confirmado" >> "$GITHUB_STEP_SUMMARY"
+            echo "El dominio resuelve pero no presenta la versión **$expected**: revisa **Deployments** en Cloudflare Pages." >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo "::error::No se pudo confirmar la versión $expected en Cloudflare Pages."
-          echo "### www.ClanCartan.com: publicación sin confirmar" >> "$GITHUB_STEP_SUMMARY"
-          echo "GitHub espera **$expected**, pero no pudo verificar esa versión en [el sitio]($url)." >> "$GITHUB_STEP_SUMMARY"
+          if curl --fail --silent --show-error --location --max-time 15 \
+             "${backup}?clan_check=${GITHUB_RUN_ID}-backup" -o cloudflare-backup.html; then
+            if grep -Fq "content=\"$expected\"" cloudflare-backup.html; then
+              echo "::warning::La versión $expected aparece en Pages, pero no se verificó en el dominio oficial."
+              echo "El respaldo [pages.dev]($backup) sí publica **$expected**." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::warning::La versión esperada tampoco está publicada en pages.dev."
+              echo "El respaldo [pages.dev]($backup) aún no publica **$expected**: revisa Git integration / Deployments." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            echo "::warning::No fue posible consultar el respaldo de Pages."
+            echo "Tampoco fue posible consultar el respaldo [pages.dev]($backup)." >> "$GITHUB_STEP_SUMMARY"
+          fi
           exit 1
