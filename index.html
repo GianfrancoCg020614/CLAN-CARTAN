@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V109-20261018">
+<meta name="cc-deploy-version" content="V110-20261018">
 <style>
 
 :root{
@@ -4741,7 +4741,11 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <label id="cc-v81-provlabel">Provincia *<input id="cc-v81-province" placeholder="Tu provincia"></label>
 <label id="cc-v81-districtlabel">Distrito *<input id="cc-v81-district" placeholder="Tu distrito"></label>
 </div></fieldset>
-<fieldset><legend>3. Acceso a tu cuenta</legend><p style="font-size:12px;margin:0 0 8px">Tu correo será el usuario para todos los negocios. Escríbelo arriba junto con tu contraseña.</p><div class="cc-v81-grid"><label class="full">Confirmar contraseña *<input id="cc-v81-confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"></label></div>
+<fieldset><legend>3. Acceso a tu cuenta</legend><p style="font-size:12px;margin:0 0 8px">Tu correo será el usuario para todos los negocios. Escríbelo arriba junto con tu contraseña.</p><div class="cc-v81-grid"><label class="full">Confirmar contraseña *<input id="cc-v81-confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"></label>
+<label class="full">Código de invitado (opcional)
+<input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: COBRA1 o BULL1" aria-describedby="cc110-invite-hint">
+<span id="cc110-invite-hint" style="display:block;font-size:12px;font-weight:400;color:#b5c6d8;margin-top:5px">Ingresa el código de un AFILIADO, RESELLER o SUPER RESELLER. No concede acceso ni descuenta dinero.</span>
+</label></div>
 <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0"> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a> y la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a> (borradores para revisión legal).* No autorizo comunicaciones publicitarias por este acto.</span></label>
 <p style="font-size:11px;color:#a6b6c9">Documentos legales en revisión: NO utilizar aún para el lanzamiento comercial. El correo puede requerir confirmación para la seguridad de la cuenta.</p>
 </fieldset></div><p id="cc-register-help" class="cc-small" style="display:none">Registra tu correo y contraseña. La contraseña debe tener al menos 12 caracteres. Luego confirma tu correo electrónico si se solicita.</p><section id="cc91-confirm" role="status" aria-live="polite" style="display:none;text-align:left;background:#0c2c30;border:1px solid #2b9b91;border-radius:14px;padding:17px;margin:12px 0"><h3 style="margin:0 0 8px;color:#aeefd0">✉️ Verificación de correo electrónico</h3><p style="margin:0 0 8px">Hemos enviado un código de 8 dígitos a tu correo electrónico:</p><strong id="cc91-email" style="overflow-wrap:anywhere;color:#fff"></strong><div id="cc106otp" style="display:flex;gap:7px;margin:14px 0"><input inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Dígito 1"><input inputmode="numeric" maxlength="1" aria-label="Dígito 2"><input inputmode="numeric" maxlength="1" aria-label="Dígito 3"><input inputmode="numeric" maxlength="1" aria-label="Dígito 4"><input inputmode="numeric" maxlength="1" aria-label="Dígito 5"><input inputmode="numeric" maxlength="1" aria-label="Dígito 6"><input inputmode="numeric" maxlength="1" aria-label="Dígito 7"><input inputmode="numeric" maxlength="1" aria-label="Dígito 8"></div><button id="cc106verify" type="button" style="background:#5a86e5;color:#fff;width:100%;padding:12px;border:0;border-radius:10px;font-weight:700">Verificar cuenta</button><p style="font-size:13px;margin:11px 0 0">Escribe el código de 8 dígitos que recibiste para verificar tu cuenta.</p><p style="font-size:12px;color:#bbccda;margin:8px 0 0">¿No recibiste el código? Revisa Spam o usa Reenviar.</p></section><p id="cc-real-status" class="cc-error" role="status"></p><p class="cc-small">Los permisos se consultan desde la base de datos. No se permite ingresar con contraseñas de la demo. No compartas claves privadas.</p></div></div>
@@ -4871,6 +4875,18 @@ const help=document.getElementById('cc-register-help');
 // V89: El formulario mantiene el botón de registro AL FINAL de todos los campos.
 const extraFields=document.getElementById('cc-v81-fields');
 form.appendChild(extraFields);
+const inviteInput=document.getElementById('cc110-invite');
+inviteInput.addEventListener('input',()=>{
+ const clean=inviteInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,20);
+ if(inviteInput.value!==clean)inviteInput.value=clean;
+ document.getElementById('cc110-invite-hint').textContent='Código de invitado (opcional). Se verificará al registrarte.';
+});
+const invitationInUrl=new URLSearchParams(window.location.search).get('ref');
+if(invitationInUrl&&/^(COBRA|BULL)[1-9][0-9]{0,11}$/i.test(invitationInUrl)){
+ inviteInput.value=invitationInUrl.toUpperCase();
+ document.getElementById('cc110-invite-hint').textContent='Código de invitación cargado desde tu enlace. Se validará al registrarte.';
+}
+
 function setRegisterMode(next){
  registering=next;
  document.getElementById('cc-real-button').textContent=next?'Registrar mi cuenta':'Ingresar a CLAN CARTAN';
@@ -4907,9 +4923,16 @@ async function register(event){
   if(!region||!province||!district)throw Error('Completa tu ubicación.');
   if(password!==document.getElementById('cc-v81-confirm').value)throw Error('Las contraseñas no coinciden.');
   if(!document.getElementById('cc-v81-terms').checked)throw Error('Lee y acepta los Términos y la Política de privacidad.');
+  const invitationCode=inviteInput.value.trim().toUpperCase();
+  if(invitationCode){
+   if(!/^(COBRA|BULL)[1-9][0-9]{0,11}$/.test(invitationCode))throw Error('El código de invitado debe ser como COBRA1 o BULL1.');
+   const checked=await api('/rest/v1/rpc/cc_validate_invitation_code',{method:'POST',body:JSON.stringify({p_code:invitationCode})});
+   if(!Array.isArray(checked)||checked[0]?.valid!==true)throw Error('Código de invitado no válido o afiliado inactivo. Revísalo o deja el campo vacío.');
+   document.getElementById('cc110-invite-hint').textContent='✓ Código válido para '+(checked[0].business||'CLAN CARTAN')+'.';
+  }
   const siteHost=window.location.hostname.toLowerCase();
    const authRedirect=['www.clancartan.com','clancartan.com','clan-cartan.pages.dev'].includes(siteHost)?window.location.origin+'/':'https://clan-cartan.pages.dev/';
-   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V82_BORRADOR',privacy_version:'V82_BORRADOR',legal_accepted:true}})});
+   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V82_BORRADOR',privacy_version:'V82_BORRADOR',legal_accepted:true,invitation_code:invitationCode||null}})});
   document.getElementById('cc-real-pass').value='';
   if(result?.access_token){setRegisterMode(false);status.textContent='Cuenta creada. Inicia sesión con tu correo y contraseña. Los servicios se activan por separado.';}
   else{
@@ -5446,12 +5469,43 @@ function cc95RenderUser(){
  document.getElementById('cc95-role').textContent=sess.isAdmin?'ADMIN':sess.isReseller?'RESELLER · COBRA YA':'USUARIO CLAN CARTAN';
  widget.style.display='inline-flex';document.querySelectorAll('.cc98-guest-action').forEach(b=>b.style.display='none');
 }
+async function cc110ShowMyInvitationCodes(){
+ const ses=window.CC_V53_SESSION;
+ const wrapper=document.getElementById('cc79logged');
+ if(!ses?.jwt||!wrapper)return;
+ const previous=document.getElementById('cc110mycodes');
+ if(previous)previous.remove();
+ try{
+  const response=await fetch(ses.root+'/rest/v1/rpc/cc_my_invitation_codes',{
+   method:'POST',headers:{apikey:ses.key,Authorization:'Bearer '+ses.jwt,'Content-Type':'application/json'},body:'{}'
+  });
+  if(!response.ok)return;
+  const found=await response.json();
+  if(!Array.isArray(found)||!found.length||window.CC_V53_SESSION?.userId!==ses.userId)return;
+  const panel=document.createElement('div');panel.id='cc110mycodes';
+  panel.style.cssText='padding:11px;margin:10px 0;background:#0e2939;border:1px solid #2b8e99;border-radius:10px;color:#ecfaff;text-align:left;';
+  const title=document.createElement('div');title.textContent='Tus códigos de invitación';title.style.cssText='font-weight:700;margin-bottom:6px';panel.appendChild(title);
+  for(const entry of found){
+   if(!/^(COBRA|BULL)[1-9][0-9]{0,11}$/.test(String(entry.code||'')))continue;
+   const row=document.createElement('div');row.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px';
+   const name=document.createElement('span');name.textContent=(entry.business||'Negocio')+' · '+(entry.affiliate_role||'AFILIADO');name.style.cssText='flex:1;min-width:125px;font-size:12px';
+   const code=document.createElement('input');code.type='text';code.readOnly=true;code.value=entry.code;code.style.cssText='max-width:110px;padding:7px;background:#092239;color:white;border:1px solid #89bfd0;border-radius:6px';
+   const copy=document.createElement('button');copy.type='button';copy.textContent='Copiar código';copy.style.cssText='padding:8px;border-radius:7px';
+   copy.addEventListener('click',()=>{if(navigator.clipboard?.writeText)navigator.clipboard.writeText(entry.code).then(()=>{copy.textContent='✓ Copiado'}).catch(()=>{code.select();copy.textContent='Seleccionado'});else{code.select();copy.textContent='Seleccionado'};});
+   const share=document.createElement('button');share.type='button';share.textContent='Copiar enlace';share.style.cssText='padding:8px;border-radius:7px';
+   share.addEventListener('click',()=>{const link='https://www.clancartan.com/?ref='+encodeURIComponent(entry.code);if(navigator.clipboard?.writeText)navigator.clipboard.writeText(link).then(()=>{share.textContent='✓ Copiado'}).catch(()=>{code.select()});else{code.select();};});
+   row.append(name,code,copy,share);panel.appendChild(row);
+  }
+  wrapper.appendChild(panel);
+ }catch(e){console.warn('No se pudieron cargar códigos de invitación.',e?.message||e);}
+}
 function cc79AfterLogin(){
   const h=document.getElementById('cc77home'); if(h)h.style.display='block';
   const gate=document.getElementById('cc-real-login');if(gate)gate.style.display='none';
   const back=document.getElementById('cc77back');if(back)back.style.display='none';
   const box=document.getElementById('cc79logged');if(box){box.hidden=false;box.textContent='✓ Sesión única CLAN CARTAN iniciada. Elige tu negocio.'}
   const banner=document.getElementById('cc-real-banner');if(banner)banner.style.display='none';
+  cc110ShowMyInvitationCodes();
   const adminBtn=document.getElementById('cc92-admin-button');if(adminBtn)adminBtn.style.display=window.CC_V53_SESSION?.isAdmin===true?'inline-flex':'none';
   cc95RenderUser();
 }
