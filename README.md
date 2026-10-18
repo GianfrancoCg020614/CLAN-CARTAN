@@ -14,6 +14,14 @@
 
 **Brevo y autenticación del correo (18-OCT-2026):** El dominio `clancartan.com` quedó **autenticado en Brevo**, con los cuatro registros DNS verificados. Se creó el remitente unidireccional `no-reply@clancartan.com` y figura como **Verificado**. **SMTP Brevo confirmado habilitado en Supabase** tras configuración manual del titular (host `smtp-relay.brevo.com`, remitente `verificacion@clancartan.com`). Plantilla `Confirm signup` guardada y reabierta con `{{ .Token }}`. No se han enviado correos de prueba ni confirmado recepción del OTP; falta prueba con correo autorizado. [Estado detallado de Brevo](docs/BREVO-AUTENTICACION-V106-2026-10-18.md).
 
+## Estado actual — V110 (18-OCT-2026)
+
+**Registro con invitación opcional:** se agregó «Código de invitado» al formulario manual de CLAN CARTAN. Acepta códigos tipo `COBRA1`, `COBRA2`… y `BULL1`, `BULL2`…; también permite enlaces de registro `?ref=COBRA1`. La validación se hace en Supabase antes de crear la cuenta y se repite en el servidor para guardar quién invitó al nuevo usuario.
+
+**Códigos individuales por negocio:** se asignan automáticamente a miembros **activos** con rol `AFFILIATE`, `RESELLER` o `SUPER_RESELLER`; cada persona habilitada puede copiar su código y enlace al ingresar. Se verificó la asignación `COBRA1` al primer RESELLER activo. Se otorgarán códigos `BULLn` cuando se active una membresía elegible de STREAM BULL'S.
+
+**Sin incentivos prematuros:** registrarse con código **no** cambia accesos ni activa comisiones, billeteras o beneficios; estos quedarán sujetos a pagos válidos y a reglas comerciales específicas. Se preservan el OTP de ocho dígitos y DNI automático solo en COBRA YA. [Diseño y pruebas de V110](docs/V110-INVITACIONES-COBRA-BULL.md).
+
 ## Estado actual — V109 (18-OCT-2026)
 
 **OTP email corregido en página:** Supabase envía 8 dígitos; el portal V109 ahora muestra 8 casillas y verifica el código completo sin truncarlo. Se conserva el registro CLAN CARTAN manual (sin consulta DNI) y DNI automatizado únicamente en COBRA YA. La conexión SMTP ya logró entregar el correo.
