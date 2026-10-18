@@ -62,7 +62,7 @@ assert.ok(nameOrder>0 && dniOrder>nameOrder,'CLAN CARTAN debe tener su formulari
 assert.ok(!html.includes('cc107consent'),'Registro general NO debe consultar DNI automáticamente');
 assert.ok(!html.includes('cc-dni-registro'),'Función de DNI público no debe usarse en el portal');
 assert.ok(html.includes('rpc/cy_lookup_dni_saved'),'COBRA YA debe conservar la consulta de DNI');
-assert.ok(html.includes('content="V117-20261018"'),'Falta marca de versión V114');
+assert.ok(html.includes('content="V118-20261018"'),'Falta marca de versión V114');
 assert.ok(html.includes('id="cc111-business"'),'Falta selector del negocio para el código propio');
 assert.ok(html.includes('invite_business:document.getElementById(\'cc111-business\').value'),'El registro no comunica el negocio elegido');
 assert.ok(html.includes('Puedes registrarte sin código'),'No se informa que el código es opcional');
@@ -117,4 +117,12 @@ assert.ok(html.includes('cc117-one-action'),'Se muestran botones repetidos en ta
 const renderedStore=html.slice(html.indexOf('function renderStore(){'),html.indexOf('function clientsView(){'));
 assert.ok(!renderedStore.includes('ccc-v49-guest-cta'),'Se sigue mostrando una invitación obligatoria al registro en el catálogo');
 assert.ok(v117.includes('CLAN CARTAN V117'),'Los recursos visuales no tienen versión');
-console.log('V117: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');
+const v118=readFileSync(new URL('../styles/v118-logout.css',import.meta.url),'utf8');
+assert.ok(v118.includes('CLAN CARTAN V118'),'Falta estilo de salida con icono');
+assert.ok(html.includes('styles/v118-logout.css?v=118'),'Falta cargar icono de salida');
+assert.equal((html.match(/aria-label="Cerrar sesión" title="Cerrar sesión"/g)||[]).length,2,'Portada y COBRA YA requieren iconos accesibles');
+assert.ok(html.includes('cc118-profile-logout'),'Falta botón de cierre en perfil');
+assert.ok(html.includes('cy114-change cc118-logout'),'Falta botón de cierre en COBRA YA');
+assert.ok(!html.includes('>Cambiar cuenta</button>'),'Cambiar cuenta sigue usando texto');
+assert.ok(v118.includes('#cc54logout{display:none!important}'),'El antiguo cierre flotante no está oculto');
+console.log('V118: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');
