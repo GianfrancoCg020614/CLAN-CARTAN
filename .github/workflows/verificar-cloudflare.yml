@@ -51,11 +51,11 @@ jobs:
                  "${main}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o cloudflare-response.html; then
                 if grep -Fq "content=\"$expected\"" cloudflare-response.html; then
                   assets_ok=true
-                  for asset in scripts/v113-wallet.js styles/v113-wallet.css scripts/v116-account.js styles/v116-account.css styles/v117-public-catalog.css styles/v118-logout.css; do
+                  for asset in scripts/v113-wallet.js styles/v113-wallet.css scripts/v116-account.js styles/v116-account.css styles/v117-public-catalog.css styles/v118-logout.css scripts/v119-clients.js styles/v119-clients.css; do
                     response_asset="artifact-$(basename "$asset")"
                     if curl --fail --silent --show-error --location --connect-timeout 8 --max-time 20 \
                        "${main}${asset}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o "$response_asset" \
-                       && grep -Fq "CLAN CARTAN V$( [[ "$asset" == *v118* ]] && echo 118 || ([[ "$asset" == *v117* ]] && echo 117 || ([[ "$asset" == *v116* ]] && echo 116 || echo 115)) )" "$response_asset"; then
+                       && grep -Fq "CLAN CARTAN V$( [[ "$asset" == *v119* ]] && echo 119 || ([[ "$asset" == *v118* ]] && echo 118 || ([[ "$asset" == *v117* ]] && echo 117 || ([[ "$asset" == *v116* ]] && echo 116 || echo 115))) )" "$response_asset"; then
                       echo "✓ Recurso vigente: $asset"
                     else
                       assets_ok=false

@@ -1,6 +1,6 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión: V118.** Auditoría controlada de registros, roles y referidos. [V118: salida con iconos](docs/V118-ICONOS-CERRAR-SESION.md). Las versiones descritas más abajo son históricas.
+**Última versión: V119.** Auditoría controlada de registros, roles y referidos. [V119: clientes, DNI y corrección segura](docs/V119-CLIENTES-Y-VERIFICACION-DNI.md). Las versiones descritas más abajo son históricas.
 
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
