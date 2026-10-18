@@ -11,16 +11,16 @@
 - **No** se cambió el DNS del sitio `@` / `www`, MX, SPF u otras entradas de correo. Los datos, cuentas, roles, billeteras y préstamos de la aplicación permanecen intactos.
 - El registro DMARC `p=none` es monitorización y NO equivale a política de rechazo de suplantación.
 
-## SMTP de Supabase: pendiente de la verificación humana de Brevo
-- Servidor Brevo `smtp-relay.brevo.com`, puerto `587`.
-- Login SMTP previamente observado en Brevo: `beaa15001@smtp-brevo.com`. Volver a comprobar antes de guardar.
-- Remitente: `no-reply@clancartan.com`; nombre remitente: `CLAN CARTAN E.I.R.L.`.
-- Supabase: proyecto `pqalxtrcyrpmwqdlibqd`; menú `Authentication > SMTP Settings`, o https://supabase.com/dashboard/project/pqalxtrcyrpmwqdlibqd/auth/smtp.
-- Al intentar generar UNA contraseña SMTP, Brevo exigió una validación 2FA con código remitido al correo privado de la cuenta. No se ingresó código y **NO se generó la contraseña SMTP**. **Custom SMTP no está habilitado**.
-- Paso humano necesario: la persona titular debe introducir el código de seguridad directamente en Brevo, obtener la contraseña SMTP única y pegarla en Supabase, sin enviarla a ChatGPT. Guardar únicamente tras completar todos los campos. Nunca publicar la contraseña en GitHub ni el chat. No compartir códigos 2FA.
-- Una vez habilitado SMTP, personalizar `Confirm signup` con la plantilla versionada en `supabase/templates/confirm-signup.html`, usando `{{ .Token }}` (código OTP, no un valor fijo) y asunto `Tu código para confirmar CLAN CARTAN`.
-- **Aún NO se ha probado** la entrega real a un correo de control, la caducidad/reenvío ni la verificación exitosa del OTP desde el portal. No afirmar «registro funcional» hasta probar con destinatario autorizado.
-- Conservar `Confirm email=ON`, lista de redirecciones a `www.clancartan.com`/raíz/pages.dev y URL oficial del sitio.
+## Supabase Custom SMTP y OTP — activados en panel (18-OCT-2026)
+
+- El usuario completó el 2FA de Brevo y guardó SMTP manualmente en Supabase. Comprobación independiente de TinyFish en `Authentication > SMTP Settings`: **Enable custom SMTP ON** y host `smtp-relay.brevo.com`; remitente configurado `verificacion@clancartan.com`, nombre `CLAN CARTAN E.I.R.L.`. No se accedió ni reveló contraseña.
+- El dominio `clancartan.com` está autenticado en Brevo. Se verificó antes el remitente `no-reply@clancartan.com`; el remitente del SMTP `verificacion@clancartan.com` pertenece al mismo dominio autenticado, pero la entrega de correo de ese remitente **no se ha probado todavía**.
+- En Supabase `Auth > Emails > Templates > Confirm signup`, se guardó asunto **`Tu código para confirmar CLAN CARTAN`** y HTML con encabezado corporativo, `{{ .Token }}` dinámico, URL oficial y contacto. La notificación de Supabase indicó `Successfully updated email template`. Al reabrir la plantilla se verificó la persistencia del asunto y del contenido con token.
+- El frontend V106 tiene seis casillas de OTP y usa `POST /auth/v1/verify` con `type=email`, como en la documentación pública de Supabase para verificación de OTP de registro. **No se probó aún el flujo extremo a extremo**, ni SMTP entrega, reenvío, caducidad o creación de sesión; evitar afirmar funcionamiento total hasta probar.
+- `Confirm email` sigue habilitado conforme a la última comprobación previa. Site URL y redirects permanecen en `www.clancartan.com` y rutas previstas.
+- Prueba pendiente con cuenta de correo propia/autorizada: registrar una dirección nueva de prueba (sin datos reales innecesarios), abrir email recibido, comprobar código, verificar en el portal, iniciar sesión; en caso de error revisar `Auth logs`, `Brevo Transactional Logs` y límite de emails. No compartir ni almacenar OTP ni claves en el chat.
+- No se tocaron otras plantillas, usuarios, tablas, saldos, roles o DNS. La plantilla de referencia permanece en `supabase/templates/confirm-signup.html`, aunque la plantilla que se guardó directamente en Supabase puede usar diseño distinto.
+- El estado actual es **configuración lista para pruebas**, NO una certificación de envío y recepción.
 
 ## Seguridad y continuidad
 - Conservar snapshots y ramas V106 existentes, incluida `resguardo/v106-dni-configurado-2026-10-18`.
