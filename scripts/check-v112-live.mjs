@@ -15,7 +15,7 @@ async function rpc(name,payload){
   return {status:response.status,ok:response.ok,data};
 }
 for(const [code,want] of [
-  ['COBRA1',true],['cobra1',true],['COBRA0',false],
+  ['COBRA1',true],['cobra1',true],['BULL1',true],['bull1',true],['COBRA0',false],
   ['BULL999999999999',false],['COBRA1 OR 1=1',false],['',false]
 ]){
   const r=await rpc('cc_validate_invitation_code',{p_code:code});
@@ -26,4 +26,4 @@ for(const [code,want] of [
 }
 const own=await rpc('cc_my_invitation_codes',{});
 assert.ok(!own.ok,'La API deja leer códigos privados sin sesión');
-console.log('V112: 6 comprobaciones públicas y restricción de códigos personales verificadas; sin crear datos.');
+console.log('V116: 8 comprobaciones públicas y restricción de códigos personales verificadas; sin crear datos.');

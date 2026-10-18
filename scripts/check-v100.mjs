@@ -62,7 +62,7 @@ assert.ok(nameOrder>0 && dniOrder>nameOrder,'CLAN CARTAN debe tener su formulari
 assert.ok(!html.includes('cc107consent'),'Registro general NO debe consultar DNI automáticamente');
 assert.ok(!html.includes('cc-dni-registro'),'Función de DNI público no debe usarse en el portal');
 assert.ok(html.includes('rpc/cy_lookup_dni_saved'),'COBRA YA debe conservar la consulta de DNI');
-assert.ok(html.includes('content="V115-20261018"'),'Falta marca de versión V114');
+assert.ok(html.includes('content="V116-20261018"'),'Falta marca de versión V114');
 assert.ok(html.includes('id="cc111-business"'),'Falta selector del negocio para el código propio');
 assert.ok(html.includes('invite_business:document.getElementById(\'cc111-business\').value'),'El registro no comunica el negocio elegido');
 assert.ok(html.includes('Puedes registrarte sin código'),'No se informa que el código es opcional');
@@ -95,4 +95,14 @@ assert.ok(html.includes('No se pudieron consultar tus saldos.'),'No se informa e
 assert.ok(html.includes('Math.abs(Math.round(amount*100)-amount*100)>0.000001'),'La transferencia rechaza decimales correctos');
 assert.ok(v113.includes('cy115refresh'),'Falta actualizar saldo en COBRA YA');
 assert.ok(v113.includes('cc115streamRefresh'),'Falta actualizar saldo Stream Bull');
-console.log('V115: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');
+const v116=readFileSync(new URL('../scripts/v116-account.js',import.meta.url),'utf8');
+new Script(v116,{filename:'v116-account.js'});
+assert.ok(html.includes('styles/v116-account.css'),'Falta diseño de cuentas V116');
+assert.ok(html.includes('scripts/v116-account.js'),'Falta script del perfil V116');
+assert.ok(html.includes('id="cc116-account-balances"'),'Saldos no visibles en perfil');
+assert.ok(html.includes('cc116OpenRecharge()'),'Botón de recarga no disponible');
+const cobraCard=html.slice(html.indexOf('SISTEMA PARA PRESTAMISTAS'),html.indexOf('</article>',html.indexOf('SISTEMA PARA PRESTAMISTAS')));
+assert.ok(!cobraCard.includes('cc77Auth(true)'),'Se duplicó Crear cuenta en COBRA YA');
+assert.ok(html.includes('Tus códigos personales'),'No aparecen códigos por plataforma');
+assert.ok(html.includes('cc116-code-row'),'Falta disposición de códigos');
+console.log('V116: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');

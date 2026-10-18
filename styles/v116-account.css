@@ -1,0 +1,36 @@
+/* CLAN CARTAN V116 · Perfil compacto, 2 saldos, 1 recarga, códigos por servicio. */
+#cc77home .cc77top{gap:16px}
+#cc77home .cc77top .cc77actions{gap:9px;flex-wrap:wrap;align-items:center}
+#cc77home #cc95-user{
+ display:none;flex-wrap:wrap;column-gap:11px;row-gap:8px;
+ background:rgba(15,35,54,.96)!important;border:1px solid #356a80!important;
+ padding:9px 11px 9px 7px!important;border-radius:16px!important;
+ max-width:100%;box-shadow:0 6px 22px #0005;
+}
+#cc77home #cc95-avatar{flex:none}
+#cc77home #cc95-name{font-size:12px!important;max-width:220px;overflow-wrap:anywhere}
+#cc77home .cc116-account-balances{display:flex;align-items:center;gap:5px;flex-wrap:wrap;min-width:0}
+#cc77home .cc116-account-balances span{display:flex;align-items:center;gap:5px;padding:6px 9px;background:#0a1d2d;border:1px solid #2c5567;border-radius:9px;color:#a8d2df;font-size:10px;font-weight:700;white-space:nowrap}
+#cc77home .cc116-account-balances b{color:#f2f9ff;font-size:13px;font-weight:850}
+#cc77home .cc116-recharge{background:#e8bc51;color:#112031;border:none;border-radius:9px;padding:10px 13px;font-size:12px;font-weight:850;cursor:pointer;min-height:40px}
+#cc77home .cc116-recharge:hover{filter:brightness(1.06)}
+#cc77home .cc116-recharge:focus-visible,#cc77home .cc116-code-copy:focus-visible{outline:3px solid #80deed;outline-offset:2px}
+#cc77home #cc79logged{padding:0;border:0;background:transparent;margin-top:14px}
+#cc77home .cc116-code-panel{background:#0c2639;border:1px solid #2d7689;border-radius:14px;padding:16px;margin:10px 0;color:#e8f8ff;text-align:left}
+#cc77home .cc116-code-title{font-size:15px;font-weight:850;margin-bottom:12px}
+#cc77home .cc116-code-row{display:grid;grid-template-columns:minmax(110px,1fr) 115px auto auto;align-items:center;gap:9px;padding:11px 0;border-top:1px solid #315269}
+#cc77home .cc116-code-business{font-size:12px;font-weight:750;color:#b9dbea;min-width:0}
+#cc77home .cc116-code-value{min-width:0;width:100%;border:1px solid #5e8b9e;background:#081c2e;color:#f6fdff;border-radius:9px;padding:10px;font-size:14px;font-weight:850}
+#cc77home .cc116-code-copy{background:#204057;color:#f3faff;border:1px solid #52748e;border-radius:9px;padding:10px 11px;min-height:42px;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
+#cc77home .cc116-code-copy:hover{background:#2b536b}
+@media(max-width:900px){#cc77home .cc77top{flex-wrap:wrap}#cc77home .cc77top .cc77actions{width:100%;justify-content:flex-start}}
+@media(max-width:640px){
+ #cc77home #cc95-user{width:100%;border-radius:14px!important}
+ #cc77home .cc116-account-balances{width:100%}
+ #cc77home .cc116-account-balances span{flex:1;justify-content:space-between}
+ #cc77home .cc116-recharge{flex:1 0 100%;font-size:13px}
+ #cc77home .cc116-code-row{grid-template-columns:1fr 1fr;gap:8px}
+ #cc77home .cc116-code-business{grid-column:1/-1}
+ #cc77home .cc116-code-value{grid-column:1/-1}
+ #cc77home .cc116-code-copy{width:100%}
+}

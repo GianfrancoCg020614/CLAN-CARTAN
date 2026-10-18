@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V115-20261018">
+<meta name="cc-deploy-version" content="V116-20261018">
 <style>
 
 :root{
@@ -2494,6 +2494,7 @@ body.light .ccc-v50-maker-divider{background:#d7dce2}
 #cy60feedback{margin-top:10px;font-weight:700;line-height:1.5}
 @media(max-width:650px){#cy53modal .scroll table{min-width:880px}#cy53modal button{font-size:13px}}
 </style><link rel="stylesheet" href="styles/v113-wallet.css?v=115">
+<link rel="stylesheet" href="styles/v116-account.css?v=116">
 </head>
 <body>
 <div id="app"></div>
@@ -5431,13 +5432,13 @@ body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
 </style>
 <section id="cc77home" aria-label="Página principal CLAN CARTAN">
  <div class="cc77wrap">
-  <header class="cc77top"><div class="cc77brand"><span class="cc78main-logo" aria-label="Logo original de CLAN CARTAN"></span><span>CLAN CARTAN<small>EIRL. · Plataforma de negocios digitales</small></span></div><div class="cc77actions"><div id="cc95-user" style="display:none;align-items:center;gap:9px;background:#10253e;border:1px solid #345574;border-radius:30px;padding:6px 13px 6px 6px;color:#fff"><span id="cc95-avatar" style="width:35px;height:35px;display:grid;place-items:center;border-radius:50%;background:#159be2;font-weight:800">U</span><span style="display:flex;flex-direction:column;line-height:1.2"><strong id="cc95-name" style="font-size:13px">Usuario</strong><small id="cc95-role" style="color:#80def6">Usuario</small></span></div><button type="button" id="cc92-admin-button" style="display:none;background:#f0c76c;color:#111b2d;font-weight:900;border-color:#f0c76c" onclick="cc92OpenAdmin()">⚙ PANEL ADMIN</button><button type="button" class="cc98-guest-action" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="primary cc98-guest-action" onclick="cc77Auth(true)">Crear cuenta</button></div></header>
+  <header class="cc77top"><div class="cc77brand"><span class="cc78main-logo" aria-label="Logo original de CLAN CARTAN"></span><span>CLAN CARTAN<small>EIRL. · Plataforma de negocios digitales</small></span></div><div class="cc77actions"><div id="cc95-user" style="display:none;align-items:center;gap:9px;background:#10253e;border:1px solid #345574;border-radius:30px;padding:6px 13px 6px 6px;color:#fff"><span id="cc95-avatar" style="width:35px;height:35px;display:grid;place-items:center;border-radius:50%;background:#159be2;font-weight:800">U</span><span style="display:flex;flex-direction:column;line-height:1.2"><strong id="cc95-name" style="font-size:13px">Usuario</strong><small id="cc95-role" style="color:#80def6">Usuario</small></span><div id="cc116-account-balances" class="cc116-account-balances" aria-label="Saldos de tus billeteras"><span>COBRA <b id="cc116-cobra">S/ --</b></span><span>BULL <b id="cc116-bull">S/ --</b></span></div><button type="button" class="cc116-recharge" onclick="cc116OpenRecharge()">＋ Recargar</button></div><button type="button" id="cc92-admin-button" style="display:none;background:#f0c76c;color:#111b2d;font-weight:900;border-color:#f0c76c" onclick="cc92OpenAdmin()">⚙ PANEL ADMIN</button><button type="button" class="cc98-guest-action" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="primary cc98-guest-action" onclick="cc77Auth(true)">Crear cuenta</button></div></header>
   <div class="cc77intro"><h1>CLAN CARTAN · Una cuenta, todos tus servicios</h1><p>Conservamos nuestra luna y nuestros logos. Explora Stream Bull's gratis o gestiona Cobra Ya desde una sola cuenta; cada negocio habilita sus beneficios cuando realizas su pago correspondiente.</p></div>
   <div class="cc77cards">
    <article class="cc77card"><div class="cc77tag">CATÁLOGO PÚBLICO · SIN REGISTRO</div><div class="cc78service"><span class="cc78service-logo cc78stream" role="img" aria-label="Logo original de Stream Bull’s"></span><h2>STREAM BULL'S</h2></div><p>Streaming y software digital. Puedes explorar el catálogo y consultar los precios públicos sin iniciar sesión. Los precios especiales requieren afiliación de pago único de S/ 20 cuando esté conectada al backend.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc77Store()">Ver catálogo público</button><button type="button" onclick="cc79StreamBenefits()">Acceder a beneficios</button></div></article>
-   <article class="cc77card"><div class="cc77tag">SISTEMA PARA PRESTAMISTAS</div><div class="cc78service"><span class="cc78service-logo cc78cobra" role="img" aria-label="Logo original de Cobra Ya"></span><h2>COBRA YA</h2></div><p>Control de clientes, préstamos, abonos y vencimientos. La suscripción es voluntaria: S/ 15 por 30 días desde la billetera interna, con pago de prueba por ahora.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc79Cobra()">Ingresar a Cobra Ya</button><button type="button" onclick="cc77Auth(true)">Crear cuenta</button></div></article>
+   <article class="cc77card"><div class="cc77tag">SISTEMA PARA PRESTAMISTAS</div><div class="cc78service"><span class="cc78service-logo cc78cobra" role="img" aria-label="Logo original de Cobra Ya"></span><h2>COBRA YA</h2></div><p>Control de clientes, préstamos, abonos y vencimientos. La suscripción es voluntaria: S/ 15 por 30 días desde la billetera interna, con pago de prueba por ahora.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc79Cobra()">Ingresar a Cobra Ya</button></div></article>
   </div>
-  <div class="cc77actions" style="margin:18px 0"><button type="button" onclick="cc80.open()" style="background:#e9c67c;color:#15263a;font-weight:800">💼 Mis billeteras · Transferir</button></div>
+  
   <div id="cc79logged" class="cc79hint" hidden></div><div class="cc77foot">Desarrollado por CLAN CARTAN EIRL. · <a href="https://www.clancartan.com/" target="_blank" rel="noopener">www.ClanCartan.com</a> · clancartan@gmail.com<br>Versión de prueba · Una cuenta para los dos servicios · Sin cobros de dinero real</div>
  </div>
 </section>
@@ -5481,16 +5482,16 @@ async function cc110ShowMyInvitationCodes(){
   const found=await response.json();
   if(!Array.isArray(found)||!found.length||window.CC_V53_SESSION?.userId!==ses.userId)return;
   const panel=document.createElement('div');panel.id='cc110mycodes';
-  panel.style.cssText='padding:11px;margin:10px 0;background:#0e2939;border:1px solid #2b8e99;border-radius:10px;color:#ecfaff;text-align:left;';
-  const title=document.createElement('div');title.textContent='Tu código personal de invitación';title.style.cssText='font-weight:700;margin-bottom:6px';panel.appendChild(title);
+  panel.className='cc116-code-panel';
+  const title=document.createElement('div');title.textContent='Tus códigos personales';title.className='cc116-code-title';panel.appendChild(title);
   for(const entry of found){
    if(!/^(COBRA|BULL)[1-9][0-9]{0,11}$/.test(String(entry.code||'')))continue;
-   const row=document.createElement('div');row.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px';
-   const name=document.createElement('span');name.textContent=(entry.business||'Negocio')+' · '+(entry.affiliate_role||'USUARIO');name.style.cssText='flex:1;min-width:125px;font-size:12px';
-   const code=document.createElement('input');code.type='text';code.readOnly=true;code.value=entry.code;code.style.cssText='max-width:110px;padding:7px;background:#092239;color:white;border:1px solid #89bfd0;border-radius:6px';
-   const copy=document.createElement('button');copy.type='button';copy.textContent='Copiar código';copy.style.cssText='padding:8px;border-radius:7px';
+   const row=document.createElement('div');row.className='cc116-code-row';
+   const name=document.createElement('span');name.textContent=(entry.business||'Negocio')+' · '+(entry.affiliate_role||'USUARIO');name.className='cc116-code-business';
+   const code=document.createElement('input');code.type='text';code.readOnly=true;code.value=entry.code;code.className='cc116-code-value';code.setAttribute('aria-label','Código '+(entry.business||'personal'));
+   const copy=document.createElement('button');copy.type='button';copy.textContent='Copiar código';copy.className='cc116-code-copy';
    copy.addEventListener('click',()=>{if(navigator.clipboard?.writeText)navigator.clipboard.writeText(entry.code).then(()=>{copy.textContent='✓ Copiado'}).catch(()=>{code.select();copy.textContent='Seleccionado'});else{code.select();copy.textContent='Seleccionado'};});
-   const share=document.createElement('button');share.type='button';share.textContent='Copiar enlace';share.style.cssText='padding:8px;border-radius:7px';
+   const share=document.createElement('button');share.type='button';share.textContent='Copiar enlace';share.className='cc116-code-copy';
    share.addEventListener('click',()=>{const link='https://www.clancartan.com/?ref='+encodeURIComponent(entry.code);if(navigator.clipboard?.writeText)navigator.clipboard.writeText(link).then(()=>{share.textContent='✓ Copiado'}).catch(()=>{code.select()});else{code.select();};});
    row.append(name,code,copy,share);panel.appendChild(row);
   }
@@ -5501,7 +5502,7 @@ function cc79AfterLogin(){
   const h=document.getElementById('cc77home'); if(h)h.style.display='block';
   const gate=document.getElementById('cc-real-login');if(gate)gate.style.display='none';
   const back=document.getElementById('cc77back');if(back)back.style.display='none';
-  const box=document.getElementById('cc79logged');if(box){box.hidden=false;box.textContent='Elige el servicio que deseas utilizar.'}
+  const box=document.getElementById('cc79logged');if(box){box.hidden=false;box.textContent=''}
   const banner=document.getElementById('cc-real-banner');if(banner)banner.style.display='none';
   cc110ShowMyInvitationCodes();
   const adminBtn=document.getElementById('cc92-admin-button');if(adminBtn)adminBtn.style.display=window.CC_V53_SESSION?.isAdmin===true?'inline-flex':'none';
@@ -5668,5 +5669,6 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 })();
 </script>
 <script src="scripts/v113-wallet.js?v=115"></script>
+<script src="scripts/v116-account.js?v=116"></script>
 </body>
 </html>
