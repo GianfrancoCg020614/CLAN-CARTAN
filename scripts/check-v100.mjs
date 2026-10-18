@@ -55,15 +55,12 @@ assert.ok(!html.includes('onclick="lnOpenWithdrawal()"'), 'Botón de retiro Cobr
 assert.ok(!html.includes('onclick="requestWithdrawal()"'), 'Botón de retiro Stream Bulls activo');
 assert.ok(!html.includes("Descuento AUTOMÁTICO DEMO"), 'Mensualidad automática heredada');
 assert.ok(!html.includes("window.setInterval(()=>{const n=lnAutoRenewDue()"), 'Temporizador de cobro automático');
-// V107: el registro inicial debe empezar por DNI y consultar mediante backend restringido.
-const dniOrder = html.indexOf('id="cc-v81-doc"');
-const nameOrder = html.indexOf('id="cc-v81-name"');
-assert.ok(dniOrder > 0 && nameOrder > dniOrder,'El registro debe pedir el DNI antes del nombre');
-for (const token of ['cc107consent','cc107status','cc107lookup','cc-dni-registro','cc107autofilledName']) {
- assert.ok(html.includes(token),'Falta elemento V107: '+token);
-}
-assert.ok(html.includes('phone:phone?dial+phone:null'),'WhatsApp no debe ser obligatorio en el registro');
-assert.ok(html.includes('content="V107-20261018"'),'Versión V107 no identificada');
-assert.ok(html.includes('No se pudo enviar el correo de confirmación'),'Falta orientación para error SMTP');
-console.log('V107: ' + inline.length + ' scripts con sintaxis válida, DNI al inicio y reglas comerciales verificadas.');
-
+// V108: se retira expresamente el DNI automático del registro general.
+const nameOrder=html.indexOf('id="cc-v81-name"');
+const dniOrder=html.indexOf('id="cc-v81-doc"');
+assert.ok(nameOrder>0 && dniOrder>nameOrder,'CLAN CARTAN debe tener su formulario manual original');
+assert.ok(!html.includes('cc107consent'),'Registro general NO debe consultar DNI automáticamente');
+assert.ok(!html.includes('cc-dni-registro'),'Función de DNI público no debe usarse en el portal');
+assert.ok(html.includes('rpc/cy_lookup_dni_saved'),'COBRA YA debe conservar la consulta de DNI');
+assert.ok(html.includes('content="V108-20261018"'),'Falta marca de versión V108');
+console.log('V108: ' + inline.length + ' scripts válidos, registro CLAN CARTAN manual, DNI COBRA YA conservado.');
