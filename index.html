@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V113-20261018">
+<meta name="cc-deploy-version" content="V114-20261018">
 <style>
 
 :root{
@@ -2493,7 +2493,7 @@ body.light .ccc-v50-maker-divider{background:#d7dce2}
 #cy53modal .scroll table th,#cy53modal .scroll table td{white-space:normal;min-width:84px;vertical-align:middle;padding:10px 8px}
 #cy60feedback{margin-top:10px;font-weight:700;line-height:1.5}
 @media(max-width:650px){#cy53modal .scroll table{min-width:880px}#cy53modal button{font-size:13px}}
-</style><link rel="stylesheet" href="styles/v113-wallet.css">
+</style><link rel="stylesheet" href="styles/v113-wallet.css?v=114">
 </head>
 <body>
 <div id="app"></div>
@@ -4994,14 +4994,14 @@ document.addEventListener('click',function(e){const button=e.target.closest('[da
  #cy53layer h2{font-size:21px}
 }
 </style>
-<button id="cy53open" style="display:none" onclick="cy53.open()">↗ COBRA YA · REGISTROS DE PRUEBA</button>
+<button id="cy53open" style="display:none" onclick="cy53.open()">Abrir COBRA YA</button>
 <button id="cy54adminShortcut" style="display:none;position:fixed;z-index:1000000;right:18px;top:108px;background:#145e98;color:#fff;border:1px solid #4dc3ed;padding:12px 15px;border-radius:10px;font-weight:bold;cursor:pointer" onclick="cy53.open();cy54.loadRequests().catch(e=>alert(e.message))">📋 SOLICITUDES RESELLER</button>
 <div id="cy53layer"><div class="cywrap">
-<div class="cyrow"><div><h2>COBRA YA</h2><small>Clientes, préstamos y vencimientos · Piloto con saldo de prueba</small></div><button class="secondary" onclick="cy53.close()">Volver a CLAN CARTAN</button></div>
+<div class="cyrow"><div><h2>COBRA YA</h2><small>Gestiona tus clientes y préstamos · Saldo de prueba</small></div><div class="cy114-nav"><button type="button" class="secondary" onclick="cy53.close()">← Volver</button><button type="button" class="secondary cy114-change" onclick="cc54SwitchAccount()">Cambiar cuenta</button></div></div>
 <p id="cy53notice" role="status"></p>
 <nav class="cy75quick" aria-label="Accesos rápidos Cobra Ya"><button type="button" data-cy75-go="cy53client">＋ Cliente → préstamo</button><button type="button" data-cy75-go="cy53loan">＋ Préstamo</button><button type="button" data-cy75-go="cy53clients">👥 Mis clientes</button><button type="button" data-cy75-go="cy64tabs">📆 Vencimientos</button></nav><p id="cy75hint" role="status" aria-live="polite" style="font-size:13px;color:#89f0ba"></p>
 <section id="cy55subscription" style="display:none;background:#132b3c;border:1px solid #286582;border-radius:14px;padding:18px;margin:16px 0"><h3>Mi suscripción COBRA YA</h3><p id="cy55state">Consultando vigencia…</p><p id="cy55balance"></p><p>Mensualidad de prueba: <b>S/ 15.00</b> · 30 días · Sin cobros automáticos ni deudas acumuladas.</p><button id="cy55pay" type="button" onclick="cy55.pay()" style="background:#119e82;color:white;padding:11px 16px;border:0;border-radius:9px">Pagar S/ 15 y activar (saldo de prueba)</button><p id="cy55msg" role="status"></p></section>
-<section id="cy54membership" style="display:none"><h3>Autorización para Cobra Ya</h3><p id="cy54membershipText"></p><button id="cy54request" onclick="cy54.requestAccess()">Solicitar acceso RESELLER</button></section>
+<section id="cy54membership" style="display:none"><h3>Autorización para Cobra Ya</h3><p id="cy54membershipText"></p><button id="cy54request" onclick="cy54.requestAccess()">Acceso COBRA YA</button></section>
 <section id="cy54admin" style="display:none"><h3>Solicitudes RESELLER · Administración</h3><button onclick="cy54.loadRequests()">Actualizar solicitudes</button><div id="cy54requests"></div></section>
 <div class="cycards"><section><h3>1. Cliente — con DNI es más rápido</h3><p class="cy105note">Escribe los 8 dígitos del DNI: completaremos los datos <strong>si ya están guardados en tu propia cartera</strong>. La consulta oficial de RENIEC requiere un servicio autorizado.</p><form id="cy53client"><label>DNI peruano o documento (opcional)<input name="doc" id="cy105dni" maxlength="20" inputmode="numeric" autocomplete="off" placeholder="8 dígitos del DNI" aria-describedby="cy105dniStatus"></label><p id="cy105dniStatus" class="cy105status" role="status" aria-live="polite"></p><label>Nombre completo <span aria-hidden="true">*</span><input name="name" required minlength="2" maxlength="160" autocomplete="off" placeholder="Nombres y apellidos"></label><label>WhatsApp del cliente<input name="phone" type="tel" inputmode="tel" autocomplete="off" maxlength="25" placeholder="+51 999 999 999"></label><label>Correo electrónico del cliente<input name="email" type="email" maxlength="254" autocomplete="off" placeholder="cliente@correo.com"></label><label style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox" id="cy106consent" style="width:auto" aria-label="Confirmo que estoy autorizado a consultar los datos del DNI">Confirmo que tengo autorización para consultar los datos del DNI.</label><button type="submit">Guardar y continuar al préstamo →</button></form></section>
 <section><h3>2. Préstamo</h3><form id="cy53loan"><label>Cliente<select id="cy53clientSelect" name="client" required></select></label><label>Capital prestado<input name="principal" type="number" step="0.01" min="0.01" required></label><label>Interés mensual (%)<input name="interest" type="number" min="0" max="100" step="0.01" value="10" required></label><label>Plazo del préstamo (meses)<input name="months" type="number" min="1" max="120" step="1" value="3" required></label><details class="cy105advanced"><summary>Cuotas personalizadas (opcional)</summary><label>Cuotas (opcional; 1 por defecto = pago único al vencimiento)<input name="terms" type="number" min="1" max="360" step="1" value="1" required></label></details><label>Fecha de vencimiento final<input name="due" type="date" required></label><details class="cy105advanced"><summary>Moneda y garantía (opcional)</summary><label>Moneda del préstamo<select name="currency" aria-label="Moneda del préstamo"><option value="PEN" selected>🇵🇪 PEN — Perú — Sol (S/)</option><option value="USD">🇺🇸 USD — Estados Unidos — Dólar (US$)</option><option value="MXN">🇲🇽 MXN — México — Peso mexicano (MX$)</option><option value="CLP">🇨🇱 CLP — Chile — Peso chileno (CLP $)</option><option value="COP">🇨🇴 COP — Colombia — Peso colombiano (COP $)</option><option value="ARS">🇦🇷 ARS — Argentina — Peso argentino (AR$)</option><option value="BOB">🇧🇴 BOB — Bolivia — Boliviano (Bs)</option><option value="BRL">🇧🇷 BRL — Brasil — Real (R$)</option><option value="UYU">🇺🇾 UYU — Uruguay — Peso uruguayo ($U)</option><option value="PYG">🇵🇾 PYG — Paraguay — Guaraní (₲)</option><option value="EUR">🇪🇺 EUR — Euro (€)</option><option value="GBP">🇬🇧 GBP — Libra (£)</option><option value="CAD">🇨🇦 CAD — Dólar canadiense (CA$)</option><option value="GTQ">🇬🇹 GTQ — Guatemala — Quetzal (Q)</option><option value="CRC">🇨🇷 CRC — Costa Rica — Colón (₡)</option><option value="DOP">🇩🇴 DOP — República Dominicana — Peso (RD$)</option><option value="PAB">🇵🇦 PAB — Panamá — Balboa (B/.)</option><option value="VES">🇻🇪 VES — Venezuela — Bolívar (Bs.)</option><option value="NIO">🇳🇮 NIO — Nicaragua — Córdoba (C$)</option><option value="HNL">🇭🇳 HNL — Honduras — Lempira (L)</option><option value="SVC">🇸🇻 SVC — El Salvador — Colón (SVC)</option><option value="CUP">🇨🇺 CUP — Cuba — Peso (CUP)</option><option value="JMD">🇯🇲 JMD — Jamaica — Dólar (J$)</option><option value="HTG">🇭🇹 HTG — Haití — Gourde (G)</option><option value="TTD">🇹🇹 TTD — Trinidad y Tobago — Dólar (TT$)</option><option value="BZD">🇧🇿 BZD — Belice — Dólar (BZ$)</option><option value="GYD">🇬🇾 GYD — Guyana — Dólar (GY$)</option><option value="SRD">🇸🇷 SRD — Surinam — Dólar (SRD)</option><option value="AWG">🇦🇼 AWG — Aruba — Florín (ƒ)</option><option value="ANG">🇨🇼 ANG — Caribe neerlandés — Florín (ƒ)</option><option value="BSD">🇧🇸 BSD — Bahamas — Dólar (B$)</option><option value="BBD">🇧🇧 BBD — Barbados — Dólar (Bds$)</option><option value="XCD">🌴 XCD — Caribe oriental — Dólar (EC$)</option><option value="CHF">🇨🇭 CHF — Suiza — Franco (CHF)</option><option value="AUD">🇦🇺 AUD — Australia — Dólar (A$)</option><option value="NZD">🇳🇿 NZD — Nueva Zelanda — Dólar (NZ$)</option><option value="JPY">🇯🇵 JPY — Japón — Yen (¥)</option><option value="CNY">🇨🇳 CNY — China — Yuan (¥)</option><option value="INR">🇮🇳 INR — India — Rupia (₹)</option><option value="KRW">🇰🇷 KRW — Corea del Sur — Won (₩)</option><option value="ZAR">🇿🇦 ZAR — Sudáfrica — Rand (R)</option><option value="EGP">🇪🇬 EGP — Egipto — Libra (E£)</option><option value="MAD">🇲🇦 MAD — Marruecos — Dírham (MAD)</option><option value="NGN">🇳🇬 NGN — Nigeria — Naira (₦)</option><option value="KES">🇰🇪 KES — Kenia — Chelín (KSh)</option><option value="GHS">🇬🇭 GHS — Ghana — Cedi (GH₵)</option><option value="AED">🇦🇪 AED — Emiratos Árabes — Dírham (AED)</option><option value="SAR">🇸🇦 SAR — Arabia Saudita — Riyal (SAR)</option><option value="TRY">🇹🇷 TRY — Turquía — Lira (₺)</option><option value="SEK">🇸🇪 SEK — Suecia — Corona (kr)</option><option value="NOK">🇳🇴 NOK — Noruega — Corona (kr)</option><option value="DKK">🇩🇰 DKK — Dinamarca — Corona (kr)</option><option value="PLN">🇵🇱 PLN — Polonia — Esloti (zł)</option><option value="CZK">🇨🇿 CZK — Chequia — Corona (Kč)</option><option value="HUF">🇭🇺 HUF — Hungría — Forinto (Ft)</option><option value="RON">🇷🇴 RON — Rumania — Leu (lei)</option><option value="UAH">🇺🇦 UAH — Ucrania — Grivna (₴)</option><option value="RUB">🇷🇺 RUB — Rusia — Rublo (₽)</option><option value="IDR">🇮🇩 IDR — Indonesia — Rupia (Rp)</option><option value="MYR">🇲🇾 MYR — Malasia — Ringgit (RM)</option><option value="SGD">🇸🇬 SGD — Singapur — Dólar (S$)</option><option value="THB">🇹🇭 THB — Tailandia — Baht (฿)</option><option value="PHP">🇵🇭 PHP — Filipinas — Peso (₱)</option><option value="VND">🇻🇳 VND — Vietnam — Dong (₫)</option><option value="HKD">🇭🇰 HKD — Hong Kong — Dólar (HK$)</option><option value="TWD">🇹🇼 TWD — Taiwán — Dólar (NT$)</option><option value="ILS">🇮🇱 ILS — Israel — Shéquel (₪)</option></select></label><div id="cy58preview" style="padding:12px;border-radius:9px;background:#112d39;margin:10px 0"></div><small>Interés simple mensual sobre capital inicial. Las cuotas distribuyen el total, no suman intereses adicionales.</small><label style="display:block;margin:10px 0">¿Qué dejó en garantía? (opcional)<textarea name="collateral" maxlength="1000" rows="2" placeholder="Ej.: Motocicleta, equipo, documento o sin garantía" style="width:100%;box-sizing:border-box"></textarea></label></details><button type="submit" id="cy60createBtn">Guardar préstamo</button><p id="cy60feedback" role="status" aria-live="polite" style="margin:12px 0 0;font-weight:700;min-height:22px"></p></form></section></div>
@@ -5296,7 +5296,7 @@ return{open,close,refresh,openDetail,closeDetail,printDetail};
 <script>
 window.cy54={
  async api(path,method='GET',payload){const s=window.CC_V53_SESSION;if(!s)throw Error('Inicia sesión');const res=await fetch(s.root+'/rest/v1/'+path,{method,headers:{apikey:s.key,Authorization:'Bearer '+s.jwt,'Content-Type':'application/json',Prefer:'return=representation'},...(payload===undefined?{}:{body:JSON.stringify(payload)})});const raw=await res.text();let data;try{data=JSON.parse(raw)}catch{data={message:raw}}if(!res.ok)throw Error(data.message||'Error HTTP '+res.status);return data;},
- async refreshAuth(){const s=window.CC_V53_SESSION;if(!s)return;const m=document.getElementById('cy54membership'),a=document.getElementById('cy54admin');m.style.display=s.isAdmin?'none':'block';a.style.display=s.isAdmin?'block':'none';if(s.isAdmin){await this.loadRequests();return}const membership=await this.api('cc_memberships?select=id,status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(s.userId));const cy=membership.find(x=>x.cc_businesses?.code==='COBRA_YA');s.isReseller=cy?.status==='ACTIVE'&&cy?.role==='RESELLER';document.getElementById('cy54membershipText').textContent=s.isReseller?'Acceso RESELLER activo':cy?'Estado de solicitud: '+cy.status:'Para usar Cobra Ya necesitas autorización de CLAN CARTAN.';document.getElementById('cy54request').style.display=cy?'none':'inline-block';document.getElementById('cy53client').style.display=s.isReseller?'block':'none';document.getElementById('cy53loan').style.display=s.isReseller?'block':'none';document.getElementById('cy53clients').closest('section').style.display=s.isReseller?'block':'none';document.getElementById('cy60loanrecords').closest('section').style.display=s.isReseller?'block':'none';},
+ async refreshAuth(){const s=window.CC_V53_SESSION;if(!s)return;const m=document.getElementById('cy54membership'),a=document.getElementById('cy54admin');m.style.display=s.isAdmin?'none':'block';a.style.display=s.isAdmin?'block':'none';if(s.isAdmin){await this.loadRequests();return}const membership=await this.api('cc_memberships?select=id,status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(s.userId));const cy=membership.find(x=>x.cc_businesses?.code==='COBRA_YA');s.isReseller=cy?.status==='ACTIVE'&&cy?.role==='RESELLER';document.getElementById('cy54membershipText').textContent=s.isReseller?'Acceso RESELLER activo':cy?'Estado de solicitud: '+cy.status:'Puedes activar COBRA YA desde tu propia billetera.';document.getElementById('cy54request').style.display=cy?'none':'inline-block';document.getElementById('cy53client').style.display=s.isReseller?'block':'none';document.getElementById('cy53loan').style.display=s.isReseller?'block':'none';document.getElementById('cy53clients').closest('section').style.display=s.isReseller?'block':'none';document.getElementById('cy60loanrecords').closest('section').style.display=s.isReseller?'block':'none';},
  async requestAccess(){try{const b=await this.api('cc_businesses?select=id&code=eq.COBRA_YA');if(!b.length)throw Error('Negocio no encontrado');await this.api('cc_memberships','POST',{user_id:window.CC_V53_SESSION.userId,business_id:b[0].id,role:'RESELLER',status:'PENDING'});await this.refreshAuth();alert('Solicitud registrada; espera aprobación del ADMIN.')}catch(e){alert(e.message+' · Si faltan permisos, ejecutar el script V54 en Supabase.')}},
  async loadRequests(){
   const s=window.CC_V53_SESSION;
@@ -5346,12 +5346,7 @@ window.cy54={
 'use strict';
 const layer=document.getElementById('cy53layer');
 const panel=layer?.querySelector('.cywrap');
-if(panel){
- const actions=document.createElement('div');
- actions.className='cc54-account-actions';
- actions.innerHTML='<button type="button" onclick="cy53.close()">← Volver a CLAN CARTAN</button><button type="button" class="cc54-exit" onclick="cc54SwitchAccount()">Salir y entrar con otra cuenta</button>';
- panel.insertBefore(actions,panel.firstChild);
-}
+// V114: navegación unificada en la cabecera de COBRA YA.
 window.cc54SwitchAccount=async function(){const adminButton=document.getElementById('cc92-admin-button');if(adminButton)adminButton.style.display='none';
  try{
   const s=window.CC_V53_SESSION;
@@ -5376,7 +5371,7 @@ window.cy55={
  try{
  const result=await cy54.api('rpc/cy_subscription_status','POST',{});const x=result[0]||{};
  const active=!!(x.authorized&&x.active),paid=!!x.active;
- document.getElementById('cy55state').textContent=active?'ACTIVA hasta '+new Date(x.expires_at).toLocaleDateString('es-PE'):paid?'PAGO REGISTRADO · esperando autorización ADMIN':x.authorized?'VENCIDA O SIN PAGO · Gestión bloqueada':'PENDIENTE DE AUTORIZACIÓN / PAGO';
+ document.getElementById('cy55state').textContent=active?'ACTIVA hasta '+new Date(x.expires_at).toLocaleDateString('es-PE'):paid?'PAGO REGISTRADO · comprobando acceso':x.authorized?'VENCIDA O SIN PAGO · Gestión bloqueada':'PENDIENTE DE AUTORIZACIÓN / PAGO';
  document.getElementById('cy55balance').textContent='Saldo de prueba disponible: S/ '+Number(x.balance_test||0).toFixed(2);
  document.getElementById('cy55pay').disabled=paid;
  document.querySelectorAll('#cy53client button[type="submit"],#cy53loan button[type="submit"],#cy53layer .cy53pay').forEach(b=>b.disabled=!active);
@@ -5385,12 +5380,12 @@ window.cy55={
  }catch(e){document.getElementById('cy55state').textContent='No se pudo confirmar la suscripción';set(e.message);}
  },
  async pay(){if(!confirm('¿Autoriza descontar S/ 15 de su SALDO DE PRUEBA para activar 30 días? No hay dinero real.'))return;
- try{await cy54.api('rpc/cy_pay_subscription_test','POST',{});await this.status();alert('Pago de prueba registrado. Si tu aprobación ADMIN sigue pendiente, espera la autorización.');}
+ try{await cy54.api('rpc/cy_pay_subscription_test','POST',{});await this.status();alert('S/ 15 descontados. COBRA YA se habilitó por 30 días sin aprobación manual.');}
  catch(e){alert('No se realizó el descuento: '+e.message);await this.status();}
  }
 };
-const cy55open=cy53.open;cy53.open=function(){cy55open();setTimeout(()=>cy55.status(),100)};
-const cy55refresh=cy54.refreshAuth;cy54.refreshAuth=async function(){await cy55refresh.call(this);await cy55.status()};
+const cy55open=cy53.open;cy53.open=function(){cy55open();if(!window.cc113)setTimeout(()=>cy55.status(),100)};
+const cy55refresh=cy54.refreshAuth;cy54.refreshAuth=async function(){await cy55refresh.call(this);if(!window.cc113)await cy55.status()};
 </script>
 
 
@@ -5443,7 +5438,7 @@ body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
    <article class="cc77card"><div class="cc77tag">SISTEMA PARA PRESTAMISTAS</div><div class="cc78service"><span class="cc78service-logo cc78cobra" role="img" aria-label="Logo original de Cobra Ya"></span><h2>COBRA YA</h2></div><p>Control de clientes, préstamos, abonos y vencimientos. La suscripción es voluntaria: S/ 15 por 30 días desde la billetera interna, con pago de prueba por ahora.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc79Cobra()">Ingresar a Cobra Ya</button><button type="button" onclick="cc77Auth(true)">Crear cuenta</button></div></article>
   </div>
   <div class="cc77actions" style="margin:18px 0"><button type="button" onclick="cc80.open()" style="background:#e9c67c;color:#15263a;font-weight:800">💼 Mis billeteras · Transferir</button></div>
-  <div id="cc79logged" class="cc79hint" hidden></div><div class="cc77foot">Desarrollado por CLAN CARTAN EIRL. · <a href="https://www.clancartan.com/" target="_blank" rel="noopener">www.ClanCartan.com</a> · clancartan@gmail.com<br>Versión piloto · Una cuenta CLAN CARTAN · Stream Bull’s: afiliación única S/ 20 con saldo ficticio · Cobra Ya: S/ 15 por 30 días con saldo de prueba · Transferencias entre billeteras disponibles con saldo de prueba</div>
+  <div id="cc79logged" class="cc79hint" hidden></div><div class="cc77foot">Desarrollado por CLAN CARTAN EIRL. · <a href="https://www.clancartan.com/" target="_blank" rel="noopener">www.ClanCartan.com</a> · clancartan@gmail.com<br>Versión de prueba · Una cuenta para los dos servicios · Sin cobros de dinero real</div>
  </div>
 </section>
 <button type="button" id="cc77back" onclick="cc77Home()">← CLAN CARTAN</button><div id="cc77demobanner">Stream Bull's · catálogo de DEMOSTRACIÓN. Precios y operaciones comerciales todavía no conectados a Supabase.</div>
@@ -5506,7 +5501,7 @@ function cc79AfterLogin(){
   const h=document.getElementById('cc77home'); if(h)h.style.display='block';
   const gate=document.getElementById('cc-real-login');if(gate)gate.style.display='none';
   const back=document.getElementById('cc77back');if(back)back.style.display='none';
-  const box=document.getElementById('cc79logged');if(box){box.hidden=false;box.textContent='✓ Sesión única CLAN CARTAN iniciada. Elige tu negocio.'}
+  const box=document.getElementById('cc79logged');if(box){box.hidden=false;box.textContent='Elige el servicio que deseas utilizar.'}
   const banner=document.getElementById('cc-real-banner');if(banner)banner.style.display='none';
   cc110ShowMyInvitationCodes();
   const adminBtn=document.getElementById('cc92-admin-button');if(adminBtn)adminBtn.style.display=window.CC_V53_SESSION?.isAdmin===true?'inline-flex':'none';
@@ -5672,6 +5667,6 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
  if(recoveryToken){open();}
 })();
 </script>
-<script src="scripts/v113-wallet.js"></script>
+<script src="scripts/v113-wallet.js?v=114"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* CLAN CARTAN V113 · Diseño uniforme sin cambiar los módulos históricos. */
+/* CLAN CARTAN V114 · Diseño uniforme sin cambiar los módulos históricos. */
 #cy53layer,#cc77home,#cc80wallet,#cc93-affiliate{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}
 #cy53layer .cywrap{max-width:1080px;margin:0 auto}
 #cy53layer .cyrow{align-items:center;gap:12px}
@@ -69,3 +69,37 @@
  #cc93-affiliate .cc113-stream-wallet{align-items:flex-start;flex-direction:column}
 }
 @media(prefers-reduced-motion:reduce){#cy53layer .cy75quick button{transition:none}}
+
+/* V114 · navegación clara y capas sin transparencia que ensucie el fondo */
+#cy53layer{background:#071827!important}
+#cy53layer .cyrow{position:sticky;top:-24px;z-index:32;background:#071827;padding:10px 0 13px;border-bottom:1px solid #294759}
+#cy53layer .cyrow .cy114-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#cy53layer .cyrow .cy114-nav button{min-height:42px;font-size:13px;white-space:nowrap;border-radius:10px;padding:9px 13px}
+#cy53layer .cy114-change{background:#173b4c;color:#dbeaf5}
+#cy53layer .cy113-extra[hidden]{display:none!important}
+body:has(#cy53layer[style*="display: block"]) #cc54logout,
+body:has(#cy53layer[style*="display: block"]) #cc77back,
+body:has(#cy53layer[style*="display: block"]) #cy53open,
+body:has(#cy53layer[style*="display: block"]) #cy54adminShortcut,
+body:has(#cc77home[style*="display: block"]) #cy53open{display:none!important}
+/* En las billeteras, una sola superficie visible con cierre a la portada. */
+#cc80wallet[style*="display: block"]{
+ position:fixed;z-index:2147483644;
+ inset:50% auto auto 50%;transform:translate(-50%,-50%);
+ width:min(720px,calc(100vw - 24px));
+ max-width:none;max-height:calc(100dvh - 30px);
+ overflow-y:auto;overscroll-behavior:contain;
+ border-radius:20px;padding:clamp(16px,3vw,25px);
+ box-shadow:0 0 0 100vmax rgba(3,10,20,.84),0 22px 70px #0009
+}
+#cc80wallet .cc80balances{gap:12px}
+#cc80wallet #cc80status{line-height:1.5}
+#cc77home .cc77actions{gap:10px}
+#cc77home .cc77foot{line-height:1.5}
+#cc77home .cc77card{height:auto}
+@media(max-width:680px){
+ #cy53layer .cyrow{top:-12px;gap:10px}
+ #cy53layer .cyrow .cy114-nav{width:100%;justify-content:flex-end}
+ #cy53layer .cyrow .cy114-nav button{flex:1}
+ #cc80wallet[style*="display: block"]{max-height:calc(100dvh - 12px);width:calc(100vw - 12px);padding:15px;border-radius:14px}
+}

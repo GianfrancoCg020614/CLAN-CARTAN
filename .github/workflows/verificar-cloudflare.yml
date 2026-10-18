@@ -50,10 +50,24 @@ jobs:
                  --header 'Cache-Control: no-cache' \
                  "${main}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o cloudflare-response.html; then
                 if grep -Fq "content=\"$expected\"" cloudflare-response.html; then
-                  echo "✓ DNS, HTTPS y versión $expected correctos"
-                  echo "### Sitio público verificado" >> "$GITHUB_STEP_SUMMARY"
-                  echo "Cloudflare publica **$expected** en [www.clancartan.com]($main)." >> "$GITHUB_STEP_SUMMARY"
-                  exit 0
+                  assets_ok=true
+                  for asset in scripts/v113-wallet.js styles/v113-wallet.css; do
+                    response_asset="artifact-$(basename "$asset")"
+                    if curl --fail --silent --show-error --location --connect-timeout 8 --max-time 20 \
+                       "${main}${asset}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o "$response_asset" \
+                       && grep -Fq "CLAN CARTAN V114" "$response_asset"; then
+                      echo "✓ Recurso vigente: $asset"
+                    else
+                      assets_ok=false
+                      echo "::warning::El recurso $asset falta o es de una versión anterior"
+                    fi
+                  done
+                  if [[ "$assets_ok" == true ]]; then
+                    echo "✓ DNS, HTTPS, versión y recursos JavaScript/CSS $expected correctos"
+                    echo "### Sitio público y recursos verificados" >> "$GITHUB_STEP_SUMMARY"
+                    echo "Cloudflare publica **$expected**, con JS/CSS, en [www.clancartan.com]($main)." >> "$GITHUB_STEP_SUMMARY"
+                    exit 0
+                  fi
                 fi
                 echo "HTTPS responde, pero todavía no muestra $expected."
               fi

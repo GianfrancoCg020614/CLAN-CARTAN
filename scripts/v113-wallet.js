@@ -1,4 +1,4 @@
-/* CLAN CARTAN V113: UX de billeteras y activación por descuento confirmado.
+/* CLAN CARTAN V114: UX de billeteras y activación por descuento confirmado.
  * SOLO saldo ficticio hasta que exista proveedor de pagos verificados. */
 (function(){
 'use strict';
@@ -13,7 +13,7 @@ const cards=[
 '<p id="cy55msg" class="cy113-message" role="status" aria-live="polite"></p><small class="cy113-note">Saldo de prueba · Sin cobros automáticos · El pago activa el plan sin aprobación del ADMIN.</small>'
 ];
 const sub=by('cy55subscription');
-if(!sub||!window.cy55||!window.cy54||!window.cc80)return;
+if(!sub||!window.cy55||!window.cy54||!window.cc80){console.warn('CLAN CARTAN: módulo de billetera incompleto; revisa la carga de scripts.');return;}
 sub.classList.add('cy113-card');sub.innerHTML=cards.join('');
 const oldRefreshAuth=cy54.refreshAuth;
 cy54.refreshAuth=async function(){
@@ -87,8 +87,25 @@ cy55.pay=async function(){
   message.dataset.done='yes';
  }finally{paying=false;await cy55.status();}
 };
-function show(id){const el=by(id);if(el){el.hidden=!el.hidden;if(!el.hidden&&id==='cy113transferArea')refreshStream();}}
+function show(id){
+ const el=by(id);if(!el)return;
+ const next=!el.hidden;
+ if(next&&['cy113topup','cy113transferArea'].includes(id)){
+  for(const other of ['cy113topup','cy113transferArea'])if(other!==id){
+   const panel=by(other);if(panel)panel.hidden=true;
+  }
+ }
+ el.hidden=next;
+ const triggerMap={cy113topup:'cy113recharge',cy113transferArea:'cy113transfer',cc113sbTopup:'cc114sbRecharge'};
+ for(const [area,button] of Object.entries(triggerMap)){
+  const btn=by(button),panel=by(area);
+  if(btn&&panel)btn.setAttribute('aria-expanded',String(!panel.hidden));
+ }
+ if(!el.hidden&&id==='cy113transferArea')refreshStream();
+}
 by('cy55pay').addEventListener('click',()=>cy55.pay());
+by('cy113recharge').setAttribute('aria-controls','cy113topup');by('cy113recharge').setAttribute('aria-expanded','false');
+by('cy113transfer').setAttribute('aria-controls','cy113transferArea');by('cy113transfer').setAttribute('aria-expanded','false');
 by('cy113recharge').addEventListener('click',()=>show('cy113topup'));
 by('cy113transfer').addEventListener('click',()=>show('cy113transferArea'));
 const validAmount=(num,min,max)=>Number.isFinite(num)&&num>=min&&num<=max&&Math.abs(Math.round(num*100)-num*100)<0.000001;
@@ -137,7 +154,7 @@ if(pop){
  if(oldRecharge){
   oldRecharge.removeAttribute('onclick');
   oldRecharge.textContent='＋ Recargar billetera';
-  oldRecharge.classList.add('cc113-recharge-btn');
+  oldRecharge.classList.add('cc113-recharge-btn');oldRecharge.id='cc114sbRecharge';oldRecharge.setAttribute('aria-controls','cc113sbTopup');oldRecharge.setAttribute('aria-expanded','false');
   const area=document.createElement('div');area.className='cc113-stream-topup';area.id='cc113sbTopup';area.hidden=true;
   area.innerHTML='<label for="cc113sbAmount">Importe de prueba (S/)</label><input id="cc113sbAmount" type="number" min="1" max="1000" step="0.01" value="20" inputmode="decimal"><button type="button" id="cc113sbSend">Solicitar recarga</button><small>Sin pago real. La recarga de prueba está sujeta a aprobación.</small>';
   oldRecharge.after(area);
