@@ -62,7 +62,7 @@ assert.ok(nameOrder>0 && dniOrder>nameOrder,'CLAN CARTAN debe tener su formulari
 assert.ok(!html.includes('cc107consent'),'Registro general NO debe consultar DNI automáticamente');
 assert.ok(!html.includes('cc-dni-registro'),'Función de DNI público no debe usarse en el portal');
 assert.ok(html.includes('rpc/cy_lookup_dni_saved'),'COBRA YA debe conservar la consulta de DNI');
-assert.ok(html.includes('content="V116-20261018"'),'Falta marca de versión V114');
+assert.ok(html.includes('content="V117-20261018"'),'Falta marca de versión V114');
 assert.ok(html.includes('id="cc111-business"'),'Falta selector del negocio para el código propio');
 assert.ok(html.includes('invite_business:document.getElementById(\'cc111-business\').value'),'El registro no comunica el negocio elegido');
 assert.ok(html.includes('Puedes registrarte sin código'),'No se informa que el código es opcional');
@@ -105,4 +105,15 @@ const cobraCard=html.slice(html.indexOf('SISTEMA PARA PRESTAMISTAS'),html.indexO
 assert.ok(!cobraCard.includes('cc77Auth(true)'),'Se duplicó Crear cuenta en COBRA YA');
 assert.ok(html.includes('Tus códigos personales'),'No aparecen códigos por plataforma');
 assert.ok(html.includes('cc116-code-row'),'Falta disposición de códigos');
-console.log('V116: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');
+const v117=readFileSync(new URL('../styles/v117-public-catalog.css',import.meta.url),'utf8');
+assert.ok(html.includes('styles/v117-public-catalog.css?v=117'),'Falta estilo del catálogo público');
+assert.ok(html.includes('cc117-search-title'),'Falta buscador destacado de productos');
+assert.ok(html.includes('cc117-category-strip'),'Falta barra horizontal de categorías');
+assert.ok(html.includes('cc117CategoryButton'),'Falta navegación real por categorías');
+assert.ok(html.includes('cc117-store-header')===false,'Cabecera de catálogo duplicada');
+assert.ok(html.includes('cc117-login')&&html.includes('cc77Auth(false)'),'Ingresar no usa cuenta única CLAN CARTAN');
+assert.ok(html.includes('cc77Auth(true)'),'Crear cuenta no usa CLAN CARTAN');
+assert.ok(html.includes('cc117-one-action'),'Se muestran botones repetidos en tarjetas');
+assert.ok(!html.includes('ccc-v49-guest-cta'),'Se sigue obligando a registrarse para explorar');
+assert.ok(v117.includes('CLAN CARTAN V117'),'Los recursos visuales no tienen versión');
+console.log('V117: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');

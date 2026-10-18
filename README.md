@@ -1,6 +1,6 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión: V116.** Auditoría controlada de registros, roles y referidos. [V116: códigos por plataforma y perfil con recarga](docs/V116-CODIGOS-Y-SALDOS.md). Las versiones descritas más abajo son históricas.
+**Última versión: V117.** Auditoría controlada de registros, roles y referidos. [V117: catálogo público fácil de explorar](docs/V117-CATALOGO-PUBLICO.md). Las versiones descritas más abajo son históricas.
 
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  

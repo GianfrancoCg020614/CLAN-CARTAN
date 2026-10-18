@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V116-20261018">
+<meta name="cc-deploy-version" content="V117-20261018">
 <style>
 
 :root{
@@ -2495,6 +2495,7 @@ body.light .ccc-v50-maker-divider{background:#d7dce2}
 @media(max-width:650px){#cy53modal .scroll table{min-width:880px}#cy53modal button{font-size:13px}}
 </style><link rel="stylesheet" href="styles/v113-wallet.css?v=115">
 <link rel="stylesheet" href="styles/v116-account.css?v=116">
+<link rel="stylesheet" href="styles/v117-public-catalog.css?v=117">
 </head>
 <body>
 <div id="app"></div>
@@ -3064,7 +3065,14 @@ function productCover(p,large=false){const img=imageSrc(p.image);return `<div cl
 function sellerBadge(p){const s=sellerInfo(p);return `<span class="seller-chip">${imageSrc(s.logo)?`<img src="${esc(imageSrc(s.logo))}" alt="Logo vendedor">`:`<span class="seller-avatar">${esc(s.name.slice(0,2).toUpperCase())}</span>`}<span><small>Vendedor</small><strong>${esc(s.name)}</strong></span><span class="verified-check" title="Usuario vendedor en la demo">✓</span></span>`;}
 function cccFixedDatesUnavailable(p){return p?.serviceDateMode==='fixed'&&(!/^\d{4}-\d{2}-\d{2}$/.test(String(p.serviceFixedStart||''))||!/^\d{4}-\d{2}-\d{2}$/.test(String(p.serviceFixedEnd||''))||p.serviceFixedEnd<p.serviceFixedStart||p.serviceFixedEnd<today())}
 function storeAvailability(p){if(cccFixedDatesUnavailable(p))return '<span class="tag red">Vigencia no disponible</span>';return `<span class="tag ${realStock(p)<=0?'red':p.mode==='A pedido'?'amber':'green'}">${realStock(p)<=0?'Sin stock':p.mode==='A pedido'?'A pedido':'Entrega inmediata'}</span><span class="tag cyan">${esc(stockText(p))}</span>`;}
-function productActions(p,detail=false){const unavailable=cccFixedDatesUnavailable(p);return `<div class="ccc-pick-actions"><button class="${isFavorite(p.id)?'ccc-fav-selected':''}" onclick="toggleFavorite('${p.id}')" aria-label="${isFavorite(p.id)?'Quitar de favoritos':'Guardar en favoritos'}">${isFavorite(p.id)?'♥':'♡'} Guardar</button><button class="ccc-add-bag" ${unavailable||p.mode==='A pedido'||realStock(p)<=0?'disabled':''} onclick="addToCart('${p.id}')">＋ Carrito</button></div><div class="product-actions">${p.mode==='A pedido'?`<button class="btn success" onclick="contactSeller('${p.id}')">WhatsApp · Consultar stock</button><button class="btn ${realStock(p)<=0?'disabled':''}" onclick="showStoreDetail('${p.id}')">Ver condiciones</button>`:`<button class="btn primary" ${unavailable||realStock(p)<=0?'disabled':''} onclick="buyNow('${p.id}')">${unavailable?'Vigencia no disponible':realStock(p)>0?'Comprar ahora':'Sin stock'}</button><button class="btn" onclick="contactSeller('${p.id}')">WhatsApp</button>`}</div>`;}
+function productActions(p,detail=false){
+  const stock=realStock(p),unavailable=cccFixedDatesUnavailable(p);
+  if(unavailable||stock<=0){
+    return '<div class="product-actions cc117-one-action"><button type="button" class="btn cc117-out-of-stock" disabled>'+(unavailable?'No disponible':'Sin stock')+'</button>'+ (safeWhatsUrl(p)?'<button type="button" class="btn cc117-whatsapp" onclick="contactSeller(\''+p.id+'\')">WhatsApp</button>':'')+'</div>';
+  }
+  const label=p.mode==='A pedido'?'Consultar disponibilidad':'Comprar';
+  return '<div class="product-actions cc117-one-action"><button type="button" class="btn primary" onclick="showStoreDetail(\''+p.id+'\')">'+label+'</button></div>';
+}
 function storeDetailView(p){const s=sellerInfo(p);const canBuy=p.mode!=='A pedido'&&realStock(p)>0;return `<div class="detail-breadcrumb"><button class="btn sm" onclick="leaveDetail()">← Volver a la tienda</button><span>Inicio / ${esc(p.category)} / ${esc(p.name)}</span></div>
  <div class="detail-layout"><div><div class="detail-cover card">${productCover(p,true)}</div><div class="card section detail-extra"><h3>Información y beneficios</h3><p class="paragraph">${esc(p.description)}</p><ul>${(p.benefits||'').split('\n').filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
  <div class="detail-right"><div class="pill-row">${storeAvailability(p)} ${p.renewable?'<span class="tag amber">Renovable</span>':''}</div><h2 class="detail-title">${esc(p.name)}</h2><div class="detail-price">${money(priceForUser(p))}<span>Precio de ${tierLabel()}</span></div>
@@ -3109,6 +3117,10 @@ function searchStore(input){
   if(target){target.focus();try{target.setSelectionRange(index,index)}catch{}}
 }
 function categories(){return ['Todos',...new Set(db.products.filter(p=>p.approved).map(p=>p.category))]}
+function cc117SelectCategory(category){ui.storeCategory=category;ui.selectedProduct=null;render();}
+function cc117CategoryButton(category){
+  return '<button type="button" class="cc117-category-item'+(ui.storeCategory===category?' active':'')+'" onclick="cc117SelectCategory('+esc(JSON.stringify(category))+')" aria-pressed="'+(ui.storeCategory===category)+'">'+esc(category)+'</button>';
+}
 function filteredProducts(){return db.products.filter(p=>p.approved).filter(p=>ui.storeCategory==='Todos'||p.category===ui.storeCategory).filter(p=>p.name.toLowerCase().includes(ui.storeSearch.toLowerCase())||p.category.toLowerCase().includes(ui.storeSearch.toLowerCase()))}
 function stats(){return {products:db.products.filter(p=>p.approved).length,accounts:db.accounts.length,activeOrders:db.orders.filter(o=>o.status==='completed').length,pendingRegs:db.registrations.filter(r=>r.status==='pending').length}}
 function renderStore(){
@@ -3123,68 +3135,32 @@ function renderStore(){
   const categoriesList=categories().filter(c=>c!=='Todos').slice(0,9);
   return `
 <div class="shell">
-<header class="store-header v6 store-header-clean">
-  <div class="row1">
-    <div class="brand-stack">
-      <div class="brand-emblem brand-emblem-logo" role="img" aria-label="Logo oficial Stream Bull’s, Bull Terrier"></div>
-      <div class="brand-copy">
-        <h1><span class="ccc-v51-stream-title">Stream Bull&#39;s</span></h1>
-        <small>Streaming y software en un solo lugar</small>
-      </div>
-    </div>
-    <div class="ccc-desktop-firstline">${user.role!=='visitor'?`<div class="wallet-top-actions"><div class="wallet-hero-pill"><span class="wallet-hero-icon">💚</span><span><small>Saldo disponible</small><strong>${money(user.wallet||0)}</strong></span></div><button class="btn sm wallet-recarga-btn" onclick="goWalletTopup()">＋ RECARGA</button></div>`:''}${cccShopTools('desktop')}</div>
-    <div class="ccc-mobile-header-actions">${cccShopTools('mobile')}<button onclick="switchTheme()" aria-label="Cambiar entre modo claro y oscuro" title="Cambiar tema">${ui.theme==='dark'?'☀':'☾'}</button><button type="button" onclick="toggleMobileMenu(this)" aria-label="Abrir menú y cuenta" aria-expanded="false" title="Menú">☰</button></div>
+<header class="store-header v6 store-header-clean cc117-header" aria-label="Cabecera del catálogo público">
+  <div class="cc117-nav-main">
+    <button class="cc117-store-brand" type="button" onclick="cc77Home()" aria-label="Volver al portal CLAN CARTAN">
+      <span class="brand-emblem brand-emblem-logo" aria-hidden="true"></span>
+      <span class="cc117-brand-name">STREAM <em>BULL'S</em><small>Catálogo digital · CLAN CARTAN</small></span>
+    </button>
+    <nav class="cc117-actions-top" aria-label="Menú principal">
+      <button type="button" class="cc117-link" onclick="cc77Home()">⌂ <span>Inicio</span></button>
+      <button type="button" class="cc117-link" onclick="ui.selectedProduct=null;render();document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})">▣ <span>Productos</span></button>
+      <button type="button" class="cc117-theme" onclick="switchTheme()" title="Cambiar modo claro u oscuro" aria-label="Cambiar tema">${ui.theme==='dark'?'☼':'☾'}</button>
+      ${window.CC_V53_SESSION?.jwt?'<button type="button" class="cc117-register" onclick="cc77Home()">Mi cuenta</button>':'<button type="button" class="cc117-login" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="cc117-register" onclick="cc77Auth(true)">Crear cuenta</button>'}
+    </nav>
   </div>
-  ${user.role!=='visitor'?`<div class="ccc-mobile-wallet"><div class="wallet-top-actions"><div class="wallet-hero-pill"><span class="wallet-hero-icon">💚</span><span><small>Saldo disponible</small><strong>${money(user.wallet||0)}</strong></span></div><button class="btn sm wallet-recarga-btn" onclick="goWalletTopup()">＋ RECARGA</button></div></div>`:''}
-  <div class="row2">
-    <div class="nav-actions">
-      <div class="header-link-group">
-        <button class="ghost-btn ccc-command-btn" onclick="openCommandMenu()">⌕ Acceso rápido <span class="ccc-kbd">Ctrl K</span></button>
-        <button class="ghost-btn" onclick="openWorkspaces()">Mis espacios</button>
-        <button class="ghost-btn" onclick="document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})">Productos</button>
-        <button class="ghost-btn" onclick="contactAdmin()">WhatsApp admin</button>
-      </div>
-      <div class="header-account-group">
-        <button class="ghost-btn mode-btn" onclick="switchTheme()">${ui.theme==='dark'?'Modo claro':'Modo oscuro'}</button>
-        ${user.role!=='visitor'?`<button class="btn primary" onclick="setFace('panel')">Ir al panel</button><button class="btn sm" onclick="logout()">Cerrar sesión</button>`:`<button class="btn secondary" onclick="openLogin()">Iniciar sesión</button><button class="btn" onclick="openRegister()">Registrarse</button>`}
-      </div>
-    </div>
-    <div class="searchbar"><span>${icon('search')}</span><input placeholder="Buscar productos, vendedores o categorías..." value="${ui.storeSearch}" oninput="searchStore(this)"></div>
-  </div>
-  <div class="row3">
-    <div class="cats">${categories().map(c=>`<button class="cat-link ${ui.storeCategory===c?'active':''}" onclick="ui.storeCategory='${c}';ui.selectedProduct=null;render()">${c}</button>`).join('')}</div>
-    <div class="store-promo-strip">
-      <div class="store-promo-pill"><span class="store-promo-dot"></span><strong>${roleLabel(user.role)}</strong><span>${user.role==='visitor'?'Viendo precios públicos':'Tarifa aplicada: '+tierLabel()}</span></div>
-      ${user.role==='visitor'?`<button class="btn secondary" onclick="openRegister()">Desbloquear precios especiales ↗</button>`:''}
-    </div>
-  </div>
+  <nav class="cc117-category-strip" aria-label="Categorías de productos">
+    <span class="cc117-category-label">Categorías</span>
+    <div class="cc117-category-list">${categories().map(cc117CategoryButton).join('')}</div>
+  </nav>
 </header>
 <main class="store-main v6" id="inicio">
-  ${user.role==='visitor'?`<div class="ccc-v49-guest-cta" role="note"><div><strong>✨ Regístrate y accede a mejores precios</strong><p>Estás viendo precios públicos. Activa tu cuenta de Afiliado con un pago único de S/20 y consulta precios preferenciales. Sin mensualidad para comprar.</p></div><button class="btn primary" onclick="openRegister()">Quiero precios de Afiliado →</button></div>`:''}
+
   ${ui.selectedProduct&&productById(ui.selectedProduct)?.approved?storeDetailView(productById(ui.selectedProduct)):`
-  <section class="hero-v6 v23-hero" aria-label="Presentación de Stream Bull’s">
-    <div class="hero-panel">
-      <div class="hero-topline"><span class="top-chip">STREAM BULL’S</span><span class="top-chip v23-top-tiny">Precios según tu nivel</span></div>
-      <h2 class="hero-title">Tus servicios digitales, <span class="accent">más rápido y mejor organizados.</span></h2>
-      <p class="hero-sub">Compra, revende y controla tus servicios desde una tienda más clara, visual y moderna.</p>
-      <div class="hero-icon-strip" aria-label="Ventajas de Stream Bull’s">
-        <span class="hero-icon-pill"><b>📺</b><small>Streaming</small></span>
-        <span class="hero-icon-pill"><b>⚡</b><small>Entrega ágil</small></span>
-        <span class="hero-icon-pill"><b>🛡️</b><small>Soporte</small></span>
-      </div>
-      <div class="hero-cta-row">
-        <button class="neo-btn primary" onclick="document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})">Ver productos <span aria-hidden="true">↗</span></button>
-        <button class="neo-btn secondary" onclick="${user.role==='visitor'?'openRegister()':'setFace(\'panel\')'}">${user.role==='visitor'?'Crear cuenta':'Abrir mi panel'}</button>
-      </div>
-    </div>
-    <aside class="hero-side v23-account-summary" aria-label="Resumen de tu cuenta">
-      <div class="hero-card role-card">
-        <div class="role-head"><div><span class="role-badge">TU NIVEL</span><h3>${roleLabel(user.role)}</h3></div><span class="tag green">${user.role==='visitor'?'Público':'Activo'}</span></div>
-        <div class="v23-account-line"><span>Precio aplicado</span><b>${tierLabel()}</b></div>
-        <div class="v23-account-line v23-wallet-line"><span>Billetera digital</span><b>${money(user.wallet||0)}</b></div>
-        <button class="v23-account-action" onclick="${user.role==='visitor'?'openLogin()':'setFace(\'panel\')'}">${user.role==='visitor'?'Acceder a mi cuenta':'Gestionar mis compras'} <span>↗</span></button>
-      </div>
-    </aside>
+  <section class="cc117-search-section" aria-labelledby="cc117-search-title">
+    <span class="cc117-overline">CATÁLOGO PÚBLICO · SIN REGISTRO</span>
+    <h2 id="cc117-search-title">Busca tu <span>producto</span></h2>
+    <p>Explora servicios digitales, consulta precios y revisa las condiciones sin iniciar sesión.</p>
+    <label class="cc117-searchbar" for="cc117-search"><span aria-hidden="true">⌕</span><input id="cc117-search" type="search" autocomplete="off" placeholder="Busca Netflix, Spotify, Game Pass..." value="${esc(ui.storeSearch)}" oninput="searchStore(this)" aria-label="Buscar productos por nombre o categoría"></label>
   </section>
 
   <section class="shop-panels v23-shop-panels" id="productos">
