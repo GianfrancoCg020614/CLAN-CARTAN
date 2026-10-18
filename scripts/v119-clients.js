@@ -79,18 +79,20 @@ window.cc119EditClient=function(client,refresh,notice){
  function say(text){status.textContent=text;}
  byId('cc119editClose').onclick=closeEdit;byId('cc119editCancel').onclick=closeEdit;
  overlay.addEventListener('click',event=>{if(event.target===overlay)closeEdit();});
- doc.addEventListener('input',()=>{comparison.hidden=true;byId('cc119checkDni').disabled=false;});
- let resultName='';
+ doc.addEventListener('input',()=>{comparison.hidden=true;resultName='';if(!verifying)byId('cc119checkDni').disabled=false;});
+ let resultName='',verifying=false;
  byId('cc119checkDni').addEventListener('click',async()=>{
   const dni=doc.value.trim(),consent=form.elements.consent.checked;
   if(!/^[0-9]{8}$/.test(dni)){say('Ingresa los 8 dígitos del DNI peruano para consultar.');return;}
   if(!consent){say('Marca la autorización antes de consultar el DNI.');return;}
+  if(verifying)return;
+  verifying=true;
   const button=byId('cc119checkDni');button.disabled=true;comparison.hidden=true;
   say('Consultando DNI con API Perú…');
   try{
    const response=await queryVerifiedName(dni);
    if(!document.body.contains(overlay))return;
-   if(doc.value.trim()!==dni){button.disabled=false;say('El DNI cambió durante la consulta; verifica de nuevo.');return;}
+   if(doc.value.trim()!==dni||!form.elements.consent.checked){say('El DNI o la autorización cambió durante la consulta. Vuelve a verificar.');return;}
    if(response.status==='found'&&typeof response.full_name==='string'&&response.full_name.trim()){
     resultName=response.full_name.trim().replace(/\s+/g,' ');
     byId('cc119original').textContent=name.value;
@@ -102,6 +104,7 @@ window.cc119EditClient=function(client,refresh,notice){
     }else{
      say('Guardando nombre verificado sin modificar contacto ni otros datos…');
      try{
+      if(doc.value.trim()!==dni||!form.elements.consent.checked)throw Error('DNI o autorización cambiaron; no se guardó la corrección.');
       await updateClient(client.id,client,{full_name:resultName});
       if(!document.body.contains(overlay))return;
       name.value=resultName;
@@ -113,7 +116,8 @@ window.cc119EditClient=function(client,refresh,notice){
      button.disabled=false;
     }
    }else{resultName='';say(consentMessage(response.reason||response.status));button.disabled=false;}
-  }catch(e){resultName='';say(e.message||'Falló la consulta; puedes corregir manualmente.');button.disabled=false;}
+  }catch(e){resultName='';say(e.message||'Falló la consulta; puedes corregir manualmente.');}
+  finally{verifying=false;if(document.body.contains(overlay))button.disabled=false;}
  });
  form.addEventListener('submit',async event=>{
   event.preventDefault();
