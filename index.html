@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V119-20261018">
+<meta name="cc-deploy-version" content="V122-20261018">
 <style>
 
 :root{
@@ -2498,6 +2498,7 @@ body.light .ccc-v50-maker-divider{background:#d7dce2}
 <link rel="stylesheet" href="styles/v117-public-catalog.css?v=117">
 <link rel="stylesheet" href="styles/v118-logout.css?v=118">
 <link rel="stylesheet" href="styles/v119-clients.css?v=119">
+<link rel="stylesheet" href="styles/v122-recharges.css?v=122">
 </head>
 <body>
 <div id="app"></div>
@@ -5160,7 +5161,8 @@ function openDetail(id){
  state.selectedLoan=id;document.getElementById('cy63detailContent').innerHTML=data;document.getElementById('cy63detail').style.display='block';document.getElementById('cy63detail').scrollTop=0;
 }
 function closeDetail(){document.getElementById('cy63detail').style.display='none';state.selectedLoan=null}
-function printDetail(){if(!state.selectedLoan)return;const node=document.getElementById('cy63printable');if(!node)return;const w=window.open('','_blank','width=850,height=750');if(!w){alert('Activa las ventanas emergentes para imprimir.');return;}w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>COBRA YA - Cronograma</title><style>body{font-family:Arial,sans-serif;color:#1d2938;margin:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #777!important;padding:7px!important;text-align:left}h2,h3{color:#163b53}@page{size:A4;margin:16mm}</style></head><body>'+node.innerHTML+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
+function printDetail(){if(!state.selectedLoan)return;const node=document.getElementById('cy63printable');if(!node)return;const w=window.open('','_blank','width=850,height=750');if(!w){alert('Activa las ventanas emergentes para imprimir.');return;}w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>COBRA YA - Cronograma</title><style>body{font-family:Arial,sans-serif;color:#1d2938;margin:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #777!important;padding:7px!important;text-align:left}h2,h3{color:#163b53}@page{size:A4;margin:16mm}</style></head><body>'+node.innerHTML+'<script src="scripts/v122-recharges.js?v=122"></script>
+</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
 function open(){session();document.getElementById('cy53layer').style.display='block';cy54.refreshAuth();if(session().isAdmin||session().isReseller)refresh()}
 function close(){document.getElementById('cy53layer').style.display='none'}
 // V105: el DNI solo recupera registros del prestamista autenticado, con RLS.
