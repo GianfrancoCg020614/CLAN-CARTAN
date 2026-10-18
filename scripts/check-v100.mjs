@@ -55,4 +55,15 @@ assert.ok(!html.includes('onclick="lnOpenWithdrawal()"'), 'Botón de retiro Cobr
 assert.ok(!html.includes('onclick="requestWithdrawal()"'), 'Botón de retiro Stream Bulls activo');
 assert.ok(!html.includes("Descuento AUTOMÁTICO DEMO"), 'Mensualidad automática heredada');
 assert.ok(!html.includes("window.setInterval(()=>{const n=lnAutoRenewDue()"), 'Temporizador de cobro automático');
-console.log('V105: ' + inline.length + ' scripts con sintaxis válida, reglas de acceso y pagos voluntarios verificadas de forma estática.');
+// V107: el registro inicial debe empezar por DNI y consultar mediante backend restringido.
+const dniOrder = html.indexOf('id="cc-v81-doc"');
+const nameOrder = html.indexOf('id="cc-v81-name"');
+assert.ok(dniOrder > 0 && nameOrder > dniOrder,'El registro debe pedir el DNI antes del nombre');
+for (const token of ['cc107consent','cc107status','cc107lookup','cc-dni-registro','cc107autofilledName']) {
+ assert.ok(html.includes(token),'Falta elemento V107: '+token);
+}
+assert.ok(html.includes('phone:phone?dial+phone:null'),'WhatsApp no debe ser obligatorio en el registro');
+assert.ok(html.includes('content="V107-20261018"'),'Versión V107 no identificada');
+assert.ok(html.includes('No se pudo enviar el correo de confirmación'),'Falta orientación para error SMTP');
+console.log('V107: ' + inline.length + ' scripts con sintaxis válida, DNI al inicio y reglas comerciales verificadas.');
+
