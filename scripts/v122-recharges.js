@@ -7,9 +7,6 @@
 const el=id=>document.getElementById(id);
 const binanceUrl='https://app.binance.com/uni-qr/812BvNys';
 const phone='923319637';
-const referralCodeRaw=document.querySelector('meta[name="cc-binance-referral-code"]')?.content?.trim()||'';
-const referralCode=/^[A-Za-z0-9]{5,32}$/.test(referralCodeRaw)?referralCodeRaw:'';
-const supportMail='clancartan@gmail.com';
 const fmt=(num,currency)=>new Intl.NumberFormat('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(num))+' '+currency;
 let creating=false,quote=null,quoteReq=0;
 function mount(){
@@ -99,25 +96,10 @@ function mount(){
   amountLabel.textContent=binance?'Importe a pagar (USDT)':'Importe a pagar (PEN, soles)';
   amount.min=binance?'0.5':'1';amount.max=binance?'1000':'1000';amount.step='0.01';amount.value=binance?'10':'20';
   if(binance){
-   const banner=document.createElement('div');
-   banner.className='cc125-referral';
-   banner.innerHTML='<strong>¿Nuevo en Binance?</strong><p>Si aún no tienes cuenta, regístrate usando nuestro código de invitación de Binance antes de realizar tu primera recarga.</p>';
-   if(referralCode){
-    const code=document.createElement('b');code.className='cc125-refcode';code.textContent='Código de invitación: '+referralCode;
-    banner.appendChild(code);
-    const copy=document.createElement('button');copy.type='button';copy.textContent='Copiar código de invitación';copy.onclick=()=>{
-     navigator.clipboard?.writeText(referralCode).then(()=>status.textContent='Código de Binance copiado.').catch(()=>status.textContent='Código: '+referralCode);
-    };
-    banner.appendChild(copy);
-   }else{
-    const link=document.createElement('a');link.href='mailto:'+supportMail+'?subject=Codigo%20de%20invitacion%20Binance%20CLAN%20CARTAN';
-    link.textContent='Solicitar nuestro código de invitación';banner.appendChild(link);
-   }
    info.replaceChildren();
    const title=document.createElement('strong');title.textContent='Binance Pay · USDT';info.appendChild(title);
    const descr=document.createElement('p');descr.textContent='Pago internacional en USDT. Usuario receptor: User-f81cdb6a. Comprueba el destinatario.';
    info.appendChild(descr);
-   info.appendChild(banner);
    const caution=document.createElement('p');
    caution.textContent='Crea primero una orden con cotización válida. No transfieras fondos sin conocer el importe exacto en USDT, el saldo en PEN y la vigencia. Los pagos por QR personal aún requieren conciliación independiente y no se acreditan automáticamente.';
    info.appendChild(caution);
