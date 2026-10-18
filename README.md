@@ -1,5 +1,8 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
+**Última versión: V112.** Auditoría controlada de registros, roles y referidos. [Resultados y pendientes de V112](docs/V112-PRUEBAS-Y-PENDIENTES.md). Las versiones descritas más abajo son históricas.
+
+
 **Actualizado:** 18 de octubre de 2026 (UTC)  
 **Razón social:** CLAN CARTAN E.I.R.L.  
 **RUC comunicado por el titular:** 20612272078  

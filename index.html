@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V111-20261018">
+<meta name="cc-deploy-version" content="V112-20261018">
 <style>
 
 :root{
@@ -4843,11 +4843,12 @@ async function signIn(event){
     const memberships=await api('/rest/v1/cc_memberships?select=status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(me.id),{},jwt);
     const active=Array.isArray(memberships)?memberships.filter(m=>m.status==='ACTIVE'):[];
     const authorized=active.some(m=>m.cc_businesses?.code==='COBRA_YA'&&m.role==='RESELLER');
-    sessionToken=jwt;verified=true;window.CC_V53_SESSION={jwt:jwt,userId:me.id,root:root,key:key,isAdmin:false,isReseller:authorized,displayName:String(me.user_metadata?.full_name||me.user_metadata?.display_name||me.email?.split('@')[0]||'Usuario')};
+    const commercialRole=active.find(m=>['AFFILIATE','RESELLER','SUPER_RESELLER'].includes(m.role))?.role||null;
+    sessionToken=jwt;verified=true;window.CC_V53_SESSION={jwt:jwt,userId:me.id,root:root,key:key,isAdmin:false,isReseller:authorized,commercialRole:commercialRole,displayName:String(me.user_metadata?.full_name||me.user_metadata?.display_name||me.email?.split('@')[0]||'Usuario')};
     gate.style.display='none';
     document.getElementById('cc77back').style.display='none';
     document.getElementById('cc54logout').style.display='block';
-    const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent=authorized?'CLAN CARTAN · RESELLER autenticado · registros de prueba':'CLAN CARTAN · Solicitud de acceso a COBRA YA pendiente';document.body.appendChild(banner);
+    const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent=authorized?'CLAN CARTAN · RESELLER autenticado · registros de prueba':commercialRole?'CLAN CARTAN · '+commercialRole.replaceAll('_',' ')+' · consulta de tus servicios':'CLAN CARTAN · Cuenta personal autenticada · servicios por activar';document.body.appendChild(banner);
     if(typeof loginDemo==='function'){verified=false;} // Nunca otorgar rol local ADMIN a RESELLER.
     document.getElementById('cy53open').style.display='block';
     if(typeof cc79AfterLogin==='function')cc79AfterLogin();
@@ -5467,7 +5468,7 @@ function cc95RenderUser(){
  const initials=name.split(/\s+/).slice(0,2).map(x=>x[0]?.toUpperCase()||'').join('');
  document.getElementById('cc95-avatar').textContent=initials||'U';
  document.getElementById('cc95-name').textContent=name;
- document.getElementById('cc95-role').textContent=sess.isAdmin?'ADMIN':sess.isReseller?'RESELLER · COBRA YA':'USUARIO CLAN CARTAN';
+ document.getElementById('cc95-role').textContent=sess.isAdmin?'ADMIN':sess.commercialRole?sess.commercialRole.replaceAll('_',' ')+' · CLAN CARTAN':'USUARIO CLAN CARTAN';
  widget.style.display='inline-flex';document.querySelectorAll('.cc98-guest-action').forEach(b=>b.style.display='none');
 }
 async function cc110ShowMyInvitationCodes(){
