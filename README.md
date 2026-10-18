@@ -1,6 +1,6 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión: V119.** Auditoría controlada de registros, roles y referidos. [V119: clientes, DNI y corrección segura](docs/V119-CLIENTES-Y-VERIFICACION-DNI.md). Las versiones descritas más abajo son históricas.
+**Última versión: V123.** Recargas Lemon/DALE, billeteras reales separadas, acreditación protegida y Turnstile preparado (todavía sin claves de producción). [V123: estado y pendientes](docs/V123-DALE-REAL-Y-TURNSTILE.md). Las versiones descritas más abajo son históricas.
 
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
