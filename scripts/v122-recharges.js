@@ -3,7 +3,7 @@
 'use strict';
 const get=id=>document.getElementById(id);
 const urlBinance='https://app.binance.com/uni-qr/812BvNys';
-const methods={LEMON_DALE:{name:'Lemon / DALE',note:'Transferencia en soles. Usa el QR de Lemon suministrado por el titular. El número DALE aún no está configurado.'},BINANCE:{name:'Binance',note:'Usuario Binance: User-f81cdb6a. Confirma la red, moneda e importe con el receptor antes de transferir.'}};
+const methods={LEMON_DALE:{name:'Lemon / DALE',note:'Transferencia en soles. Usa el QR de Lemon suministrado por el titular. Número DALE: 923319637. Comprueba que el titular corresponda antes de transferir.'},BINANCE:{name:'Binance',note:'Usuario Binance: User-f81cdb6a. Confirma la red, moneda e importe con el receptor antes de transferir.'}};
 let working=false;
 function mount(){
  if(get('cc122section'))return;
@@ -21,10 +21,11 @@ function mount(){
  function showMethod(){
   const k=method.value,m=methods[k];
   info.innerHTML='<strong>'+m.name+'</strong><p>'+m.note+'</p>'+
-  (k==='LEMON_DALE'?'<p>QR Lemon proporcionado: pendiente de validación y publicación; no realices pagos hasta confirmar el destinatario.</p>':
+  (k==='LEMON_DALE'?'<p><strong>DALE: <a href="tel:923319637">923319637</a></strong> · Transferencia manual en soles a Lemon. Comprueba el titular antes de pagar.</p><button id="cc122copyPhone" type="button" class="cc122-copy">Copiar número</button>':
     '<p><a href="'+urlBinance+'" target="_blank" rel="noopener noreferrer">Abrir mi QR en Binance</a></p>');
  }
  method.addEventListener('change',showMethod);showMethod();
+ info.addEventListener('click',event=>{if(event.target?.id==='cc122copyPhone')navigator.clipboard?.writeText('923319637').then(()=>{status.textContent='Número DALE copiado.'}).catch(()=>{status.textContent='Número DALE: 923319637';});});
  get('cc122create').addEventListener('click',async()=>{
   if(working)return;
   const session=window.CC_V53_SESSION;
