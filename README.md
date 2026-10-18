@@ -14,6 +14,12 @@
 
 **Brevo y autenticación del correo (18-OCT-2026):** El dominio `clancartan.com` quedó **autenticado en Brevo**, con los cuatro registros DNS verificados. Se creó el remitente unidireccional `no-reply@clancartan.com` y figura como **Verificado**. **SMTP Brevo confirmado habilitado en Supabase** tras configuración manual del titular (host `smtp-relay.brevo.com`, remitente `verificacion@clancartan.com`). Plantilla `Confirm signup` guardada y reabierta con `{{ .Token }}`. No se han enviado correos de prueba ni confirmado recepción del OTP; falta prueba con correo autorizado. [Estado detallado de Brevo](docs/BREVO-AUTENTICACION-V106-2026-10-18.md).
 
+## Estado actual — V109 (18-OCT-2026)
+
+**OTP email corregido en página:** Supabase envía 8 dígitos; el portal V109 ahora muestra 8 casillas y verifica el código completo sin truncarlo. Se conserva el registro CLAN CARTAN manual (sin consulta DNI) y DNI automatizado únicamente en COBRA YA. La conexión SMTP ya logró entregar el correo.
+
+**Único cambio manual pendiente en la plantilla activa de Supabase:** en Auth > Emails > Templates > Confirm signup sustituir la frase **«6 dígitos»** por **«8 dígitos»**, manteniendo exactamente la variable `{{ .Token }}`, porque GitHub no controla automáticamente esa configuración del panel. [Registro de cambios V109](docs/V109-OTP-8-DIGITOS.md).
+
 ## Estado actual — V108 (18-OCT-2026)
 
 **Corrección solicitada por titular:** se revirtió exclusivamente el formulario de alta de CLAN CARTAN al comportamiento **manual original de V106**. Se ingresa nombre completo y documento manualmente, sin consulta externa de DNI en registro. No se exige consentimiento ni se envía el DNI de este formulario a API Perú.
