@@ -62,7 +62,10 @@ assert.ok(nameOrder>0 && dniOrder>nameOrder,'CLAN CARTAN debe tener su formulari
 assert.ok(!html.includes('cc107consent'),'Registro general NO debe consultar DNI automáticamente');
 assert.ok(!html.includes('cc-dni-registro'),'Función de DNI público no debe usarse en el portal');
 assert.ok(html.includes('rpc/cy_lookup_dni_saved'),'COBRA YA debe conservar la consulta de DNI');
-assert.ok(html.includes('content="V110-20261018"'),'Falta marca de versión V110');
+assert.ok(html.includes('content="V111-20261018"'),'Falta marca de versión V111');
+assert.ok(html.includes('id="cc111-business"'),'Falta selector del negocio para el código propio');
+assert.ok(html.includes('invite_business:document.getElementById(\'cc111-business\').value'),'El registro no comunica el negocio elegido');
+assert.ok(html.includes('Puedes registrarte sin código'),'No se informa que el código es opcional');
 const codeBoxes=html.slice(html.indexOf('<div id="cc106otp"'),html.indexOf('</div>',html.indexOf('<div id="cc106otp"')));
 assert.equal((codeBoxes.match(/aria-label="Dígito [0-9]+"/g)||[]).length,8,'Deben ser ocho casillas para OTP de Supabase');
 assert.ok(html.includes("if(!/^\\d{8}$/.test(token))"),'OTP de 8 dígitos no validado');
@@ -76,4 +79,4 @@ assert.ok(html.includes('/rest/v1/rpc/cc_validate_invitation_code'),'Falta valid
 assert.ok(html.includes('/rest/v1/rpc/cc_my_invitation_codes'),'Los afiliados no pueden consultar sus códigos');
 assert.ok(html.includes('cc110ShowMyInvitationCodes();'),'Falta mostrar los códigos al ingresar');
 assert.ok(html.includes('^(COBRA|BULL)'),'Falta formato COBRA / BULL');
-console.log('V110: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');
+console.log('V111: ' + inline.length + ' scripts válidos, registro manual con invitación y OTP 8, DNI COBRA YA conservado.');
