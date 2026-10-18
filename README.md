@@ -12,6 +12,8 @@
 
 **Actualización de autenticación y DNI (18-OCT-2026):** Supabase Auth conserva `Confirm email=ON` y `Allow signup=ON`. Se guardó Site URL `https://www.clancartan.com/` y cuatro redirect URLs: www, raíz, respaldo pages.dev y GitHub Pages. Plantilla de seis dígitos preparada, pero **aún sin SMTP externo**. `APIPERU_TOKEN` figura guardado como secreto; falta la prueba de DNI autorizado para validar funcionalidad real. [Registro de Auth y pasos pendientes](docs/CONFIGURACION-CORREO-Y-APIPERU-V106.md).
 
+**Brevo y autenticación del correo (18-OCT-2026):** El dominio `clancartan.com` quedó **autenticado en Brevo**, con los cuatro registros DNS verificados. Se creó el remitente unidireccional `no-reply@clancartan.com` y figura como **Verificado**. **SMTP en Supabase aún NO está configurado:** Brevo solicita completar una verificación humana 2FA antes de generar la contraseña SMTP. Hasta entonces el código de seis dígitos NO puede darse por operativo. [Estado detallado de Brevo](docs/BREVO-AUTENTICACION-V106-2026-10-18.md).
+
 ## Estado y recuperación — V106 (18 de octubre de 2026, UTC)
 
 **Respaldo del código:** rama `resguardo/v106-2026-10-18` conserva exactamente el commit `846577227f356e1f8309c4559c43a6a422334a25`. **Código de la Edge Function** `cc-consulta-dni` ahora versionado en `supabase/functions/cc-consulta-dni/index.ts`, sin secretos.
