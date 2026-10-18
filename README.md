@@ -1,6 +1,6 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión: V123.** Recargas Lemon/DALE, billeteras reales separadas, acreditación protegida y Turnstile preparado (todavía sin claves de producción). [V123: estado y pendientes](docs/V123-DALE-REAL-Y-TURNSTILE.md). Las versiones descritas más abajo son históricas.
+**Última versión: V124.** Binance Pay cobra en USDT, la billetera registra el equivalente PEN con tasa del servidor y límite de validez; Lemon/DALE cobra en PEN. Acreditación automática y Turnstile siguen pendientes de integración de proveedor y claves. [V124: lógica USDT/PEN](docs/V124-BINANCE-USDT.md). Las versiones descritas más abajo son históricas.
 
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
