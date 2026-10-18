@@ -1,6 +1,6 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión: V125.** Precio comprador vendible USDT/PEN, costos y margen visibles y configurables por ADMIN; solicitud congelada y anuncio de invitación Binance (código pendiente del titular). Lemon/DALE sigue en PEN. Acreditación automática y Turnstile esperan integración externa. [V125: política comercial y referidos](docs/V125-POLITICA-USDT-REFERIDOS.md). Las versiones descritas más abajo son históricas.
+**Última versión: V126.** Se retiró la promoción de referidos de Binance por indicación del titular. Se conserva Binance Pay en USDT con cálculo comercial PEN, protección de liquidez, margen y costos visibles. Lemon/DALE se mantiene en PEN. La acreditación automática y Turnstile siguen pendientes de integración externa. [V125: lógica comercial USDT/PEN](docs/V125-POLITICA-USDT-REFERIDOS.md).
 
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
