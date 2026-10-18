@@ -1,14 +1,15 @@
-## Comprobación API Perú — 18-OCT-2026
+## Actualización de API Perú: secreto recibido en Supabase
 
-- Se verificó desde el dashboard autorizado el **plan gratuito**, con **100 consultas disponibles de 100** para el periodo **01–31 de octubre de 2026**. No se consultó ningún DNI.
-- La Edge Function `cc-consulta-dni` está desplegada en Supabase, pero la integración **NO está habilitada todavía**: **`APIPERU_TOKEN` no se había guardado en Supabase** al cerrar la verificación.
-- Los intentos de conexión anteriores crearon varios tokens de prueba con nombres visibles (sin copiar sus valores al código). **Revisar y revocar esos tokens no utilizados** antes de lanzamiento; evitar dejar credenciales redundantes.
-- Para completar sin compartir secretos: en `https://app.apiperu.dev/tokens`, generar **un único token** y copiarlo mientras se muestra; en `https://supabase.com/dashboard/project/pqalxtrcyrpmwqdlibqd/functions/secrets`, crear `APIPERU_TOKEN` con su valor. Nunca insertar token en chat, GitHub, frontend o documentación.
-- Comprobar que el secreto aparezca por **nombre**, sin exponer su valor. Solo entonces hacer pruebas funcionales con DNI propio o con autorización expresa del titular.
-- No confundir las 100 consultas gratis del proveedor con 100 consultas ya operativas en la página: el frontend sigue utilizando la entrada manual si no hay secreto.
-
-
-# CLAN CARTAN V106 — Correo OTP y DNI
+- Fecha de comprobación: 18-OCT-2026 (hora UTC).
+- Usuario mostró el secreto **`APIPERU_TOKEN`** guardado en Supabase > Edge Functions > Secrets, proyecto `COBRA-YA`, con digest SHA-256 (sin compartir el valor).
+- `cc-consulta-dni` permanece desplegada con JWT requerido y orígenes permitidos únicamente para `www.clancartan.com`, `clancartan.com` y respaldo Pages.
+- Contrato oficial del servicio comprobado en https://docs.apiperu.dev/referencia/consultar-dni/: petición `POST /dni`, `Authorization: Bearer <token>`, respuesta `success:true`, `data.nombre_completo`; es **fuente pública**, no un servicio de RENIEC.
+- Comprobación SQL de permisos: `cc_claim_dni_quota` **no** es ejecutable por `anon` ni `authenticated`, solo por `service_role`; tablas de cuotas tampoco son legibles por usuarios anónimos y normales.
+- **Consultas reservadas en base de datos: 0** durante esta inspección. No se hizo ninguna consulta DNI real ni se consumió cupo del proveedor.
+- Queda **pendiente la prueba de extremo a extremo con DNI de titular autorizado**, desde un usuario `ADMIN` o `RESELLER` activo y con consentimiento. No afirmar conexión externa 100% validada antes de esa prueba.
+- Entrada manual de datos continúa disponible si falla la API, el DNI no se encuentra o se agota la cuota. Los datos WhatsApp y correo se ingresan manualmente, sin obligatoriedad.
+- Tokens de prueba anteriores de API Perú deben revocarse una vez comprobado que el token válido de Supabase funciona. Nunca documentar ni mostrar tokens.
+- SMTP / confirmación por correo de seis dígitos continúa pendiente de proveedor externo, DNS remitente y pruebas de envío.
 
 ## Cambios confirmados en Supabase (18 de octubre de 2026)
 
