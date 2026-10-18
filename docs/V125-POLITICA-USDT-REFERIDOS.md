@@ -16,6 +16,7 @@ Fecha: 18 de octubre de 2026. Estado: código actualizado; pagos externos en val
 - Orden `cc_real_topup_orders` conserva precio bruto, costo, margen y liquidez al momento de generarse. Banco de prueba permanece separado de billetera real.
 - RPC `cc_current_usdt_pen_quote_v125`: solo devuelve precios vigentes, desglosando costo y margen.
 - RPC `cc_create_pending_usdt_topup`: chequea disponibilidad, volumen, precio, coste y margen exclusivamente en servidor, congela datos y devuelve importe a abonar en PEN; NO acredita efectivo.
+- Protección de liquidez compartida: cada solicitud bloquea transaccionalmente el cupo USDT global; se resta la suma de órdenes Binance pendientes que aún no vencieron antes de aceptar otra solicitud. No se promete el mismo volumen a varios clientes simultáneos.
 - RPC `cc_admin_publish_usdt_pen_quote`: exige que `cc_internal.is_admin()` sea verdadero, además de permiso autenticado. Revisa márgenes permitidos, montos, precio y alteraciones recientes. Interfaz ADMIN en un bloque de control desplegable para cargar una fuente comprobada.
 - No hemos cargado cotizaciones ficticias o de referencia a producción. Hasta conectar una fuente de mercado verificable o cargar una oferta real, botón de orden Binance queda detenido por cotización ausente.
 - Los saldos de prueba, préstamos y las dos billeteras internas continúan sin cambios.
