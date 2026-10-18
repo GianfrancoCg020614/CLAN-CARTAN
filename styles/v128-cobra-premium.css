@@ -1,0 +1,174 @@
+/* CLAN CARTAN V128 · Rediseño COBRA YA. Solo presentación visual.
+   Conserva logo original; la cobra vectorial es un elemento de marca complementario.
+   No altera lógica de préstamos, cobros, permisos ni billeteras. */
+#cc77home .cc127-cobra-card{
+ --cy128-teal:#2be1c3;
+ position:relative;isolation:isolate;min-height:310px;
+ padding:clamp(22px,3vw,34px)!important;
+ background:
+  radial-gradient(ellipse at 88% 20%,rgba(13,172,152,.24),transparent 58%),
+  linear-gradient(111deg,#061d2b 7%,#073a42 58%,#041522 100%)!important;
+ border:1px solid rgba(47,235,202,.65)!important;
+ border-radius:24px!important;
+ box-shadow:inset 0 1px 0 #ffffff1c,0 23px 55px #0014209c,0 0 0 1px #36f4db18!important;
+}
+#cc77home .cc127-cobra-card::before{
+ content:"";position:absolute;z-index:0;pointer-events:none;
+ width:min(51%,330px);height:107%;top:0;right:-8px;
+ background:url('../assets/cobra-ya-premium.svg') center/contain no-repeat;
+ opacity:.75;filter:drop-shadow(0 8px 26px #11dabc46);
+}
+#cc77home .cc127-cobra-card::after{
+ content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+ width:auto;height:auto;border-radius:inherit;
+ background:linear-gradient(90deg,transparent 58%,rgba(1,14,24,.08)),radial-gradient(circle at 85% 60%,#14dec127,transparent 54%);
+}
+#cc77home .cc127-cobra-card>*{position:relative;z-index:1;}
+#cc77home .cc127-cobra-card .cc77tag{
+ display:inline-flex;align-items:center;gap:7px;max-width:70%;
+ background:#052e378c;color:#a9ffeb;border:1px solid #5eedda5c;
+ padding:6px 11px;border-radius:999px;font-size:10px;letter-spacing:.12em;
+}
+#cc77home .cc127-cobra-card .cc77tag::before{content:"";width:7px;height:7px;border-radius:50%;background:#45f0c2;box-shadow:0 0 12px #45f0c2}
+#cc77home .cc127-cobra-card .cc78service{max-width:75%;gap:16px}
+#cc77home .cc127-cobra-card .cc78service-logo{
+ background-color:#051e2be8;border:1px solid #54e6d2;
+ box-shadow:0 0 0 4px #0da58e15,0 0 25px #21e9ce31;
+}
+#cc77home .cc127-cobra-card .cc78service h2{font-size:clamp(30px,3.5vw,41px);text-shadow:0 4px 19px #0007}
+#cc77home .cc127-cobra-card p{
+ max-width:69%;font-size:14px;line-height:1.7;color:#d7f8f2;
+}
+#cc77home .cc127-cobra-card .cc77actions{max-width:70%}
+#cc77home .cc127-cobra-card .cc77actions button{
+ min-height:46px;padding:11px 20px!important;border-radius:12px!important;
+ background:linear-gradient(120deg,#52f0cc,#1bcbbd)!important;
+ border:1px solid #8cffe2!important;color:#062c31!important;
+ font-weight:850;box-shadow:0 8px 27px #00a99840;
+}
+#cc77home .cc127-cobra-card .cc77actions button:hover{filter:brightness(1.09);transform:translateY(-1px)}
+#cy53layer{
+ --cy128-teal:#2be1c3;--cy128-border:rgba(52,226,202,.27);
+ background:
+ radial-gradient(ellipse at 88% 5%,rgba(1,194,153,.15),transparent 39%),
+ radial-gradient(ellipse at 3% 90%,rgba(12,101,165,.18),transparent 52%),
+ linear-gradient(130deg,#05111d 0%,#09232e 53%,#051421 100%)!important;
+}
+#cy53layer .cywrap{max-width:1260px}
+#cy53layer .cyrow{
+ min-height:178px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+ border-radius:24px;padding:25px 27px!important;isolation:isolate;overflow:hidden;
+ background:radial-gradient(ellipse at 81% 50%,#037d7159,transparent 46%),linear-gradient(105deg,#062536 4%,#085158 66%,#092435)!important;
+ border:1px solid rgba(60,230,204,.58);box-shadow:0 19px 48px #0009,inset 0 1px #fff2;
+}
+#cy53layer .cyrow::after{
+ content:"";position:absolute;z-index:0;inset:auto 2% -25% auto;
+ width:min(340px,34%);height:140%;pointer-events:none;
+ background:url('../assets/cobra-ya-premium.svg') center/contain no-repeat;
+ opacity:.50;filter:drop-shadow(0 0 18px #17d5ad44);
+}
+#cy53layer .cyrow>*{position:relative;z-index:1}
+#cy53layer .cc127-cobra-brand{max-width:75%;gap:18px}
+#cy53layer .cc127-cobra-logo{
+ width:86px;height:86px;flex:0 0 86px;border-radius:20px;
+ border:1px solid #5cedd2;box-shadow:0 9px 27px #00162088,0 0 0 5px #6efbea17;
+}
+#cy53layer .cc127-cobra-brand h2{
+ margin:0;font-size:clamp(31px,3.8vw,42px);letter-spacing:-.04em;
+ font-weight:900;line-height:1.08;color:#effffb;text-shadow:0 6px 26px #0009;
+}
+#cy53layer .cc127-cobra-brand small{
+ margin-top:8px;max-width:580px;font-size:13px;line-height:1.65;
+ color:#cbf4ed;text-wrap:pretty;
+}
+#cy53layer .cy114-nav{margin-left:auto;align-self:flex-start}
+#cy53layer .cy114-nav .secondary{
+ min-height:43px;border-radius:12px;border:1px solid #5bafba;
+ color:#edffff;background:#064251d6;backdrop-filter:blur(8px);
+}
+#cy53layer .cy114-nav .secondary:hover{background:#0c6374}
+#cy53layer .cy75quick{
+ display:flex;flex-wrap:wrap;gap:9px;
+ background:#071c27ed;border:1px solid #1e737c;
+ border-radius:16px;padding:10px 11px;margin:10px 0 19px;
+ box-shadow:0 13px 28px #00141d48;
+}
+#cy53layer .cy75quick button{
+ background:#0c394a;border:1px solid #2d7887;border-radius:12px;
+ color:#d9faf5;font-size:13px;min-height:43px;
+ transition:background .16s,border-color .16s,transform .16s;
+}
+#cy53layer .cy75quick button:first-child{
+ color:#052d30;background:linear-gradient(110deg,#63f6d3,#24d8c5);
+ border-color:#8effe4;font-weight:900;
+}
+#cy53layer .cy75quick button:hover{transform:translateY(-1px);border-color:#80e5d0}
+#cy53layer .cycards>section,
+#cy53layer .cywrap>section:not(#cy55subscription),
+#cy53layer #cy55subscription{
+ border-radius:19px;border:1px solid var(--cy128-border);
+ background-color:#092333;box-shadow:inset 0 1px #ffffff08,0 11px 28px #00101829;
+}
+#cy53layer .cycards>section h3,
+#cy53layer .cywrap>section h3{color:#eafffa;letter-spacing:-.02em}
+#cy53layer :is(input,select,textarea):focus-visible,
+#cy53layer button:focus-visible,
+body .cc119-edit-overlay :is(input,button):focus-visible{
+ outline:3px solid #7ef7db!important;outline-offset:2px;
+}
+#cy53layer .cc119-empty{
+ color:#dbf7f5;background:radial-gradient(circle at 50% 0%,#10616955,transparent 50%),linear-gradient(145deg,#062432,#082a38);
+ border:1px dashed #49ab9f;border-radius:19px;min-height:290px;
+}
+#cy53layer .cc119-empty h3{color:#f1fffb}
+#cy53layer .cc119-empty p{color:#b3d9d6}
+#cy53layer .cc119-empty-icon{filter:none}
+#cy53layer button.cc119-primary,
+#cy53layer .cc119-new-panel button[type="submit"],
+body .cc119-edit-panel .cc119-primary{
+ background:linear-gradient(110deg,#53edc8,#0eb5b3);
+ color:#032e36;border:1px solid #74ffe1;
+ border-radius:12px;font-weight:850;
+}
+#cy53layer .cc119-new-panel,body .cc119-edit-panel{
+ background:linear-gradient(140deg,#092a3a,#0b1c30)!important;
+ border:1px solid #44c6ae;box-shadow:0 25px 90px #000b;
+}
+#cy53layer .cc119-cobra-logo,body .cc119-cobra-logo{
+ background:var(--ccc-cobra-logo) center/contain no-repeat #082530;
+ border:1px solid #52d9c4;box-shadow:0 0 0 3px #2acda818;
+}
+@media(max-width:760px){
+ #cc77home .cc127-cobra-card{min-height:350px}
+ #cc77home .cc127-cobra-card::before{width:47%;opacity:.53;right:-3%}
+ #cc77home .cc127-cobra-card p{max-width:82%;background:linear-gradient(90deg,#062632aa,transparent);border-radius:6px}
+ #cy53layer .cyrow{padding:20px 18px!important;align-items:flex-start;min-height:168px}
+ #cy53layer .cyrow::after{width:40%;opacity:.28;right:0}
+ #cy53layer .cc127-cobra-brand{max-width:78%;gap:11px}
+ #cy53layer .cc127-cobra-logo{width:64px;height:64px;flex-basis:64px}
+ #cy53layer .cc127-cobra-brand h2{font-size:28px}
+ #cy53layer .cy75quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ #cy53layer .cy75quick button{font-size:12px;padding:10px 6px}
+}
+@media(max-width:480px){
+ #cc77home .cc127-cobra-card{padding:21px 17px!important;min-height:395px}
+ #cc77home .cc127-cobra-card::before{width:66%;height:85%;right:-18%;top:5%;opacity:.29}
+ #cc77home .cc127-cobra-card .cc77tag{max-width:100%;font-size:9px}
+ #cc77home .cc127-cobra-card .cc78service{max-width:100%}
+ #cc77home .cc127-cobra-card .cc78service-logo{width:63px;height:63px;flex-basis:63px}
+ #cc77home .cc127-cobra-card .cc78service h2{font-size:29px}
+ #cc77home .cc127-cobra-card p{max-width:100%;font-size:13px}
+ #cc77home .cc127-cobra-card .cc77actions{max-width:100%}
+ #cy53layer .cyrow{flex-wrap:wrap;gap:12px;min-height:190px}
+ #cy53layer .cyrow::after{width:47%;height:78%;top:1%;opacity:.23}
+ #cy53layer .cc127-cobra-brand{max-width:100%;padding-right:20px}
+ #cy53layer .cc127-cobra-brand small{max-width:300px}
+ #cy53layer .cy114-nav{margin-left:0;align-self:auto}
+ #cy53layer .cy114-nav .secondary{min-height:39px}
+}
+@media(prefers-reduced-motion:reduce){
+ #cc77home .cc127-cobra-card .cc77actions button,
+ #cy53layer .cy75quick button{transition:none!important}
+ #cc77home .cc127-cobra-card .cc77actions button:hover,
+ #cy53layer .cy75quick button:hover{transform:none!important}
+}
