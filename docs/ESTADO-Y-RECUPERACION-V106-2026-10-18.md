@@ -2,9 +2,21 @@
 
 **Registro:** 18-OCT-2026 (fecha UTC de comprobación). **Estado del portal:** V106.  
 **Responsable:** CLAN CARTAN E.I.R.L.  
-**Dominio oficial previsto:** https://www.clancartan.com/  
+**Dominio oficial activo y verificado:** https://www.clancartan.com/  
 **Cloudflare Pages disponible:** https://clan-cartan.pages.dev/  
 **Repositorio:** https://github.com/GianfrancoCg020614/CLAN-CARTAN
+
+## Registro de puesta en línea de dominio — 18-OCT-2026
+
+- Cloudflare Registrar: `clancartan.com` comprado y marcado como **Active**; fecha de vencimiento informada **17-OCT-2027**.
+- Cloudflare Pages: proyecto `clan-cartan` conectado al repositorio de GitHub `GianfrancoCg020614/CLAN-CARTAN`, rama `main`.
+- Custom Domains: `www.clancartan.com` y `clancartan.com` marcados **Active**, certificados SSL habilitados.
+- DNS: CNAME proxied `www.clancartan.com → clan-cartan.pages.dev` y CNAME proxied `clancartan.com → clan-cartan.pages.dev` (Cloudflare flattening de la raíz).
+- Comprobación externa real vía TinyFish: `https://www.clancartan.com/`, `https://clancartan.com/` y `https://clan-cartan.pages.dev/` respondieron correctamente con título `CLAN CARTAN E.I.R.L. | Portal de servicios`. El HTML de `www` indicó `cc-deploy-version=V106-20261017` y canonical `https://www.clancartan.com/`.
+- **Diferencia importante:** dominio raíz y `www` funcionan y sirven la página; no se confirmó redirección permanente HTTP 301 desde raíz a `www`.
+- Configuración DNS al momento de revisión: no se encontraron registros MX/SPF/DKIM/DMARC en la zona; no se editaron ni se contrataron servicios de correo. **Si se desea enviar correo desde el dominio propio, habrá que configurarlos con el proveedor**.
+- No se alteraron datos ni roles ni registros comerciales de COBRA YA y STREAM BULL'S.
+- Los respaldos previos permanecen disponibles.
 
 ## Recuperación del código
 
@@ -39,7 +51,7 @@
 - GitHub Actions `Validar portal CLAN CARTAN`: ejecución sobre `8465772` concluida correctamente.
 - GitHub Actions `pages build and deployment`: ejecución sobre `8465772` concluida correctamente.
 - El verificador distingue DNS del contenido y responde sin esperar doce intentos. Resultado observado: el dominio `www.clancartan.com` **no resuelve en DNS**, aunque `clan-cartan.pages.dev` publicó la marca `V106-20261017`.
-- **Pendiente Cloudflare:** vincular el dominio personalizado `www.clancartan.com` al proyecto Pages `clan-cartan`, configurar el CNAME/HTTPS desde el panel y comprobar DNS real.
+- **Cloudflare terminado:** dominio, DNS, custom domains y HTTPS comprobados. Pendiente opcional: una redirección 301 del dominio raíz al `www` si se desea uniformar las URLs.
 - **Pendiente Supabase Auth:** URL oficial, redirects permitidos, plantilla de email OTP y entrega SMTP.
 - **Pendiente API Perú:** crear/configurar token como secreto del backend; pruebas legítimas y política de privacidad.
 - **Pendiente lanzamiento:** pruebas funcionales con distintas cuentas y revisión legal, consentimiento y permisos.
