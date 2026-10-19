@@ -5262,13 +5262,44 @@ async function cy68Notify(id){
  const balance=Math.max(0,Number(loan.total_due)-paid);
  const choice=prompt('Notificación WhatsApp para '+client.full_name+'\n1 = Inicio de préstamo\n2 = Próximo a vencer\n3 = Préstamo vencido\n\nEscribe 1, 2 o 3:','1');
  if(choice===null)return;
- const type=({'1':'PRÉSTAMO REGISTRADO ✅','2':'RECORDATORIO DE VENCIMIENTO 🔔','3':'PRÉSTAMO VENCIDO ⚠️'})[choice.trim()];
- if(!type)return alert('Selecciona 1, 2 o 3.');
- const first=['💰 *COBRA YA | '+type+'*','', '👋 ¡Hola, *'+client.full_name+'*!',''];
- const lines=choice.trim()==='1'?[...first,'💵 *Capital:* '+cy66Money(loan.principal,loan.currency),'📈 *Interés mensual:* '+cy66Num(loan.monthly_interest_rate??loan.interest_rate)+'%','📆 *Plazo:* '+(loan.duration_months||1)+' meses','💰 *Total a pagar:* '+cy66Money(loan.total_due,loan.currency)]:[...first,'💰 *Saldo pendiente:* '+cy66Money(balance,loan.currency)];
- lines.push('🌍 *Moneda:* '+cy68Currency(loan.currency),'📅 *Vencimiento:* '+(due?dateFmt(due):'No registrado'),'',choice.trim()==='1'?'🔔 ¡Recuerda pagar puntualmente!':choice.trim()==='2'?'🔔 Tu préstamo está próximo a vencer.':'Por favor, comunícate con tu prestamista para coordinar el pago.','','🏢 *COBRA YA | CLAN CARTAN EIRL.*','📲 Mensaje preparado por tu prestamista.');
- // El enlace se incorpora cuando ADMIN configure un dominio oficial verificado.
- window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n')),'_blank','noopener,noreferrer');
+ const type=({'1':'✅ PRÉSTAMO REGISTRADO','2':'🔔 RECORDATORIO DE VENCIMIENTO','3':'⚠️ PRÉSTAMO VENCIDO'})[choice.trim()];
+  if(!type)return alert('Selecciona 1, 2 o 3.');
+  const safeName=String(client.full_name||'Cliente').replace(/[\r\n\t]+/g,' ').trim().slice(0,160);
+  const lines=[
+   '🐍 *COBRA YA*',
+   '*'+type+'*',
+   '━━━━━━━━━━━━━━',
+   '',
+   '👋 ¡Hola, *'+safeName+'*!',
+   choice.trim()==='1'?'Tu préstamo ha sido registrado. Aquí tienes el resumen:':'Aquí tienes información actualizada sobre tu préstamo:',
+   ''
+  ];
+  if(choice.trim()==='1'){
+   lines.push(
+    '💵 *Capital:* '+cy66Money(loan.principal,loan.currency),
+    '📈 *Interés mensual:* '+cy66Num(loan.monthly_interest_rate??loan.interest_rate)+'%',
+    '🗓️ *Plazo total:* '+(loan.duration_months||1)+' '+(Number(loan.duration_months||1)===1?'mes':'meses'),
+    '💰 *Total a pagar:* '+cy66Money(loan.total_due,loan.currency)
+   );
+  }else{
+   lines.push('💰 *Saldo pendiente:* '+cy66Money(balance,loan.currency));
+  }
+  lines.push(
+   '🌎 *Moneda:* '+cy68Currency(loan.currency),
+   '📅 *Vencimiento:* '+(due?dateFmt(due):'No registrado'),
+   '',
+   choice.trim()==='1'?'⏰ *Recuerda pagar puntualmente en la fecha acordada.*':
+   choice.trim()==='2'?'🔔 *Tu préstamo está próximo a vencer. Coordina el pago con tu prestamista.*':
+   '⚠️ *Tu préstamo está vencido. Comunícate con tu prestamista para regularizarlo.*',
+   '',
+   '━━━━━━━━━━━━━━',
+   '🏢 *COBRA YA · CLAN CARTAN E.I.R.L.*',
+   '✨ Descubre nuestros servicios y soluciones digitales:',
+   '🌐 https://www.clancartan.com/',
+   '',
+   '🤝 Mensaje preparado por tu prestamista. Si tienes consultas sobre el préstamo, comunícate directamente con él.'
+  );
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n')),'_blank','noopener,noreferrer');
 }
 function openDetail(id){
  const x=state.loans.find(q=>q.id===id);if(!x)return alert('No se encontró el préstamo.');
