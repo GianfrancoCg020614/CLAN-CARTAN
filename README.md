@@ -4,6 +4,8 @@
 
 **NOVEDAD:** Recarga MANUAL aprobada explícitamente por el titular como segundo método junto a la futura AUTOMÁTICA. El formulario y panel ADMIN de solicitudes reales están integrados: usuario solicita S/1–S/1000 para COBRA YA o STREAM BULL'S; ADMIN coteja ingreso real, aprueba o rechaza; el crédito se registra una sola vez de modo transaccional en saldos verdaderos. **El QR de cobro PEN debe ser LEMON, pero el QR personal continúa sin mostrarse y las aprobaciones reales siguen BLOQUEADAS hasta autorización comercial de Lemon/GMoney.** Las recargas automáticas Lemon/Binance permanecen desactivadas. No se admitirán retiros, préstamos desde billetera, transferencias entre usuarios ni acreditaciones de simples comprobantes.
 
+**Referencia histórica conservada:** [CONTINUIDAD-V130-2026-10-18.md](docs/CONTINUIDAD-V130-2026-10-18.md).
+
 **V135 vigente:** historial real, reembolsos internos idempotentes, filtros de movimientos, informes, constancias; no se han creado movimientos ficticios.
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
