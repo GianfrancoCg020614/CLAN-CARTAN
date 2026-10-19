@@ -1,6 +1,6 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión: V127.** Transferencia rápida ⇄ entre billeteras COBRA YA y STREAM BULL’S, en ambas direcciones y sin cruzar usuarios ni mezclar fondos reales con saldos de prueba. Portada con descripción comercial mejorada y COBRA YA con logo original y fondo turquesa oscuro. [Detalles V127](docs/V127-COBRA-BILLETERAS-MARCA.md). La acreditación automática de pagos externos continúa pendiente de verificación de proveedor.
+**Última versión de desarrollo: V130.** Decisión definitiva: **recargas exclusivamente automáticas para COBRA YA y STREAM BULL'S, usando Lemon/DALE o Binance**. Las vías antiguas de solicitud/aprobación manual están bloqueadas. **Recargas reales temporalmente inhabilitadas** hasta obtener confirmaciones autenticadas del proveedor y acreditar fondos con seguridad (no confundir con saldos de prueba). **[LEER PRIMERO: Punto de continuidad V130](docs/CONTINUIDAD-V130-2026-10-18.md)**. La versión visual V129 y las reglas históricas del resto del documento se conservan como referencia.
 
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
