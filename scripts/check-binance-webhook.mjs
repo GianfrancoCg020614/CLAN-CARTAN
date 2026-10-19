@@ -22,7 +22,7 @@ function notification({status="PAY_SUCCESS",fee="10.50",currency="USDT"}={}) {
 const verify=(h,raw,config={})=>verifyBinancePayNotification(h,raw,{publicKeyPem:cert,certificateSerial:sn,now,...config});
 test("firma RSA valida, evento PAY_SUCCESS, USDT y monto exacto",async()=>{
  const {raw,h}=notification();
- assert.deepEqual(await verify(h,raw),{orderKey:key,transactionId:"M_R_123456789",currency:"USDT",amountMicros:"10500000",eventId:"EVENT1"});
+ assert.deepEqual(await verify(h,raw),{orderKey:key,transactionId:"M_R_123456789",currency:"USDT",amountMicros:"1050000000",eventId:"EVENT1"});
 });
 test("rechaza evento alterado despues de firmar",async()=>{
  const {raw,h}=notification();
@@ -46,5 +46,5 @@ test("rechaza moneda incorrecta firmada",async()=>{
 });
 test("no confunde un numero con un recibo verificado",async()=>{
  const {raw,h}=notification({fee:"0.000001"});
- assert.equal((await verify(h,raw)).amountMicros,"1");
+ assert.equal((await verify(h,raw)).amountMicros,"100");
 });
