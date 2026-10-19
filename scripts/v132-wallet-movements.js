@@ -20,7 +20,7 @@ const datetime=s=>{
 let loadedRows=[],loadedUser=null,inFlight=null,generation=0,page=1,requested=false;
 const currentUser=()=>window.CC_V53_SESSION?.userId;
 const str=x=>String(x==null?'':x);
-const period=x=>{const d=new Date(x);if(Number.isNaN(d.valueOf()))return '';const f=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Lima',year:'numeric',month:'2-digit'});return f.format(d).replace('/','-');};
+const period=x=>{const d=new Date(x);if(Number.isNaN(d.valueOf()))return '';const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Lima',year:'numeric',month:'2-digit'}).formatToParts(d);const y=parts.find(p=>p.type==='year')?.value, m=parts.find(p=>p.type==='month')?.value;return y&&m?y+'-'+m:'';};
 const signed=n=>(Number(n)<0?'-':'+')+fmt(n);
 const permitted=x=>Object.prototype.hasOwnProperty.call(services,x);
 function mine(){
