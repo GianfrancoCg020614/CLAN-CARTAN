@@ -2,13 +2,13 @@
 
 **Última versión entregada: V137 (19-OCT-2026).** Leer primero **[continuidad V137](docs/V137-DALE-GARANTIA-CONTINUIDAD.md)** y [V136](docs/V136-MANUAL-REAL-Y-CONTINUIDAD.md) y luego [V135](docs/V135-RESUMEN-Y-CONTINUIDAD.md). Todas las funciones y decisiones históricas del proyecto se conservan.
 
-**NOVEDAD:** Recarga MANUAL aprobada explícitamente por el titular como segundo método junto a la futura AUTOMÁTICA. El formulario y panel ADMIN de solicitudes reales están integrados: usuario solicita S/1–S/1000 para COBRA YA o STREAM BULL'S; ADMIN coteja ingreso real, aprueba o rechaza; el crédito se registra una sola vez de modo transaccional en saldos verdaderos. **El QR de cobro PEN debe ser LEMON, pero el QR personal continúa sin mostrarse y las aprobaciones reales siguen BLOQUEADAS hasta autorización comercial de Lemon/GMoney.** Las recargas automáticas Lemon/Binance permanecen desactivadas. No se admitirán retiros, préstamos desde billetera, transferencias entre usuarios ni acreditaciones de simples comprobantes.
+**NOVEDAD:** Recarga MANUAL aprobada explícitamente por el titular como segundo método junto a la futura AUTOMÁTICA. El formulario y panel ADMIN de solicitudes reales están integrados: usuario solicita S/1–S/1000 para COBRA YA o STREAM BULL'S; ADMIN coteja ingreso real, aprueba o rechaza; el crédito se registra una sola vez de modo transaccional en saldos verdaderos. **El QR Lemon/DALE aportado por el titular ya se muestra solo como referencia pública; NO habilita pagos ni acreditaciones automáticas. Las aprobaciones reales siguen BLOQUEADAS hasta autorización comercial y verificación confiable del proveedor.** Las recargas automáticas Lemon/Binance permanecen desactivadas. No se admitirán retiros, préstamos desde billetera, transferencias entre usuarios ni acreditaciones de simples comprobantes.
 
 **Referencia histórica conservada:** [CONTINUIDAD-V130-2026-10-18.md](docs/CONTINUIDAD-V130-2026-10-18.md).
 
 **V135 vigente:** historial real, reembolsos internos idempotentes, filtros de movimientos, informes, constancias; no se han creado movimientos ficticios.
 
-**V137:** en sección manual se identifica LEMON / DALE y el número comunicado 923319637 con botón copiar. Se hizo visible sin desplegar la sección de **garantía opcional** del préstamo en COBRA YA (ya registrada en Supabase). El QR original descargado desde Lemon y la autorización comercial siguen pendientes; el número visible no significa cobros habilitados, y las aprobaciones reales permanecen protegidas.
+**V137:** en sección manual se identifica LEMON / DALE y el número comunicado 923319637 con botón copiar. Se hizo visible sin desplegar la sección de **garantía opcional** del préstamo en COBRA YA (ya registrada en Supabase). Se publica una versión escaneable del QR entregado por el titular como referencia informativa; autorización comercial y conciliación del proveedor siguen pendientes. La imagen visible no significa cobros ni acreditación automática habilitados, y las aprobaciones reales permanecen protegidas.
 
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
