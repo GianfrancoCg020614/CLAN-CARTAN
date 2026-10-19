@@ -51,7 +51,7 @@ jobs:
                  "${main}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o cloudflare-response.html; then
                 if grep -Fq "content=\"$expected\"" cloudflare-response.html; then
                   assets_ok=true
-                  for asset in scripts/v113-wallet.js styles/v113-wallet.css scripts/v116-account.js styles/v116-account.css styles/v117-public-catalog.css styles/v118-logout.css scripts/v119-clients.js styles/v119-clients.css scripts/v122-recharges.js styles/v122-recharges.css; do
+                  for asset in scripts/v113-wallet.js styles/v113-wallet.css scripts/v116-account.js styles/v116-account.css styles/v117-public-catalog.css styles/v118-logout.css scripts/v119-clients.js styles/v119-clients.css scripts/v122-recharges.js styles/v122-recharges.css scripts/v132-wallet-movements.js styles/v132-wallet-movements.css; do
                     response_asset="artifact-$(basename "$asset")"
                     case "$asset" in
                       scripts/v116-account.js) asset_marker='CLAN CARTAN V127' ;;
@@ -60,6 +60,8 @@ jobs:
                       *v118*) asset_marker='CLAN CARTAN V118' ;;
                       *v117*) asset_marker='CLAN CARTAN V117' ;;
                       scripts/v122-recharges.js) asset_marker='CLAN CARTAN V131.2' ;;
+                      scripts/v132-wallet-movements.js) asset_marker='CLAN CARTAN V132' ;;
+                      styles/v132-wallet-movements.css) asset_marker='CLAN CARTAN V132' ;;
                       styles/v122-recharges.css) asset_marker='V131.2' ;;
                       *) asset_marker='CLAN CARTAN V115' ;;
                     esac
