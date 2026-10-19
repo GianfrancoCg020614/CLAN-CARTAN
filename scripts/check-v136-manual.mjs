@@ -20,7 +20,7 @@ for(const token of ['cc_manual_recharge_requests','cc_submit_manual_recharge','c
  assert.ok(sql.includes(token),'Falta SQL '+token);
 }
 assert.ok(html.includes('scripts/v136-manual-recharges.js?v=137'));
-assert.ok(html.includes('styles/v136-manual-recharges.css?v=136'));
+assert.ok(html.includes('styles/v136-manual-recharges.css?v=137'));
 assert.ok(html.includes('scripts/v122-recharges.js?v=136'));
 assert.ok(css.includes('.cc136manual'));
 assert.ok(base.includes('LEMON_DALE:false,BINANCE:false'));
