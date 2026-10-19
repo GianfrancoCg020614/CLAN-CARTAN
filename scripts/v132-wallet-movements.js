@@ -5,8 +5,8 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const rowsPerPage=[10,20,50];
-const types={RECHARGE:'Recarga',TRANSFER:'Transferencia',PURCHASE:'Compra',SUBSCRIPTION:'Suscripción'};
+/* V135: devoluciones, resumen mensual, constancias individuales y filtro de movimientos. */
+const types={RECHARGE:'Recarga',TRANSFER:'Transferencia',PURCHASE:'Compra',SUBSCRIPTION:'Suscripción',REFUND:'Reembolso'};
 const statuses={CREDITED:'Acreditada',COMPLETED:'Liberado',PENDING:'Pendiente',
  EXPIRED:'Expirada',FAILED:'Fallida',REJECTED:'Rechazada',DISPUTED:'En disputa',VERIFIED:'Verificada'};
 const services={COBRA_YA:'COBRA YA',STREAM_BULLS:'STREAM BULL’S'};
@@ -20,6 +20,8 @@ const datetime=s=>{
 let loadedRows=[],loadedUser=null,inFlight=null,generation=0,page=1,requested=false;
 const currentUser=()=>window.CC_V53_SESSION?.userId;
 const str=x=>String(x==null?'':x);
+const period=x=>{const d=new Date(x);if(Number.isNaN(d.valueOf()))return '';const f=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Lima',year:'numeric',month:'2-digit'});return f.format(d).replace('/','-');};
+const signed=n=>(Number(n)<0?'-':'+')+fmt(n);
 const permitted=x=>Object.prototype.hasOwnProperty.call(services,x);
 function mine(){
  const s=window.CC_V53_SESSION;
@@ -28,8 +30,12 @@ function mine(){
 function visibleRows(){
  const service=$('cc132service')?.value||'ALL';
  const input=($('cc132search')?.value||'').toLocaleLowerCase('es-PE').trim();
+ const type=$('cc135type')?.value||'ALL';
+ const month=$('cc135month')?.value||'';
  const filter=loadedRows.filter(r=>{
   if(service!=='ALL' && r.service!==service)return false;
+  if(type!=='ALL' && r.movement_type!==type)return false;
+  if(month && period(r.occurred_at)!==month)return false;
   if(!input)return true;
   const found=[r.movement_id,datetime(r.occurred_at),types[r.movement_type],
    r.amount_pen, statuses[r.status],r.provider,r.reference,r.description,services[r.service]]
@@ -38,12 +44,37 @@ function visibleRows(){
  });
  return filter;
 }
+function summary(rows){
+ // Totales de movimientos visibles, no del saldo de cuenta. Pendientes fuera de cálculo.
+ let incoming=0,outgoing=0,returned=0,transfers=0,unsettled=0;
+ for(const r of rows){
+  if(!r.affects_balance){unsettled++;continue;}
+  const n=Number(r.amount_pen)||0;
+  if(r.movement_type==='RECHARGE')incoming+=n;
+  else if(r.movement_type==='REFUND')returned+=n;
+  else if(r.movement_type==='TRANSFER')transfers+=n;
+  else if(r.movement_type==='PURCHASE'||r.movement_type==='SUBSCRIPTION')outgoing+=Math.abs(n);
+ }
+ return {incoming,outgoing,returned,transfers,unsettled,net:incoming-outgoing+returned+transfers};
+}
+function updateSummary(rows){
+ const data=summary(rows);
+ const values={'cc135in':data.incoming,'cc135out':data.outgoing,
+  'cc135ref':data.returned,'cc135net':data.net};
+ for(const [id,n] of Object.entries(values)){
+  const e=$(id);if(e)e.textContent=(n<0?'- ':'')+fmt(n);
+ }
+ const note=$('cc135summaryNote');
+ if(note)note.textContent='Resumen del filtro · '+rows.length+' movimientos (últimos 500 como máximo) · '+
+   data.unsettled+' sin acreditar. No representa el saldo disponible.';
+}
 function render(){
  const target=$('cc132tbody'),state=$('cc132state'),total=$('cc132total'),pageInfo=$('cc132pageInfo');
  if(!target)return;
  if(loadedUser!==currentUser()){loadedRows=[];requested=false;}
  target.replaceChildren();
  const all=visibleRows();
+ updateSummary(all);
  const per=Number($('cc132perpage')?.value)||20;
  page=Math.min(Math.max(1,page),Math.max(1,Math.ceil(all.length/per)));
  const view=all.slice((page-1)*per,page*per);
@@ -59,7 +90,7 @@ function render(){
   all.length?'Movimientos confirmados y solicitudes con su estado real.':'No hay movimientos reales en este filtro.';
  if(!view.length){
   const tr=document.createElement('tr'),td=document.createElement('td');
-  td.colSpan=6;td.className='cc132-empty';td.textContent='Todavía no existen movimientos reales para mostrar.';
+  td.colSpan=7;td.className='cc132-empty';td.textContent='Todavía no existen movimientos reales para mostrar.';
   tr.appendChild(td);target.appendChild(tr);return;
  }
  for(const r of view){
@@ -84,7 +115,13 @@ function render(){
   if(r.reference){
    const small=document.createElement('small');small.textContent='Ref: '+str(r.reference);desc.appendChild(small);
   }
-  tr.append(date,type,value,status,business,desc);
+  const actions=document.createElement('td');
+  const ticket=document.createElement('button');ticket.type='button';
+  ticket.className='cc135-ticket';ticket.textContent='Ver';
+  ticket.setAttribute('aria-label','Ver detalle de operación '+str(r.reference||r.movement_id));
+  ticket.addEventListener('click',()=>printReceipt(r));
+  actions.append(ticket);
+  tr.append(date,type,value,status,business,desc,actions);
   target.appendChild(tr);
  }
 }
@@ -133,6 +170,30 @@ function exportCsv(){
  document.body.appendChild(anchor);anchor.click();anchor.remove();
  setTimeout(()=>URL.revokeObjectURL(uri),3000);
 }
+function printReceipt(r){
+ if(!r||!loadedRows.includes(r)||loadedUser!==currentUser()||!mine())return;
+ const prev=document.querySelector('.cc132-print-sheet');if(prev)prev.remove();
+ const sheet=document.createElement('div');sheet.className='cc132-print-sheet';
+ const h=document.createElement('h1');h.textContent='CLAN CARTAN E.I.R.L. · Constancia de movimiento';
+ const label=document.createElement('p');
+ label.textContent='Registro interno de billetera. No es comprobante de pago tributario ni comprobante bancario.';
+ const tbl=document.createElement('table'),body=document.createElement('tbody');
+ const pairs=[['Movimiento',types[r.movement_type]||r.movement_type],
+  ['Billetera',services[r.service]],['Fecha (Perú)',datetime(r.occurred_at)],
+  ['Importe en soles',r.affects_balance?signed(r.amount_pen):'No acreditado · '+fmt(r.amount_pen)],
+  ['Estado',statuses[r.status]||str(r.status)],
+  ['Referencia',str(r.reference||r.movement_id)],
+  ['Detalle',str(r.description||'—')]];
+ for(const [k,v] of pairs){
+  const tr=document.createElement('tr'),th=document.createElement('th'),td=document.createElement('td');
+  th.textContent=k;td.textContent=str(v);tr.append(th,td);body.appendChild(tr);
+ }
+ tbl.appendChild(body);sheet.append(h,label,tbl);document.body.appendChild(sheet);
+ const cleanup=()=>{sheet.remove();window.removeEventListener('afterprint',cleanup);};
+ window.addEventListener('afterprint',cleanup,{once:true});
+ try{window.print();}catch{cleanup();}
+ setTimeout(cleanup,15000);
+}
 function exportPdf(){
  const all=visibleRows();if(!all.length)return;
  const old=document.querySelector('.cc132-print-sheet');if(old)old.remove();
@@ -173,24 +234,36 @@ function mount(){
  const sec=document.createElement('section');sec.id='cc132movements';sec.className='cc132-movements';
  sec.innerHTML=
  '<div class="cc132-head"><div><span class="cc132-label">CLAN CARTAN · HISTORIAL VERIFICADO</span>'+
- '<h3>Movimientos</h3><p>Recargas, transferencias y gastos reales de tus billeteras.</p></div>'+
+ '<h3>Movimientos</h3><p>Recargas, reembolsos, transferencias y gastos de tus billeteras reales.</p></div>'+
  '<div class="cc132-exports"><button id="cc132pdf" type="button">PDF</button>'+
  '<button id="cc132excel" type="button">Excel (CSV)</button></div></div>'+
- '<div class="cc132-tools"><label>Buscar movimientos<input id="cc132search" type="search" placeholder="Buscar por fecha, importe, descripción o referencia"></label>'+
+ '<div class="cc135-summary" aria-label="Resumen de movimientos filtrados">'+
+ '<div><small>Recargas</small><strong id="cc135in">S/ 0.00</strong></div>'+
+ '<div><small>Compras y suscripciones</small><strong id="cc135out">S/ 0.00</strong></div>'+
+ '<div><small>Reembolsos</small><strong id="cc135ref">S/ 0.00</strong></div>'+
+ '<div><small>Neto de movimientos</small><strong id="cc135net">S/ 0.00</strong></div></div>'+
+ '<p id="cc135summaryNote" class="cc135-sum-note">Resumen del historial cargado; no es el saldo disponible.</p>'+
+ '<div class="cc132-tools"><label>Buscar movimientos<input id="cc132search" type="search" placeholder="Fecha, importe, descripción o referencia"></label>'+
  '<label>Billetera<select id="cc132service"><option value="ALL">Ambas billeteras</option><option value="COBRA_YA">COBRA YA</option>'+
  '<option value="STREAM_BULLS">STREAM BULL’S</option></select></label>'+
+ '<label>Tipo<select id="cc135type"><option value="ALL">Todos</option>'+
+ '<option value="RECHARGE">Recargas</option><option value="PURCHASE">Compras</option>'+
+ '<option value="SUBSCRIPTION">Suscripciones</option><option value="REFUND">Reembolsos</option>'+
+ '<option value="TRANSFER">Transferencias</option></select></label>'+
+ '<label>Mes<input id="cc135month" type="month" aria-label="Filtrar por mes"></label>'+
  '<label>Por página<select id="cc132perpage"><option value="10">10</option><option value="20" selected>20</option>'+
  '<option value="50">50</option></select></label><button id="cc132reload" type="button">↻ Actualizar</button></div>'+
  '<p class="cc132-total" id="cc132total"></p>'+
  '<div class="cc132-table-wrap"><table class="cc132-table"><thead><tr><th>Fecha</th><th>Tipo</th>'+
- '<th>Monto</th><th>Estado</th><th>Billetera</th><th>Descripción / Operación</th></tr></thead>'+
+ '<th>Monto</th><th>Estado</th><th>Billetera</th><th>Descripción / Operación</th><th>Detalle</th></tr></thead>'+
  '<tbody id="cc132tbody"></tbody></table></div>'+
  '<div class="cc132-bottom"><span id="cc132state" role="status" aria-live="polite"></span>'+
  '<div class="cc132-pages"><button id="cc132prev" type="button">Anterior</button><span id="cc132pageInfo"></span>'+
  '<button id="cc132next" type="button">Siguiente</button></div></div>'+
  '<small class="cc132-note">Solo movimientos reales. Los depósitos pendientes no aumentan el saldo. '+
  'Las compras y suscripciones de prueba se mantienen separadas. El banco emisor solo aparece si fue verificado por el proveedor. '+
- 'PDF abre la impresión del navegador; Excel descarga CSV compatible.</small>';
+ 'Los reembolsos son saldo interno, no retiros. Ver genera una constancia interna, no una factura SUNAT. '+
+ 'PDF abre impresión del navegador; Excel descarga CSV compatible.</small>';
  host.appendChild(sec);
  const balance=$('cc123realBalances');
  if(balance){
@@ -201,6 +274,8 @@ function mount(){
  }
  $('cc132search').addEventListener('input',()=>{page=1;render()});
  $('cc132service').addEventListener('change',()=>{page=1;render()});
+ $('cc135type').addEventListener('change',()=>{page=1;render()});
+ $('cc135month').addEventListener('change',()=>{page=1;render()});
  $('cc132perpage').addEventListener('change',()=>{page=1;render()});
  $('cc132prev').addEventListener('click',()=>{if(page>1){page--;render()}});
  $('cc132next').addEventListener('click',()=>{page++;render()});
