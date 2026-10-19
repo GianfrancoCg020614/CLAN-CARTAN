@@ -4,6 +4,8 @@
 
 **NOVEDAD:** Recarga MANUAL aprobada explícitamente por el titular como segundo método junto a la futura AUTOMÁTICA. El formulario y panel ADMIN de solicitudes reales están integrados: usuario solicita S/1–S/1000 para COBRA YA o STREAM BULL'S; ADMIN coteja ingreso real, aprueba o rechaza; el crédito se registra una sola vez de modo transaccional en saldos verdaderos. **El QR Lemon/DALE aportado por el titular ya se muestra solo como referencia pública; NO habilita pagos ni acreditaciones automáticas. Las aprobaciones reales siguen BLOQUEADAS hasta autorización comercial y verificación confiable del proveedor.** Las recargas automáticas Lemon/Binance permanecen desactivadas. No se admitirán retiros, préstamos desde billetera, transferencias entre usuarios ni acreditaciones de simples comprobantes.
 
+**Compatibilidad de QR (19-OCT-2026):** el QR Lemon Cash publicado contiene un EMV con checksum CRC válido y se decodificó con un lector genérico. Sin embargo, no equivale a un QR emitido por Yape, y el escáner de Yape puede rechazarlo. Según la documentación oficial de Lemon, la interoperabilidad entrante DALE desde otras billeteras se ofrece mediante número celular/CCI. Se aclaró en `scripts/v122-recharges.js`. Esta distinción no habilita recargas ni acreditaciones automáticas, que requieren verificación auténtica del proveedor.
+
 **Referencia histórica conservada:** [CONTINUIDAD-V130-2026-10-18.md](docs/CONTINUIDAD-V130-2026-10-18.md).
 
 **V135 vigente:** historial real, reembolsos internos idempotentes, filtros de movimientos, informes, constancias; no se han creado movimientos ficticios.
