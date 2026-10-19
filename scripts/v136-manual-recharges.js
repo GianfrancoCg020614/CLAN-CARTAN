@@ -18,6 +18,7 @@ function text(parent,tag,value,className){
  parent.appendChild(n);return n;
 }
 async function loadReadiness(){
+ ensureAdmin();
  readiness={enabled:false};
  try{
   if(session()?.jwt){
@@ -115,7 +116,17 @@ async function decide(row,approved,txField,bankField,flag){
  }catch(e){message('No se procesó: '+String(e.message||e),'cc136adminStatus');}
  finally{adminSaving=false;}
 }
+function ensureAdmin(){
+ if(!session()?.isAdmin||$('cc136admin'))return;
+ const sec=$('cc136manual');if(!sec)return;
+ const admin=document.createElement('section');admin.id='cc136admin';admin.className='cc136manual cc132-movements';
+ admin.innerHTML='<h3>ADMIN · Recargas pendientes</h3><p>Verifica el depósito en la cuenta comercial autorizada. '+
+  'Las solicitudes no representan dinero recibido.</p><p id="cc136adminStatus" role="status"></p>'+
+  '<div id="cc136adminList"></div><button id="cc136adminRefresh" type="button">↻ Actualizar solicitudes</button>';
+ sec.after(admin);$('cc136adminRefresh').addEventListener('click',()=>void adminList());
+}
 async function adminList(){
+ ensureAdmin();
  const host=$('cc136adminList');if(!host||!session()?.isAdmin)return;
  host.replaceChildren();
  try{
@@ -165,13 +176,7 @@ function mount(){
  host.appendChild(sec);
  $('cc136submit').addEventListener('click',()=>void submit());
  $('cc136reload').addEventListener('click',()=>void Promise.all([loadReadiness(),history(),adminList()]));
- if(session()?.isAdmin){
-  const admin=document.createElement('section');admin.id='cc136admin';admin.className='cc136manual cc132-movements';
-  admin.innerHTML='<h3>ADMIN · Recargas pendientes</h3><p>Verifica el depósito en la cuenta comercial autorizada. '+
-  'Las solicitudes no representan dinero recibido.</p><p id="cc136adminStatus" role="status"></p>'+
-  '<div id="cc136adminList"></div><button id="cc136adminRefresh" type="button">↻ Actualizar solicitudes</button>';
-  sec.after(admin);$('cc136adminRefresh').addEventListener('click',()=>void adminList());
- }
+ ensureAdmin();
  void loadReadiness().then(()=>{void history();void adminList();});
  window.cc136OpenManualRecharge=(service)=>{
   if(!session()?.jwt){if(window.cc77Auth)window.cc77Auth(false);return;}
