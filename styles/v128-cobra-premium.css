@@ -172,3 +172,106 @@ body .cc119-edit-panel .cc119-primary{
  #cc77home .cc127-cobra-card .cc77actions button:hover,
  #cy53layer .cy75quick button:hover{transform:none!important}
 }
+
+/* STREAM BULL'S V129 · Turquesa neón premium. Solo afecta portada Stream y catálogo. */
+/* La carta de COBRA YA conserva su diseño financiero V128. */
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card){
+ position:relative;isolation:isolate;overflow:hidden;
+ padding:clamp(22px,3vw,34px)!important;min-height:310px;
+ border:1px solid rgba(69,255,230,.48)!important;
+ border-radius:24px!important;
+ background:
+  radial-gradient(ellipse at 14% 18%,rgba(18,231,212,.23),transparent 49%),
+  radial-gradient(ellipse at 91% 26%,rgba(37,207,255,.22),transparent 48%),
+  linear-gradient(128deg,#07131f 3%,#0b2232 49%,#092a3a 100%)!important;
+ box-shadow:inset 0 1px 0 #ffffff1e,0 20px 52px #00131f9c,0 0 0 1px #3ef8df16!important;
+ color:#eaffff;
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card)::before{
+ content:"";pointer-events:none;position:absolute;inset:0;z-index:0;
+ background:
+  repeating-linear-gradient(135deg,transparent 0 24px,rgba(173,255,251,.022) 24px 26px),
+  linear-gradient(125deg,rgba(255,255,255,.03),transparent 70%);
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card)::after{
+ content:"";pointer-events:none;position:absolute;z-index:0;
+ width:270px;height:270px;right:-100px;top:-85px;border-radius:50%;
+ background:radial-gradient(circle,rgba(18,231,212,.25),rgba(37,207,255,.055) 43%,transparent 73%);
+ filter:blur(9px);
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card)>*{position:relative;z-index:1}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) .cc77tag{
+ display:inline-flex;align-items:center;max-width:100%;font-size:10px;letter-spacing:.11em;
+ padding:7px 12px;border-radius:999px;
+ background:rgba(8,47,54,.8);border:1px solid rgba(103,255,235,.43);color:#a8fff1;
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) .cc78service h2{
+ color:#f3ffff;text-shadow:0 4px 20px #00303f6b;font-size:clamp(29px,3.4vw,39px);
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) .cc78service-logo{
+ border:1px solid #43dfe3;background-color:#061c2ae8;
+ box-shadow:0 0 0 4px #22eee311,0 0 28px #14d9e23a;
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) p{
+ line-height:1.65;color:#dbf6f6;font-size:14px;
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) .cc77actions button{
+ min-height:46px;border-radius:12px!important;font-weight:850;
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) .cc77actions button.primary{
+ background:linear-gradient(115deg,#18e7d0,#2dbdff)!important;color:#06252e!important;
+ border:1px solid #b4fff1!important;box-shadow:0 8px 24px #07d8ca35;
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) .cc77actions button:not(.primary){
+ background:#0a3448cc;color:#dcfffb;border:1px solid #4696a8;
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) .cc77actions button:hover{
+ filter:brightness(1.09);
+}
+#cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) :is(button,a):focus-visible{
+ outline:3px solid #8affeb;outline-offset:3px;
+}
+/* El catálogo de STREAM BULL'S cambia el acento lima por turquesa tecnológico. */
+html body.view-store{--cc117-accent:#37efdf}
+html body.view-store .cc117-header.store-header{
+ border-bottom-color:#166e81!important;
+ background:rgba(4,19,29,.98)!important;
+}
+html body.view-store .cc117-actions-top .cc117-register{
+ background:linear-gradient(112deg,#20e8cd,#30c5fb)!important;
+ border-color:#51fce8!important;color:#062b35!important;
+}
+html body.view-store .cc117-category-item.active{
+ color:#90fff0;background:#123e42;box-shadow:inset 0 0 0 1px #2b8d8e;
+}
+html body.view-store .cc117-search-section{
+ background:radial-gradient(ellipse at 15% 15%,#1b8c7951,transparent 54%),
+ linear-gradient(130deg,#071b29 0%,#0a2e3c 58%,#09202e 100%)!important;
+ border:1px solid #278c8b!important;box-shadow:0 20px 51px #0005;
+}
+html body.view-store .cc117-overline{
+ background:#103a3f;color:#9affec;border:1px solid #2d948d;
+}
+html body.view-store .cc117-search-section h2 span{
+ color:#4ef6e3;text-shadow:0 0 20px #3be9d754;
+}
+html body.view-store .cc117-search-section p{color:#c1e3e4}
+html body.view-store .cc117-searchbar{
+ background:#102d37;border-color:#307c86;color:#d4f6f5;
+}
+html body.view-store .cc117-searchbar:focus-within{
+ border-color:#4ceddb;box-shadow:0 0 0 3px #2fe3d52b;
+}
+html body.view-store .cc117-searchbar input::placeholder{color:#a5c3c4}
+html body.view-store .v23-product-card .cc117-one-action .btn.primary{
+ background:linear-gradient(105deg,#08acb8,#159aca)!important;
+ border-color:#31cddc!important;color:#fff!important;
+}
+@media(max-width:480px){
+ #cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card){padding:21px 17px!important;min-height:0}
+ #cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) .cc78service h2{font-size:29px}
+ #cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) .cc77actions button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ #cc77home .cc77cards > article.cc77card:not(.cc127-cobra-card) *{transition:none!important}
+}
