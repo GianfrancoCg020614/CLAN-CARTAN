@@ -219,6 +219,20 @@ function mount(){
   '<p id="cc136message" role="status" aria-live="polite"></p>'+
   '<details><summary>Mis solicitudes manuales</summary><div id="cc136history"></div></details>';
  host.appendChild(sec);
+ const activate=document.createElement('section');activate.id='cc143activate';activate.className='cc136manual cc132-movements';
+ activate.innerHTML='<h3>Activación COBRA YA con bono de bienvenida</h3><p>Si ADMIN te otorgó un bono de activación, puedes utilizar S/15 exclusivamente para activar COBRA YA por 30 días. No es transferible ni genera comisión de referido.</p><button type="button" id="cc143activateBtn">Activar con S/15 de bono</button><p id="cc143activateMsg" role="status" aria-live="polite"></p>';
+ sec.after(activate);
+ $('cc143activateBtn').addEventListener('click',async()=>{
+  const btn=$('cc143activateBtn');if(!session()?.jwt){$('cc143activateMsg').textContent='Inicia sesión para activar.';return;}
+  if(!confirm('¿Utilizar S/15 de tu bono de bienvenida para activar COBRA YA durante 30 días?'))return;
+  btn.disabled=true;$('cc143activateMsg').textContent='Activando suscripción...';
+  try{
+   const id=await api('rpc/cc_activate_cobra_welcome_bonus');
+   $('cc143activateMsg').textContent='COBRA YA activado durante 30 días. Operación: '+id;
+   if(typeof window.cc123RefreshRealBalances==='function')void window.cc123RefreshRealBalances();
+  }catch(e){$('cc143activateMsg').textContent='No se activó: '+String(e.message||e);}
+  finally{btn.disabled=false;}
+ });
  $('cc136submit').addEventListener('click',()=>void submit());
  $('cc136reload').addEventListener('click',()=>void Promise.all([loadReadiness(),history(),adminList()]));
  ensureAdmin();
