@@ -14,7 +14,7 @@ const fmt=n=>'S/ '+Math.abs(Number(n||0)).toLocaleString('es-PE',{minimumFractio
 const datetime=s=>{
  const d=new Date(s);
  return Number.isNaN(d.valueOf())?'—':new Intl.DateTimeFormat('es-PE',{
-  timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'
+  timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'
  }).format(d);
 };
 let loadedRows=[],loadedUser=null,inFlight=null,generation=0,page=1,requested=false;
@@ -41,6 +41,7 @@ function visibleRows(){
 function render(){
  const target=$('cc132tbody'),state=$('cc132state'),total=$('cc132total'),pageInfo=$('cc132pageInfo');
  if(!target)return;
+ if(loadedUser!==currentUser()){loadedRows=[];requested=false;}
  target.replaceChildren();
  const all=visibleRows();
  const per=Number($('cc132perpage')?.value)||20;
@@ -118,11 +119,11 @@ function csvValue(value){
 }
 function exportCsv(){
  const all=visibleRows();if(!all.length)return;
- const headers=['Fecha','Billetera','Tipo','Monto PEN','Estado','Proveedor','Referencia','Descripción'];
+ const headers=['Fecha','Billetera','Tipo','Monto PEN','Impacta saldo','Estado','Proveedor','Referencia','Descripción'];
  const entries=all.map(r=>[
   datetime(r.occurred_at),services[r.service]||'',
   types[r.movement_type]||r.movement_type,
-  r.affects_balance?Number(r.amount_pen).toFixed(2):'0.00',
+  Number(r.amount_pen).toFixed(2),r.affects_balance?'Sí':'No',
   statuses[r.status]||r.status,r.provider,r.reference,r.description
  ]);
  const csv='\ufeff'+[headers,...entries].map(line=>line.map(csvValue).join(';')).join('\r\n');
