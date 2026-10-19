@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V139-20261019">
+<meta name="cc-deploy-version" content="V140-20261019">
 <meta name="cc-turnstile-sitekey" content="">
 <style>
 
@@ -5006,6 +5006,25 @@ document.addEventListener('click',function(e){const button=e.target.closest('[da
 #cy53layer .cy138-actions-menu .cy71close{background:#136f57}
 #cy53layer .cy138-card button:focus-visible,#cy53layer .cy138-actions summary:focus-visible{outline:3px solid #86ffec;outline-offset:2px}
 @media(max-width:450px){#cy53layer .cy138-loans{grid-template-columns:minmax(0,1fr)}#cy53layer .cy138-card{padding:11px}#cy53layer .cy138-card-buttons{gap:6px}}
+
+/* V140: panel móvil de prórrogas. No modifica importes ni estado de billeteras. */
+#cy53layer .cy140-overlay{position:fixed;inset:0;z-index:1000040;background:rgba(2,12,22,.9);padding:16px;overflow:auto;display:flex;align-items:center;justify-content:center}
+#cy53layer .cy140-dialog{width:min(100%,470px);max-height:calc(100dvh - 32px);overflow-y:auto;padding:19px;border:1px solid #45a4ad;border-radius:18px;background:#0d2736;color:#edfffc;box-shadow:0 20px 70px #0009}
+#cy53layer .cy140-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+#cy53layer .cy140-top h3{margin:0;font-size:21px}
+#cy53layer .cy140-top .cy140-close{background:#284a58;padding:8px 11px}
+#cy53layer .cy140-dialog label{display:block;font-weight:750;font-size:14px;margin-top:12px}
+#cy53layer .cy140-dialog select,#cy53layer .cy140-dialog textarea{width:100%;min-height:46px;font-size:16px;background:#091b29;border:1px solid #568994;border-radius:8px;margin:8px 0}
+#cy53layer .cy140-summary{display:grid;gap:7px;background:#09202c;border:1px solid #2f6c77;border-radius:12px;padding:12px;margin:14px 0}
+#cy53layer .cy140-summary p{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0;line-height:1.5;font-size:14px;flex-wrap:wrap}
+#cy53layer .cy140-summary strong{color:#94f5dd;text-align:right}
+#cy53layer .cy140-dialog small{display:block;color:#bedbe1;line-height:1.5}
+#cy53layer .cy140-buttons{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:12px}
+#cy53layer .cy140-buttons .cy140-save{background:#18bba9;color:#03242b}
+#cy53layer .cy140-buttons .cy140-cancel{background:#344c5d;color:#fff}
+#cy53layer .cy140-status{color:#c5e7e7;font-size:13px;min-height:1em;margin:8px 0 0}
+#cy53layer .cy140-dialog button:focus-visible,#cy53layer .cy140-dialog select:focus-visible{outline:3px solid #99ffe6;outline-offset:2px}
+@media(max-width:460px){#cy53layer .cy140-dialog{padding:13px}#cy53layer .cy140-summary p{display:block}#cy53layer .cy140-summary strong{display:inline-block;text-align:left}}
 </style>
 <button id="cy53open" style="display:none" onclick="cy53.open()">Abrir COBRA YA</button>
 <button id="cy54adminShortcut" style="display:none;position:fixed;z-index:1000000;right:18px;top:108px;background:#145e98;color:#fff;border:1px solid #4dc3ed;padding:12px 15px;border-radius:10px;font-weight:bold;cursor:pointer" onclick="cy53.open();cy54.loadRequests().catch(e=>alert(e.message))">📋 SOLICITUDES RESELLER</button>
@@ -5121,36 +5140,8 @@ function renderCy64Rows(){
  try{await request('rpc/cy_correct_loan','POST',{p_loan_id:loan.id,p_principal:principal,p_monthly_rate:monthlyRate,p_months:duration,p_due_on:due,p_reason:reason.trim()});await refresh();notice('✓ Corrección guardada. Se conservaron los datos originales y los abonos.');}
  catch(e){alert('No se pudo corregir: '+e.message);b.disabled=false;}
 }));
- target.querySelectorAll('.cy65extend').forEach(b=>b.addEventListener('click',async()=>{
-  const loan=state.loans.find(x=>x.id===b.dataset.loan);
-  const dates=state.installments.filter(x=>x.loan_id===b.dataset.loan).map(x=>x.due_on).filter(Boolean).sort();
-  const last=dates.at(-1)||loan?.corrected_due_on||loan?.first_due_on;
-  if(!loan||!last)return alert('No se encontró el vencimiento.');
-  const monthsInput=prompt('¿Cuántos meses deseas agregar?\n\nEscribe 1 para +1 mes, 2 para +2 meses, etc. (máximo +12).\n\nPlazo actual: '+(loan.duration_months||1)+' meses.','1');
-  if(monthsInput===null)return;
-  const added=Number(monthsInput.trim());
-  if(!Number.isInteger(added)||added<1||added>12)return alert('Selecciona entre +1 y +12 meses completos.');
-  const previous=Number(loan.duration_months||1),total=previous+added;
-  if(total>120)return alert('El plazo total no puede superar 120 meses.');
-  const parts=last.split('-').map(Number);
-  const monthIndex=(parts[0]*12)+(parts[1]-1)+added;
-  const yy=Math.floor(monthIndex/12),mm=monthIndex%12;
-  const day=Math.min(parts[2],new Date(Date.UTC(yy,mm+1,0)).getUTCDate());
-  const newDue=yy+'-'+String(mm+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
-  const today=new Date(),todayUTC=Date.UTC(today.getFullYear(),today.getMonth(),today.getDate());
-  const daysRemaining=Math.round((Date.UTC(yy,mm,day)-todayUTC)/86400000);
-  if(!confirm('Ampliación: +'+added+' mes(es)\nPlazo actual: '+previous+' meses\nPLAZO TOTAL: '+total+' meses\nVencimiento anterior: '+last+'\nNUEVO VENCIMIENTO: '+newDue+'\nCONTADOR: '+(daysRemaining>=0?'faltan '+daysRemaining+' días':'vencido hace '+Math.abs(daysRemaining)+' días')+'\n\nNo cambia capital, intereses ni abonos. ¿Confirmar?'))return;
-  const reason=prompt('Motivo de la ampliación (opcional):','Ampliación acordada con el cliente');
-  if(reason===null)return;
-  b.disabled=true;
-  try{
-   const res=await request('rpc/cy_extend_loan_months','POST',{p_loan_id:loan.id,p_added_months:added,p_reason:reason.slice(0,500)});
-   const actual=Array.isArray(res)?res[0]:null;
-   await refresh();
-   notice('✓ Ampliación +'+added+' mes(es). Plazo total: '+(actual?.total_months??total)+' meses. Nuevo vencimiento: '+(actual?.new_due_on??newDue)+'. Días restantes y semáforo actualizados.');
-  }catch(e){alert('No se pudo ampliar: '+e.message);b.disabled=false;}
- }));
- target.querySelectorAll('.cy71close').forEach(b=>b.addEventListener('click',async()=>{
+ target.querySelectorAll('.cy65extend').forEach(b=>b.addEventListener('click',()=>cy140OpenExtension(b.dataset.loan)));
+  target.querySelectorAll('.cy71close').forEach(b=>b.addEventListener('click',async()=>{
   const loan=state.loans.find(x=>x.id===b.dataset.loan);if(!loan)return;
   if(!confirm('¿Finalizar este préstamo completamente pagado?\n\nSe conservarán el préstamo, sus abonos y el historial.'))return;
   b.disabled=true;
@@ -5197,7 +5188,77 @@ const cy66Money=(v,c)=> (cy66Symbols[c]||c||'S/')+' '+cy66Num(v);
 const money=(v,c)=>cy66Money(v,c);
 const dateFmt=v=>v?new Date(String(v).length===10?v+'T12:00:00':v).toLocaleDateString('es-PE'):'—';
 const cy68Currencies={PEN:'🇵🇪 Sol peruano',USD:'🇺🇸 Dólar estadounidense',MXN:'🇲🇽 Peso mexicano',CLP:'🇨🇱 Peso chileno',COP:'🇨🇴 Peso colombiano',ARS:'🇦🇷 Peso argentino',BRL:'🇧🇷 Real brasileño',BOB:'🇧🇴 Boliviano',EUR:'🇪🇺 Euro',GBP:'🇬🇧 Libra esterlina',CAD:'🇨🇦 Dólar canadiense'};
-function cy68Currency(code){code=String(code||'PEN').toUpperCase();return (cy68Currencies[code]||'Moneda internacional')+' ('+code+')';}
+function cy68Currency(code){code=String(code||'PEN').toUpperCase();return (cy68Currencies[code]||'Moneda internacional')+' ('+code+')';
+
+function cy140OpenExtension(id){
+ const loan=state.loans.find(x=>x.id===id);
+ if(!loan||loan.status!=='ACTIVE')return alert('Préstamo no disponible para ampliar.');
+ const installments=state.installments.filter(x=>x.loan_id===id);
+ const due=installments.map(x=>x.due_on).filter(Boolean).sort().at(-1)||loan.corrected_due_on||loan.first_due_on;
+ if(!due||!/^\d{4}-\d{2}-\d{2}$/.test(due))return alert('No se encontró el vencimiento.');
+ const oldMonths=Number(loan.duration_months||1),max=Math.min(12,120-oldMonths);
+ if(max<1)return alert('Plazo máximo de 120 meses alcanzado.');
+ const paid=state.payments.filter(x=>x.loan_id===id).reduce((a,x)=>a+Number(x.amount),0);
+ if(Number(loan.total_due)-paid<=0.005)return alert('Préstamo pagado.');
+ const client=state.clients.find(x=>x.id===loan.client_id);
+ const overlay=document.createElement('div');
+ overlay.className='cy140-overlay';
+ overlay.innerHTML='<div class="cy140-dialog" role="dialog" aria-modal="true" aria-labelledby="cy140Heading">'+
+ '<div class="cy140-top"><h3 id="cy140Heading">⏱️ Ampliar préstamo</h3><button type="button" class="cy140-close" aria-label="Cerrar">✕</button></div>'+
+ '<p>👤 '+esc(client?.full_name||'Cliente')+'</p>'+
+ '<label>¿Cuántos meses deseas agregar?<select id="cy140Months">'+
+ Array.from({length:max},(_,i)=>'<option value="'+(i+1)+'">+'+(i+1)+' '+(i===0?'mes':'meses')+'</option>').join('')+
+ '</select></label>'+
+ '<div class="cy140-summary" aria-live="polite"><p>📆 Plazo anterior: <strong id="cy140Before"></strong></p>'+
+ '<p>➕ Ampliación: <strong id="cy140Added"></strong></p>'+
+ '<p>🗓️ PLAZO TOTAL: <strong id="cy140Total"></strong></p>'+
+ '<p>📍 Vencimiento anterior: <strong id="cy140OldDue"></strong></p>'+
+ '<p>🎯 Vencimiento nuevo: <strong id="cy140Due"></strong></p>'+
+ '<p>⏳ Contador: <strong id="cy140Days"></strong></p></div>'+
+ '<label>Motivo (opcional)<textarea id="cy140Reason" maxlength="500" rows="2" placeholder="Ampliación acordada"></textarea></label>'+
+ '<small>No se crea otro préstamo, no cambian los intereses y se conservan todos los abonos.</small>'+
+ '<div class="cy140-buttons"><button type="button" class="cy140-cancel">Cancelar</button><button type="button" class="cy140-save">Confirmar ampliación</button></div>'+
+ '<p class="cy140-status" role="status"></p></div>';
+ const host=document.getElementById('cy53layer');if(!host)return;host.appendChild(overlay);
+ const get=k=>overlay.querySelector('#cy140'+k);
+ const select=get('Months'),save=overlay.querySelector('.cy140-save');
+ const fmt=x=>new Date(x+'T12:00:00').toLocaleDateString('es-PE');
+ let nextDue='';
+ function preview(){
+  const add=Number(select.value),[year,month,day]=due.split('-').map(Number);
+  const monthIndex=year*12+month-1+add,y=Math.floor(monthIndex/12),m=monthIndex%12;
+  const d=Math.min(day,new Date(Date.UTC(y,m+1,0)).getUTCDate());
+  nextDue=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  const now=new Date(),days=Math.round((Date.UTC(y,m,d)-Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);
+  get('Before').textContent=oldMonths+' meses';
+  get('Added').textContent='+'+add+' '+(add===1?'mes':'meses');
+  get('Total').textContent=(oldMonths+add)+' meses';
+  get('OldDue').textContent=fmt(due);
+  get('Due').textContent=fmt(nextDue);
+  get('Days').textContent=days>=0?'Faltan '+days+' días':'Vencido hace '+Math.abs(days)+' días';
+ }
+ const close=()=>{document.removeEventListener('keydown',onKey);overlay.remove();};
+ const onKey=e=>{if(e.key==='Escape'){e.preventDefault();close();}};
+ document.addEventListener('keydown',onKey);
+ overlay.querySelector('.cy140-close').addEventListener('click',close);
+ overlay.querySelector('.cy140-cancel').addEventListener('click',close);
+ overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
+ select.addEventListener('change',preview);
+ save.addEventListener('click',async()=>{
+  const added=Number(select.value);
+  if(!Number.isInteger(added)||added<1||added>max)return;
+  save.disabled=true;select.disabled=true;
+  overlay.querySelector('.cy140-status').textContent='Guardando ampliación…';
+  try{
+   const out=await request('rpc/cy_extend_loan_months','POST',{p_loan_id:id,p_added_months:added,p_reason:get('Reason').value.trim().slice(0,500)});
+   const recorded=Array.isArray(out)?out[0]:null;
+   close();await refresh();
+   notice('✓ Ampliación +'+added+' '+(added===1?'mes':'meses')+'. Plazo total: '+(recorded?.total_months??oldMonths+added)+' meses. Vence: '+fmt(recorded?.new_due_on||nextDue)+'. Contador actualizado.');
+  }catch(e){overlay.querySelector('.cy140-status').textContent='Error: '+e.message;save.disabled=false;select.disabled=false;}
+ });
+ preview();select.focus();
+}
+}
 async function cy68Notify(id){
  const loan=state.loans.find(x=>x.id===id);if(!loan)return alert('Préstamo no encontrado');
  const client=state.clients.find(x=>x.id===loan.client_id);
@@ -5220,13 +5281,44 @@ async function cy68Notify(id){
  const balance=Math.max(0,Number(loan.total_due)-paid);
  const choice=prompt('Notificación WhatsApp para '+client.full_name+'\n1 = Inicio de préstamo\n2 = Próximo a vencer\n3 = Préstamo vencido\n\nEscribe 1, 2 o 3:','1');
  if(choice===null)return;
- const type=({'1':'PRÉSTAMO REGISTRADO ✅','2':'RECORDATORIO DE VENCIMIENTO 🔔','3':'PRÉSTAMO VENCIDO ⚠️'})[choice.trim()];
- if(!type)return alert('Selecciona 1, 2 o 3.');
- const first=['💰 *COBRA YA | '+type+'*','', '👋 ¡Hola, *'+client.full_name+'*!',''];
- const lines=choice.trim()==='1'?[...first,'💵 *Capital:* '+cy66Money(loan.principal,loan.currency),'📈 *Interés mensual:* '+cy66Num(loan.monthly_interest_rate??loan.interest_rate)+'%','📆 *Plazo:* '+(loan.duration_months||1)+' meses','💰 *Total a pagar:* '+cy66Money(loan.total_due,loan.currency)]:[...first,'💰 *Saldo pendiente:* '+cy66Money(balance,loan.currency)];
- lines.push('🌍 *Moneda:* '+cy68Currency(loan.currency),'📅 *Vencimiento:* '+(due?dateFmt(due):'No registrado'),'',choice.trim()==='1'?'🔔 ¡Recuerda pagar puntualmente!':choice.trim()==='2'?'🔔 Tu préstamo está próximo a vencer.':'Por favor, comunícate con tu prestamista para coordinar el pago.','','🏢 *COBRA YA | CLAN CARTAN EIRL.*','📲 Mensaje preparado por tu prestamista.');
- // El enlace se incorpora cuando ADMIN configure un dominio oficial verificado.
- window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n')),'_blank','noopener,noreferrer');
+ const type=({'1':'✅ PRÉSTAMO REGISTRADO','2':'🔔 RECORDATORIO DE VENCIMIENTO','3':'⚠️ PRÉSTAMO VENCIDO'})[choice.trim()];
+  if(!type)return alert('Selecciona 1, 2 o 3.');
+  const safeName=String(client.full_name||'Cliente').replace(/[\r\n\t]+/g,' ').trim().slice(0,160);
+  const lines=[
+   '🐍 *COBRA YA*',
+   '*'+type+'*',
+   '━━━━━━━━━━━━━━',
+   '',
+   '👋 ¡Hola, *'+safeName+'*!',
+   choice.trim()==='1'?'Tu préstamo ha sido registrado. Aquí tienes el resumen:':'Aquí tienes información actualizada sobre tu préstamo:',
+   ''
+  ];
+  if(choice.trim()==='1'){
+   lines.push(
+    '💵 *Capital:* '+cy66Money(loan.principal,loan.currency),
+    '📈 *Interés mensual:* '+cy66Num(loan.monthly_interest_rate??loan.interest_rate)+'%',
+    '🗓️ *Plazo total:* '+(loan.duration_months||1)+' '+(Number(loan.duration_months||1)===1?'mes':'meses'),
+    '💰 *Total a pagar:* '+cy66Money(loan.total_due,loan.currency)
+   );
+  }else{
+   lines.push('💰 *Saldo pendiente:* '+cy66Money(balance,loan.currency));
+  }
+  lines.push(
+   '🌎 *Moneda:* '+cy68Currency(loan.currency),
+   '📅 *Vencimiento:* '+(due?dateFmt(due):'No registrado'),
+   '',
+   choice.trim()==='1'?'⏰ *Recuerda pagar puntualmente en la fecha acordada.*':
+   choice.trim()==='2'?'🔔 *Tu préstamo está próximo a vencer. Coordina el pago con tu prestamista.*':
+   '⚠️ *Tu préstamo está vencido. Comunícate con tu prestamista para regularizarlo.*',
+   '',
+   '━━━━━━━━━━━━━━',
+   '🏢 *COBRA YA · CLAN CARTAN E.I.R.L.*',
+   '✨ Descubre nuestros servicios y soluciones digitales:',
+   '🌐 https://www.clancartan.com/',
+   '',
+   '🤝 Mensaje preparado por tu prestamista. Si tienes consultas sobre el préstamo, comunícate directamente con él.'
+  );
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n')),'_blank','noopener,noreferrer');
 }
 function openDetail(id){
  const x=state.loans.find(q=>q.id===id);if(!x)return alert('No se encontró el préstamo.');
