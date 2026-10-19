@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V138-20261019">
+<meta name="cc-deploy-version" content="V139-20261019">
 <meta name="cc-turnstile-sitekey" content="">
 <style>
 
@@ -5081,7 +5081,7 @@ function renderCy64Rows(){
   const actions='<details class="cy138-actions"><summary aria-label="Acciones para '+name+'">⋯ Acciones</summary><div class="cy138-actions-menu" role="group" aria-label="Opciones del préstamo">'+
    '<button type="button" class="cy69edit" data-loan="'+esc(x.id)+'">✎ Editar préstamo</button>'+
    (isPaid?'':'<button type="button" class="cy53pay" data-loan="'+esc(x.id)+'" data-max="'+balance.toFixed(2)+'">＋ Registrar abono parcial</button>')+
-   (isPaid?'':'<button type="button" class="cy65extend" data-loan="'+esc(x.id)+'">◷ Ampliar 1 mes</button>')+
+   (isPaid?'':'<button type="button" class="cy65extend" data-loan="'+esc(x.id)+'">◷ Ampliar +1, +2… meses</button>')+
    '<button type="button" class="cy68notify" data-loan="'+esc(x.id)+'">📲 Notificar por WhatsApp</button>'+
    (isPaid&&x.status!=='CLOSED'?'<button type="button" class="cy71close" data-loan="'+esc(x.id)+'">✓ Finalizar préstamo pagado</button>':'')+
    '</div></details>';
@@ -5123,17 +5123,32 @@ function renderCy64Rows(){
 }));
  target.querySelectorAll('.cy65extend').forEach(b=>b.addEventListener('click',async()=>{
   const loan=state.loans.find(x=>x.id===b.dataset.loan);
-  const dates=state.installments.filter(z=>z.loan_id===b.dataset.loan).map(z=>z.due_on).sort();
-  const last=dates.at(-1)||loan?.corrected_due_on;
-  if(!loan||!last)return alert('No se encontró la fecha de vencimiento.');
-  const date=new Date(last+'T12:00:00');date.setMonth(date.getMonth()+1);
-  const preview=date.toLocaleDateString('es-PE');
-  if(!confirm('¿Aumentar 1 mes al préstamo?\n\nVencimiento actual: '+last+'\nNuevo vencimiento aproximado: '+preview+'\n\nEsta ampliación NO incrementa los intereses ni cambia el saldo pendiente. Quedará registrada en el historial.'))return;
+  const dates=state.installments.filter(x=>x.loan_id===b.dataset.loan).map(x=>x.due_on).filter(Boolean).sort();
+  const last=dates.at(-1)||loan?.corrected_due_on||loan?.first_due_on;
+  if(!loan||!last)return alert('No se encontró el vencimiento.');
+  const monthsInput=prompt('¿Cuántos meses deseas agregar?\n\nEscribe 1 para +1 mes, 2 para +2 meses, etc. (máximo +12).\n\nPlazo actual: '+(loan.duration_months||1)+' meses.','1');
+  if(monthsInput===null)return;
+  const added=Number(monthsInput.trim());
+  if(!Number.isInteger(added)||added<1||added>12)return alert('Selecciona entre +1 y +12 meses completos.');
+  const previous=Number(loan.duration_months||1),total=previous+added;
+  if(total>120)return alert('El plazo total no puede superar 120 meses.');
+  const parts=last.split('-').map(Number);
+  const monthIndex=(parts[0]*12)+(parts[1]-1)+added;
+  const yy=Math.floor(monthIndex/12),mm=monthIndex%12;
+  const day=Math.min(parts[2],new Date(Date.UTC(yy,mm+1,0)).getUTCDate());
+  const newDue=yy+'-'+String(mm+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+  const today=new Date(),todayUTC=Date.UTC(today.getFullYear(),today.getMonth(),today.getDate());
+  const daysRemaining=Math.round((Date.UTC(yy,mm,day)-todayUTC)/86400000);
+  if(!confirm('Ampliación: +'+added+' mes(es)\nPlazo actual: '+previous+' meses\nPLAZO TOTAL: '+total+' meses\nVencimiento anterior: '+last+'\nNUEVO VENCIMIENTO: '+newDue+'\nCONTADOR: '+(daysRemaining>=0?'faltan '+daysRemaining+' días':'vencido hace '+Math.abs(daysRemaining)+' días')+'\n\nNo cambia capital, intereses ni abonos. ¿Confirmar?'))return;
   const reason=prompt('Motivo de la ampliación (opcional):','Ampliación acordada con el cliente');
   if(reason===null)return;
   b.disabled=true;
-  try{await request('rpc/cy_extend_loan_one_month','POST',{p_loan_id:loan.id,p_reason:reason.slice(0,500)});await refresh();notice('Plazo ampliado 1 mes. Semáforo y días restantes actualizados.');}
-  catch(e){alert('No se pudo ampliar el plazo: '+e.message);b.disabled=false;}
+  try{
+   const res=await request('rpc/cy_extend_loan_months','POST',{p_loan_id:loan.id,p_added_months:added,p_reason:reason.slice(0,500)});
+   const actual=Array.isArray(res)?res[0]:null;
+   await refresh();
+   notice('✓ Ampliación +'+added+' mes(es). Plazo total: '+(actual?.total_months??total)+' meses. Nuevo vencimiento: '+(actual?.new_due_on??newDue)+'. Días restantes y semáforo actualizados.');
+  }catch(e){alert('No se pudo ampliar: '+e.message);b.disabled=false;}
  }));
  target.querySelectorAll('.cy71close').forEach(b=>b.addEventListener('click',async()=>{
   const loan=state.loans.find(x=>x.id===b.dataset.loan);if(!loan)return;
