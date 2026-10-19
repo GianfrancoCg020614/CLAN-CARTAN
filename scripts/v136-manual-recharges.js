@@ -145,6 +145,55 @@ function ensureAdmin(){
  const report=document.createElement('section');report.id='cc143report';report.className='cc136manual cc132-movements';
  report.innerHTML='<h3>ADMIN · Resumen financiero</h3><p>Separa los pagos recibidos de los bonos gratuitos, el consumo y el saldo interno pendiente. No representa por sí solo utilidad neta ni documento tributario.</p><div id="cc143metrics" role="status"></div><button id="cc143reportRefresh" type="button">↻ Actualizar contabilidad</button>';
  bonus.after(report);
+ const historyBox=document.createElement('div');historyBox.id='cc145adminHistory';
+ const historyTitle=document.createElement('h4');historyTitle.textContent='Operaciones y bonos registrados';
+ const historyStatus=document.createElement('p');historyStatus.id='cc145historyStatus';
+ const historyMore=document.createElement('button');historyMore.id='cc145historyMore';historyMore.type='button';historyMore.textContent='Ver operaciones anteriores';
+ report.append(historyTitle,historyStatus,historyBox,historyMore);
+ const auditBox=document.createElement('div');auditBox.id='cc145adminAudit';
+ const auditTitle=document.createElement('h4');auditTitle.textContent='Auditoría de saldo real · antes y después';
+ const auditMore=document.createElement('button');auditMore.id='cc145auditMore';auditMore.type='button';auditMore.textContent='Ver movimientos anteriores';
+ report.append(auditTitle,auditBox,auditMore);
+ let eventCursor=null,auditCursor=null;
+ async function financialHistory(reset=false){
+  if(reset){eventCursor=null;historyBox.replaceChildren();}
+  try{
+   const rows=await api('rpc/cc_admin_financial_events',{p_before_at:eventCursor,p_limit:30});
+   if(!Array.isArray(rows))throw Error('Respuesta no válida');
+   for(const item of rows){
+    const row=document.createElement('div');row.className='cc136entry';
+    text(row,'strong',date(item.recorded_at)+' · '+String(item.record_type)+' · '+money(item.amount_pen));
+    text(row,'small',String(item.description||'')+' · '+String(item.service||'')+' · '+String(item.status||''));
+    text(row,'small','Cuenta: '+String(item.user_id||'—')+' · Operador: '+String(item.operator_id||'—'));
+    text(row,'small','Referencia: '+String(item.reference||'—'));
+    historyBox.appendChild(row);
+   }
+   if(rows.length)eventCursor=rows[rows.length-1].recorded_at;
+   historyMore.hidden=rows.length<30;
+   historyStatus.textContent=historyBox.children.length+' operaciones consultadas';
+  }catch(e){historyStatus.textContent='No se pudo consultar el historial: '+String(e.message||e);}
+ }
+ async function walletAudit(reset=false){
+  if(reset){auditCursor=null;auditBox.replaceChildren();}
+  try{
+   const rows=await api('rpc/cc_admin_wallet_financial_audit',{p_before_id:auditCursor,p_limit:30});
+   if(!Array.isArray(rows))throw Error('Respuesta no válida');
+   for(const item of rows){
+    const line=document.createElement('div');line.className='cc136entry';
+    text(line,'strong',date(item.recorded_at)+' · '+String(item.event_type)+' · '+money(item.amount_pen));
+    text(line,'small',String(item.concept)+' · '+String(item.service)+' · '+String(item.status));
+    text(line,'small','Saldo antes: '+money(item.balance_before)+' · Saldo después: '+money(item.balance_after));
+    text(line,'small','Cuenta: '+String(item.user_id)+' · Referencia: '+String(item.reference));
+    auditBox.appendChild(line);
+   }
+   if(rows.length)auditCursor=rows[rows.length-1].id;
+   auditMore.hidden=rows.length<30;
+   if(!auditBox.children.length)text(auditBox,'p','Sin movimientos nuevos en auditoría.');
+  }catch(e){text(auditBox,'p','Error de auditoría: '+String(e.message||e));}
+ }
+ historyMore.addEventListener('click',()=>void financialHistory());
+ auditMore.addEventListener('click',()=>void walletAudit());
+ void financialHistory(true);void walletAudit(true);
  async function refreshFinancial(){
   const target=$('cc143metrics');if(!target||!session()?.isAdmin)return;
   target.textContent='Consultando movimientos...';
@@ -155,7 +204,7 @@ function ensureAdmin(){
    for(const [title,value] of metrics){const line=document.createElement('p');const name=document.createElement('span');name.textContent=title+': ';const amount=document.createElement('strong');amount.textContent=money(value);line.append(name,amount);target.append(line);}
   }catch(e){target.textContent='No se pudo consultar contabilidad: '+String(e.message||e);}
  }
- $('cc143reportRefresh').addEventListener('click',()=>void refreshFinancial());
+ $('cc143reportRefresh').addEventListener('click',()=>void Promise.all([refreshFinancial(),financialHistory(true),walletAudit(true)]));
  void refreshFinancial();
  $('cc143grant').addEventListener('click',async()=>{
   const button=$('cc143grant'),email=$('cc143email').value.trim(),amount=Number($('cc143amount').value),reason=$('cc143reason').value.trim();
@@ -167,7 +216,7 @@ function ensureAdmin(){
    const balance=await api('rpc/cc_admin_grant_welcome_balance',{p_recipient_email:email,p_service:'COBRA_YA',p_amount_pen:amount,p_request_id:ref,p_reason:reason});
    $('cc143status').textContent='Bono acreditado correctamente. Saldo promocional disponible: '+money(balance)+'. Referencia: '+ref;
   }catch(e){$('cc143status').textContent='No se acreditó: '+String(e.message||e);}
-  finally{button.disabled=false;}
+  finally{button.disabled=false;await refreshFinancial();await financialHistory(true);}
  });
 }
 async function adminList(){
@@ -236,6 +285,12 @@ function mount(){
  $('cc136submit').addEventListener('click',()=>void submit());
  $('cc136reload').addEventListener('click',()=>void Promise.all([loadReadiness(),history(),adminList()]));
  ensureAdmin();
+ const priorWalletOpen=window.cc80?.open;
+ if(typeof priorWalletOpen==='function')window.cc80.open=function(...args){
+   const result=priorWalletOpen.apply(this,args);
+   void loadReadiness().then(()=>adminList());
+   return result;
+ };
  void loadReadiness().then(()=>{void history();void adminList();});
  window.cc136OpenManualRecharge=(service)=>{
   if(!session()?.jwt){if(window.cc77Auth)window.cc77Auth(false);return;}
