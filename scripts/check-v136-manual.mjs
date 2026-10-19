@@ -31,5 +31,5 @@ assert.ok(js.includes("LEMON / DALE"),"V137: etiqueta de recaudación ausente");
 assert.ok(js.includes("navigator.clipboard.writeText"),"V137: copiar número ausente");
 assert.ok(html.includes('<details class="cy105advanced" open><summary>Moneda y garantía (opcional)</summary>'),"V137: garantía opcional debe estar visible");
 assert.ok(html.includes('name="collateral"')&&html.includes('¿Qué dejó en garantía? (opcional)'),"V137: descripción de garantía no disponible");
-assert.ok(html.includes('content="V140-20261019"'));
+assert.ok(html.includes('content="V142-20261019"'));
 console.log('V136: controles manuales con cola ADMIN y confirmación explícita, sin QR personal.');
