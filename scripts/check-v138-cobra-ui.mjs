@@ -18,6 +18,6 @@ assert.ok(js.includes("¿Confirmas que RECIBISTE"),'Pago total sin confirmación
 assert.ok(js.includes("rpc/cy_record_payment"),'No usa RPC de abono');
 assert.ok(js.includes("Pago total recibido y confirmado por el prestamista"),'Abono no deja auditoría');
 assert.ok(js.includes("rpc/cy_close_paid_loan"),'Se perdió finalización protegida');
-assert.ok(js.includes("rpc/cy_extend_loan_one_month"),'Se perdió la prórroga');
+assert.ok(js.includes("rpc/cy_extend_loan_months"),'Se perdió la prórroga');
 assert.ok(html.includes('/* V138: tarjetas compactas Cobra Ya'), 'No hay estilos móviles');
 console.log('V138: tarjetas, scripts, pagos confirmados, acciones e historial conservados.');
