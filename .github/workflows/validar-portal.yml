@@ -27,6 +27,6 @@ jobs:
       - name: Revisar movimientos reales de billeteras
         run: node scripts/check-v132-movements.mjs
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
-        run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs
+        run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
         run: node scripts/check-v112-live.mjs
