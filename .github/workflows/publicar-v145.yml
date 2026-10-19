@@ -1,0 +1,51 @@
+name: Publicar V145 en portal CLAN CARTAN
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/patch-v145-production.mjs
+      - .github/workflows/publicar-v145.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: publicar-v145
+  cancel-in-progress: false
+jobs:
+  integrar-portal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar sintaxis de módulos
+        run: |
+          node --check scripts/v145-cobra-access.js
+          node --check scripts/v145-commerce-guard.js
+          node --check scripts/v136-manual-recharges.js
+          node --check scripts/v127-wallet-switch.js
+      - name: Aplicar cambios de portada V145
+        run: node scripts/patch-v145-production.mjs
+      - name: Verificar módulo en el HTML
+        run: |
+          grep -Fq 'content="V145-20261019"' index.html
+          grep -Fq 'scripts/v145-cobra-access.js?v=145' index.html
+          grep -Fq 'scripts/v145-commerce-guard.js?v=145' index.html
+      - name: Guardar index.html en main si cambió
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- index.html; then
+            echo "Portal actualizado previamente"
+            exit 0
+          fi
+          git config user.name "clan-cartan-ci[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "V145: incorporar activación real, bono aislado y presentación comercial"
+          git pull --rebase origin main
+          git push origin HEAD:main
