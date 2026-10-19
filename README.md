@@ -2,7 +2,9 @@
 
 **PUNTO DE CONTINUIDAD ACTUAL (19-OCT-2026): [V137 — estado preservado y pendientes verificables](docs/CONTINUIDAD-ACTUAL-V137-2026-10-19.md).** Al reanudar, leerlo antes de modificar código; conserva V136 manual controlada, V137 QR Lemon de referencia, saldos de prueba separados y pagos reales bloqueados sin autorización comercial.
 
-**Última versión entregada: V137 (19-OCT-2026).** Leer primero **[continuidad V137](docs/V137-DALE-GARANTIA-CONTINUIDAD.md)** y [V136](docs/V136-MANUAL-REAL-Y-CONTINUIDAD.md) y luego [V135](docs/V135-RESUMEN-Y-CONTINUIDAD.md). Todas las funciones y decisiones históricas del proyecto se conservan.
+**Última versión entregada: V138 (19-OCT-2026).** **[Cambios V138: préstamos compactos con Ver, Ya pagó/Nuevo préstamo y Acciones](docs/V138-CARTERAS-COBRA-ACCIONES.md).** Respaldo previo a la modificación preservado. La versión V137 y sus decisiones permanecen vigentes donde V138 no las cambia.
+
+**V137 (histórico):** Leer primero **[continuidad V137](docs/V137-DALE-GARANTIA-CONTINUIDAD.md)** y [V136](docs/V136-MANUAL-REAL-Y-CONTINUIDAD.md) y luego [V135](docs/V135-RESUMEN-Y-CONTINUIDAD.md). Todas las funciones y decisiones históricas del proyecto se conservan.
 
 **NOVEDAD:** Recarga MANUAL aprobada explícitamente por el titular como segundo método junto a la futura AUTOMÁTICA. El formulario y panel ADMIN de solicitudes reales están integrados: usuario solicita S/1–S/1000 para COBRA YA o STREAM BULL'S; ADMIN coteja ingreso real, aprueba o rechaza; el crédito se registra una sola vez de modo transaccional en saldos verdaderos. **El QR Lemon/DALE aportado por el titular ya se muestra solo como referencia pública; NO habilita pagos ni acreditaciones automáticas. Las aprobaciones reales siguen BLOQUEADAS hasta autorización comercial y verificación confiable del proveedor.** Las recargas automáticas Lemon/Binance permanecen desactivadas. No se admitirán retiros, préstamos desde billetera, transferencias entre usuarios ni acreditaciones de simples comprobantes.
 
