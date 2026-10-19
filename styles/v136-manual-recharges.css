@@ -1,0 +1,24 @@
+/* CLAN CARTAN V136 — Billetera manual y cola ADMIN. */
+.cc136manual{max-width:100%;margin:16px 0;border-color:#275c71}
+.cc136manual .cc136head h3{font-size:20px;margin:0 0 5px}
+.cc136manual p{line-height:1.5;font-size:12px;color:#b5ccdb}
+.cc136recipient{border:1px dashed #345771;border-radius:12px;background:#10283b;padding:13px 15px;margin:14px 0}
+.cc136recipient strong{color:#83eee1}
+.cc136recipient small{display:block;color:#e9d4a0;line-height:1.45}
+.cc136qr{width:min(250px,100%);max-width:100%;max-height:250px;object-fit:contain;display:block;margin:12px auto;border:7px solid #fff;border-radius:10px}
+.cc136form{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.cc136form label{display:flex;flex-direction:column;gap:6px;color:#cfdfec;font-size:12px}
+.cc136form input,.cc136form select,.cc136admin-fields input{min-height:41px;background:#091c2d;color:#f0f9ff;border-radius:9px;border:1px solid #406280;padding:8px 11px;box-sizing:border-box;max-width:100%;width:100%}
+.cc136actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
+.cc136actions button{padding:10px 14px}
+.cc136warn{background:rgba(251,191,36,.08);border-left:3px solid #e6b66a;border-radius:6px;padding:10px 13px}
+.cc136entry{display:flex;justify-content:space-between;gap:12px;padding:12px 5px;border-bottom:1px solid #2d4059;align-items:center;font-size:12px}
+.cc136entry strong{color:#e2f6ff;text-align:right}
+.cc136admin-card{padding:14px;border-radius:12px;border:1px solid #365a73;background:#10283b;margin:12px 0;display:flex;flex-direction:column;gap:7px}
+.cc136admin-card>small{color:#a0bdd0;font-size:11px;overflow-wrap:anywhere}
+.cc136admin-fields{display:grid;grid-template-columns:2fr 1fr;gap:9px}
+.cc136verify-label{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.4}
+.cc136verify-label input{margin:2px 0 0;flex:none}
+#cc136message,#cc136adminStatus{font-weight:550;color:#c9e3d6}
+#cc136manual details>summary{cursor:pointer;font-weight:650;padding:12px 0}
+@media(max-width:680px){.cc136form,.cc136admin-fields{grid-template-columns:1fr}.cc136entry{flex-direction:column;align-items:flex-start}.cc136entry strong{text-align:left}}
