@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-assert.match(html, /<meta name="cc-deploy-version" content="V138-20261019">/);
+assert.match(html, /<meta name="cc-deploy-version" content="V139-20261019">/);
 const begin=html.indexOf('<script>',html.indexOf('id="cy63detail"'));
 assert.ok(begin>0,'Script de COBRA YA ausente');
 const end=html.indexOf('</script>',begin);
@@ -18,6 +18,6 @@ assert.ok(js.includes("¿Confirmas que RECIBISTE"),'Pago total sin confirmación
 assert.ok(js.includes("rpc/cy_record_payment"),'No usa RPC de abono');
 assert.ok(js.includes("Pago total recibido y confirmado por el prestamista"),'Abono no deja auditoría');
 assert.ok(js.includes("rpc/cy_close_paid_loan"),'Se perdió finalización protegida');
-assert.ok(js.includes("rpc/cy_extend_loan_one_month"),'Se perdió la prórroga');
+assert.ok(js.includes("rpc/cy_extend_loan_months"),'Se perdió la prórroga');
 assert.ok(html.includes('/* V138: tarjetas compactas Cobra Ya'), 'No hay estilos móviles');
 console.log('V138: tarjetas, scripts, pagos confirmados, acciones e historial conservados.');
