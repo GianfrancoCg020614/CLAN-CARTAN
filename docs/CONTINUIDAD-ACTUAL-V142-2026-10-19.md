@@ -8,7 +8,7 @@
 - Referidos de un nivel: código COBRA directo y asignación inmutable, +S/5 únicamente por cada activación/renovación **real y de S/15 completos** de RESELLER referido, un bono por pago.
 - V138 tarjetas Ver / Ya pagó / Acciones; V139/V140 selector +1…+12 meses, plazo total y contador de días; WhatsApp con emojis y `https://www.clancartan.com/`.
 - V136 solicitudes manuales y ADMIN controlado únicamente tras permiso comercial; V142 no habilita ningún método Lemon/DALE ni Binance.
-- Backend V142 mantiene 3 migraciones, funciones `cc_pay_cobra_subscription_real`, `cc_refund_cobra_real_subscription`, `cc_record_real_discount` y `cc_my_real_financial_audit`; audit global de movimientos de saldo real, concepto, referencia, monto, antes/después, y registros de bono/reversión.
+- Backend V142 mantiene 4 migraciones, funciones `cc_pay_cobra_subscription_real`, `cc_refund_cobra_real_subscription`, `cc_record_real_discount` y `cc_my_real_financial_audit`; audit global de movimientos de saldo real, concepto, referencia, monto, antes/después, y registros de bono/reversión.
 - Suscripciones REAL separadas de `cy_access_periods` TEST, sin borrar registros; `cc_cobra_real_payment_settings.enabled=false` inicial.
 - Frontend nuevo `scripts/v142-financial-audit.js`, `styles/v142-financial-audit.css` y pruebas CI V142; la consulta histórica previa sigue existiendo.
 
