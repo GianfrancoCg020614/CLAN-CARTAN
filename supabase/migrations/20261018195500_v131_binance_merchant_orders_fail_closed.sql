@@ -92,7 +92,7 @@ begin
 end $$;
 
 create or replace function public.cc_binance_merchant_credit(
- p_trade_no text,p_merchant_id text,p_transaction_id text,
+ p_trade_no text,p_merchant_id text,p_prepay_id text,p_transaction_id text,
  p_usdt numeric,p_paid_at timestamptz
 ) returns boolean language plpgsql security definer set search_path = '' as $$
 declare v public.cc_binance_merchant_orders%rowtype;
@@ -110,7 +110,7 @@ begin
    raise exception 'Orden ya acreditada con otra transaccion';
  end if;
  if v.status<>'READY' then raise exception 'Orden no apta para acreditar'; end if;
- if v.merchant_id<>p_merchant_id or v.expected_usdt<>p_usdt then
+ if v.merchant_id<>p_merchant_id or v.prepay_id<>p_prepay_id or v.expected_usdt<>p_usdt then
    raise exception 'Merchant o importe USDT no coincide'; end if;
  if p_paid_at < v.created_at-interval '1 minute'
  or p_paid_at > v.expires_at+interval '1 minute'
@@ -131,9 +131,9 @@ end $$;
 revoke all on function public.cc_binance_merchant_reserve(uuid,text,numeric,text) from public,anon,authenticated;
 revoke all on function public.cc_binance_merchant_ready(uuid,text,numeric,text,text) from public,anon,authenticated;
 revoke all on function public.cc_binance_merchant_fail(uuid) from public,anon,authenticated;
-revoke all on function public.cc_binance_merchant_credit(text,text,text,numeric,timestamptz) from public,anon,authenticated;
+revoke all on function public.cc_binance_merchant_credit(text,text,text,text,numeric,timestamptz) from public,anon,authenticated;
 grant execute on function public.cc_binance_merchant_reserve(uuid,text,numeric,text) to service_role;
 grant execute on function public.cc_binance_merchant_ready(uuid,text,numeric,text,text) to service_role;
 grant execute on function public.cc_binance_merchant_fail(uuid) to service_role;
-grant execute on function public.cc_binance_merchant_credit(text,text,text,numeric,timestamptz) to service_role;
+grant execute on function public.cc_binance_merchant_credit(text,text,text,text,numeric,timestamptz) to service_role;
 comment on table public.cc_binance_merchant_orders is 'Binance Merchant fiat PEN: isolated and disabled until merchant onboarding and signed confirmation';
