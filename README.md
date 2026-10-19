@@ -1,12 +1,15 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión entregada: V136 (19-OCT-2026).** Leer primero **[continuidad V136](docs/V136-MANUAL-REAL-Y-CONTINUIDAD.md)** y luego [V135](docs/V135-RESUMEN-Y-CONTINUIDAD.md). Todas las funciones y decisiones históricas del proyecto se conservan.
+**Última versión entregada: V137 (19-OCT-2026).** Leer primero **[continuidad V137](docs/V137-DALE-GARANTIA-CONTINUIDAD.md)** y [V136](docs/V136-MANUAL-REAL-Y-CONTINUIDAD.md) y luego [V135](docs/V135-RESUMEN-Y-CONTINUIDAD.md). Todas las funciones y decisiones históricas del proyecto se conservan.
 
 **NOVEDAD:** Recarga MANUAL aprobada explícitamente por el titular como segundo método junto a la futura AUTOMÁTICA. El formulario y panel ADMIN de solicitudes reales están integrados: usuario solicita S/1–S/1000 para COBRA YA o STREAM BULL'S; ADMIN coteja ingreso real, aprueba o rechaza; el crédito se registra una sola vez de modo transaccional en saldos verdaderos. **El QR de cobro PEN debe ser LEMON, pero el QR personal continúa sin mostrarse y las aprobaciones reales siguen BLOQUEADAS hasta autorización comercial de Lemon/GMoney.** Las recargas automáticas Lemon/Binance permanecen desactivadas. No se admitirán retiros, préstamos desde billetera, transferencias entre usuarios ni acreditaciones de simples comprobantes.
 
 **Referencia histórica conservada:** [CONTINUIDAD-V130-2026-10-18.md](docs/CONTINUIDAD-V130-2026-10-18.md).
 
 **V135 vigente:** historial real, reembolsos internos idempotentes, filtros de movimientos, informes, constancias; no se han creado movimientos ficticios.
+
+**V137:** en sección manual se identifica LEMON / DALE y el número comunicado 923319637 con botón copiar. Se hizo visible sin desplegar la sección de **garantía opcional** del préstamo en COBRA YA (ya registrada en Supabase). El QR original descargado desde Lemon y la autorización comercial siguen pendientes; el número visible no significa cobros habilitados, y las aprobaciones reales permanecen protegidas.
+
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
 **Razón social:** CLAN CARTAN E.I.R.L.  

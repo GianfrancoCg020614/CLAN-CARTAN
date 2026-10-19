@@ -34,13 +34,23 @@ function renderReady(){
  if(!session()?.jwt){
   message('Inicia sesión para registrar una solicitud.');return;
  }
+ // Datos de recepción identificados por el titular. Publicados solo como
+ // referencia: NO son un medio comercial habilitado mientras enabled=false.
+ text(pane,'strong','LEMON / DALE · Perú (PEN)');
+ const details=document.createElement('div');details.className='cc137receiver';
+ text(details,'span','Número DALE:');
+ text(details,'strong','923319637');
+ const copy=document.createElement('button');copy.type='button';copy.className='cc137copy';
+ copy.textContent='Copiar número';copy.addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText('923319637');copy.textContent='Copiado';}
+  catch{copy.textContent='Número: 923319637';}
+ });details.append(copy);pane.append(details);
  if(!readiness.enabled){
-  text(pane,'strong','Cuenta recaudadora Lemon pendiente de autorización');
-  text(pane,'p',readiness.message||'No hagas transferencias hasta confirmar el método de recepción autorizado.');
-  text(pane,'small','Puedes dejar preparada una solicitud, pero no equivale a un pago.');
+  text(pane,'p','El QR Lemon para recargas comerciales todavía NO está habilitado. '+(readiness.message||'No envíes dinero.'));
+  text(pane,'small','Solo se pueden registrar solicitudes pendientes. Número DALE mostrado como referencia del titular, NO como instrucción de pago.');
   return;
  }
- text(pane,'strong','Cuenta recaudadora Lemon autorizada');
+ text(pane,'strong','Método de recaudación habilitado');
  text(pane,'p',readiness.destination);
  try{
   const uri=new URL(readiness.qr_url);
@@ -51,7 +61,7 @@ function renderReady(){
  }catch{
   text(pane,'p','El QR no está disponible: contacta al administrador.');
  }
- text(pane,'small','Transfiere el importe exacto y conserva el identificador bancario. La solicitud no acredita saldo hasta revisión.');
+ text(pane,'small','Transfiere el importe exacto solo después de confirmar destinatario y QR autorizado. Conserva el identificador; el ADMIN revisa el ingreso antes de acreditar.');
 }
 async function submit(){
  if(saving||!session()?.jwt)return;
@@ -159,8 +169,8 @@ function mount(){
  if($('cc136manual'))return;
  const host=$('cc80wallet')||$('cc77home');if(!host)return;
  const sec=document.createElement('section');sec.id='cc136manual';sec.className='cc136manual cc132-movements';
- sec.innerHTML='<div class="cc136head"><h3>Recarga manual · Solicitud real</h3>'+
-  '<p>Cuando la cuenta Lemon comercial esté autorizada, podrás pagar con su QR. La acreditación requiere revisión del ADMIN.</p></div>'+
+ sec.innerHTML='<div class="cc136head"><h3>LEMON / DALE · Recarga manual</h3>'+
+  '<p>Cuenta DALE 923319637. El QR de cobro se mostrará cuando exista autorización comercial y archivo original confirmado. El ADMIN revisará cada pago recibido.</p></div>'+
   '<div id="cc136recipient" class="cc136recipient"></div>'+
   '<div class="cc136form"><label>Billetera<select id="cc136service"><option value="COBRA_YA">COBRA YA</option>'+
   '<option value="STREAM_BULLS">STREAM BULL’S</option></select></label>'+
