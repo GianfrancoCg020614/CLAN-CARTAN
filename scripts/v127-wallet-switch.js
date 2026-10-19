@@ -17,7 +17,7 @@ function mount(){
   quick.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16m-5-5 5 5-5 5M20 17H4m5-5-5 5 5 5"/></svg><span>Transferir</span>';
   quick.addEventListener('click',()=>open('COBRA_YA'));
   balances.after(quick);
-  balances.setAttribute('title','Los importes de esta barra corresponden a saldos de prueba. Los saldos reales se consultan en Transferir.');
+  balances.setAttribute('title','Saldo real confirmado. Los bonos de activación no son transferibles.');
  }
  const cobra=by('cy53layer')?.querySelector('.cy114-nav');
  if(cobra&&!by('cc127cobraTransfer')){
@@ -33,14 +33,14 @@ function mount(){
  modal.innerHTML='<div class="cc127-panel">'+
  '<div class="cc127-top"><div><span class="cc127-kicker">CLAN CARTAN · MIS BILLETERAS</span><h2 id="cc127title">Transferir saldo</h2></div><button type="button" id="cc127close" aria-label="Cerrar transferencia">✕</button></div>'+
  '<p class="cc127-intro">Mueve tu saldo de COBRA YA a STREAM BULL’S o viceversa, sin salir de tu cuenta.</p>'+
- '<label for="cc127mode">Tipo de saldo</label><select id="cc127mode"><option value="test">Saldo de prueba</option><option value="real">Saldo real confirmado</option></select>'+
+ '<label for="cc127mode">Tipo de saldo</label><select id="cc127mode"><option value="real">Saldo real confirmado</option></select>'+
  '<div class="cc127-wallets"><div class="cc127-wallet"><small>Desde</small><strong id="cc127fromLabel">COBRA YA</strong><span id="cc127fromBalance">S/ --</span></div>'+
  '<button type="button" id="cc127swap" aria-label="Invertir dirección de transferencia" title="Cambiar sentido">⇄</button>'+
  '<div class="cc127-wallet"><small>Hacia</small><strong id="cc127toLabel">STREAM BULL’S</strong><span id="cc127toBalance">S/ --</span></div></div>'+
  '<label for="cc127amount">Importe a transferir (S/)</label><div class="cc127-amount"><input id="cc127amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"><button type="button" id="cc127all">Todo</button></div>'+
  '<p id="cc127summary" class="cc127-summary">Solo entre tus billeteras. No se permiten retiros ni pagos de préstamos.</p>'+
  '<button type="button" id="cc127send" class="cc127-submit">Transferir</button><p id="cc127status" role="status" aria-live="polite"></p>'+
- '<small class="cc127-note">El saldo real y el saldo de prueba son independientes. Nunca se convierten uno en el otro.</small>'+
+ '<small class="cc127-note">Los bonos de bienvenida están separados y no se pueden transferir.</small>'+
  '</div>';
  document.body.appendChild(modal);
  by('cc127close').onclick=close;
@@ -63,7 +63,7 @@ function mount(){
 function close(){if(state.busy)return;const m=by('cc127transferModal');if(m)m.hidden=true;}
 function msg(s){const x=by('cc127status');if(x)x.textContent=s;}
 function balance(service){
- const mode=by('cc127mode')?.value||'test';
+ const mode=by('cc127mode')?.value||'real';
  const values=state.balances[mode];
  if(!values)return null;
  return values[service]??0;
