@@ -29,7 +29,11 @@ assert.ok(!html.includes("const CCC_DEMO_PASSWORD="), "Credencial maestra demo p
 assert.ok(!/sb_secret_[A-Za-z0-9_-]+/.test(html), "Posible clave secreta en HTML");
 assert.ok(js.includes("cc_auto_topup_method_status"), "No se consulta el bloqueo del backend");
 assert.ok(js.includes("LEMON_DALE:false,BINANCE:false"), "Los pagos deben iniciar deshabilitados");
-assert.ok(js.includes("button.disabled=!enabled"), "El boton de recarga no respeta disponibilidad");
+assert.ok(js.includes("button.disabled=!okay"), "El botón de recarga no respeta disponibilidad ni validación");
+assert.ok(js.includes("const okay=enabled&&!creating&&validName&&validAmount"), "Flujo disponible sin validar titular y monto");
+assert.ok(js.includes("cc131payer") && js.includes("cc131history"), "Faltan datos e historial de recarga");
+assert.ok(js.includes("method==='LEMON_DALE'") && js.includes("no admite recargas hasta conectar"), "Lemon no debe crear órdenes sin webhook");
+assert.ok(!js.includes("DALE:923319637"), "Se expone un pago a número personal mientras no hay conciliación");
 assert.ok(js.includes("No envíes fondos"), "Falta advertencia de pago no disponible");
 assert.ok(js.includes("cc130RefreshAutomaticTopups"), "Falta recarga del estado de proveedores");
 for(const legacyId of ["#cy113topup","#cc113sbTopup","#cc80wallet .cc113-central-topup","#cc122section .cc125-admin"]) {
