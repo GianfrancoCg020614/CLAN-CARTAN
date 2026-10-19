@@ -30,6 +30,16 @@ function mount(){
  '<p id="cc122status" role="status" aria-live="polite"></p>'+
  '<small>Solo se acreditará una operación tras verificación independiente del pago, importe, destinatario y referencia. Una captura o el botón de recarga no confirman ningún cobro. No se permiten retiros, pagos de préstamos ni transferencias entre personas.</small>';
  host.appendChild(box);
+ document.addEventListener('click',event=>{
+  const target=event.target.closest?.('#cy113recharge, #cc114sbRecharge, #cy113topupGo, #cc113sbSend, #cc113centralSend, #cc94-admin-link');
+  if(!target)return;
+  event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+  if(['cy113recharge','cc114sbRecharge'].includes(target.id)){
+   if(window.cc80?.open)window.cc80.open();
+   if(el('cc122service'))el('cc122service').value=target.id==='cy113recharge'?'COBRA_YA':'STREAM_BULLS';
+   box.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+ },true);
  const method=el('cc122method'),service=el('cc122service'),amount=el('cc122amount'),info=el('cc122payinfo'),status=el('cc122status'),quotation=el('cc124quote'),button=el('cc122create'),amountLabel=el('cc124amountLabel');
  function session(){return window.CC_V53_SESSION;}
  const availability={LEMON_DALE:false,BINANCE:false};
