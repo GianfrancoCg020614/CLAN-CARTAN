@@ -1,5 +1,7 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
+**CONTINUIDAD ACTUAL V145 (19-OCT-2026): [Bono restringido, contabilidad ADMIN y despliegue](docs/CONTINUIDAD-ACTUAL-V145-2026-10-19.md).** Portal actualizado, scripts de activación y auditoría integrados, operaciones TEST nuevas bloqueadas, migración comercial versionada. **Los pagos Lemon/DALE y Binance aún exigen autorización del proveedor y verificación; no se habilitaron cobros reales externos ni se eliminaron registros anteriores.**
+
 **CONTINUIDAD ACTUAL V143 (19-OCT-2026): [Bonos de activación restringidos y panel ADMIN](docs/CONTINUIDAD-ACTUAL-V143-2026-10-19.md).** Bonos de bienvenida separados del saldo real, activación COBRA YA con bono S/15/30 días, panel ADMIN de asignación y resumen operativo de contabilidad. **Sin validación integral ni confirmación del despliegue Cloudflare**; cobros externos mantienen sus bloqueos. Registros históricos conservados hasta orden expresa del titular.
 
 **CONTINUIDAD ACTUAL V142 (19-OCT-2026): [Bonos reales, suscripciones y auditoría](docs/CONTINUIDAD-ACTUAL-V142-2026-10-19.md).** Migraciones Supabase y nuevo panel paginado listos; [detalle técnico V142](docs/V142-BONOS-REALES-Y-AUDITORIA.md). El pago REAL S/15 y bono S/5 por activación/renovación tienen bloqueo comercial inicial (`enabled=false`); **no afirmar que ya están habilitados los cobros Lemon/DALE o Binance, ni acreditar fondos sin verificación**. Mantener V141 como política anterior y V140 como interfaz de préstamos.
