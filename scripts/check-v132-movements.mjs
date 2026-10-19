@@ -29,4 +29,14 @@ assert.ok(sql.includes("from public.cc_binance_merchant_orders"),"Faltan órdene
 assert.ok(sql.includes("status<>'CREDITED'"),"Recargas potencialmente duplicadas con ledger");
 assert.ok(sql.includes("revoke all on function public.cc_charge_verified_real_wallet"),"Gastos reales no protegidos");
 assert.ok(!sql.includes("cc_service_wallets.balance_test"),"Consulta mezcla saldos de prueba");
+// V135: reembolsos de compras reales y constancia del usuario.
+const refundSQL=read("supabase/migrations/20261019001500_v135_real_wallet_refunds.sql");
+for(const field of ["cc135type","cc135month","cc135in","cc135out","cc135ref","cc135net","printReceipt","REFUND"]){
+ assert.ok(js.includes(field),"V135 falta "+field);
+}
+for(const term of ["cc_real_wallet_refunds","for update","v_total+p_amount>v_spend.amount_pen",
+ "to service_role","security invoker"]){
+ assert.ok(refundSQL.includes(term),"V135 SQL falta "+term);
+}
+assert.ok(css.includes(".cc135-summary"));
 console.log("V132: migración RLS, filtros, UI, exportaciones y separación de saldos verificados.");
