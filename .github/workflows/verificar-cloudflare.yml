@@ -51,11 +51,21 @@ jobs:
                  "${main}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o cloudflare-response.html; then
                 if grep -Fq "content=\"$expected\"" cloudflare-response.html; then
                   assets_ok=true
-                  for asset in scripts/v113-wallet.js styles/v113-wallet.css scripts/v116-account.js styles/v116-account.css styles/v117-public-catalog.css styles/v118-logout.css scripts/v119-clients.js styles/v119-clients.css; do
+                  for asset in scripts/v113-wallet.js styles/v113-wallet.css scripts/v116-account.js styles/v116-account.css styles/v117-public-catalog.css styles/v118-logout.css scripts/v119-clients.js styles/v119-clients.css scripts/v122-recharges.js styles/v122-recharges.css; do
                     response_asset="artifact-$(basename "$asset")"
+                    case "$asset" in
+                      scripts/v116-account.js) asset_marker='CLAN CARTAN V127' ;;
+                      styles/v116-account.css) asset_marker='CLAN CARTAN V116' ;;
+                      *v119*) asset_marker='CLAN CARTAN V119' ;;
+                      *v118*) asset_marker='CLAN CARTAN V118' ;;
+                      *v117*) asset_marker='CLAN CARTAN V117' ;;
+                      scripts/v122-recharges.js) asset_marker='CLAN CARTAN V131.2' ;;
+                      styles/v122-recharges.css) asset_marker='V131.2' ;;
+                      *) asset_marker='CLAN CARTAN V115' ;;
+                    esac
                     if curl --fail --silent --show-error --location --connect-timeout 8 --max-time 20 \
                        "${main}${asset}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o "$response_asset" \
-                       && grep -Fq "CLAN CARTAN V$( [[ "$asset" == *v119* ]] && echo 119 || ([[ "$asset" == *v118* ]] && echo 118 || ([[ "$asset" == *v117* ]] && echo 117 || ([[ "$asset" == *v116* ]] && echo 116 || echo 115))) )" "$response_asset"; then
+                       && grep -Fq "$asset_marker" "$response_asset"; then
                       echo "✓ Recurso vigente: $asset"
                     else
                       assets_ok=false
