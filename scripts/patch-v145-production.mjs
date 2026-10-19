@@ -17,6 +17,8 @@ replace('<script src="scripts/v127-wallet-switch.js?v=127b"></script>',
 '<script src="scripts/v127-wallet-switch.js?v=145"></script>\n<script src="scripts/v145-cobra-access.js?v=145"></script>\n<script src="scripts/v145-commerce-guard.js?v=145"></script>');
 replace('<script src="scripts/v136-manual-recharges.js?v=137"></script>',
 '<script src="scripts/v136-manual-recharges.js?v=145"></script>');
+replace('scripts/v145-commerce-guard.js?v=145','scripts/v145-commerce-guard.js?v=145b');
+replace('scripts/v136-manual-recharges.js?v=145','scripts/v136-manual-recharges.js?v=145b');
 const style=`<style id="cc145-production-ui">
 /* V145: ocultar acciones de saldo de prueba heredadas. No borrar datos. */
 #cc80wallet > .cc80balances,
