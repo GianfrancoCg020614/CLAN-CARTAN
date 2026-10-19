@@ -159,12 +159,13 @@ function mount(){
  '<p id="cc122payinfo" class="cc131-provider-note"></p>'+
  '<div class="cc131-footer">'+
  '<button id="cc123refreshReal" type="button" class="cc131-secondary">↻ Actualizar saldo</button>'+
- '<button id="cc122create" type="button" disabled>Continuar al QR</button></div>'+
+ '<button id="cc122create" type="button" disabled>Continuar al QR</button>'+
+ '<button id="cc136goManual" type="button" class="cc131-secondary">Recarga manual</button></div>'+
  '<p id="cc122status" class="cc131-status" role="status" aria-live="polite"></p>'+
  '<div id="cc131checkout" class="cc131-checkout" role="status"></div>'+
  '<details class="cc131-historical"><summary>Mis solicitudes recientes</summary>'+
  '<div id="cc131history">Consulta tu historial al iniciar sesión.</div></details>'+
- '<small class="cc131-disclaimer">Sin acreditaciones manuales, sin retiros, sin transferencias entre usuarios. '+
+ '<small class="cc131-disclaimer">La recarga manual requiere revisión del ADMIN y cuenta comercial autorizada. Sin retiros ni transferencias entre usuarios. '+
  'Nunca pagues mediante QR personal mientras la confirmación automática no esté operativa.</small>';
  host.appendChild(root);
  const change=()=>{
@@ -175,6 +176,7 @@ function mount(){
  el('cc122amount').addEventListener('input',change);
  el('cc131payer').addEventListener('input',change);
  el('cc122create').addEventListener('click',createOrder);
+ el('cc136goManual').addEventListener('click',()=>window.cc136OpenManualRecharge?.(el('cc122service').value));
  el('cc123refreshReal').addEventListener('click',()=>{void loadBalances();void loadHistory();void loadMethods();});
  el('cc131history').closest('details').addEventListener('toggle',e=>{if(e.target.open)void loadHistory();});
  document.addEventListener('click',e=>{

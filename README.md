@@ -1,10 +1,12 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión entregada: V135 (19-OCT-2026).** Continúa íntegramente V130/V132/V134. **[LEER PRIMERO: Continuidad y decisiones V135](docs/V135-RESUMEN-Y-CONTINUIDAD.md)**. El registro histórico **[V130](docs/CONTINUIDAD-V130-2026-10-18.md)** se preserva.
+**Última versión entregada: V136 (19-OCT-2026).** Leer primero **[continuidad V136](docs/V136-MANUAL-REAL-Y-CONTINUIDAD.md)** y luego [V135](docs/V135-RESUMEN-Y-CONTINUIDAD.md). Todas las funciones y decisiones históricas del proyecto se conservan.
 
-**V135:** reembolsos parciales/totales de compras REALES al saldo INTERNO de la misma billetera mediante procedimiento protegido de Supabase (solo service_role, idempotencia, límites); historial con tipo reembolso, resumen de entradas/salidas, filtro mensual, filtros por tipo, constancias internas, PDF por impresión y Excel CSV. Los resúmenes corresponden a hasta 500 últimos movimientos, NO necesariamente al saldo total histórico; consulta el saldo disponible en su tarjeta.
+**NOVEDAD:** Recarga MANUAL aprobada explícitamente por el titular como segundo método junto a la futura AUTOMÁTICA. El formulario y panel ADMIN de solicitudes reales están integrados: usuario solicita S/1–S/1000 para COBRA YA o STREAM BULL'S; ADMIN coteja ingreso real, aprueba o rechaza; el crédito se registra una sola vez de modo transaccional en saldos verdaderos. **El QR de cobro PEN debe ser LEMON, pero el QR personal continúa sin mostrarse y las aprobaciones reales siguen BLOQUEADAS hasta autorización comercial de Lemon/GMoney.** Las recargas automáticas Lemon/Binance permanecen desactivadas. No se admitirán retiros, préstamos desde billetera, transferencias entre usuarios ni acreditaciones de simples comprobantes.
 
-**Requisito confirmado:** únicamente **QR LEMON** para recargas PEN en COBRA YA y STREAM BULL'S. Se mantiene deshabilitada toda recarga real Lemon/DALE y Binance hasta que exista autorización comercial de Lemon/GMoney, API/webhook verificador firmado y pruebas seguras; no se permiten aprobaciones manuales, recibos de pantalla, retiro de efectivo, pagos de préstamos de terceros ni transferencias entre usuarios. **La infraestructura de reembolso NO autoriza pagos ni se conecta aún automáticamente a cancelaciones de pedidos reales.**
+**Referencia histórica conservada:** [CONTINUIDAD-V130-2026-10-18.md](docs/CONTINUIDAD-V130-2026-10-18.md).
+
+**V135 vigente:** historial real, reembolsos internos idempotentes, filtros de movimientos, informes, constancias; no se han creado movimientos ficticios.
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
 **Razón social:** CLAN CARTAN E.I.R.L.  
