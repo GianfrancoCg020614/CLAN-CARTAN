@@ -142,6 +142,21 @@ function ensureAdmin(){
  '<label>Motivo<input id="cc143reason" maxlength="180" value="Bono de bienvenida gratuito"></label></div>'+
  '<button type="button" id="cc143grant">Asignar bono restringido</button><p id="cc143status" role="status" aria-live="polite"></p>';
  admin.after(bonus);
+ const report=document.createElement('section');report.id='cc143report';report.className='cc136manual cc132-movements';
+ report.innerHTML='<h3>ADMIN · Resumen financiero</h3><p>Separa los pagos recibidos de los bonos gratuitos, el consumo y el saldo interno pendiente. No representa por sí solo utilidad neta ni documento tributario.</p><div id="cc143metrics" role="status"></div><button id="cc143reportRefresh" type="button">↻ Actualizar contabilidad</button>';
+ bonus.after(report);
+ async function refreshFinancial(){
+  const target=$('cc143metrics');if(!target||!session()?.isAdmin)return;
+  target.textContent='Consultando movimientos...';
+  try{
+   const totals=await api('rpc/cc_admin_financial_summary');
+   target.replaceChildren();
+   const metrics=[['Dinero recibido en recargas verificadas',totals.cash_received_pen],['Bonos gratuitos otorgados',totals.free_bonus_granted_pen],['Bonos disponibles para activación',totals.free_bonus_available_pen],['Bonos consumidos en activaciones',totals.free_bonus_consumed_pen],['Consumo de servicios con saldo real',totals.paid_service_consumption_pen],['Reembolsos de servicios',totals.refunded_service_pen],['Saldo real pendiente en billeteras',totals.real_wallet_liability_pen]];
+   for(const [title,value] of metrics){const line=document.createElement('p');const name=document.createElement('span');name.textContent=title+': ';const amount=document.createElement('strong');amount.textContent=money(value);line.append(name,amount);target.append(line);}
+  }catch(e){target.textContent='No se pudo consultar contabilidad: '+String(e.message||e);}
+ }
+ $('cc143reportRefresh').addEventListener('click',()=>void refreshFinancial());
+ void refreshFinancial();
  $('cc143grant').addEventListener('click',async()=>{
   const button=$('cc143grant'),email=$('cc143email').value.trim(),amount=Number($('cc143amount').value),reason=$('cc143reason').value.trim();
   if(!email.includes('@')||!Number.isFinite(amount)||amount<=0||amount>1000||reason.length<5){$('cc143status').textContent='Revisa el correo, monto y motivo.';return;}
