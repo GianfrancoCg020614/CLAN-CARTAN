@@ -11,3 +11,37 @@
 #cc93-affiliate button[onclick*="cc94RequestTopup"],#cc94-admin-link,#cc94-review,
 #cc122section .cc125-admin{display:none!important}
 #cc122create:disabled{cursor:not-allowed;opacity:.7}
+
+
+/* V131.2 — Vista compacta de recarga inspirada en la secuencia nombre/monto/QR,
+   sin representar acreditación que el proveedor no ha confirmado. */
+.cc131-recharges{background:#080f1b!important;color:#eef5ff!important;border-color:#223a53!important;max-width:680px;box-shadow:0 10px 36px #0002}
+.cc131-heading{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cc131-heading h3{font-size:20px;margin:0 0 5px}
+.cc131-heading p{font-size:13px;line-height:1.5;color:#a8b7ca;margin:0}
+.cc131-icon{color:#21d5ac;font-size:27px;line-height:1}
+.cc131-balance{background:#0c1b2d;border:1px solid #253a56;border-radius:9px;padding:12px 14px;font-size:13px;color:#e1e9f3;margin-bottom:12px}
+.cc131-instructions{padding:13px 15px;background:#0b211f;border:1px solid #115944;border-radius:10px;font-size:13px;color:#b4eada;margin-bottom:12px}
+.cc131-instructions strong{color:#40e6b6}
+.cc131-instructions ol{padding-left:20px;margin:7px 0 0;line-height:1.7}
+.cc131-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.cc131-fields label{font-weight:600;font-size:13px!important;margin:3px 0!important}
+.cc131-fields label:nth-of-type(3),.cc131-fields label:nth-of-type(4),.cc131-fields small{grid-column:1/-1}
+.cc131-fields select,.cc131-fields input{background:#0a1626!important;border:1px solid #53708e!important;color:#f0f9ff!important;font-size:14px}
+.cc131-fields small{color:#9aaec4;font-size:11px;margin:-4px 0 3px}
+.cc131-provider-note{background:#14202f;border:1px solid #394e64;border-radius:9px;padding:11px;font-size:13px;color:#c2cfde}
+.cc131-footer{display:flex;justify-content:flex-end;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0}
+.cc131-footer button{font-size:13px}
+.cc131-footer .cc131-secondary{background:transparent;border:1px solid #526982;color:#d8e5f1}
+.cc131-footer #cc122create{background:#09bde8;color:#001e30}
+.cc131-footer #cc122create:disabled{background:#34505f;color:#b2c5ce;opacity:1}
+.cc131-status{font-size:13px;color:#ffce8e;font-weight:600}
+.cc131-checkout:not(:empty){margin:14px 0;border:1px solid #137d6e;background:#122c30;padding:13px;border-radius:10px}
+.cc131-pay-link{display:inline-block;margin:8px 0 0;color:#78eaff;font-weight:700}
+.cc131-historical{margin-top:12px;border-top:1px solid #35465c;padding-top:12px}
+.cc131-historical summary{cursor:pointer;font-size:12px;text-transform:uppercase;color:#bed0e7;letter-spacing:.03em;font-weight:600}
+#cc131history{font-size:12px;margin-top:8px}
+.cc131-history-row{display:flex;justify-content:space-between;gap:12px;padding:10px 2px;border-bottom:1px solid #24354c}
+.cc131-history-row strong{color:#85dfe0;white-space:nowrap}
+.cc131-disclaimer{margin-top:16px;font-size:11px;color:#adc5d0}
+@media(max-width:520px){.cc131-fields{display:block}.cc131-footer{justify-content:stretch}.cc131-footer button{flex:1}.cc131-recharges{padding:14px!important}}
