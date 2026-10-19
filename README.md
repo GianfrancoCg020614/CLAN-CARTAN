@@ -1,7 +1,10 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**Última versión de desarrollo: V130.** Decisión definitiva: **recargas exclusivamente automáticas para COBRA YA y STREAM BULL'S, usando Lemon/DALE o Binance**. Las vías antiguas de solicitud/aprobación manual están bloqueadas. **Recargas reales temporalmente inhabilitadas** hasta obtener confirmaciones autenticadas del proveedor y acreditar fondos con seguridad (no confundir con saldos de prueba). **[LEER PRIMERO: Punto de continuidad V130](docs/CONTINUIDAD-V130-2026-10-18.md)**. La versión visual V129 y las reglas históricas del resto del documento se conservan como referencia.
+**Última versión entregada: V135 (19-OCT-2026).** Continúa íntegramente V130/V132/V134. **[LEER PRIMERO: Continuidad y decisiones V135](docs/V135-RESUMEN-Y-CONTINUIDAD.md)**. El registro histórico **[V130](docs/CONTINUIDAD-V130-2026-10-18.md)** se preserva.
 
+**V135:** reembolsos parciales/totales de compras REALES al saldo INTERNO de la misma billetera mediante procedimiento protegido de Supabase (solo service_role, idempotencia, límites); historial con tipo reembolso, resumen de entradas/salidas, filtro mensual, filtros por tipo, constancias internas, PDF por impresión y Excel CSV. Los resúmenes corresponden a hasta 500 últimos movimientos, NO necesariamente al saldo total histórico; consulta el saldo disponible en su tarjeta.
+
+**Requisito confirmado:** únicamente **QR LEMON** para recargas PEN en COBRA YA y STREAM BULL'S. Se mantiene deshabilitada toda recarga real Lemon/DALE y Binance hasta que exista autorización comercial de Lemon/GMoney, API/webhook verificador firmado y pruebas seguras; no se permiten aprobaciones manuales, recibos de pantalla, retiro de efectivo, pagos de préstamos de terceros ni transferencias entre usuarios. **La infraestructura de reembolso NO autoriza pagos ni se conecta aún automáticamente a cancelaciones de pedidos reales.**
 
 **Actualizado:** 18 de octubre de 2026 (UTC)  
 **Razón social:** CLAN CARTAN E.I.R.L.  
