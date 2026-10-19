@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V137-20261019">
+<meta name="cc-deploy-version" content="V138-20261019">
 <meta name="cc-turnstile-sitekey" content="">
 <style>
 
@@ -4978,6 +4978,34 @@ document.addEventListener('click',function(e){const button=e.target.closest('[da
  #cy53layer input,#cy53layer select{min-height:45px}
  #cy53layer h2{font-size:21px}
 }
+
+/* V138: tarjetas compactas Cobra Ya sin desplazamiento horizontal y acciones redundantes. */
+#cy53layer #cy60loanrecords{overflow:visible}
+#cy53layer .cy138-loans{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:12px;margin:8px 0 12px}
+#cy53layer .cy138-card{min-width:0;padding:15px;background:#0c2634;border:1px solid #32687a;border-radius:16px;display:grid;gap:12px}
+#cy53layer .cy138-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#cy53layer .cy138-card-person{min-width:0;flex:1 1 125px}
+#cy53layer .cy138-card-person strong{display:block;overflow-wrap:anywhere;font-size:16px;line-height:1.3}
+#cy53layer .cy138-card-person small{display:block;line-height:1.5;margin-top:5px;color:#b5d4de}
+#cy53layer .cy138-state{display:inline-flex;align-items:center;max-width:100%;font-size:12px;font-weight:750;padding:6px 8px;border:1px solid #1d8d8d;border-radius:10px;color:#a2f5de}
+#cy53layer .cy138-soon{border-color:#b48c36;color:#ffe2a2}
+#cy53layer .cy138-late{border-color:#ac5065;color:#ffc0cb}
+#cy53layer .cy138-paid{border-color:#278e67;color:#aeefcf}
+#cy53layer .cy138-card-balance{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #285064;padding-top:11px;font-size:13px;color:#c4dee5}
+#cy53layer .cy138-card-balance strong{color:#f4fffd;font-size:19px;white-space:nowrap}
+#cy53layer .cy138-card-buttons{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr) minmax(0,1.15fr);align-items:stretch;gap:7px}
+#cy53layer .cy138-card-buttons>button,#cy53layer .cy138-card-buttons>details>summary{display:flex;align-items:center;justify-content:center;min-height:44px;width:100%;padding:9px 5px;border-radius:9px;font-size:13px;font-weight:760;line-height:1.15;text-align:center;white-space:normal}
+#cy53layer .cy138-card-buttons .cy138-view{background:#097d86}
+#cy53layer .cy138-card-buttons .cy138-main{background:#1eafaa;color:#072631}
+#cy53layer .cy138-actions{position:relative;min-width:0}
+#cy53layer .cy138-actions>summary{list-style:none;cursor:pointer;background:#294258;color:white;border:1px solid #59778b}
+#cy53layer .cy138-actions>summary::-webkit-details-marker{display:none}
+#cy53layer .cy138-actions[open]>summary{background:#385870}
+#cy53layer .cy138-actions-menu{display:grid;gap:6px;margin-top:8px;padding:8px;background:#122c3c;border:1px solid #3d6577;border-radius:10px}
+#cy53layer .cy138-actions-menu button{min-height:42px;text-align:left;white-space:normal;padding:9px 11px;background:#1a5963;font-size:13px}
+#cy53layer .cy138-actions-menu .cy71close{background:#136f57}
+#cy53layer .cy138-card button:focus-visible,#cy53layer .cy138-actions summary:focus-visible{outline:3px solid #86ffec;outline-offset:2px}
+@media(max-width:450px){#cy53layer .cy138-loans{grid-template-columns:minmax(0,1fr)}#cy53layer .cy138-card{padding:11px}#cy53layer .cy138-card-buttons{gap:6px}}
 </style>
 <button id="cy53open" style="display:none" onclick="cy53.open()">Abrir COBRA YA</button>
 <button id="cy54adminShortcut" style="display:none;position:fixed;z-index:1000000;right:18px;top:108px;background:#145e98;color:#fff;border:1px solid #4dc3ed;padding:12px 15px;border-radius:10px;font-weight:bold;cursor:pointer" onclick="cy53.open();cy54.loadRequests().catch(e=>alert(e.message))">📋 SOLICITUDES RESELLER</button>
@@ -5041,7 +5069,31 @@ function renderCy64Rows(){
  const filter=document.querySelector('#cy64tabs .cy64selected')?.dataset.filter||'all';
  const selected=filter==='all'?state.loans:state.loans.filter(x=>statusForLoan(x).group===filter);
  const target=document.getElementById('cy60loanrecords');
- target.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Cliente</th><th>Capital</th><th>Plazo</th><th>Interés mensual</th><th>Total a recibir</th><th>Cuotas</th><th>Saldo pendiente</th><th>Semáforo</th><th>Detalle</th><th>Editar</th><th>Finalizar</th><th>Nuevo préstamo</th><th>WhatsApp</th><th>Ampliar plazo</th><th>Abonar</th></tr></thead><tbody>'+selected.map(x=>{const ins=state.installments.filter(q=>q.loan_id===x.id);const paid=state.payments.filter(q=>q.loan_id===x.id).reduce((a,q)=>a+Number(q.amount),0);const balance=Math.max(0,Number(x.total_due)-paid);const client=state.clients.find(y=>y.id===x.client_id);const status=statusForLoan(x);const color=status.group==='late'?'#de5260':status.group==='soon'?'#e7b548':'#37b88b';return `<tr><td>${esc(client?.full_name||x.client_id.slice(0,8))}</td><td>${cy66Money(x.principal,x.currency)}</td><td>${esc(x.duration_months||1)} mes(es)</td><td>${cy66Num(x.monthly_interest_rate??x.interest_rate)}% · ${cy66Money(Number(x.principal)*Number(x.monthly_interest_rate??x.interest_rate)/100,x.currency)}</td><td>${cy66Money(x.total_due,x.currency)}</td><td>${ins.length}</td><td>${cy66Money(balance,x.currency)}</td><td><span style="display:inline-block;padding:7px;border-radius:8px;border:1px solid ${color};font-weight:700;color:${color};white-space:nowrap">● ${esc(status.label)}</span></td><td><button type="button" class="cy63view" data-loan="${esc(x.id)}">Ver</button></td><td><button type="button" class="cy69edit" data-loan="${esc(x.id)}">✎ Editar</button></td><td>${balance<=0.005?`<button type="button" class="cy71close" data-loan="${esc(x.id)}" ${x.status==='CLOSED'?'disabled':''}>${x.status==='CLOSED'?'✓ Finalizado':'✓ Finalizar'}</button>`:'<span title="Solo cuando el saldo sea cero">Saldo pendiente</span>'}</td><td><button type="button" class="cy71new" data-client="${esc(x.client_id)}">+ Nuevo préstamo</button></td><td><button type="button" class="cy68notify" data-loan="${esc(x.id)}">📲 Notificar</button></td><td>${balance>0?`<button type="button" class="cy65extend" data-loan="${esc(x.id)}">+ Aumentar 1 mes</button>`:"Pagado"}</td><td>${balance>0?`<button type="button" data-loan="${esc(x.id)}" data-max="${balance.toFixed(2)}" class="cy53pay">Registrar abono</button>`:'Pagado'}</td></tr>`}).join('')+'</tbody></table></div>';
+ target.innerHTML='<div class="cy138-loans">'+selected.map(x=>{
+  const ins=state.installments.filter(q=>q.loan_id===x.id);
+  const paid=state.payments.filter(q=>q.loan_id===x.id).reduce((sum,q)=>sum+Number(q.amount),0);
+  const balance=Math.max(0,Number(x.total_due)-paid);
+  const client=state.clients.find(y=>y.id===x.client_id);
+  const name=esc(client?.full_name||x.client_id.slice(0,8));
+  const status=statusForLoan(x);
+  const due=ins.map(q=>q.due_on).filter(Boolean).sort().at(-1)||x.corrected_due_on||x.first_due_on||'—';
+  const isPaid=balance<=0.005;
+  const actions='<details class="cy138-actions"><summary aria-label="Acciones para '+name+'">⋯ Acciones</summary><div class="cy138-actions-menu" role="group" aria-label="Opciones del préstamo">'+
+   '<button type="button" class="cy69edit" data-loan="'+esc(x.id)+'">✎ Editar préstamo</button>'+
+   (isPaid?'':'<button type="button" class="cy53pay" data-loan="'+esc(x.id)+'" data-max="'+balance.toFixed(2)+'">＋ Registrar abono parcial</button>')+
+   (isPaid?'':'<button type="button" class="cy65extend" data-loan="'+esc(x.id)+'">◷ Ampliar 1 mes</button>')+
+   '<button type="button" class="cy68notify" data-loan="'+esc(x.id)+'">📲 Notificar por WhatsApp</button>'+
+   (isPaid&&x.status!=='CLOSED'?'<button type="button" class="cy71close" data-loan="'+esc(x.id)+'">✓ Finalizar préstamo pagado</button>':'')+
+   '</div></details>';
+  return '<article class="cy138-card" aria-label="Préstamo de '+name+'">'+
+   '<div class="cy138-card-head"><div class="cy138-card-person"><strong>'+name+'</strong><small>Capital: '+cy66Money(x.principal,x.currency)+' · Vence: '+esc(due)+'</small></div>'+
+   '<span class="cy138-state cy138-'+esc(status.group)+'">'+esc(status.label)+'</span></div>'+
+   '<div class="cy138-card-balance"><span>'+(isPaid?'Cancelado':'Saldo pendiente')+'</span><strong>'+cy66Money(balance,x.currency)+'</strong></div>'+
+   '<div class="cy138-card-buttons"><button type="button" class="cy63view cy138-view" data-loan="'+esc(x.id)+'">Ver</button>'+
+   (isPaid?'<button type="button" class="cy71new cy138-main" data-client="'+esc(x.client_id)+'">＋ Nuevo préstamo</button>':
+   '<button type="button" class="cy138-paid cy138-main" data-loan="'+esc(x.id)+'">✓ Ya pagó</button>')+
+   actions+'</div></article>';
+ }).join('')+'</div>';
  target.querySelectorAll('.cy69edit').forEach(b=>b.addEventListener('click',async()=>{
  const loan=state.loans.find(x=>x.id===b.dataset.loan);if(!loan)return;
  const lastDue=state.installments.filter(z=>z.loan_id===loan.id).map(z=>z.due_on).sort().at(-1)||loan.corrected_due_on||loan.first_due_on;
@@ -5105,6 +5157,20 @@ function renderCy64Rows(){
  }));
  target.querySelectorAll('.cy68notify').forEach(b=>b.addEventListener('click',()=>cy68Notify(b.dataset.loan)));
  target.querySelectorAll('.cy63view').forEach(b=>b.addEventListener('click',()=>openDetail(b.dataset.loan)));
+ // V138: "Ya pagó" registra el saldo total recibido, con confirmación previa.
+ // Abonos parciales se gestionan en Acciones. No transfiere dinero entre billeteras.
+ target.querySelectorAll('.cy138-paid').forEach(b=>b.addEventListener('click',async()=>{
+  const loan=state.loans.find(x=>x.id===b.dataset.loan);if(!loan)return;
+  const paid=state.payments.filter(x=>x.loan_id===loan.id).reduce((sum,p)=>sum+Number(p.amount),0);
+  const balance=Math.round(Math.max(0,Number(loan.total_due)-paid)*100)/100;
+  if(balance<=0){renderCy64Rows();return;}
+  if(!confirm('¿Confirmas que RECIBISTE el pago TOTAL de '+cy66Money(balance,loan.currency)+' directamente del prestatario?\n\nEsta anotación no mueve dinero. Si solo recibiste una parte, usa Acciones → Registrar abono parcial.'))return;
+  b.disabled=true;
+  try{
+   await request('rpc/cy_record_payment','POST',{p_loan_id:loan.id,p_amount:balance,p_memo:'Pago total recibido y confirmado por el prestamista'});
+   await refresh();notice('✓ Pago completo registrado. Se conservan los abonos y puedes crear un nuevo préstamo.');
+  }catch(e){alert('No se registró el pago: '+e.message);b.disabled=false;}
+ }));
  target.querySelectorAll('.cy53pay').forEach(b=>b.addEventListener('click',async()=>{const val=prompt('Monto recibido directamente por el prestamista (máx. '+b.dataset.max+'):');if(val===null)return;const amount=Number(val);if(!Number.isFinite(amount)||amount<=0||amount>Number(b.dataset.max)||Math.round(amount*100)!==amount*100)return alert('Monto inválido');const memo=prompt('Referencia / observación del abono (opcional):','Abono recibido');if(memo===null)return;try{await request('rpc/cy_record_payment','POST',{p_loan_id:b.dataset.loan,p_amount:amount,p_memo:memo.slice(0,500)});await refresh();notice('Abono registrado correctamente.')}catch(e){notice(e.message)}}));
 }
 renderCy64Rows();
