@@ -14,7 +14,7 @@ function usdtMicros(value) {
   const str = String(value);
   if (!/^(0|[1-9][0-9]{0,8})(\.[0-9]{1,6})?$/.test(str)) fail("Importe USDT invalido");
   const [whole,decimal=""] = str.split(".");
-  const amount = BigInt(whole) * 1000000n + BigInt((decimal+"000000").slice(0,6));
+  const amount = BigInt(whole) * 100000000n + BigInt((decimal+"00000000").slice(0,8));
   if (amount<=0n) fail("Importe USDT no positivo");
   return amount.toString();
 }
