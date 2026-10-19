@@ -6,6 +6,8 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const base=read('supabase/migrations/20261019111500_v142_wallet_audit_real_access_foundation.sql');
 const payment=read('supabase/migrations/20261019113500_v142_subscription_bonus_reversals.sql');
 const info=read('supabase/migrations/20261019115500_v142_information_discounts_and_pending_reversals.sql');
+const cutover=read('supabase/migrations/20261019120500_v142_disable_test_subscription_after_launch.sql');
+assert.ok(cutover.includes('cc_no_test_subscription_in_real_mode')&&cutover.includes('enabled=true'),'No se cierra TEST al habilitar cobro real');
 const js=read('scripts/v142-financial-audit.js');
 const css=read('styles/v142-financial-audit.css');
 const html=read('index.html');
