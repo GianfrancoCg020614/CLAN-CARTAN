@@ -31,7 +31,7 @@ function render(){
  if(method==='LEMON_DALE'){
    description.textContent=enabled
     ?'Introduce el nombre de la cuenta desde la que pagarás. El QR y el plazo solo aparecen al crear una orden verificable.'
-    :'Lemon/DALE aún no ofrece una confirmación de depósitos conectada a CLAN CARTAN. El QR y los envíos de dinero están desactivados.';
+    :'El QR publicado es de Lemon Cash y Yape puede no reconocerlo. No hay confirmación automática de depósitos conectada a CLAN CARTAN: no envíes dinero para recargar.';
  }else{
    description.textContent=enabled
     ?'Binance Merchant mostrará el importe PEN y su equivalente USDT antes de confirmar.'
@@ -158,7 +158,7 @@ function mount(){
  '<label for="cc122amount">Monto a recargar (S/)<input id="cc122amount" type="number" inputmode="decimal" min="1" max="1000" step="0.01" placeholder="Ej. 15.00"></label>'+
  '</div>'+
  '<p id="cc122payinfo" class="cc131-provider-note"></p>'+
- '<figure id="cc138daleQr" class="cc138-dale-qr" hidden><figcaption><strong>QR Lemon / DALE</strong><span>Titular: Luis Gianfranco Carbajal Gomez</span></figcaption><img src="assets/qr-dale-gianfranco.svg" loading="lazy" width="460" height="450" alt="Código QR Lemon DALE compartido por el titular, referencia sin acreditación automática"><p>QR publicado solo como referencia. Aún no está habilitada la confirmación automática: no transfieras dinero esperando que se abone a tu billetera.</p></figure>'+
+ '<figure id="cc138daleQr" class="cc138-dale-qr" hidden><figcaption><strong>QR de Lemon Cash (no es QR Yape)</strong><span>Titular: Luis Gianfranco Carbajal Gomez</span></figcaption><img src="assets/qr-dale-gianfranco.svg" loading="lazy" width="460" height="450" alt="QR de Lemon Cash, no garantizado como compatible con escáner Yape"><p>Este QR se puede decodificar, pero Yape puede no aceptarlo. Para enviar dinero desde Yape hacia DALE, el canal publicado por Lemon es el número de celular o CCI, no este QR. No envíes fondos para recargar CLAN CARTAN: la acreditación automática aún no está habilitada.</p></figure>'+
  '<div class="cc131-footer">'+
  '<button id="cc123refreshReal" type="button" class="cc131-secondary">↻ Actualizar saldo</button>'+
  '<button id="cc122create" type="button" disabled>Continuar al QR</button>'+
