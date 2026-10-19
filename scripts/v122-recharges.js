@@ -16,8 +16,8 @@ function mount(){
  const box=document.createElement('section');
  box.id='cc122section';box.className='cc122-pay';
  box.innerHTML=
- '<h3>Recargar billetera · Lemon/DALE o Binance Pay</h3>'+
- '<p>Selecciona tu billetera y método. Lemon recibe soles; Binance Pay recibe USDT. El saldo real se registra por separado de cualquier saldo de prueba.</p>'+
+ '<h3>Recarga automática · Lemon/DALE o Binance Pay</h3>'+
+ '<p>Elige billetera y medio de pago. Solo se aceptan recargas con confirmación automática del proveedor; no hay comprobantes ni aprobación manual.</p>'+
  '<label>Billetera<select id="cc122service"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option></select></label>'+
  '<label>Medio de pago<select id="cc122method"><option value="LEMON_DALE">Lemon / DALE · soles (PEN)</option><option value="BINANCE">Binance Pay · USDT (internacional)</option></select></label>'+
  '<label id="cc124amountLabel" for="cc122amount">Importe a pagar (PEN)</label>'+
@@ -26,12 +26,28 @@ function mount(){
  '<div id="cc122payinfo" class="cc122-info"></div>'+
  '<div id="cc123realBalances" role="status">Saldo real: inicia sesión para consultar.</div>'+
  '<button id="cc123refreshReal" type="button">Actualizar saldo real</button>'+
- '<button id="cc122create" type="button">Generar solicitud de recarga</button>'+
+ '<button id="cc122create" type="button" disabled>Recargas automáticas temporalmente no disponibles</button>'+
  '<p id="cc122status" role="status" aria-live="polite"></p>'+
  '<small>Solo se acreditará una operación tras verificación independiente del pago, importe, destinatario y referencia. Una captura o el botón de recarga no confirman ningún cobro. No se permiten retiros, pagos de préstamos ni transferencias entre personas.</small>';
  host.appendChild(box);
  const method=el('cc122method'),service=el('cc122service'),amount=el('cc122amount'),info=el('cc122payinfo'),status=el('cc122status'),quotation=el('cc124quote'),button=el('cc122create'),amountLabel=el('cc124amountLabel');
  function session(){return window.CC_V53_SESSION;}
+ const availability={LEMON_DALE:false,BINANCE:false};
+ async function loadAvailability(){
+  if(!session()?.jwt){button.disabled=true;status.textContent='Inicia sesión para consultar métodos automáticos.';return;}
+  try{
+   const rows=await api()('rpc/cc_auto_topup_method_status','POST',{});
+   for(const row of (Array.isArray(rows)?rows:[]))if(Object.hasOwn(availability,row.provider))availability[row.provider]=row.enabled===true;
+  }catch(e){status.textContent='No se pudo comprobar la disponibilidad de recargas automáticas.';}
+  renderAvailability();
+ }
+ function renderAvailability(){
+  const enabled=availability[method.value]===true;
+  button.disabled=!enabled;
+  button.textContent=enabled?'Iniciar recarga automática':'Recarga automática temporalmente no disponible';
+  if(!enabled)status.textContent='Este método está pendiente de conexión de confirmación automática. No envíes fondos; no hay acreditación inmediata disponible.';
+ }
+ window.cc130RefreshAutomaticTopups=loadAvailability;
  function api(){if(!window.cc80?.api)throw Error('API de billeteras no disponible');return window.cc80.api;}
  async function refreshBalances(){
   const slot=el('cc123realBalances'),ses=session();
@@ -92,6 +108,7 @@ function mount(){
  function renderMethod(){
   status.textContent='';
   ++quoteReq;quote=null;
+  renderAvailability();
   const binance=method.value==='BINANCE';
   amountLabel.textContent=binance?'Importe a pagar (USDT)':'Importe a pagar (PEN, soles)';
   amount.min=binance?'0.5':'1';amount.max=binance?'1000':'1000';amount.step='0.01';amount.value=binance?'10':'20';
@@ -119,6 +136,7 @@ function mount(){
   }
  });
  renderMethod();
+ void loadAvailability();
  if(window.CC_V53_SESSION?.isAdmin){
   const adminPanel=document.createElement('details');
   adminPanel.className='cc125-admin';
@@ -159,6 +177,7 @@ function mount(){
  }
  button.addEventListener('click',async()=>{
   if(creating)return;
+  if(availability[method.value]!==true){renderAvailability();return;}
   const ses=session();
   if(!ses?.jwt){status.textContent='Debes iniciar sesión para generar la solicitud.';return;}
   const n=Number(amount.value);
@@ -186,7 +205,7 @@ function mount(){
     '. Estado PENDIENTE: no hay saldo acreditado hasta confirmar el ingreso.';
    }
   }catch(e){status.textContent='No se registró: '+(e.message||e);}
-  finally{creating=false;button.disabled=false;}
+  finally{creating=false;renderAvailability();}
  });
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
