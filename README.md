@@ -1,5 +1,7 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
+**CONTINUIDAD ACTUAL V142 (19-OCT-2026): [Bonos reales, suscripciones y auditoría](docs/CONTINUIDAD-ACTUAL-V142-2026-10-19.md).** Migraciones Supabase y nuevo panel paginado listos; [detalle técnico V142](docs/V142-BONOS-REALES-Y-AUDITORIA.md). El pago REAL S/15 y bono S/5 por activación/renovación tienen bloqueo comercial inicial (`enabled=false`); **no afirmar que ya están habilitados los cobros Lemon/DALE o Binance, ni acreditar fondos sin verificación**. Mantener V141 como política anterior y V140 como interfaz de préstamos.
+
 **CONTINUIDAD DOCUMENTAL V141 (19-OCT-2026): [Resumen completo y punto para otro chat](docs/CONTINUIDAD-ACTUAL-V141-2026-10-19.md).** Reglas nuevas: **S/5 por cada pago auténtico de S/15 de un RESELLER referido (activación inicial Y renovaciones)**, invitación única e inmutable; [conceptos, saldos antes/después, bonificaciones y reversiones](docs/V141-BONOS-REFERIDOS-Y-MOVIMIENTOS.md). **Funcionalidad publicada: V140**; bonificaciones financieras reales y auditoría integral son *requisitos pendientes*, no se han activado ni creado saldos.
 
 **REFERENCIA HISTÓRICA (19-OCT-2026): [V137 — estado preservado y pendientes verificables](docs/CONTINUIDAD-ACTUAL-V137-2026-10-19.md).** Al reanudar, leerlo antes de modificar código; conserva V136 manual controlada, V137 QR Lemon de referencia, saldos de prueba separados y pagos reales bloqueados sin autorización comercial.

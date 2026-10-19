@@ -1,0 +1,17 @@
+/* CLAN CARTAN V142 · auditoría paginada sin tabla horizontal */
+.cc142-panel{margin:20px 0 0;padding:16px;border:1px solid #34596b;border-radius:14px;background:#0a2131;color:#eaffff}
+.cc142-heading h4{margin:0 0 5px;font-size:18px}
+.cc142-intro,.cc142-note{color:#abc7d6;font-size:12px;line-height:1.6}
+.cc142-bar,.cc142-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:13px 0}
+.cc142-panel button{min-height:41px;background:#176777;border:1px solid #3593a2;color:#fff;border-radius:9px;padding:9px 13px;cursor:pointer;font-weight:700}
+.cc142-panel button:disabled{opacity:.45;cursor:not-allowed}
+.cc142-list{display:grid;gap:10px}
+.cc142-entry{padding:13px;border:1px solid #30536d;border-radius:12px;background:#10283a;min-width:0;display:grid;gap:8px}
+.cc142-entry .cc142-top{display:flex;gap:8px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.cc142-entry .cc142-top strong{font-size:14px;overflow-wrap:anywhere}
+.cc142-entry time,.cc142-entry small,.cc142-foot span{font-size:11px;color:#bdd2df;overflow-wrap:anywhere}
+.cc142-amounts,.cc142-balances{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap}
+.cc142-amounts b{font-size:17px}.cc142-minus{color:#ff9aa0}.cc142-plus{color:#72eed1}
+.cc142-balances span{font-size:12px;color:#d0e8f2}
+.cc142-empty{padding:12px;color:#b7d0dc}
+@media(max-width:530px){.cc142-panel{padding:10px}.cc142-entry{padding:10px}.cc142-amounts{display:grid;gap:4px}.cc142-bar>button{flex:1 1 120px}}

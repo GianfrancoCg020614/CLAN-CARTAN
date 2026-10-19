@@ -28,6 +28,8 @@ jobs:
         run: node scripts/check-v138-cobra-ui.mjs
       - name: Verificar ampliaciones y mensajes WhatsApp V140
         run: node scripts/check-v140-cobra-whatsapp.mjs
+      - name: Revisar bonos recurrentes S/5 y ledger real V142
+        run: node scripts/check-v142-financial.mjs
       - name: Revisar movimientos reales de billeteras
         run: node scripts/check-v132-movements.mjs
       - name: Revisar recargas manuales y acceso ADMIN
