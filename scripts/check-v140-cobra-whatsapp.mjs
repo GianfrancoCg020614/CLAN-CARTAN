@@ -14,7 +14,7 @@ for(const marker of [
  'cy140OpenExtension', 'cy140Months', 'cy140Total', 'cy140Added',
  'cy140OldDue','cy140Due','cy140Days','cy140Reason',
  "rpc/cy_extend_loan_months", 'p_added_months:added',
- "day+'T12:00:00'", 'cy140-overlay',
+ "x+'T12:00:00'", 'cy140-overlay',
  '🐍 *COBRA YA*','💵 *Capital:*','📈 *Interés mensual:*',
  '💰 *Total a pagar:*','📅 *Vencimiento:*',
  '✨ Descubre nuestros servicios y soluciones digitales:',
