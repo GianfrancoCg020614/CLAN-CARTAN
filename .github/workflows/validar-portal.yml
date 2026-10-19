@@ -26,6 +26,8 @@ jobs:
         run: node scripts/check-v130.mjs
       - name: Validar tarjetas COBRA YA V138 y confirmación de pagos
         run: node scripts/check-v138-cobra-ui.mjs
+      - name: Verificar ampliaciones y mensajes WhatsApp V140
+        run: node scripts/check-v140-cobra-whatsapp.mjs
       - name: Revisar movimientos reales de billeteras
         run: node scripts/check-v132-movements.mjs
       - name: Revisar recargas manuales y acceso ADMIN
