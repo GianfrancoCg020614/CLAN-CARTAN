@@ -5,3 +5,9 @@
 .cc125-admin .cc125-check{display:flex;align-items:flex-start;gap:10px}
 .cc125-admin .cc125-check input{width:auto;margin:0}
 #cc124quote{line-height:1.65}
+
+/* V130: solo el recorrido automático; controles de prueba/manual ocultos. */
+#cy113topup,#cc113sbTopup,#cc80wallet .cc113-central-topup,
+#cc93-affiliate button[onclick*="cc94RequestTopup"],#cc94-admin-link,#cc94-review,
+#cc122section .cc125-admin{display:none!important}
+#cc122create:disabled{cursor:not-allowed;opacity:.7}
