@@ -1,0 +1,53 @@
+/* CLAN CARTAN V132: movimientos de billetera. No reusa saldos de prueba. */
+.cc132-movements{max-width:100%;margin:18px 0;padding:20px;background:#0d1726;border:1px solid #354b68;border-radius:16px;color:#e9f1ff}
+.cc132-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:17px;flex-wrap:wrap}
+.cc132-head h3{font-size:21px;line-height:1.2;margin:3px 0 6px}
+.cc132-head p{margin:0;color:#aabbd1;font-size:12px}
+.cc132-label{font-size:10px;letter-spacing:.1em;color:#4fe3c7;font-weight:700}
+.cc132-exports{display:flex;gap:8px}
+.cc132-movements button{cursor:pointer;border:1px solid #45617f;color:#e5f3ff;border-radius:8px;padding:9px 12px;background:#102031;font-size:12px;font-weight:650}
+.cc132-movements button:hover:not(:disabled){background:#14354a;border-color:#46bfd3}
+.cc132-movements button:disabled{opacity:.45;cursor:not-allowed}
+.cc132-tools{display:grid;grid-template-columns:minmax(150px,2fr) minmax(130px,1fr) minmax(100px,0.65fr) auto;align-items:end;gap:10px;margin-bottom:16px}
+.cc132-tools label{display:grid;gap:6px;font-size:11px;color:#bfd0e6}
+.cc132-tools input,.cc132-tools select{width:100%;min-height:38px;box-sizing:border-box;border:1px solid #45617f;border-radius:7px;padding:8px 10px;background:#071321;color:#effcff;font-size:13px}
+.cc132-tools input:focus,.cc132-tools select:focus{outline:2px solid #17ccdc;outline-offset:2px}
+.cc132-total{font-size:11px;color:#a8bdd3;margin:0 0 7px}
+.cc132-table-wrap{overflow-x:auto;border:1px solid #253f5a;border-radius:9px}
+.cc132-table{width:100%;border-collapse:collapse;text-align:left;min-width:740px;font-size:12px}
+.cc132-table thead{background:#15253a;color:#bad4e8}
+.cc132-table th,.cc132-table td{padding:12px 10px;border-bottom:1px solid #28394d;vertical-align:middle}
+.cc132-table th{font-size:11px;font-weight:650}
+.cc132-table td:last-child{max-width:430px;overflow-wrap:anywhere;line-height:1.45}
+.cc132-table td:last-child small{display:block;color:#7c99b4;margin-top:4px;font-size:10px;overflow-wrap:anywhere}
+.cc132-table tbody tr:last-child td{border-bottom:0}
+.cc132-table tbody tr:hover{background:#14253a}
+.cc132-positive{color:#32e3b2;font-weight:750;white-space:nowrap}
+.cc132-negative{color:#ff6b77;font-weight:750;white-space:nowrap}
+.cc132-unconfirmed{color:#9ab6c5;font-weight:650;white-space:nowrap}
+.cc132-chip{border:1px solid #334e69;color:#d1e6fb;border-radius:999px;padding:3px 7px;white-space:nowrap}
+.cc132-pill{display:inline-block;border-radius:999px;font-size:10px;font-weight:750;padding:4px 8px;white-space:nowrap}
+.cc132-ok{background:#096b4f;color:#baffdc}
+.cc132-pending{background:#554015;color:#ffefb5}
+.cc132-stopped{background:#5e2737;color:#ffe1e5}
+.cc132-empty{text-align:center;padding:35px!important;color:#9db9cc}
+.cc132-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;flex-wrap:wrap}
+.cc132-bottom>span{color:#a7bbd4;font-size:11px}
+.cc132-pages{display:flex;align-items:center;gap:9px}
+.cc132-pages span{font-size:11px;color:#aec7dc}
+.cc132-note{display:block;color:#a7bace;font-size:10px;margin-top:14px;line-height:1.6}
+#cc132jump{margin:0 0 13px;max-width:max-content;padding:9px 12px;border:1px solid #218eb0;border-radius:9px;background:#113347;color:#dafff6;cursor:pointer;font-weight:650}
+.cc132-print-sheet{display:none}
+@media(max-width:740px){.cc132-movements{padding:14px}.cc132-tools{grid-template-columns:1fr 1fr}.cc132-tools label:first-child{grid-column:1/-1}.cc132-head h3{font-size:19px}}
+@media(max-width:420px){.cc132-tools{grid-template-columns:1fr}.cc132-tools label:first-child{grid-column:1}.cc132-tools>button{width:100%}}
+@media print{
+ body *{visibility:hidden!important}
+ body>.cc132-print-sheet,body>.cc132-print-sheet *{visibility:visible!important}
+ body>.cc132-print-sheet{display:block!important;position:absolute;left:0;top:0;width:100%;box-sizing:border-box;padding:12mm;color:#111;background:white;font-family:Arial,sans-serif}
+ .cc132-print-sheet h1{font-size:16pt;margin:0 0 5mm}
+ .cc132-print-sheet p{font-size:9pt;margin:0 0 6mm}
+ .cc132-print-sheet table{border-collapse:collapse;width:100%;font-size:8pt}
+ .cc132-print-sheet th,.cc132-print-sheet td{border:1px solid #aaa;padding:5px;vertical-align:top;overflow-wrap:anywhere}
+ .cc132-print-sheet tr{break-inside:avoid}
+ @page{size:A4 landscape;margin:10mm}
+}
