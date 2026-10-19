@@ -134,6 +134,26 @@ function ensureAdmin(){
   'Las solicitudes no representan dinero recibido.</p><p id="cc136adminStatus" role="status"></p>'+
   '<div id="cc136adminList"></div><button id="cc136adminRefresh" type="button">↻ Actualizar solicitudes</button>';
  sec.after(admin);$('cc136adminRefresh').addEventListener('click',()=>void adminList());
+ const bonus=document.createElement('section');bonus.className='cc136manual cc132-movements';bonus.id='cc143bonus';
+ bonus.innerHTML='<h3>ADMIN · Bono de activación COBRA YA</h3>'+
+ '<p>Este bono gratuito solo activa COBRA YA. No cuenta como recarga pagada, no se transfiere y no genera comisión de referido.</p>'+
+ '<div class="cc136form"><label>Correo del RESELLER<input type="email" id="cc143email" autocomplete="off" placeholder="correo@ejemplo.com"></label>'+
+ '<label>Importe promocional (S/)<input type="number" id="cc143amount" min="0.01" max="1000" step="0.01" value="15"></label>'+
+ '<label>Motivo<input id="cc143reason" maxlength="180" value="Bono de bienvenida gratuito"></label></div>'+
+ '<button type="button" id="cc143grant">Asignar bono restringido</button><p id="cc143status" role="status" aria-live="polite"></p>';
+ admin.after(bonus);
+ $('cc143grant').addEventListener('click',async()=>{
+  const button=$('cc143grant'),email=$('cc143email').value.trim(),amount=Number($('cc143amount').value),reason=$('cc143reason').value.trim();
+  if(!email.includes('@')||!Number.isFinite(amount)||amount<=0||amount>1000||reason.length<5){$('cc143status').textContent='Revisa el correo, monto y motivo.';return;}
+  if(!confirm('¿Asignar bono de '+money(amount)+' a '+email+' exclusivamente para activar COBRA YA? No se podrá transferir.'))return;
+  button.disabled=true;$('cc143status').textContent='Registrando bono...';
+  try{
+   const ref=crypto.randomUUID();
+   const balance=await api('rpc/cc_admin_grant_welcome_balance',{p_recipient_email:email,p_service:'COBRA_YA',p_amount_pen:amount,p_request_id:ref,p_reason:reason});
+   $('cc143status').textContent='Bono acreditado correctamente. Saldo promocional disponible: '+money(balance)+'. Referencia: '+ref;
+  }catch(e){$('cc143status').textContent='No se acreditó: '+String(e.message||e);}
+  finally{button.disabled=false;}
+ });
 }
 async function adminList(){
  ensureAdmin();
