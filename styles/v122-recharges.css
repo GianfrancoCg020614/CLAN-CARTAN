@@ -45,3 +45,10 @@
 .cc131-history-row strong{color:#85dfe0;white-space:nowrap}
 .cc131-disclaimer{margin-top:16px;font-size:11px;color:#adc5d0}
 @media(max-width:520px){.cc131-fields{display:block}.cc131-footer{justify-content:stretch}.cc131-footer button{flex:1}.cc131-recharges{padding:14px!important}}
+
+/* QR Lemon DALE publicado como referencia; no activa acreditación */
+.cc138-dale-qr{margin:16px auto;padding:16px 12px;max-width:420px;text-align:center;background:#112634;border:1px solid #35536c;border-radius:14px}
+.cc138-dale-qr[hidden]{display:none!important}
+.cc138-dale-qr figcaption{display:flex;flex-direction:column;gap:4px;margin:0 0 10px;font-size:13px}
+.cc138-dale-qr img{display:block;width:min(100%,340px);height:auto;margin:0 auto;padding:10px;background:#fff;border-radius:12px;box-sizing:border-box}
+.cc138-dale-qr p{font-size:12px;line-height:1.45;color:#ffce8e;margin:12px auto 0;max-width:340px}
