@@ -1,4 +1,4 @@
-name: Publicar V145 en portal CLAN CARTAN
+name: Publicar V147 en portal CLAN CARTAN
 on:
   push:
     branches: [main]
@@ -29,13 +29,15 @@ jobs:
           node --check scripts/v145-commerce-guard.js
           node --check scripts/v136-manual-recharges.js
           node --check scripts/v127-wallet-switch.js
+          node --check scripts/v146-personal-manual-topups.js
       - name: Aplicar cambios de portada V145
         run: node scripts/patch-v145-production.mjs
       - name: Verificar módulo en el HTML
         run: |
-          grep -Fq 'content="V146-20261019"' index.html
+          grep -Fq 'content="V147-20261019"' index.html
           grep -Fq 'scripts/v145-cobra-access.js?v=145' index.html
           grep -Fq 'scripts/v145-commerce-guard.js?v=145b' index.html
+          grep -Fq 'scripts/v146-personal-manual-topups.js?v=147' index.html
       - name: Guardar index.html en main si cambió
         run: |
           set -euo pipefail
@@ -46,6 +48,6 @@ jobs:
           git config user.name "clan-cartan-ci[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "V145: incorporar activación real, bono aislado y presentación comercial"
+          git commit -m "V147: publicar QR compartidos y mantener acreditación manual"
           git pull --rebase origin main
           git push origin HEAD:main
