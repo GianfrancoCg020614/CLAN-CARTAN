@@ -4,7 +4,11 @@ const file='index.html';
 let html=fs.readFileSync(file,'utf8');
 function replace(oldText,newText){
  if(html.includes(newText))return;
- if(!html.includes(oldText))throw Error('Marcador de integración no encontrado: '+oldText.slice(0,70));
+ if(!html.includes(oldText)){
+   if(oldText.includes('v127-wallet-switch.js?v=127b')&&html.includes('v145-cobra-access.js'))return;
+   if(oldText.includes('v136-manual-recharges.js?v=137')&&html.includes('v136-manual-recharges.js?v=145'))return;
+   throw Error('Marcador de integración no encontrado: '+oldText.slice(0,70));
+ }
  html=html.replace(oldText,newText);
 }
 replace('content="V142-20261019"','content="V145-20261019"');
