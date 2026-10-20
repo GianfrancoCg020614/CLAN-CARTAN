@@ -33,9 +33,9 @@ jobs:
         run: node scripts/patch-v145-production.mjs
       - name: Verificar módulo en el HTML
         run: |
-          grep -Fq 'content="V145-20261019"' index.html
+          grep -Fq 'content="V146-20261019"' index.html
           grep -Fq 'scripts/v145-cobra-access.js?v=145' index.html
-          grep -Fq 'scripts/v145-commerce-guard.js?v=145' index.html
+          grep -Fq 'scripts/v145-commerce-guard.js?v=145b' index.html
       - name: Guardar index.html en main si cambió
         run: |
           set -euo pipefail
