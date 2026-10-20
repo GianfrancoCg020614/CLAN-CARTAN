@@ -139,6 +139,26 @@ window.cc119EditClient=function(client,refresh,notice){
  });
  name.focus({preventScroll:true});
 };
+// V149: mantener un solo formulario emergente y situar la autorización junto al DNI.
+function simplifyNewClientDialog(){
+ const modal=byId('cc119newClientModal'),dni=byId('cy105dni'),status=byId('cy105dniStatus');
+ const consent=byId('cy106consent');
+ if(!modal||!dni||!status||!consent||modal.dataset.dniSimplified==='yes')return;
+ const consentLabel=consent.closest('label');
+ // El motor V105 ya consulta automáticamente al completar 8 dígitos con autorización.
+ // Solo reorganizamos el formulario: no creamos una segunda consulta ni consumimos cupos.
+ if(consentLabel){status.after(consentLabel);consentLabel.classList.add('cc149-consent-near-dni');}
+ const repeated=modal.querySelector('.cc119-manual-note');
+ if(repeated)repeated.remove();
+ const intro=modal.querySelector('.cy105note');
+ if(intro)intro.textContent='DNI de 8 dígitos + autorización: el nombre se completará automáticamente cuando API Perú responda. Si no hay cupo, ingrésalo manualmente.';
+ const label=dni.closest('label');
+ if(label&&label.firstChild?.nodeType===Node.TEXT_NODE)label.firstChild.textContent='DNI peruano (8 dígitos) u otro documento:';
+ modal.dataset.dniSimplified='yes';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',simplifyNewClientDialog);
+else simplifyNewClientDialog();
+
 document.addEventListener('keydown',event=>{
  if(event.key!=='Escape')return;
  if(byId('cc119editModal'))closeEdit();
