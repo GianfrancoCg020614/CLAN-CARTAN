@@ -5,6 +5,12 @@ let html=fs.readFileSync(file,'utf8');
 function replace(oldText,newText){
  if(html.includes(newText))return;
  if(!html.includes(oldText)){
+   const current=Number((html.match(/name="cc-deploy-version" content="V([0-9]+)-/)||[])[1]||0);
+   const old=Number((oldText.match(/content="V([0-9]+)-/)||[])[1]||0);
+   if(old&&current>old)return;
+   if(oldText.includes('scripts/v146-personal-manual-topups.js?v=146')&&html.includes('scripts/v146-personal-manual-topups.js?v=147'))return;
+   if(oldText.includes('scripts/v122-recharges.js?v=136')&&html.includes('scripts/v122-recharges.js?v=147'))return;
+   if(oldText.includes('scripts/v136-manual-recharges.js?v=145b')&&html.includes('scripts/v136-manual-recharges.js?v=147'))return;
    if(oldText.includes('content="V142-20261019"')&&/content="V14[5-9]-20261019"/.test(html))return;
    if(oldText.includes('scripts/v136-manual-recharges.js?v=145')&&/scripts\/v136-manual-recharges\.js\?v=14[5-9]/.test(html))return;
    if(oldText.includes('v127-wallet-switch.js?v=127b')&&html.includes('v145-cobra-access.js'))return;
