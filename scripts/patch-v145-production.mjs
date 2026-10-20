@@ -44,6 +44,8 @@ replace('content="V147-20261019"','content="V148-20261020"');
 replace('<script src="scripts/v146-personal-manual-topups.js?v=147"></script>',
 '<script src="scripts/v146-personal-manual-topups.js?v=147"></script>\\n<script src="scripts/v148-manual-whatsapp.js?v=148"></script>');
 html=html.replace(/(<\/script>)\\n(?=<script src="scripts\/v148-manual-whatsapp)/g,'$1\n');
+// V149: actualizar la ventana de cliente sin duplicar formularios ni consultar DNI extra.
+replace('scripts/v119-clients.js?v=123','scripts/v119-clients.js?v=149');
 const style=`<style id="cc145-production-ui">
 /* V145: ocultar acciones de saldo de prueba heredadas. No borrar datos. */
 #cc80wallet > .cc80balances,
