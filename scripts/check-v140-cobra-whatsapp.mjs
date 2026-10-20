@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-assert.match(html, /content="V146-20261019"/);
+assert.match(html, /content="V147-20261019"/);
 const start=html.indexOf('<script>',html.indexOf('id="cy63detail"'));
 const end=html.indexOf('</script>',start);
 assert.ok(start>0&&end>start,'Script COBRA YA no encontrado');
