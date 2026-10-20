@@ -7,7 +7,7 @@ function replace(oldText,newText){
  if(!html.includes(oldText)){
    if(oldText.includes('content="V142-20261019"')&&/content="V14[5-9]-20261019"/.test(html))return;
    if(oldText.includes('v127-wallet-switch.js?v=127b')&&html.includes('v145-cobra-access.js'))return;
-   if(oldText.includes('v136-manual-recharges.js?v=137')&&html.includes('v136-manual-recharges.js?v=145'))return;
+   if(oldText.includes('v136-manual-recharges.js?v=137')&&/v136-manual-recharges\.js\?v=14[5-9]/.test(html))return;
    throw Error('Marcador de integración no encontrado: '+oldText.slice(0,70));
  }
  html=html.replace(oldText,newText);
