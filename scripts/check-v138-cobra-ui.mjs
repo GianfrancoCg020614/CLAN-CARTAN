@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-assert.match(html, /<meta name="cc-deploy-version" content="V146-20261019">/);
+assert.match(html, /<meta name="cc-deploy-version" content="V147-20261019">/);
 const begin=html.indexOf('<script>',html.indexOf('id="cy63detail"'));
 assert.ok(begin>0,'Script de COBRA YA ausente');
 const end=html.indexOf('</script>',begin);
