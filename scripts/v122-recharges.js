@@ -27,18 +27,18 @@ function render(){
  button.disabled=!okay;
  button.textContent=creating?'Preparando orden…':method==='LEMON_DALE'?'Continuar al QR':'Continuar a Binance Pay';
  const description=el('cc122payinfo');
- const qrReference=el('cc138daleQr');if(qrReference)qrReference.hidden=method!=='LEMON_DALE';
+ const qrReference=el('cc138daleQr');if(qrReference)qrReference.hidden=true; // V147 enseña los QR compartidos.
  if(method==='LEMON_DALE'){
    description.textContent=enabled
     ?'Introduce el nombre de la cuenta desde la que pagarás. El QR y el plazo solo aparecen al crear una orden verificable.'
-    :'El QR publicado es de Lemon Cash y Yape puede no reconocerlo. No hay confirmación automática de depósitos conectada a CLAN CARTAN: no envíes dinero para recargar.';
+    :'Usa el QR Lemon / DALE mostrado y confirma primero el titular. Por ahora el ADMIN verifica y acredita manualmente cada pago recibido.';
  }else{
    description.textContent=enabled
     ?'Binance Merchant mostrará el importe PEN y su equivalente USDT antes de confirmar.'
-    :'Binance Pay Merchant sigue pendiente de habilitación. El QR personal no acredita recargas.';
+    :'Binance Merchant automático sigue pendiente. El mismo QR personal de Binance aparece abajo y todo pago recibido se acredita manualmente tras verificación del ADMIN.';
  }
  const status=el('cc122status');
- if(!enabled)status.textContent='No envíes fondos: aún no podemos acreditar pagos automáticamente.';
+ if(!enabled)status.textContent='Modo temporal: QR disponibles. Confirma el destinatario y comunica tu referencia de pago al ADMIN para acreditación manual.';
  else if(!validName)status.textContent='Escribe nombres y apellidos completos del titular de la cuenta de pago.';
  else if(!validAmount)status.textContent='Ingresa un monto válido entre S/1 y S/'+limit+'.';
  else if(!session()?.jwt)status.textContent='Inicia sesión para recargar.';
@@ -140,7 +140,7 @@ function mount(){
  root.id='cc122section';root.className='cc122-pay cc131-recharges';
  root.innerHTML=
  '<div class="cc131-heading"><span class="cc131-icon" aria-hidden="true">▦</span><div><h3>Recarga automática</h3>'+
- '<p>Recarga COBRA YA o STREAM BULL’S. Sin aprobación manual.</p></div></div>'+
+ '<p>Ambos QR disponibles. Los pagos se acreditan manualmente por ADMIN hasta habilitar la automatización.</p></div></div>'+
  '<div id="cc123realBalances" class="cc131-balance">Saldo real: inicia sesión para consultar.</div>'+
  '<div class="cc131-instructions"><strong>Cómo funciona</strong><ol>'+
  '<li>Escribe el nombre completo que figura en tu cuenta de pago.</li>'+
@@ -167,8 +167,8 @@ function mount(){
  '<div id="cc131checkout" class="cc131-checkout" role="status"></div>'+
  '<details class="cc131-historical"><summary>Mis solicitudes recientes</summary>'+
  '<div id="cc131history">Consulta tu historial al iniciar sesión.</div></details>'+
- '<small class="cc131-disclaimer">La recarga manual requiere revisión del ADMIN y cuenta comercial autorizada. Sin retiros ni transferencias entre usuarios. '+
- 'Nunca pagues mediante QR personal mientras la confirmación automática no esté operativa.</small>';
+ '<small class="cc131-disclaimer">Durante esta etapa, todas las recargas requieren revisión del ADMIN y confirmación del dinero recibido. Sin retiros ni transferencias entre usuarios. '+
+ 'La integración automática se mantiene para activarse posteriormente.</small>';
  host.appendChild(root);
  const change=()=>{
   receipt=null;el('cc131checkout').replaceChildren();render();
