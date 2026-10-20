@@ -19,7 +19,7 @@ for(const token of ['cc_manual_recharge_requests','cc_submit_manual_recharge','c
  'for update','auth.uid()','cc_admins','p_confirmed_received','bank_transaction_id text unique']){
  assert.ok(sql.includes(token),'Falta SQL '+token);
 }
-assert.ok(html.includes('scripts/v136-manual-recharges.js?v=145'));
+assert.ok(html.includes('scripts/v136-manual-recharges.js?v=147'));
 assert.ok(html.includes('styles/v136-manual-recharges.css?v=137'));
 assert.ok(html.includes('scripts/v122-recharges.js?v=136'));
 assert.ok(css.includes('.cc136manual'));
@@ -32,4 +32,13 @@ assert.ok(js.includes("navigator.clipboard.writeText"),"V137: copiar número aus
 assert.ok(html.includes('<details class="cy105advanced" open><summary>Moneda y garantía (opcional)</summary>'),"V137: garantía opcional debe estar visible");
 assert.ok(html.includes('name="collateral"')&&html.includes('¿Qué dejó en garantía? (opcional)'),"V137: descripción de garantía no disponible");
 assert.ok(html.includes('content="V147-20261019"'));
+
+const qrShared=readFileSync(new URL('v146-personal-manual-topups.js',import.meta.url),'utf8');
+assert.ok(qrShared.includes("renderSharedQr('cc147manualQr'"),'QR manual no visible');
+assert.ok(qrShared.includes("renderSharedQr('cc147autoQr'"),'QR automático no visible');
+assert.ok(qrShared.includes('assets/qr-dale-gianfranco.svg')&&qrShared.includes('assets/qr-binance-personal.png'),'QR compartidos ausentes');
+assert.ok(qrShared.includes('1276635702'),'ID Binance incorrecto');
+assert.ok(html.includes('scripts/v146-personal-manual-topups.js?v=147'),'Script V147 no cargado');
+const qrPng=readFileSync(new URL('../assets/qr-binance-personal.png',import.meta.url));
+assert.equal(qrPng.subarray(0,8).toString('hex'),'89504e470d0a1a0a','QR Binance no es PNG');
 console.log('V136: controles manuales con cola ADMIN y confirmación explícita, sin QR personal.');
