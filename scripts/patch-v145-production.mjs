@@ -26,6 +26,12 @@ replace('scripts/v136-manual-recharges.js?v=145','scripts/v136-manual-recharges.
 replace('content="V145-20261019"','content="V146-20261019"');
 replace('<script src="scripts/v145-commerce-guard.js?v=145b"></script>',
 '<script src="scripts/v145-commerce-guard.js?v=145b"></script>\\n<script src="scripts/v146-personal-manual-topups.js?v=146"></script>');
+replace('content="V146-20261019"','content="V147-20261019"');
+replace('scripts/v146-personal-manual-topups.js?v=146','scripts/v146-personal-manual-topups.js?v=147');
+replace('scripts/v122-recharges.js?v=136','scripts/v122-recharges.js?v=147');
+replace('scripts/v136-manual-recharges.js?v=145b','scripts/v136-manual-recharges.js?v=147');
+// Reparar secuencia literal backslash+n que dejó la carga anterior, si existiera.
+html=html.replace(/(<\/script>)\\n(?=<script src="scripts\/v146-personal-manual-topups)/g,'$1\n');
 const style=`<style id="cc145-production-ui">
 /* V145: ocultar acciones de saldo de prueba heredadas. No borrar datos. */
 #cc80wallet > .cc80balances,
