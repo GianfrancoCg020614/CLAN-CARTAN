@@ -46,8 +46,8 @@ function renderReady(){
   catch{copy.textContent='Número: 923319637';}
  });details.append(copy);pane.append(details);
  if(!readiness.enabled){
-  text(pane,'p','El QR Lemon para recargas comerciales todavía NO está habilitado. '+(readiness.message||'No envíes dinero.'));
-  text(pane,'small','Solo se pueden registrar solicitudes pendientes. Número DALE mostrado como referencia del titular, NO como instrucción de pago.');
+  text(pane,'p','El QR personal Lemon/DALE está disponible abajo. La conciliación automática todavía no está habilitada; el ADMIN acreditará solo depósitos realmente comprobados.');
+  text(pane,'small','Antes de pagar verifica el destinatario del QR y consulta el método de pago con ADMIN. Comunica la referencia real para acreditación manual.');
   return;
  }
  text(pane,'strong','Método de recaudación habilitado');
@@ -73,7 +73,7 @@ async function submit(){
   message('Indica billetera y monto válido de S/1 a S/1000.');return;
  }
  if(name.length<5||!name.includes(' ')){message('Escribe nombres y apellidos del depositante.');return;}
- if(!readiness.enabled && !confirm('La cuenta Lemon comercial NO está habilitada. Se registrará únicamente una solicitud pendiente. NO envíes dinero. ¿Continuar?'))return;
+ if(!readiness.enabled && !confirm('La acreditación automática aún está pendiente. Se registrará una solicitud informativa; el ADMIN deberá comprobar el pago antes de acreditar. ¿Continuar?'))return;
  saving=true;$('cc136submit').disabled=true;
  try{
   const id=await api('rpc/cc_submit_manual_recharge',{
@@ -81,7 +81,7 @@ async function submit(){
   });
   if(!id)throw Error('No se obtuvo identificador de solicitud');
   message('Solicitud '+String(id).slice(0,8)+' registrada. '+(readiness.enabled
-   ?'Si ya pagaste, espera la verificación del ADMIN.':'NO envíes dinero: aún no hay cuenta Lemon comercial habilitada.'));
+   ?'Si ya pagaste, espera la verificación del ADMIN.':'Comunica al ADMIN el pago y su referencia verificada. Esta solicitud no acredita saldo.'));
   $('cc136ref').value='';
   await history();await adminList();
  }catch(e){message('No se pudo registrar: '+String(e.message||e));}
