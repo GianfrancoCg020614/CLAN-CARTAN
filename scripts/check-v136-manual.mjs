@@ -21,7 +21,7 @@ for(const token of ['cc_manual_recharge_requests','cc_submit_manual_recharge','c
 }
 assert.ok(html.includes('scripts/v136-manual-recharges.js?v=147'));
 assert.ok(html.includes('styles/v136-manual-recharges.css?v=137'));
-assert.ok(html.includes('scripts/v122-recharges.js?v=136'));
+assert.ok(html.includes('scripts/v122-recharges.js?v=147'));
 assert.ok(css.includes('.cc136manual'));
 assert.ok(base.includes('LEMON_DALE:false,BINANCE:false'));
 assert.ok(base.includes('cc136goManual'));
@@ -41,4 +41,4 @@ assert.ok(qrShared.includes('1276635702'),'ID Binance incorrecto');
 assert.ok(html.includes('scripts/v146-personal-manual-topups.js?v=147'),'Script V147 no cargado');
 const qrPng=readFileSync(new URL('../assets/qr-binance-personal.png',import.meta.url));
 assert.equal(qrPng.subarray(0,8).toString('hex'),'89504e470d0a1a0a','QR Binance no es PNG');
-console.log('V136: controles manuales con cola ADMIN y confirmación explícita, sin QR personal.');
+console.log('V136: controles manuales con cola ADMIN y confirmación explícita, con QR personales compartidos; siempre verifica ADMIN.');
