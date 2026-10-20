@@ -10,24 +10,33 @@ let saving=false;
 function install(){
  const wallet=get('cc80wallet'),existing=get('cc136manual');
  if(!wallet||!existing)return;
- if(!get('cc146binance')){
-  const box=document.createElement('section');box.id='cc146binance';box.className='cc136manual cc132-movements';
-  box.innerHTML='<h3>BINANCE · Recarga con comprobación manual</h3>'+
-   '<p>La transferencia se realiza a la cuenta indicada en el QR personal. El saldo no se acredita automáticamente: el ADMIN primero confirma el abono y su referencia real. Esta opción es distinta de Binance Merchant.</p>'+
-   '<div id="cc146qrWrap" style="display:none;text-align:center"><img id="cc146qr" src="assets/qr-binance-personal.png" alt="QR personal de Binance Pay" loading="lazy" style="max-width:260px;width:100%;height:auto;border-radius:16px"></div>'+
-   '<p id="cc146qrState" role="status">Comprobando disponibilidad del QR personal…</p>'+
-   '<small>Para pagos en USDT, consulta el equivalente en soles con ADMIN antes de transferir. Nunca se acredita dinero por capturas ni referencias sin cotejo.</small>';
-  existing.after(box);
-  const qr=get('cc146qr');qr.addEventListener('load',()=>{
-   get('cc146qrWrap').style.display='block';
-   get('cc146qrState').textContent='Verifica que el destinatario del QR corresponda a tu prestador antes de efectuar el pago. Comunica la referencia al ADMIN.';
-  });
-  qr.addEventListener('error',()=>{
-   get('cc146qrWrap').style.display='none';
-   get('cc146qrState').textContent='El QR personal de Binance aún no está cargado. No envíes fondos hasta que aparezca un destinatario confirmado.';
-  });
-  if(qr.complete){if(qr.naturalWidth>0)get('cc146qrWrap').style.display='block';
-    else get('cc146qrState').textContent='QR Binance pendiente: no envíes dinero hasta su publicación.';}
+ // Ambos apartados utilizan los mismos QR personales, sin interferir con la integración automática futura.
+ function renderSharedQr(id,title,details){
+  const box=document.createElement('section');
+  box.id=id;box.className='cc136manual cc132-movements cc147-shared-qr';
+  box.innerHTML='<h3>'+title+'</h3>'+
+   '<p>'+details+'</p>'+
+   '<div class="cc147-qr-grid" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center">'+
+   '<figure style="flex:1 1 230px;max-width:350px;margin:0;text-align:center"><strong>LEMON / DALE · PEN</strong>'+
+   '<img src="assets/qr-dale-gianfranco.svg" loading="lazy" alt="Código QR personal de Lemon Cash" style="display:block;width:min(100%,260px);height:auto;margin:12px auto;image-rendering:auto;background:white;padding:8px;border-radius:12px">'+
+   '<figcaption>Número DALE: <strong>923319637</strong>. Confirma el titular en tu aplicación antes de pagar.</figcaption></figure>'+
+   '<figure style="flex:1 1 230px;max-width:350px;margin:0;text-align:center"><strong>BINANCE PAY · CUENTA PERSONAL</strong>'+
+   '<img src="assets/qr-binance-personal.png?v=147" loading="lazy" alt="Código QR de Binance Pay personal correspondiente al usuario User-f81cdb6a" style="display:block;width:min(100%,260px);height:auto;margin:12px auto;image-rendering:pixelated;background:white;padding:8px;border-radius:12px">'+
+   '<figcaption>Usuario: <strong>User-f81cdb6a</strong><br>ID Binance: <strong>1276635702</strong><br>'+
+   '<a href="https://app.binance.com/uni-qr/812BvNys" target="_blank" rel="noopener noreferrer">Abrir pago en Binance</a></figcaption></figure></div>'+
+   '<p><strong>Confirmación manual:</strong> informa tu pago y la referencia al ADMIN. El saldo interno se acredita únicamente después de que el ADMIN constate el ingreso real. No hay acreditación automática por usar estos QR.</p>';
+  return box;
+ }
+ if(!get('cc147manualQr')){
+  const manual=renderSharedQr('cc147manualQr','QR para recarga manual','Selecciona el medio donde realmente pagarás. Ambos QR son del titular y se verifican manualmente.');
+  existing.after(manual);
+ }
+ const automatic=get('cc122section');
+ if(automatic&&!get('cc147autoQr')){
+  const future=renderSharedQr('cc147autoQr','QR para recarga automática · verificación manual temporal','La conexión automática se conserva para más adelante. Por ahora, si pagas mediante uno de estos QR, ADMIN verificará el ingreso y acreditará manualmente.');
+  const area=get('cc122payinfo');
+  if(area)area.after(future);
+  else automatic.appendChild(future);
  }
  if(!sess()?.jwt||!sess()?.isAdmin||get('cc146admin'))return;
  const pane=document.createElement('section');pane.id='cc146admin';pane.className='cc136manual cc132-movements';
