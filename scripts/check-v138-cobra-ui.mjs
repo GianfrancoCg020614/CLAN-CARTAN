@@ -8,6 +8,7 @@ const begin=html.indexOf('<script>',html.indexOf('id="cy63detail"'));
 assert.ok(begin>0,'Script de COBRA YA ausente');
 const end=html.indexOf('</script>',begin);
 const js=html.slice(begin+8,end);
+assert.ok(js.includes("node.innerHTML+'</body></html>'"),'Cronograma imprimible alterado');
 new Script(js,{filename:'inline-cobra-v138.js'});
 for(const token of ['cy138-card-buttons','class="cy138-card"','cy138-paid','cy71new','cy138-actions-menu','class="cy69edit"','class="cy53pay"','class="cy65extend"','class="cy68notify"','class="cy71close"','class="cy63view cy138-view"']){
  assert.ok(js.includes(token),'Falta acción preservada: '+token);
