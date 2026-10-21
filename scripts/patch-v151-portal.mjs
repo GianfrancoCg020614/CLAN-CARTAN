@@ -47,7 +47,7 @@ html=html.replaceAll('Los precios indicados son reglas del piloto y deben actual
 // Conservar la última referencia (la de versión más reciente).
 const unique=new Set(['v119-clients.js','v136-manual-recharges.js','v146-personal-manual-topups.js','v148-manual-whatsapp.js','v150-dni-admin.js','v151-portal-polish.js']);
 const best=new Map();
-const scriptMatcher=/<script src="scripts\\/(v[0-9]+-[a-z0-9-]+\\.js)\\?v=([0-9]+)"><\\/script>\\s*/g;
+const scriptMatcher=new RegExp('<script src="scripts/(v[0-9]+-[a-z0-9-]+[.]js)[?]v=([0-9]+)"></script>[ ]*','g');
 for(const [,name,version] of html.matchAll(scriptMatcher)){
  if(unique.has(name))best.set(name,Math.max(best.get(name)||0,Number(version)));
 }
