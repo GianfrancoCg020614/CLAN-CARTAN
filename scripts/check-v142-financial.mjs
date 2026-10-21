@@ -12,7 +12,7 @@ const js=read('scripts/v142-financial-audit.js');
 const css=read('styles/v142-financial-audit.css');
 const html=read('index.html');
 new Script(js,{filename:'v142-financial-audit.js'});
-assert.match(html,/content="V150-20261020"/);
+assert.match(html,/content="V151-20261020"/);
 assert.ok(html.includes('scripts/v142-financial-audit.js?v=142'));
 assert.ok(html.includes('styles/v142-financial-audit.css?v=142'));
 for(const phrase of [
