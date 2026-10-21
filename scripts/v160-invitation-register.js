@@ -34,7 +34,7 @@ function activateSharedCurrency(){
  if(document.getElementById('cc161-unified-currency-loader'))return;
  const script=document.createElement('script');
  script.id='cc161-unified-currency-loader';
- script.src='scripts/shared-currency-selector.js?v=161';
+ script.src='scripts/shared-currency-selector.js?v=162';
  script.onload=()=>{
   let mounting=false;
   function mount(){
