@@ -5,7 +5,7 @@ const flags=fs.readFileSync('scripts/v161-global-currency-flags.js','utf8');
 const settings=fs.readFileSync('scripts/v161-marketing-account.js','utf8');
 const migration=fs.readFileSync('supabase/migrations/20261021110000_v161_marketing_optin_audit.sql','utf8');
 const test=(s,v)=>assert.ok(s.includes(v),'Required '+v);
-test(html,'content="V161-20261021"');
+assert.match(html,/content="V(?:161|162)-20261021"/);
 test(html,'id="cc161-marketing"');
 test(html,'Yo autorizo comunicaciones publicitarias');
 test(html,"marketing_consent:document.getElementById('cc161-marketing').checked");
