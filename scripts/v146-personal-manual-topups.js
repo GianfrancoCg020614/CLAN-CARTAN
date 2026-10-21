@@ -40,12 +40,12 @@ function install(){
  }
  if(!sess()?.jwt||!sess()?.isAdmin||get('cc146admin'))return;
  const pane=document.createElement('section');pane.id='cc146admin';pane.className='cc136manual cc132-movements';
- pane.innerHTML='<h3>ADMIN · Acreditar recarga personal comprobada</h3>'+
- '<p>Utiliza esta función solo después de comprobar el movimiento recibido directamente en la cuenta Lemon/DALE o Binance. Nunca acredites a partir de una simple captura del cliente.</p>'+
+ pane.innerHTML='<h3>ADMIN · Acreditar pago Lemon/DALE comprobado</h3>'+
+ '<p>Este formulario acredita solo Lemon/DALE ya comprobado. Las liquidaciones USDT de Binance requieren el formulario protegido de V156 y la autorización comercial.</p>'+
  '<div class="cc136form">'+
  '<label>Correo del destinatario<input type="email" id="cc146email" autocomplete="off" placeholder="Correo confirmado"></label>'+
  '<label>Negocio<select id="cc146service"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option></select></label>'+
- '<label>Cuenta que recibió el pago<select id="cc146provider"><option value="BINANCE_PERSONAL">Binance personal · USDT</option><option value="LEMON_DALE_PERSONAL">Lemon / DALE personal · PEN</option></select></label>'+
+ '<label>Cuenta que recibió el pago<select id="cc146provider"><option value="LEMON_DALE_PERSONAL">Lemon / DALE personal · PEN</option></select></label>'+
  '<label id="cc146amountLabel">Importe confirmado recibido (USDT)<input type="number" id="cc146amount" min="0.00000001" max="1000" step="any" inputmode="decimal"></label>'+
  '<label id="cc146rateLabel">Tipo de cambio PEN por USDT<input type="number" id="cc146rate" min="1" max="15" step="0.000001" inputmode="decimal" placeholder="Tasa real comprobada"></label>'+
  '<label>ID único de transacción verificada<input id="cc146tx" maxlength="120" autocomplete="off" placeholder="Referencia del movimiento original"></label>'+
