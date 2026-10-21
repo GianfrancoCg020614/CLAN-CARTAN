@@ -61,6 +61,9 @@ html=html.replace(scriptMatcher,(tag,name,version)=>{
  if(Number(version)!==best.get(name)||seen.has(name))return '';
  seen.add(name);return tag;
 });
+// Reparar impresión tras la antigua inserción errónea en el HTML de cronogramas.
+html=html.replaceAll("node.innerHTML+'"+String.fromCharCode(10)+"</body></html>'",
+ "node.innerHTML+'</body></html>'");
 // Inyectar antes del CIERRE real del documento; nunca dentro de HTML de cronogramas.
 const newTag='<script src="scripts/v151-portal-polish.js?v=151"></script>';
 html=html.replaceAll(String.fromCharCode(92)+'n'+newTag,newTag);
