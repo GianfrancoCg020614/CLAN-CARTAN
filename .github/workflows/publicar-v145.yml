@@ -1,93 +1,25 @@
-name: Publicar V152 en portal CLAN CARTAN
+name: Auditoría manual del publicador histórico V152
+# Conservado solo para consultar verificaciones, sin modificar ni reescribir index.html.
+# El publicador automático original estaba sobrescribiendo versiones V158–V160 con parches V152.
 on:
-  push:
-    branches: [main]
-    paths:
-      - scripts/patch-v145-production.mjs
-      - scripts/patch-v150-dni.mjs
-      - scripts/patch-v151-portal.mjs
-      - scripts/patch-v152-cobra.mjs
-      - scripts/v152-cobra-fast.js
-      - scripts/v152-admin-reconcile.js
-      - scripts/v156-usdt-quote.js
-      - scripts/v146-personal-manual-topups.js
-      - scripts/v136-manual-recharges.js
-      - scripts/check-v156-usdt.mjs
-      - scripts/check-v152-cobra.mjs
-      - scripts/v151-portal-polish.js
-      - scripts/v148-manual-whatsapp.js
-      - scripts/v150-dni-admin.js
-      - scripts/v119-clients.js
-      - supabase/functions/cc-consulta-dni/index.ts
-      - .github/workflows/publicar-v145.yml
   workflow_dispatch:
 permissions:
-  contents: write
-concurrency:
-  group: publicar-v145
-  cancel-in-progress: false
+  contents: read
 jobs:
-  integrar-portal:
+  auditar-v160:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validar sintaxis de módulos
+      - name: Validar módulos vigentes sin escribir archivos
         run: |
-          node --check scripts/v145-cobra-access.js
-          node --check scripts/v145-commerce-guard.js
-          node --check scripts/v136-manual-recharges.js
           node --check scripts/v127-wallet-switch.js
-          node --check scripts/v146-personal-manual-topups.js
-          node --check scripts/v148-manual-whatsapp.js
-          node --check scripts/v119-clients.js
-          node --check scripts/v150-dni-admin.js
-          node --check scripts/v151-portal-polish.js
-          node --check scripts/patch-v151-portal.mjs
-          node --check scripts/patch-v152-cobra.mjs
-          node --check scripts/v152-cobra-fast.js
-          node --check scripts/v152-admin-reconcile.js
-          node --check scripts/v156-usdt-quote.js
-      - name: Aplicar cambios de portada V145
-        run: node scripts/patch-v145-production.mjs
-      - name: Integrar consulta DNI automática V150
-        run: node scripts/patch-v150-dni.mjs
-      - name: Integrar recarga unificada y corrección de identidad V151
-        run: node scripts/patch-v151-portal.mjs
-      - name: Integrar mejoras COCHERA en COBRA YA V152
-        run: node scripts/patch-v152-cobra.mjs
-      - name: Verificar módulo en el HTML
-        run: |
-          grep -Fq 'content="V152-20261020"' index.html
-          grep -Fq 'scripts/v145-cobra-access.js?v=145' index.html
-          grep -Fq 'scripts/v145-commerce-guard.js?v=145b' index.html
-          grep -Fq 'scripts/v146-personal-manual-topups.js?v=156' index.html
-          grep -Fq 'scripts/v136-manual-recharges.js?v=156' index.html
-          grep -Fq 'scripts/v156-usdt-quote.js?v=156' index.html
-          grep -Fq 'scripts/v148-manual-whatsapp.js?v=148' index.html
-          grep -Fq 'scripts/v150-dni-admin.js?v=150' index.html
-          grep -Fq 'scripts/v151-portal-polish.js?v=151' index.html
-          grep -Fq 'scripts/v152-cobra-fast.js?v=152' index.html
-          grep -Fq 'scripts/v152-admin-reconcile.js?v=152' index.html
-          node scripts/check-v150-dni.mjs
-          node scripts/check-v152-cobra.mjs
-          node scripts/check-v156-usdt.mjs
-      - name: Guardar index.html en main si cambió
-        run: |
-          set -euo pipefail
-          if git diff --quiet -- index.html; then
-            echo "Portal actualizado previamente"
-            exit 0
-          fi
-          git config user.name "clan-cartan-ci[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git commit -m "V152: COBRA YA rápido, búsqueda, alias, historial, WhatsApp y auditoría"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          node --check scripts/v158-mi-cochera.js
+          node --check scripts/v160-invitation-register.js
+          node scripts/check-v159-cobra-and-codes.mjs
+          node scripts/check-v160-referrals-and-brand.mjs
+      - name: Registro de preservación
+        run: echo "Publicación conservada; no hay git commit, git push ni aplicación de parches antiguos."
