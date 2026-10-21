@@ -100,3 +100,18 @@ window.cc161MountMarketingConsent=mount;
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
 })();
+
+
+/* MI ALQUILER V162.1: carga aislada de billeteras reales compartidas. */
+(function(){
+ 'use strict';
+ function mount(){
+  if(document.querySelector('script[data-ma1621-loader]'))return;
+  const css=document.createElement('link');css.rel='stylesheet';css.href='styles/v162-1-mi-alquiler-wallets.css?v=1621';
+  document.head.append(css);
+  const script=document.createElement('script');script.dataset.ma1621Loader='true';script.src='scripts/v162-1-mi-alquiler-wallets.js?v=1621';script.async=true;
+  script.addEventListener('error',()=>console.warn('Billetera MI ALQUILER temporalmente no disponible; otros servicios siguen independientes.'));
+  document.head.append(script);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
