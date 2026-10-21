@@ -8,6 +8,11 @@ function replace(oldText,newText){
    const current=Number((html.match(/name="cc-deploy-version" content="V([0-9]+)-/)||[])[1]||0);
    const old=Number((oldText.match(/content="V([0-9]+)-/)||[])[1]||0);
    if(old&&current>old)return;
+   const marker=oldText.indexOf('scripts/');
+   if(marker>=0){
+    const scriptFile=oldText.slice(marker).split('?v=')[0];
+    if(scriptFile&&html.includes(scriptFile+'?v='))return;
+   }
    if(oldText.includes('scripts/v146-personal-manual-topups.js?v=146')&&html.includes('scripts/v146-personal-manual-topups.js?v=147'))return;
    if(oldText.includes('scripts/v122-recharges.js?v=136')&&html.includes('scripts/v122-recharges.js?v=147'))return;
    if(oldText.includes('scripts/v136-manual-recharges.js?v=145b')&&html.includes('scripts/v136-manual-recharges.js?v=147'))return;
