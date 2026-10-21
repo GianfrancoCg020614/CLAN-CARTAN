@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const filename='index.html';
 let html=fs.readFileSync(filename,'utf8');
 function assertHas(s){if(!html.includes(s))throw Error('Falta el marcador DNI: '+s.slice(0,100));}
-if(html.includes('name="cc-deploy-version" content="V150-20261020"')){
+if(/name="cc-deploy-version" content="V15[0-9]-20261020"/.test(html)){
  console.log('V150: portal ya integrado.');
  process.exit(0);
 }
