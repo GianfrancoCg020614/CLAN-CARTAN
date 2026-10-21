@@ -180,7 +180,7 @@ function simplifyNewClientDialog(){
  if(label&&label.firstChild?.nodeType===Node.TEXT_NODE)label.firstChild.textContent='DNI peruano (8 dígitos) u otro documento:';
  if(!modal.querySelector('#cc119verifyNewDni')){
   const btn=document.createElement('button');btn.type='button';btn.id='cc119verifyNewDni';btn.className='cc119-verify';btn.textContent='Verificar DNI ahora';
-  btn.addEventListener('click',()=>{const value=dni.value.trim();if(!/^\\d{8}$/.test(value)){status.textContent='Ingresa 8 dígitos de DNI.';return;}dni.dispatchEvent(new Event('input',{bubbles:true}));dni.dispatchEvent(new Event('change',{bubbles:true}));});
+  btn.addEventListener('click',()=>{const value=dni.value.trim();if(!/^\d{8}$/.test(value)){status.textContent='Ingresa 8 dígitos de DNI.';return;}dni.dispatchEvent(new Event('input',{bubbles:true}));dni.dispatchEvent(new Event('change',{bubbles:true}));});
   dni.closest('label')?.insertAdjacentElement('afterend',btn);
  }
  modal.dataset.dniSimplified='yes';
