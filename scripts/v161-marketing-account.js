@@ -52,3 +52,19 @@ window.cc161MountMarketingConsent=mount;
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadMiAlquiler,{once:true});
  else loadMiAlquiler();
 })();
+
+
+/* MI ALQUILER V161.2: adaptador aislado; no bloquea los servicios originales. */
+(function(){
+ 'use strict';
+ function mount(){
+  if(document.querySelector('script[data-ma1612-loader]'))return;
+  const script=document.createElement('script');script.dataset.ma1612Loader='true';
+  script.src='scripts/v161-2-mi-alquiler.js?v=1612';script.async=true;
+  script.addEventListener('error',()=>console.warn('MI ALQUILER V161.2 no disponible; los demás módulos siguen funcionando.'));
+  const css=document.createElement('link');css.rel='stylesheet';css.href='styles/v161-2-mi-alquiler.css?v=1612';css.id='ma1612style';
+  if(!document.getElementById('ma1612style'))document.head.append(css);
+  document.head.append(script);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
