@@ -26,10 +26,10 @@ async function open(){
  try{await load();}catch(e){$("mc158body").textContent="No se pudo abrir MI COCHERA: "+String(e.message||e);}
 }
 async function load(){
+ if(ses()?.isAdmin){account=null;return await loadAdmin();}
  const rows=await api("rpc/mc_ensure_account");
  account=Array.isArray(rows)?rows[0]:rows;
  if(!account)throw Error("Sin cuenta.");
- if(ses()?.isAdmin) return await loadAdmin();
  if(!active()){showLocked();return;}
  await api("rpc/mc_sync_rents");
  const uid=encodeURIComponent(ses().userId);
