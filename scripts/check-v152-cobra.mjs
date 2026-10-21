@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
 const read=p=>readFileSync(p,'utf8');
 const html=read('index.html'),ui=read('scripts/v152-cobra-fast.js');
-assert.ok(/content="(?:V152-20261020|V158-20261021|V160-20261021|V161-20261021)"/.test(html));
+assert.ok(/content="(?:V152-20261020|V158-20261021|V160-20261021|V161-20261021|V162-20261021)"/.test(html));
 assert.ok(html.includes('scripts/v152-cobra-fast.js?v=152'));
 assert.equal((html.match(/scripts\/v152-cobra-fast\.js\?v=152/g)||[]).length,1);
 assert.ok(html.includes('cy_clients?select=id,full_name,alias,client_code,document_number'));
