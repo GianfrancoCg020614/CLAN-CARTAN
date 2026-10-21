@@ -27,3 +27,43 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
  else setup();
 })();
+/* V161: componentes compartidos, sin reescribir contabilidad ni habilitar cobros.
+ * Selector único de MONEDA DE VISUALIZACIÓN; importes de alquiler/préstamo
+ * mantienen su propia moneda contractual y las billeteras continúan en PEN. */
+function activateSharedCurrency(){
+ if(document.getElementById('cc161-unified-currency-loader'))return;
+ const script=document.createElement('script');
+ script.id='cc161-unified-currency-loader';
+ script.src='scripts/shared-currency-selector.js?v=161';
+ script.onload=()=>{
+  let mounting=false;
+  function mount(){
+   if(mounting||!window.ClanCartanCurrency)return;
+   mounting=true;
+   try{
+    const roots=[
+      ['cc77home','cc161currencyHome'],
+      ['mc158body','cc161currencyCochera'],
+      ['cy55subscription','cc161currencyCobra']
+    ];
+    for(const [parentId,id] of roots){
+      const parent=document.getElementById(parentId);
+      if(!parent||document.getElementById(id))continue;
+      const section=document.createElement('div');
+      section.id=id;
+      section.dataset.ccCurrencySelector='';
+      section.style.cssText='padding:8px 10px;margin:8px 0;display:flex;justify-content:flex-end';
+      section.title='Moneda de visualización. No cambia el valor de saldos ni cobros.';
+      parent.prepend(section);
+    }
+    window.ClanCartanCurrency.mountAll();
+   }finally{mounting=false;}
+  }
+  mount();
+  const observer=new MutationObserver(()=>mount());
+  observer.observe(document.body,{subtree:true,childList:true});
+ };
+ document.head.append(script);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',activateSharedCurrency,{once:true});
+else activateSharedCurrency();
