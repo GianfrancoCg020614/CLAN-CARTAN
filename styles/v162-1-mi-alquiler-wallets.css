@@ -1,0 +1,26 @@
+/* MI ALQUILER V162.1 | saldos reales, formularios y QR compartidos. */
+#ma1611layer #ma1621panel{margin-top:18px;color:#e9edf0;background:linear-gradient(135deg,#182533,#171d26);border:1px solid #a5884f;border-radius:17px;padding:19px}
+#ma1611layer #ma1621panel h3{font-size:20px;color:#f5d990;margin:0}
+#ma1611layer #ma1621panel h4{font-size:16px;color:#f3d390;margin:0 0 12px}
+#ma1611layer #ma1621panel header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#ma1611layer #ma1621panel p{font-size:13px;line-height:1.55;color:#cad8e3}
+#ma1611layer .ma1621-box{background:#0c1723;border:1px solid #46596a;border-radius:12px;padding:15px;margin-top:13px}
+#ma1611layer .ma1621-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:13px}
+#ma1611layer .ma1621-balance{background:#203040;border:1px solid #556c7e;border-radius:11px;padding:11px}
+#ma1611layer .ma1621-balance small{font-size:11px;color:#d6b87c;display:block}
+#ma1611layer .ma1621-balance strong{font-size:19px;color:#fff;display:block}
+#ma1611layer #ma1621panel form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px}
+#ma1611layer #ma1621panel label{display:grid;gap:5px;font-size:13px}
+#ma1611layer #ma1621panel input,#ma1611layer #ma1621panel select{min-width:0;width:100%;background:#263747;color:#f3f3f3;border:1px solid #73869c;border-radius:9px;min-height:43px;padding:8px}
+#ma1611layer #ma1621panel button{background:#ddba6e;color:#17202a;border:0;padding:10px;border-radius:9px;font-weight:700}
+#ma1611layer #ma1621panel button:disabled{opacity:.5;cursor:not-allowed}
+#ma1611layer .ma1621-qr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+#ma1611layer .ma1621-qr figure{margin:0;padding:12px;border:1px solid #536779;border-radius:11px;text-align:center}
+#ma1611layer .ma1621-qr img{width:min(100%,205px);max-height:215px;object-fit:contain;background:white;padding:8px;border-radius:6px;display:block;margin:10px auto}
+#ma1611layer .ma1621-qr figcaption{font-size:11px;color:#c8d3df}
+#ma1611layer #ma1621details{display:contents}
+#ma1611layer #ma1621details[hidden]{display:none}
+#ma1611layer .ma1621-history{margin-top:14px;font-size:12px}
+#ma1611layer .ma1621-error{color:#ffb0a3}
+@media(max-width:750px){#ma1611layer .ma1621-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){#ma1611layer #ma1621panel{padding:11px}#ma1611layer #ma1621panel form{grid-template-columns:1fr}#ma1611layer .ma1621-qr{grid-template-columns:1fr}}
