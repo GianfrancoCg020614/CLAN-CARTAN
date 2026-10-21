@@ -46,13 +46,13 @@
     const layer = document.createElement('section');
     layer.id = 'ma1611layer'; layer.setAttribute('role', 'dialog');
     layer.setAttribute('aria-modal', 'true');
-    layer.setAttribute('aria-label', 'MI ALQUILER: vista de integración V161.1');
+    layer.setAttribute('aria-label', 'MI ALQUILER: vista de integración V161.2');
     layer.innerHTML = '<div class="ma1611-wrap">' +
       '<header class="ma1611-head"><div class="ma1611-brand"><span aria-hidden="true">🏠</span>' +
       '<div><small>CLAN CARTAN · MI ALQUILER</small><h2>Gestión de habitaciones y locales</h2>' +
       '<p>Un acceso · datos independientes de los otros negocios</p></div></div>' +
       '<button type="button" id="ma1611close" class="ma1611-close">← Volver a CLAN CARTAN</button></header>' +
-      '<section class="ma1611-notice" role="status"><strong>Etapa 1 / V161.1:</strong> navegación e interfaz incorporadas. ' +
+      '<section class="ma1611-notice" role="status"><strong>Etapa 2 / V161.2:</strong> navegación e interfaz incorporadas. ' +
       'Habitaciones, locales, inquilinos y contratos se guardan con acceso restringido en Supabase. ' +
       'Los cobros se integrarán en V161.3; DNI y WhatsApp en V161.4.</section>' +
       '<nav class="ma1611-nav" aria-label="Secciones de Mi Alquiler"></nav>' +
