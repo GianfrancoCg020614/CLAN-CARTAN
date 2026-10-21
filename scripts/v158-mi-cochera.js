@@ -33,6 +33,7 @@ async function load(){
  const detail=await window.cc80.api("mc_accounts?select=country&user_id=eq."+encodeURIComponent(ses().userId));
  account.country=detail?.[0]?.country||"PE";
  realWallets=await window.cc80.api("cc_real_service_wallets?select=service,balance_pen&user_id=eq."+encodeURIComponent(ses().userId));
+ void refreshHomeWallet();
  if(!active()){showLocked();return;}
  await api("rpc/mc_sync_rents");
  const uid=encodeURIComponent(ses().userId);
@@ -134,6 +135,29 @@ async function click(e){
  if(act==="history"){const c=carts.find(c=>c.id===id);let records=moves.filter(m=>m.cart_id===id);drawer("Historial · "+(c?.alias||"C-"+id),'<div class="mc158scroll"><table><thead><tr><th>Fecha</th><th>Movimiento</th><th>Importe</th></tr></thead><tbody>'+records.map(m=>'<tr><td>'+esc(m.occurred_on)+'</td><td>'+esc(m.label)+'</td><td>'+currency(m.amount_local,m.currency)+'</td></tr>').join("")+'</tbody></table></div>');return;}
  }catch(e){note("Error: "+String(e.message||e));}
 }
+async function refreshHomeWallet(){
+ const label=$("mc158-home-wallet"),current=ses();
+ if(!label)return;
+ if(!current?.jwt){label.textContent="S/ --";return;}
+ const userId=current.userId;
+ try{
+  const uid=encodeURIComponent(userId);
+  const [wallet,acc]=await Promise.all([
+   window.cc80.api("cc_real_service_wallets?select=balance_pen&user_id=eq."+uid+"&service=eq.MI_COCHERA"),
+   window.cc80.api("mc_accounts?select=bonus_pen&user_id=eq."+uid)
+  ]);
+  if(ses()?.userId!==userId)return;
+  label.textContent=currency(num(wallet?.[0]?.balance_pen)+num(acc?.[0]?.bonus_pen),"PEN");
+ }catch(_){label.textContent="S/ --";}
+}
+function mountHomeBadge(){
+ const host=$("cc95-user");
+ if(!host)return;
+ const watcher=new MutationObserver(()=>void refreshHomeWallet());
+ watcher.observe(host,{attributes:true,attributeFilter:["style"]});
+ if(ses()?.jwt)void refreshHomeWallet();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountHomeBadge);else mountHomeBadge();
 window.mc158Open=open;
 window.mc158Close=close;
 })();
