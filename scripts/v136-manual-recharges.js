@@ -34,17 +34,10 @@ function renderReady(){
  if(!session()?.jwt){
   message('Inicia sesión para registrar una solicitud.');return;
  }
- // Datos de recepción identificados por el titular. Publicados solo como
- // referencia: NO son un medio comercial habilitado mientras enabled=false.
+ // Lemon/DALE: nunca se presenta el número o CCI en la interfaz pública.
+ // El único medio visible es el QR del área compartida con Binance.
  text(pane,'strong','LEMON / DALE · Perú (PEN)');
- const details=document.createElement('div');details.className='cc137receiver';
- text(details,'span','Número DALE:');
- text(details,'strong','923319637');
- const copy=document.createElement('button');copy.type='button';copy.className='cc137copy';
- copy.textContent='Copiar número';copy.addEventListener('click',async()=>{
-  try{await navigator.clipboard.writeText('923319637');copy.textContent='Copiado';}
-  catch{copy.textContent='Número: 923319637';}
- });details.append(copy);pane.append(details);
+ text(pane,'small','Para pagar, utiliza únicamente el QR mostrado. Comprueba el destinatario en tu aplicación.');
  if(!readiness.enabled){
   text(pane,'p','El QR personal Lemon/DALE está disponible abajo. La conciliación automática todavía no está habilitada; el ADMIN acreditará solo depósitos realmente comprobados.');
   text(pane,'small','Antes de pagar verifica el destinatario del QR y consulta el método de pago con ADMIN. Comunica la referencia real para acreditación manual.');
@@ -254,7 +247,7 @@ function mount(){
  const host=$('cc80wallet')||$('cc77home');if(!host)return;
  const sec=document.createElement('section');sec.id='cc136manual';sec.className='cc136manual cc132-movements';
  sec.innerHTML='<div class="cc136head"><h3>LEMON / DALE · Recarga manual</h3>'+
-  '<p>Cuenta DALE 923319637. El QR de cobro se mostrará cuando exista autorización comercial y archivo original confirmado. El ADMIN revisará cada pago recibido.</p></div>'+
+  '<p>Para Lemon / DALE se muestra únicamente el QR, sin teléfono ni CCI. El ADMIN revisará cada pago recibido antes de acreditar saldo.</p></div>'+
   '<div id="cc136recipient" class="cc136recipient"></div>'+
   '<div class="cc136form"><label>Billetera<select id="cc136service"><option value="COBRA_YA">COBRA YA</option>'+
   '<option value="STREAM_BULLS">STREAM BULL’S</option></select></label>'+
