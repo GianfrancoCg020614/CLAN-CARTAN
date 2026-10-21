@@ -9,6 +9,13 @@ const ss=()=>window.CC_V53_SESSION;
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const cash=n=>'S/ '+Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const n=v=>Number(v||0);
+const uuid=()=>{
+ if(typeof crypto.randomUUID==='function')return crypto.randomUUID();
+ const bytes=new Uint8Array(16);crypto.getRandomValues(bytes);
+ bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+ const h=Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join('');
+ return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+};
 const rpc=(p,body)=>window.cc80.api('rpc/'+p,'POST',body||{});
 const api=(p)=>window.cc80.api(p);
 let state={userId:null,ledger:[],meters:[],guarantees:[],expenses:[],adminAccounts:[],subscriptions:[],loaded:false,loading:false,error:null},current=null;
@@ -63,10 +70,10 @@ async function fetchMore(context,rerender){
 }
 function enhance(area,target,context){
  if(!context?.account||!ss()?.jwt)return false;
- current=context;
  if(!context.account.active){target.innerHTML=closedAccount(context.account);return true;}
  if(area!=='finanzas')return false;
  if(state.userId!==context.sessionId)reset();
+ current=context;
  if(state.error){target.innerHTML=panel('Cobros y servicios','<p class="ma3-error">'+esc(state.error)+'</p>');return true;}
  if(!state.loaded){target.innerHTML=panel('Cobros y servicios',state.loading?'<p>Sincronizando contabilidad…</p>':'<p>Consultando movimientos protegidos…</p>');void fetchMore(context,()=>{if($('ma1611content')&&current?.sessionId===context.sessionId&&$('ma1611layer')?.querySelector('.ma1611-nav button[data-area="finanzas"].active'))window.ma1612Enhance?.('finanzas',$('ma1611content'));});return true;}
  target.innerHTML=finance(context);return true;
@@ -94,12 +101,12 @@ async function onClick(e){const b=e.target.closest('[data-ma3-action]');if(!b)re
  if(busy)return;busy=true;b.disabled=true;
  try{
   if(act==='refresh'){await reload();return;}
-  if(act==='activate'){await rpc('ma_activate_bonus',{p_request:crypto.randomUUID()});await reload();return;}
+  if(act==='activate'){await rpc('ma_activate_bonus',{p_request:uuid()});await reload();return;}
  }catch(ex){message(String(ex.message||ex),true);}finally{busy=false;b.disabled=false;}
 }
 async function onSubmit(e){const f=e.target.closest('[data-ma3-form]');if(!f)return;e.preventDefault();e.stopPropagation();if(busy)return;busy=true;
  const button=f.querySelector('button[type=submit]');if(button)button.disabled=true;
- const v=k=>String(f.elements.namedItem(k)?.value||'').trim();const num=k=>Number(v(k));const request=crypto.randomUUID();
+ const v=k=>String(f.elements.namedItem(k)?.value||'').trim();const num=k=>Number(v(k));const request=uuid();
  const id=f.dataset.lease,kind=f.dataset.ma3Form;
  try{
   if(kind==='payment')await rpc('ma_record_payment',{p_lease:id,p_amount:num('amount'),p_method:v('method'),p_request:request});
