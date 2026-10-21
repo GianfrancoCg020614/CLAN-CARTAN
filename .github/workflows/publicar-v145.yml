@@ -1,10 +1,13 @@
-name: Publicar V150 en portal CLAN CARTAN
+name: Publicar V151 en portal CLAN CARTAN
 on:
   push:
     branches: [main]
     paths:
       - scripts/patch-v145-production.mjs
       - scripts/patch-v150-dni.mjs
+      - scripts/patch-v151-portal.mjs
+      - scripts/v151-portal-polish.js
+      - scripts/v148-manual-whatsapp.js
       - scripts/v150-dni-admin.js
       - scripts/v119-clients.js
       - supabase/functions/cc-consulta-dni/index.ts
@@ -37,18 +40,23 @@ jobs:
           node --check scripts/v148-manual-whatsapp.js
           node --check scripts/v119-clients.js
           node --check scripts/v150-dni-admin.js
+          node --check scripts/v151-portal-polish.js
+          node --check scripts/patch-v151-portal.mjs
       - name: Aplicar cambios de portada V145
         run: node scripts/patch-v145-production.mjs
       - name: Integrar consulta DNI automática V150
         run: node scripts/patch-v150-dni.mjs
+      - name: Integrar recarga unificada y corrección de identidad V151
+        run: node scripts/patch-v151-portal.mjs
       - name: Verificar módulo en el HTML
         run: |
-          grep -Fq 'content="V150-20261020"' index.html
+          grep -Fq 'content="V151-20261020"' index.html
           grep -Fq 'scripts/v145-cobra-access.js?v=145' index.html
           grep -Fq 'scripts/v145-commerce-guard.js?v=145b' index.html
           grep -Fq 'scripts/v146-personal-manual-topups.js?v=147' index.html
           grep -Fq 'scripts/v148-manual-whatsapp.js?v=148' index.html
           grep -Fq 'scripts/v150-dni-admin.js?v=150' index.html
+          grep -Fq 'scripts/v151-portal-polish.js?v=151' index.html
           node scripts/check-v150-dni.mjs
       - name: Guardar index.html en main si cambió
         run: |
@@ -60,6 +68,6 @@ jobs:
           git config user.name "clan-cartan-ci[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "V150: DNI automático con permiso ADMIN, QR manuales conservados"
+          git commit -m "V151: una solicitud QR para recargas y nombres DNI verificados"
           git pull --rebase origin main
           git push origin HEAD:main
