@@ -4766,7 +4766,7 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: COBRA1, BULL1 o COCHERA1" aria-describedby="cc110-invite-hint">
 <span id="cc110-invite-hint" style="display:block;font-size:12px;font-weight:400;color:#b5c6d8;margin-top:5px">Puedes registrarte sin código. Todos reciben un código propio e irrepetible. El código no concede acceso ni descuenta dinero.</span>
 </label></div>
-<label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0" required> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a> y la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a> .*</span></label>
+<label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0" required> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a> y la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a>.*</span></label>
 <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc161-marketing" type="checkbox" style="width:auto;margin:3px 0"> <span>Yo autorizo comunicaciones publicitarias de CLAN CARTAN por correo electrónico y WhatsApp. (Opcional; puedo retirar mi autorización en cualquier momento).</span></label>
 <p style="font-size:11px;color:#a6b6c9">Tu correo electrónico requerirá confirmación para proteger el acceso.</p>
 </fieldset></div><p id="cc-register-help" class="cc-small" style="display:none">Registra tu correo y contraseña. La contraseña debe tener al menos 12 caracteres. Luego confirma tu correo electrónico si se solicita.</p><section id="cc91-confirm" role="status" aria-live="polite" style="display:none;text-align:left;background:#0c2c30;border:1px solid #2b9b91;border-radius:14px;padding:17px;margin:12px 0"><h3 style="margin:0 0 8px;color:#aeefd0">✉️ Verificación de correo electrónico</h3><p style="margin:0 0 8px">Hemos enviado un código de 8 dígitos a tu correo electrónico:</p><strong id="cc91-email" style="overflow-wrap:anywhere;color:#fff"></strong><div id="cc106otp" style="display:flex;gap:7px;margin:14px 0"><input inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Dígito 1"><input inputmode="numeric" maxlength="1" aria-label="Dígito 2"><input inputmode="numeric" maxlength="1" aria-label="Dígito 3"><input inputmode="numeric" maxlength="1" aria-label="Dígito 4"><input inputmode="numeric" maxlength="1" aria-label="Dígito 5"><input inputmode="numeric" maxlength="1" aria-label="Dígito 6"><input inputmode="numeric" maxlength="1" aria-label="Dígito 7"><input inputmode="numeric" maxlength="1" aria-label="Dígito 8"></div><button id="cc106verify" type="button" style="background:#5a86e5;color:#fff;width:100%;padding:12px;border:0;border-radius:10px;font-weight:700">Verificar cuenta</button><p style="font-size:13px;margin:11px 0 0">Escribe el código de 8 dígitos que recibiste para verificar tu cuenta.</p><p style="font-size:12px;color:#bbccda;margin:8px 0 0">¿No recibiste el código? Revisa Spam o usa Reenviar.</p></section><p id="cc-real-status" class="cc-error" role="status"></p><p class="cc-small">Los permisos se consultan desde la base de datos. No se permite ingresar con contraseñas ajenas o accesos no autorizados. No compartas claves privadas.</p></div></div>
@@ -4858,33 +4858,38 @@ async function signIn(event){
   refreshToken=auth.refresh_token||null;
   const me=await api('/auth/v1/user',{},jwt);
   if(!me?.id)throw Error('No se pudo verificar la identidad.');
-  const admins=await api('/rest/v1/cc_admins?select=user_id&user_id=eq.'+encodeURIComponent(me.id),{},jwt);
+  let admins=[];
+  try{admins=await api('/rest/v1/cc_admins?select=user_id&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}
+  catch(err){console.warn('Consulta de rol ADMIN no disponible, entrada básica sin privilegios.',err?.message||err);}
   if(!Array.isArray(admins)||admins.length===0){
-    const memberships=await api('/rest/v1/cc_memberships?select=status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(me.id),{},jwt);
+    let memberships=[];
+    try{memberships=await api('/rest/v1/cc_memberships?select=status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}
+    catch(err){console.warn('Membresías no disponibles: acceso básico sin permisos especiales.',err?.message||err);}
     const active=Array.isArray(memberships)?memberships.filter(m=>m.status==='ACTIVE'):[];
     const authorized=active.some(m=>m.cc_businesses?.code==='COBRA_YA'&&m.role==='RESELLER');
     const commercialRole=active.find(m=>['AFFILIATE','RESELLER','SUPER_RESELLER'].includes(m.role))?.role||null;
     sessionToken=jwt;verified=true;window.CC_V53_SESSION={jwt:jwt,userId:me.id,root:root,key:key,isAdmin:false,isReseller:authorized,commercialRole:commercialRole,displayName:String(me.user_metadata?.full_name||me.user_metadata?.display_name||me.email?.split('@')[0]||'Usuario')};
     gate.style.display='none';
     document.getElementById('cc77back').style.display='none';
-    document.getElementById('cc54logout').style.display='block';
+    document.getElementById('cc54logout')?.style?.setProperty('display','block');
     const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent=authorized?'CLAN CARTAN · RESELLER autenticado · cartera privada':commercialRole?'CLAN CARTAN · '+commercialRole.replaceAll('_',' ')+' · consulta de tus servicios':'CLAN CARTAN · Cuenta personal autenticada · servicios por activar';document.body.appendChild(banner);
     if(typeof loginDemo==='function'){verified=false;} // Nunca otorgar rol local ADMIN a RESELLER.
-    document.getElementById('cy53open').style.display='block';
-    if(typeof cc79AfterLogin==='function')cc79AfterLogin();
+    document.getElementById('cy53open')?.style?.setProperty('display','block');
+    if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(err){console.error('Error de vista secundaria tras autenticación válida',err);document.getElementById('cc77home')?.style?.setProperty('display','block');}}
     return;
   }
   sessionToken=jwt;verified=true;window.CC_V53_SESSION={jwt:jwt,userId:me.id,root:root,key:key,isAdmin:true,isReseller:false,displayName:String(me.user_metadata?.full_name||me.user_metadata?.display_name||me.email?.split('@')[0]||'Usuario')};
   gate.style.display='none';
   document.getElementById('cc77back').style.display='none';
-  document.getElementById('cc54logout').style.display='block';
+  document.getElementById('cc54logout')?.style?.setProperty('display','block');
   const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent='CLAN CARTAN · ADMIN autenticado. Gestiona COBRA YA y tus billeteras desde el panel de servicios.';document.body.appendChild(banner);
-  if(typeof loginDemo==='function')loginDemo('admin');
-  if(typeof cc79AfterLogin==='function')cc79AfterLogin();
+  if(typeof loginDemo==='function'){try{loginDemo('admin')}catch(err){console.warn('Panel local no disponible; sesión válida mantenida',err?.message||err)}}
+  if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(err){console.error('Error de vista secundaria tras autenticación válida',err);document.getElementById('cc77home')?.style?.setProperty('display','block');}}
  }catch(e){
  const err=String(e.message||'Error desconocido');
  const pending=/email not confirmed|email_not_confirmed/i.test(err);
- status.textContent=pending?'Tu correo todavía no está confirmado. Ingresa el código de 8 dígitos que te enviamos.':err;
+ const credentials=/invalid login credentials|invalid_grant|invalid credentials/i.test(err);
+ status.textContent=pending?'Tu correo todavía no está confirmado. Revisa tu correo y solicita otro código si lo necesitas.':credentials?'El correo o la contraseña no coinciden. Puedes recuperar tu contraseña usando el enlace de abajo.':err;
  if(pending){document.getElementById('cc91-email').textContent=document.getElementById('cc-real-email').value.trim();document.getElementById('cc91-confirm').style.display='block';}
  document.getElementById('cc90-resend').style.display=pending?'block':'none';
  document.getElementById('cc-real-pass').value='';
