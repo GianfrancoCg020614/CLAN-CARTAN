@@ -11,7 +11,7 @@ need(html,'scripts/v161-marketing-account.js?v=161');
 need(old,'window.cc161MountMarketingConsent=mount');
 need(old,'rpc/cc_set_my_marketing_consent');
 need(old,"script.src='scripts/v161-1-mi-alquiler.js?v=1611'");
-need(js,"document.getElementById('cc77home')");
+need(js,"const home = $('cc77home')");
 need(js,"home.querySelector('.cc158-cochera-card')");
 need(js,"session()?.jwt");
 need(js,"window.cc77Auth(false)");
