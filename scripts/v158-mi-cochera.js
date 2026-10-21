@@ -17,8 +17,8 @@ function host(){let root=$("mc158layer");if(root)return root;root=document.creat
 function close(){let layer=$("mc158layer");if(layer)layer.style.display="none";if($("cc77home"))$("cc77home").style.display="block";}
 function note(msg){let el=$("mc158notice");if(el)el.textContent=msg;else alert(msg);}
 function active(){return ses()?.isAdmin || account && !account.suspended && new Date(account.subscription_until)>new Date();}
-function header(){let date=account?.subscription_until?new Date(account.subscription_until).toLocaleDateString("es-PE"):"Sin activar";
- return '<section class="mc158status"><div><strong>Código: '+esc(account?.invite_code||"—")+'</strong><p>Suscripción S/ 15 por 30 días · renovación voluntaria</p><small>Vigencia: '+esc(date)+'</small></div><div><strong>Bono ADMIN: S/ '+num(account?.bonus_pen).toFixed(2)+'</strong><p>No transferible a otras billeteras ni usuarios</p></div></section>';}
+function header(){let date=account?.subscription_until?new Date(account.subscription_until).toLocaleDateString("es-PE"):"Sin activar"; const real=num(realWallets.find(w=>w.service==="MI_COCHERA")?.balance_pen); const bonus=num(account?.bonus_pen);
+ return '<section class="mc158status"><div><strong>Código: '+esc(account?.invite_code||"—")+'</strong><p>Suscripción S/ 15 por 30 días · renovación voluntaria</p><small>Vigencia: '+esc(date)+'</small></div><div><strong>Saldo total MI COCHERA: S/ '+(real+bonus).toFixed(2)+'</strong><p>Real S/ '+real.toFixed(2)+' · Bono gratuito S/ '+bonus.toFixed(2)+' (intransferible)</p></div></section>';}
 async function open(){
  if(!ses()?.jwt){if(typeof window.cc77Auth==="function")window.cc77Auth(false);return;}
  const r=host();r.style.display="block";if($("cc77home"))$("cc77home").style.display="none";
