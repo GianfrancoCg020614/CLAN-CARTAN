@@ -66,6 +66,11 @@ jobs:
           node --check scripts/v161-3-mi-alquiler.js
           node --check scripts/v161-2-mi-alquiler.js
           node scripts/check-v161-3-mi-alquiler.mjs
+      - name: Validar DNI, WhatsApp y Excel MI ALQUILER V161.4
+        run: |
+          node --check scripts/v161-4-mi-alquiler.js
+          node --check scripts/v161-2-mi-alquiler.js
+          node scripts/check-v161-4-mi-alquiler.mjs
       - name: Comprobar acceso resiliente V161.1
         run: node scripts/check-v161-login-resilience.mjs
       - name: Verificar acceso compartido V161 Parte 1
