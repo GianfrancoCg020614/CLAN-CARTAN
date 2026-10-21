@@ -24,16 +24,16 @@ function install(){
    '<img src="assets/qr-binance-personal.png?v=147" loading="lazy" alt="Código QR de Binance Pay personal correspondiente al usuario User-f81cdb6a" style="display:block;width:min(100%,260px);height:auto;margin:12px auto;image-rendering:pixelated;background:white;padding:8px;border-radius:12px">'+
    '<figcaption>Usuario: <strong>User-f81cdb6a</strong><br>ID Binance: <strong>1276635702</strong><br>'+
    '<a href="https://app.binance.com/uni-qr/812BvNys" target="_blank" rel="noopener noreferrer">Abrir pago en Binance</a></figcaption></figure></div>'+
-   '<p><strong>Confirmación manual:</strong> informa tu pago y la referencia al ADMIN. El saldo interno se acredita únicamente después de que el ADMIN constate el ingreso real. No hay acreditación automática por usar estos QR.</p>';
+   '<p><strong>Importante:</strong> los QR personales se muestran como referencia, sin habilitación comercial ni cobro automático. No envíes dinero para recargar CLAN CARTAN hasta confirmar un método comercial autorizado. Cuando corresponda, ADMIN verificará cualquier depósito antes de acreditar saldo.</p>';
   return box;
  }
  if(!get('cc147manualQr')){
-  const manual=renderSharedQr('cc147manualQr','QR para recarga manual','Selecciona el medio donde realmente pagarás. Ambos QR son del titular y se verifican manualmente.');
+  const manual=renderSharedQr('cc147manualQr','QR para recarga manual','Consulta los QR de Lemon y Binance. La recaudación comercial todavía está pendiente de autorización.');
   existing.after(manual);
  }
  const automatic=get('cc122section');
  if(automatic&&!get('cc147autoQr')){
-  const future=renderSharedQr('cc147autoQr','QR para recarga automática · verificación manual temporal','La conexión automática se conserva para más adelante. Por ahora, si pagas mediante uno de estos QR, ADMIN verificará el ingreso y acreditará manualmente.');
+  const future=renderSharedQr('cc147autoQr','QR para recarga automática · verificación manual temporal','La conexión automática se conserva para más adelante. La presencia de estos QR no habilita cobros: no envíes dinero hasta tener un medio comercial autorizado.');
   const area=get('cc122payinfo');
   if(area)area.after(future);
   else automatic.appendChild(future);
