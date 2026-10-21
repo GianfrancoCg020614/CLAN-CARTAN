@@ -1,0 +1,22 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const html=fs.readFileSync('index.html','utf8');
+function check(s){assert.ok(html.includes(s),'Missing: '+s)}
+check("const auth=await api('/auth/v1/token?grant_type=password'");
+check("const me=await api('/auth/v1/user',{},jwt)");
+check('let admins=[];try{admins=await api(');
+check('let memberships=[];try{memberships=await api(');
+check("sin otorgar permisos:");
+check("acceso básico sin privilegios:");
+check("if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(error)");
+check("Error de interfaz tras autenticación correcta");
+check("window.CC_V53_SESSION={jwt:jwt,userId:me.id");
+check("document.getElementById('cc54logout')?.style?.setProperty('display','block')");
+check('Correo o contraseña incorrectos.');
+check('if(!Array.isArray(admins)||admins.length===0)');
+check('content="V161-20261021"');
+check('scripts/v161-global-currency-flags.js?v=161');
+check('scripts/v161-marketing-account.js?v=161');
+assert.equal((html.match(/let memberships=\[\];try\{memberships=await api\(/g)||[]).length,1);
+assert.equal((html.match(/let admins=\[\];try\{admins=await api\(/g)||[]).length,1);
+console.log('PASS V161.1: auth primary, no ADMIN promotion, safe fallback on secondary failures; V161 preserved.');

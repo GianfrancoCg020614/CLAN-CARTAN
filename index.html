@@ -4858,33 +4858,33 @@ async function signIn(event){
   refreshToken=auth.refresh_token||null;
   const me=await api('/auth/v1/user',{},jwt);
   if(!me?.id)throw Error('No se pudo verificar la identidad.');
-  const admins=await api('/rest/v1/cc_admins?select=user_id&user_id=eq.'+encodeURIComponent(me.id),{},jwt);
+  let admins=[];try{admins=await api('/rest/v1/cc_admins?select=user_id&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}catch(error){console.warn('ADMIN no disponible, sin otorgar permisos:',error?.message||error)}
   if(!Array.isArray(admins)||admins.length===0){
-    const memberships=await api('/rest/v1/cc_memberships?select=status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(me.id),{},jwt);
+    let memberships=[];try{memberships=await api('/rest/v1/cc_memberships?select=status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}catch(error){console.warn('Membresías no disponibles; acceso básico sin privilegios:',error?.message||error)}
     const active=Array.isArray(memberships)?memberships.filter(m=>m.status==='ACTIVE'):[];
     const authorized=active.some(m=>m.cc_businesses?.code==='COBRA_YA'&&m.role==='RESELLER');
     const commercialRole=active.find(m=>['AFFILIATE','RESELLER','SUPER_RESELLER'].includes(m.role))?.role||null;
     sessionToken=jwt;verified=true;window.CC_V53_SESSION={jwt:jwt,userId:me.id,root:root,key:key,isAdmin:false,isReseller:authorized,commercialRole:commercialRole,displayName:String(me.user_metadata?.full_name||me.user_metadata?.display_name||me.email?.split('@')[0]||'Usuario')};
     gate.style.display='none';
     document.getElementById('cc77back').style.display='none';
-    document.getElementById('cc54logout').style.display='block';
+    document.getElementById('cc54logout')?.style?.setProperty('display','block');
     const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent=authorized?'CLAN CARTAN · RESELLER autenticado · cartera privada':commercialRole?'CLAN CARTAN · '+commercialRole.replaceAll('_',' ')+' · consulta de tus servicios':'CLAN CARTAN · Cuenta personal autenticada · servicios por activar';document.body.appendChild(banner);
     if(typeof loginDemo==='function'){verified=false;} // Nunca otorgar rol local ADMIN a RESELLER.
-    document.getElementById('cy53open').style.display='block';
-    if(typeof cc79AfterLogin==='function')cc79AfterLogin();
+    document.getElementById('cy53open')?.style?.setProperty('display','block');
+    if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(error){console.error('Error de interfaz tras autenticación correcta',error);document.getElementById('cc77home')?.style?.setProperty('display','block')}}
     return;
   }
   sessionToken=jwt;verified=true;window.CC_V53_SESSION={jwt:jwt,userId:me.id,root:root,key:key,isAdmin:true,isReseller:false,displayName:String(me.user_metadata?.full_name||me.user_metadata?.display_name||me.email?.split('@')[0]||'Usuario')};
   gate.style.display='none';
   document.getElementById('cc77back').style.display='none';
-  document.getElementById('cc54logout').style.display='block';
+  document.getElementById('cc54logout')?.style?.setProperty('display','block');
   const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent='CLAN CARTAN · ADMIN autenticado. Gestiona COBRA YA y tus billeteras desde el panel de servicios.';document.body.appendChild(banner);
-  if(typeof loginDemo==='function')loginDemo('admin');
-  if(typeof cc79AfterLogin==='function')cc79AfterLogin();
+  if(typeof loginDemo==='function'){try{loginDemo('admin')}catch(error){console.warn('Panel opcional no disponible',error?.message||error)}}
+  if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(error){console.error('Error de interfaz tras autenticación correcta',error);document.getElementById('cc77home')?.style?.setProperty('display','block')}}
  }catch(e){
  const err=String(e.message||'Error desconocido');
  const pending=/email not confirmed|email_not_confirmed/i.test(err);
- status.textContent=pending?'Tu correo todavía no está confirmado. Ingresa el código de 8 dígitos que te enviamos.':err;
+ status.textContent=pending?'Confirma tu correo electrónico o solicita un nuevo código.':/invalid login credentials|invalid_grant|invalid credentials/i.test(err)?'Correo o contraseña incorrectos. Usa «¿Olvidaste tu contraseña?» para recuperarla.':err;
  if(pending){document.getElementById('cc91-email').textContent=document.getElementById('cc-real-email').value.trim();document.getElementById('cc91-confirm').style.display='block';}
  document.getElementById('cc90-resend').style.display=pending?'block':'none';
  document.getElementById('cc-real-pass').value='';
