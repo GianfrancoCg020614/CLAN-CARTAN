@@ -8,7 +8,7 @@ const num=x=>Number(x||0),currency=(v,c)=>({PEN:"S/",USD:"US$",EUR:"€",COP:"CO
 const api=(p,b)=>window.cc80.api(p,"POST",b||{});
 let account=null,carts=[],moves=[],people=[],accounts=[],realWallets=[],busy=false,filter="";
 function host(){let root=$("mc158layer");if(root)return root;root=document.createElement("div");root.id="mc158layer";
- root.innerHTML='<div class="mc158wrap"><header class="mc158head"><div><small>CLAN CARTAN · TERCER MÓDULO</small><h2>🐻 MI COCHERA <span>V158</span></h2><p>Carritos, alquiler diario, hielo, deudas e historial.</p></div><button type="button" id="mc158close">← Volver a CLAN CARTAN</button></header><div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';
+ root.innerHTML='<div class="mc158wrap"><header class="mc158head"><div><small>CLAN CARTAN · TERCER MÓDULO</small><h2><img src="assets/mi-cochera-logo.svg" alt="Logotipo original MI COCHERA"> MI COCHERA <span>V158</span></h2><p>Carritos, alquiler diario, hielo, deudas e historial.</p></div><button type="button" id="mc158close">← Volver a CLAN CARTAN</button></header><div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';
  document.body.append(root);$("mc158close").onclick=close;
  root.addEventListener("click",click);root.addEventListener("submit",submit);
  root.addEventListener("input",e=>{if(e.target?.matches("[data-mc-dni]")) void lookupDni(e.target);});
