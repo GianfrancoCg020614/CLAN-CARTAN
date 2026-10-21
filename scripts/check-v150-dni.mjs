@@ -1,0 +1,23 @@
+// V150: comprobaciones estáticas sin consultar ningún DNI de personas.
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {Script} from 'node:vm';
+const html=fs.readFileSync('index.html','utf8');
+const js=fs.readFileSync('scripts/v119-clients.js','utf8');
+const admin=fs.readFileSync('scripts/v150-dni-admin.js','utf8');
+const edge=fs.readFileSync('supabase/functions/cc-consulta-dni/index.ts','utf8');
+assert.match(html,/name="cc-deploy-version" content="V150-20261020"/);
+assert.ok(!html.includes('id="cy106consent"'));
+assert.ok(html.includes("request('rpc/cc_my_dni_auto_permission','POST',{})"));
+assert.ok(html.includes("if(approved===true){"));
+assert.ok(html.includes("body:JSON.stringify({dni:value})"));
+assert.ok(html.includes('scripts/v119-clients.js?v=150'));
+assert.ok(html.includes('scripts/v150-dni-admin.js?v=150'));
+assert.ok(js.includes('setTimeout(()=>{if(!verifying)'));
+assert.ok(admin.includes('cc_admin_configure_dni_automation'));
+assert.ok(edge.includes('cc_dni_auto_permission'));
+assert.ok(!edge.includes('if(body.consent!==true)'));
+assert.ok(edge.includes('if(permission!==true)'));
+new Script(js,{filename:'scripts/v119-clients.js'});
+new Script(admin,{filename:'scripts/v150-dni-admin.js'});
+console.log('V150 OK: DNI automático solo con permiso ADMIN documentado; 0 consultas reales usadas en pruebas.');
