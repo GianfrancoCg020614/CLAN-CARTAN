@@ -38,6 +38,10 @@ jobs:
         run: |
           node --check scripts/v158-mi-cochera.js
           node scripts/check-v158-mi-cochera.mjs
+      - name: Verificar transferencias reales entre tres billeteras sin bonos
+        run: |
+          node --check scripts/v127-wallet-switch.js
+          node scripts/check-v158-three-wallet-transfers.mjs
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
