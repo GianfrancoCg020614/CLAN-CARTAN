@@ -4822,7 +4822,11 @@ document.getElementById('cc90-resend').addEventListener('click',async function()
 });
 
 async function api(path,opts={},jwt=null){
- const resp=await fetch(root+path,{...opts,headers:{apikey:key,'Content-Type':'application/json',...(jwt?{Authorization:'Bearer '+jwt}:{}),...(opts.headers||{})}});
+ const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),20000);
+ let resp;
+ try{resp=await fetch(root+path,{...opts,signal:ctl.signal,headers:{apikey:key,'Content-Type':'application/json',...(jwt?{Authorization:'Bearer '+jwt}:{}),...(opts.headers||{})}});}
+ catch(e){throw Error(e?.name==='AbortError'?'Supabase no respondió en 20 segundos. Vuelve a intentar.':'No se pudo conectar con Supabase. Revisa tu conexión.');}
+ finally{clearTimeout(timer);}
  const raw=await resp.text();let data={};try{data=JSON.parse(raw)}catch{}
  if(!resp.ok)throw Error(data.msg||data.error_description||data.message||'Error de autenticación ('+resp.status+')');
  return data;
@@ -4977,7 +4981,14 @@ async function register(event){
  }catch(e){status.textContent=e.message||'No se pudo crear la cuenta. Revisa tus datos.';}
  finally{btn.disabled=false;toggle.disabled=false;}
 }
-form.addEventListener('submit',event=>registering?register(event):signIn(event));
+// Login: los campos requeridos del registro permanecen ocultos y no deben bloquear el acceso.
+form.noValidate=true;
+form.addEventListener('submit',event=>{
+ event.preventDefault();
+ if(registering){void register(event);return;}
+ if(!document.getElementById('cc-real-email').value.trim()||!document.getElementById('cc-real-pass').value){status.textContent='Escribe tu correo y contraseña para ingresar.';return;}
+ void signIn(event);
+});
 // Disable demo credential paths: no one may bypass verified admin login.
 const originalLogin=window.loginDemo;
 window.loginDemo=function(id){if(!verified||window.CC_V53_SESSION?.isAdmin!==true||id!=='admin'){alert('Acceso no autorizado. Usa el inicio de sesión real de CLAN CARTAN.');return;}return originalLogin(id);};
