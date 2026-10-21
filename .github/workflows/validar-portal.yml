@@ -44,6 +44,10 @@ jobs:
           node scripts/check-v158-three-wallet-transfers.mjs
       - name: Verificar identidad COBRA YA y códigos de referido COCHERA V159
         run: node scripts/check-v159-cobra-and-codes.mjs
+      - name: Verificar nuevo logo STREAM BULLS, enlaces y referidos V160
+        run: |
+          node scripts/check-v160-referrals-and-brand.mjs
+          node --check scripts/v160-invitation-register.js
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
