@@ -53,6 +53,31 @@ jobs:
           node --check scripts/v161-global-currency-flags.js
           node --check scripts/v161-marketing-account.js
           node scripts/check-v161-currencies-marketing.mjs
+      - name: Verificar portal MI ALQUILER V161.1 sin tocar V161
+        run: |
+          node --check scripts/v161-1-mi-alquiler.js
+          node scripts/check-v161-1-mi-alquiler.mjs
+      - name: Revisar contratos y permisos MI ALQUILER V161.2
+        run: |
+          node --check scripts/v161-2-mi-alquiler.js
+          node scripts/check-v161-2-mi-alquiler.mjs
+      - name: Comprobar contabilidad MI ALQUILER V161.3
+        run: |
+          node --check scripts/v161-3-mi-alquiler.js
+          node --check scripts/v161-2-mi-alquiler.js
+          node scripts/check-v161-3-mi-alquiler.mjs
+      - name: Validar DNI, WhatsApp y Excel MI ALQUILER V161.4
+        run: |
+          node --check scripts/v161-4-mi-alquiler.js
+          node --check scripts/v161-2-mi-alquiler.js
+          node scripts/check-v161-4-mi-alquiler.mjs
+      - name: Verificar cierre integral MI ALQUILER V162
+        run: |
+          node --check scripts/v161-1-mi-alquiler.js
+          node --check scripts/v161-2-mi-alquiler.js
+          node --check scripts/v161-3-mi-alquiler.js
+          node --check scripts/v161-4-mi-alquiler.js
+          node scripts/check-v162-mi-alquiler.mjs
       - name: Comprobar acceso resiliente V161.1
         run: node scripts/check-v161-login-resilience.mjs
       - name: Verificar acceso compartido V161 Parte 1

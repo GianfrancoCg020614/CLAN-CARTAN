@@ -36,3 +36,67 @@ async function mount(){
 }
 window.cc161MountMarketingConsent=mount;
 })();
+
+/* V161.1 MI ALQUILER · cargador aditivo, no altera autenticación, finanzas ni consentimiento V161. */
+(function(){
+ 'use strict';
+ function loadMiAlquiler(){
+  if(document.querySelector('script[data-ma1611-loader]'))return;
+  const script=document.createElement('script');
+  script.src='scripts/v161-1-mi-alquiler.js?v=1611';
+  script.dataset.ma1611Loader='true';
+  script.async=true;
+  script.addEventListener('error',()=>console.warn('MI ALQUILER: no se pudo cargar la interfaz.'));
+  document.head.append(script);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadMiAlquiler,{once:true});
+ else loadMiAlquiler();
+})();
+
+
+/* MI ALQUILER V161.2: adaptador aislado; no bloquea los servicios originales. */
+(function(){
+ 'use strict';
+ function mount(){
+  if(document.querySelector('script[data-ma1612-loader]'))return;
+  const script=document.createElement('script');script.dataset.ma1612Loader='true';
+  script.src='scripts/v161-2-mi-alquiler.js?v=1612';script.async=true;
+  script.addEventListener('error',()=>console.warn('MI ALQUILER V161.2 no disponible; los demás módulos siguen funcionando.'));
+  const css=document.createElement('link');css.rel='stylesheet';css.href='styles/v161-2-mi-alquiler.css?v=1612';css.id='ma1612style';
+  if(!document.getElementById('ma1612style'))document.head.append(css);
+  document.head.append(script);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
+
+
+/* MI ALQUILER V161.3: cargar módulos financieros aislados; errores no bloquean acceso global. */
+(function(){
+ 'use strict';
+ function load(){
+  if(document.querySelector('script[data-ma1613-loader]'))return;
+  const css=document.createElement('link');css.id='ma1613-css';css.rel='stylesheet';css.href='styles/v161-3-mi-alquiler.css?v=1613';
+  if(!document.getElementById('ma1613-css'))document.head.append(css);
+  const script=document.createElement('script');script.dataset.ma1613Loader='true';script.src='scripts/v161-3-mi-alquiler.js?v=1613';script.async=true;
+  script.addEventListener('error',()=>console.warn('Finanzas MI ALQUILER no disponibles. Servicios existentes sin afectación.'));
+  document.head.append(script);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
+})();
+
+
+/* MI ALQUILER V161.4: alertas, Excel y verificación DNI; aislado de otros servicios. */
+(function(){
+ 'use strict';
+ function load(){
+  if(document.querySelector('script[data-ma1614-loader]'))return;
+  const css=document.createElement('link');
+  css.rel='stylesheet';css.id='ma1614css';css.href='styles/v161-4-mi-alquiler.css?v=1614';
+  if(!document.getElementById('ma1614css'))document.head.append(css);
+  const script=document.createElement('script');
+  script.dataset.ma1614Loader='true';script.src='scripts/v161-4-mi-alquiler.js?v=1614';script.async=true;
+  script.addEventListener('error',()=>console.warn('MI ALQUILER V161.4 no disponible; módulos anteriores sin afectación.'));
+  document.head.append(script);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
+})();
