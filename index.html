@@ -5687,6 +5687,25 @@ function cc95RenderUser(){
  document.getElementById('cc95-role').textContent=sess.isAdmin?'ADMIN':sess.commercialRole?sess.commercialRole.replaceAll('_',' ')+' · CLAN CARTAN':'USUARIO CLAN CARTAN';
  widget.style.display='inline-flex';document.querySelectorAll('.cc98-guest-action').forEach(b=>b.style.display='none');
 }
+async function cc160CopyText(value,button){
+  let ok=false;
+  try{
+    if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value);ok=true;}
+  }catch(_){/* Safari puede denegar el portapapeles; usar selección de emergencia. */}
+  if(!ok){
+    const tmp=document.createElement('textarea');
+    tmp.value=value;tmp.readOnly=true;
+    tmp.style.cssText='position:fixed;left:0;top:0;opacity:0;width:1px;height:1px;z-index:-1;';
+    document.body.appendChild(tmp);tmp.focus();tmp.select();tmp.setSelectionRange(0,tmp.value.length);
+    try{ok=document.execCommand('copy');}catch(_){ok=false;}
+    tmp.remove();
+  }
+  const original=button.dataset.label||button.textContent;
+  button.dataset.label=original;
+  button.textContent=ok?'✓ Copiado':'No se pudo copiar';
+  if(!ok){window.prompt('Copia este enlace o código:',value);}
+  button.disabled=false;
+}
 async function cc110ShowMyInvitationCodes(){
  const ses=window.CC_V53_SESSION;
  const wrapper=document.getElementById('cc79logged');
@@ -5709,9 +5728,9 @@ async function cc110ShowMyInvitationCodes(){
    const name=document.createElement('span');name.textContent=(entry.business||'Negocio')+' · '+(entry.affiliate_role||'USUARIO');name.className='cc116-code-business';
    const code=document.createElement('input');code.type='text';code.readOnly=true;code.value=entry.code;code.className='cc116-code-value';code.setAttribute('aria-label','Código '+(entry.business||'personal'));
    const copy=document.createElement('button');copy.type='button';copy.textContent='Copiar código';copy.className='cc116-code-copy';
-   copy.addEventListener('click',()=>{if(navigator.clipboard?.writeText)navigator.clipboard.writeText(entry.code).then(()=>{copy.textContent='✓ Copiado'}).catch(()=>{code.select();copy.textContent='Seleccionado'});else{code.select();copy.textContent='Seleccionado'};});
+   copy.addEventListener('click',()=>{void cc160CopyText(entry.code,copy);});
    const share=document.createElement('button');share.type='button';share.textContent='Copiar enlace';share.className='cc116-code-copy';
-   share.addEventListener('click',()=>{const link='https://www.clancartan.com/?ref='+encodeURIComponent(entry.code)+'#registro';if(navigator.clipboard?.writeText)navigator.clipboard.writeText(link).then(()=>{share.textContent='✓ Copiado'}).catch(()=>{code.select()});else{code.select();};});
+   share.addEventListener('click',()=>{const link='https://www.clancartan.com/?ref='+encodeURIComponent(entry.code)+'#registro';void cc160CopyText(link,share);});
    row.append(name,code,copy,share);panel.appendChild(row);
   }
   wrapper.appendChild(panel);
