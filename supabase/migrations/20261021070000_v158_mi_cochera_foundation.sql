@@ -68,6 +68,8 @@ create table if not exists public.mc_movements(
  check((kind='PAYMENT' and amount_local<0) or (kind<>'PAYMENT' and amount_local>0))
 );
 create unique index if not exists mc_one_rent_per_stay_day on public.mc_movements(stay_id,occurred_on) where kind='RENT';
+-- No doble alquiler si un carrito sale y regresa el mismo dia.
+create unique index if not exists mc_one_rent_per_cart_day on public.mc_movements(cart_id,occurred_on) where kind='RENT';
 create index if not exists mc_movements_tenant_cart on public.mc_movements(reseller_id,cart_id,occurred_on);
 create table if not exists public.mc_bonus_events(
  id uuid primary key default gen_random_uuid(),
