@@ -55,6 +55,8 @@ jobs:
           node scripts/check-v161-currencies-marketing.mjs
       - name: Comprobar acceso resiliente V161.1
         run: node scripts/check-v161-login-resilience.mjs
+      - name: Verificar acceso compartido V161 Parte 1
+        run: node scripts/check-v161-part1-auth.mjs
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
