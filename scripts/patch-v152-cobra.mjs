@@ -40,6 +40,14 @@ if(!html.includes(adminTag)){
  const pos=html.lastIndexOf('</body>');if(pos<0)throw Error('Falta cierre del documento');
  html=html.slice(0,pos)+adminTag+String.fromCharCode(10)+html.slice(pos);
 }
+// V156: tabla USDT/PEN y cache-busting de formularios de recarga protegidos.
+one('scripts/v146-personal-manual-topups.js?v=147','scripts/v146-personal-manual-topups.js?v=156');
+one('scripts/v136-manual-recharges.js?v=147','scripts/v136-manual-recharges.js?v=156');
+const usdtTag='<script src="scripts/v156-usdt-quote.js?v=156"></script>';
+if(!html.includes(usdtTag)){
+ const pos=html.lastIndexOf('</body>');if(pos<0)throw Error('Falta cierre body');
+ html=html.slice(0,pos)+usdtTag+'\\n'.replace('\\n',String.fromCharCode(10))+html.slice(pos);
+}
 const style=`<style id="cy152-fast-style">
 #cy152toolbar{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
 #cy152toolbar label{display:block;font-weight:650}#cy152toolbar input{width:100%;margin-top:8px;min-height:45px;padding:10px 12px;border-radius:9px;background:var(--bg2);color:var(--text);border:1px solid var(--line2)}
