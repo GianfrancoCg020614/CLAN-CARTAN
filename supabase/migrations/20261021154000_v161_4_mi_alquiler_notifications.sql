@@ -3,7 +3,7 @@
 create table if not exists public.ma_whatsapp_notice_events (
  id uuid primary key default gen_random_uuid(),
  request_id uuid not null unique,
- reseller_id uuid not null references public.ma_accounts(user_id),
+ reseller_id uuid not null references auth.users(id),
  lease_id uuid not null references public.ma_leases(id),
  tenant_id uuid not null references public.ma_tenants(id),
  phone_snapshot text not null check(length(phone_snapshot) between 9 and 18),
