@@ -22,7 +22,7 @@ CREATE OR REPLACE FUNCTION public.ma_ensure_account()
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$;
+AS $function$
 declare u uuid:=auth.uid();a public.ma_accounts%rowtype;admin_role boolean;verified_balance numeric;
 begin
  if u is null then raise exception 'Inicia sesión';end if;
@@ -43,7 +43,7 @@ CREATE OR REPLACE FUNCTION public.ma_transfer_real_balance(p_from text, p_to tex
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$;
+AS $function$
 declare
  uid uuid:=auth.uid();
  source_amount numeric;
@@ -88,7 +88,7 @@ CREATE OR REPLACE FUNCTION public.cc_submit_manual_recharge(p_service text, p_am
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$;
+AS $function$
 declare v_user uuid:=auth.uid();v_id uuid;v_order uuid;v_name text:=trim(regexp_replace(coalesce(p_payer_name,''),'[[:space:]]+',' ','g'));
  v_ref text:=nullif(trim(coalesce(p_payer_reference,'')),'');
 begin
@@ -123,7 +123,7 @@ CREATE OR REPLACE FUNCTION public.cc_notify_manual_payment(p_service text, p_met
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$;
+AS $function$
 declare v_user uuid:=auth.uid();v_id uuid;v_op text:=upper(trim(coalesce(p_operation,'')));
 begin
  if v_user is null then raise exception 'Inicia sesión'; end if;
@@ -143,7 +143,7 @@ CREATE OR REPLACE FUNCTION public.cc_notify_binance_personal_usdt(p_service text
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$;
+AS $function$
 declare v_user uuid:=auth.uid();v_id uuid;v_usdt numeric;v_pen numeric;v_op text:=upper(btrim(coalesce(p_operation,'')));
  q public.cc_usdt_pen_reference_rates%rowtype;
 begin
