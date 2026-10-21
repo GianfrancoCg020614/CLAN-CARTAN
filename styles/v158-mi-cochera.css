@@ -1,0 +1,48 @@
+/* CLAN CARTAN V158 · MI COCHERA: interfaz sencilla del RESELLER */
+#cc77home .cc158-cochera-card{border-color:#a77d27;background:linear-gradient(135deg,rgba(92,63,14,.24),rgba(7,14,24,.94))}
+#cc77home .cc158-cochera-mark{width:84px;height:84px;flex:0 0 84px;border:2px solid #d9ab4b;display:grid;place-items:center;border-radius:18px;background:#161512;font-size:52px}
+#cc77home .cc158-cochera-card h2{color:#ffd176}
+#mc158layer{position:fixed;z-index:1000005;inset:0;overflow:auto;background:#0c111a;color:#f6f4ec;font:15px system-ui,-apple-system,sans-serif;padding:16px}
+#mc158layer *,.mc158dialog *{box-sizing:border-box}
+#mc158layer .mc158wrap{max-width:1080px;margin:auto}
+#mc158layer .mc158head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(120deg,#282012,#0f1a29);border:1px solid #977126;border-radius:19px;padding:18px;margin-bottom:16px}
+#mc158layer .mc158head h2{color:#f9cd65;font-size:27px;margin:2px 0}
+#mc158layer .mc158head h2 span{font-size:12px;color:#aaa}
+#mc158layer .mc158head p{margin:0;color:#bcb7ab}
+#mc158layer button,.mc158dialog button{background:#c99b3e;border:0;border-radius:10px;padding:10px 14px;color:#15100c;cursor:pointer;font-weight:750;min-height:43px}
+#mc158layer button:hover,.mc158dialog button:hover{filter:brightness(1.1)}
+#mc158layer button:disabled{opacity:.45;cursor:not-allowed}
+#mc158layer .mc158status{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;background:#171e2a;padding:15px;border:1px solid #514631;border-radius:15px;margin-bottom:12px}
+#mc158layer .mc158status p{font-size:13px;color:#b7b5ad}
+#mc158layer .mc158box{background:#182332;border:1px solid #405069;padding:17px;border-radius:16px;margin-bottom:16px}
+#mc158layer .mc158box h3{margin:0 0 12px}
+#mc158layer .mc158stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+#mc158layer .mc158stats span{background:#1d2a37;padding:14px 12px;border-radius:12px;text-align:center;font-size:12px;color:#b4cbda}
+#mc158layer .mc158stats b{display:block;font-size:21px;color:#fff}
+#mc158layer .mc158tools{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
+#mc158layer .mc158tools input{flex:1 1 280px}
+#mc158layer input,#mc158layer select,#mc158layer textarea,.mc158dialog input,.mc158dialog select{width:100%;background:#0b1622;border:1px solid #566176;border-radius:9px;color:#fff;padding:12px;font:inherit;margin:5px 0 10px}
+#mc158layer label,.mc158dialog label{display:block;font-size:13px}
+#mc158layer .mc158cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,335px),1fr));gap:12px}
+#mc158layer .mc158cart{background:#101c2b;border:1px solid #3b556b;border-radius:14px;padding:14px;min-width:0}
+#mc158layer .mc158carttop{display:flex;justify-content:space-between;gap:10px}
+#mc158layer .mc158carttop h3{font-size:19px;color:#f7d27a}
+#mc158layer .mc158carttop p{font-size:12px;margin:5px 0;color:#b7c8d3}
+#mc158layer .mc158carttop strong{display:block;white-space:nowrap}
+#mc158layer .mc158carttop small{display:block;color:#98aebd}
+#mc158layer .mc158debt{color:#ff9398}
+#mc158layer .mc158actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:13px}
+#mc158layer .mc158actions button{font-size:12px;padding:10px 6px}
+#mc158layer .mc158scroll{overflow-x:auto}
+#mc158layer table,.mc158dialog table{width:100%;border-collapse:collapse}
+#mc158layer td,#mc158layer th,.mc158dialog td,.mc158dialog th{border-bottom:1px solid #3a4c5c;padding:10px;text-align:left;font-size:13px}
+#mc158layer #mc158grant{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.mc158dialog{position:fixed;inset:0;z-index:1000006;background:#030a12da;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:25px 12px;color:#fff;font:15px system-ui}
+.mc158dialog>section{background:#182332;border:1px solid #ad8342;border-radius:16px;padding:20px;width:min(100%,600px);max-height:90vh;overflow:auto}
+.mc158dialog header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.mc158dialog header h3{color:#ffcd68;margin:0}
+.mc158dialog fieldset{border:1px solid #506272;border-radius:9px;margin:10px 0;padding:12px}
+.mc158dialog legend{color:#f6cc78;font-weight:700}
+.mc158dialog .mc158look{font-size:12px;color:#a3dabc}
+#mc158notice,#mc158dialogStatus{color:#a2e5c3;min-height:1.2em}
+@media(max-width:550px){#mc158layer .mc158stats{grid-template-columns:1fr 1fr}#mc158layer .mc158head h2{font-size:23px}#mc158layer .mc158carttop{flex-wrap:wrap}}
