@@ -43,6 +43,10 @@ html=html.replaceAll('No se habilitarán recargas con dinero real, transferencia
  'Las recargas verificadas pueden destinarse al pago de servicios internos; el operador está sujeto a las obligaciones legales y contractuales correspondientes.');
 html=html.replaceAll('Los precios indicados son reglas del piloto y deben actualizarse según condiciones publicadas.',
  'Los precios y condiciones aplicables se mostrarán antes de contratar cada servicio.');
+html=html.replaceAll('contraseñas de la demo','contraseñas ajenas o accesos no autorizados');
+html=html.replaceAll('las transferencias internas de prueba solo operan entre servicios bajo la misma cuenta y con autorización expresa',
+ 'las transferencias de saldo real solo se permiten entre servicios del mismo titular, con autorización expresa');
+html=html.replaceAll('suscripciones y billeteras de prueba','suscripciones y billeteras internas');
 // Duplicados de los módulos dinámicos generaban pantallas y controladores repetidos.
 // Conservar la última referencia (la de versión más reciente).
 const unique=new Set(['v119-clients.js','v136-manual-recharges.js','v146-personal-manual-topups.js','v148-manual-whatsapp.js','v150-dni-admin.js','v151-portal-polish.js']);
@@ -59,6 +63,7 @@ html=html.replace(scriptMatcher,(tag,name,version)=>{
 });
 // Inyectar antes del CIERRE real del documento; nunca dentro de HTML de cronogramas.
 const newTag='<script src="scripts/v151-portal-polish.js?v=151"></script>';
+html=html.replaceAll(String.fromCharCode(92)+'n'+newTag,newTag);
 html=html.replaceAll(newTag,'');
 const closing=html.lastIndexOf('</body>');
 if(closing<0||closing<html.length-500)throw Error('Cierre real de documento no encontrado');
