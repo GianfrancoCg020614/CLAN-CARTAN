@@ -26,30 +26,39 @@
     selected = code;
     try { localStorage.setItem(KEY, code); } catch (_) {}
     document.querySelectorAll('[data-cc-currency-selector] select').forEach(el => {
-      if (el.value !== code) el.value = code;
+      if (el.value !== code) { el.value = code; el.dispatchEvent(new Event('cc-currency-sync')); }
     });
     window.dispatchEvent(new CustomEvent('clancartan:currency-change', { detail: { code } }));
     return true;
   }
+  // Flag images are rendered separately: native SELECT emoji flags are not reliable on Windows.
+  const COUNTRIES = Object.freeze({PEN:'pe',USD:'us',EUR:'eu',COP:'co',MXN:'mx',ARS:'ar',CLP:'cl',BOB:'bo'});
   function mount(root) {
     if (root.querySelector('select')) return;
-    const wrap = document.createElement('label');
-    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:8px;font:inherit;color:inherit;';
-    const text = document.createElement('span');
-    text.textContent = 'Moneda';
-    const select = document.createElement('select');
-    select.setAttribute('aria-label', 'Moneda de visualización');
-    select.style.cssText = 'min-width:205px;border-radius:10px;padding:9px 12px;background:#15171c;color:#fff;border:1px solid #8d7544;font:inherit;max-width:100%;';
-    LIST.forEach(item => {
-      const option = document.createElement('option');
-      option.value = item.code;
-      option.textContent = item.flag + ' ' + item.code + ' — ' + item.name;
+    const wrap=document.createElement('label');
+    wrap.style.cssText='display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;font:inherit;color:inherit;max-width:100%';
+    const title=document.createElement('span');title.textContent='🌐 Moneda';
+    const flag=document.createElement('img');
+    flag.width=30;flag.height=21;flag.alt='Bandera de moneda seleccionada';
+    flag.style.cssText='width:30px;height:21px;object-fit:cover;border-radius:3px;border:1px solid #aaa;';
+    const select=document.createElement('select');
+    select.setAttribute('aria-label','Moneda de visualización');
+    select.style.cssText='min-width:205px;max-width:100%;border-radius:10px;padding:9px 12px;background:#15171c;color:#fff;border:1px solid #8d7544;font:inherit;';
+    LIST.forEach(item=>{
+      const option=document.createElement('option');option.value=item.code;
+      option.textContent=item.code+' — '+item.name;
       select.appendChild(option);
     });
-    select.value = selected;
-    select.addEventListener('change', () => setCurrency(select.value));
-    wrap.append(text, select);
-    root.appendChild(wrap);
+    function showFlag(){
+      const item=LIST.find(x=>x.code===select.value)||LIST[0];
+      flag.alt='Bandera '+item.flag+' de '+item.name;
+      flag.src='https://flagcdn.com/w40/'+COUNTRIES[item.code]+'.png';
+      flag.onerror=()=>{flag.replaceWith(document.createTextNode(item.flag));};
+    }
+    select.value=selected;showFlag();
+    select.addEventListener('change',()=>{showFlag();setCurrency(select.value)});
+    select.addEventListener('cc-currency-sync',showFlag);
+    wrap.append(title,flag,select);root.appendChild(wrap);
   }
   function mountAll() {
     document.querySelectorAll('[data-cc-currency-selector]').forEach(mount);
