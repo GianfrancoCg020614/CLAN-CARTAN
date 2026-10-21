@@ -13,7 +13,7 @@ async function reload(){
  loading=true;const host=$('cy152adminList');host.replaceChildren();
  host.append(node('p','Consultando operaciones…'));
  try{
-  const rows=await window.cc80.api('rpc/cc_admin_manual_notification_queue','POST',{p_limit:50});
+  const rows=await window.cc80.api('rpc/cc_admin_manual_notification_queue_v156','POST',{p_limit:50});
   if(!admin())return;
   host.replaceChildren();if(!Array.isArray(rows))throw Error('Respuesta de servidor inválida');
   const count=rows.reduce((o,r)=>(o[r.status]=(o[r.status]||0)+1,o),{PENDING:0,VERIFIED:0,REJECTED:0});
@@ -21,17 +21,29 @@ async function reload(){
   if(!rows.length){host.append(node('p','No hay solicitudes de recarga registradas.'));return;}
   for(const r of rows){
    const article=node('article');article.className='cc136entry';
-   article.append(node('strong',money(r.amount_pen)+' · '+r.service+' · '+r.method));
+   article.append(node('strong',(r.method==='BINANCE'?(Number(r.received_usdt||0)+' USDT · '+money(r.amount_pen)+' PEN estimados'):money(r.amount_pen))+' · '+r.service+' · '+r.method));
    article.append(node('p','Estado: '+({PENDING:'Pendiente de verificación',VERIFIED:'Acreditada tras verificación',REJECTED:'Rechazada'}[r.status]||r.status)));
    article.append(node('small','Cuenta: '+r.recipient_email+' · N.º '+r.operation_number));
    article.append(node('small','Solicitud '+r.request_id+' · '+new Date(r.created_at).toLocaleString('es-PE')));
    if(r.status==='PENDING'){
     const btn=node('button','Preparar revisión sin acreditar');btn.type='button';
     btn.onclick=()=>{
+     if(r.method==='BINANCE'){
+       const bin=$('cc156Admin');
+       if(!bin){$('cy152adminStatus').textContent='Abre el área de conversión USDT/PEN V156 en ADMIN.';return;}
+       $('cc156recipient').value=r.recipient_email;
+       $('cc156service').value=r.service;
+       $('cc156tx').value=r.operation_number;
+       $('cc156usdt').value=r.received_usdt==null?'':r.received_usdt;
+       $('cc156settled').value='';$('cc156settlementRef').value='';
+       $('cc156receivedChecked').checked=false;$('cc156settledChecked').checked=false;
+       $('cc156creditStatus').textContent='Aviso de '+r.received_usdt+' USDT; '+money(r.amount_pen)+' es referencial. Comprueba USDT recibidos y PEN netos realmente liquidados. Nunca acredites por captura.';
+       bin.scrollIntoView({behavior:'smooth',block:'start'});return;
+     }
      const credit=$('cc146admin');if(!credit){$('cy152adminStatus').textContent='Abre el área de acreditaciones de ADMIN.';return;}
      $('cc146email').value=r.recipient_email;
      $('cc146service').value=r.service;
-     $('cc146provider').value=r.method==='BINANCE'?'BINANCE_PERSONAL':'LEMON_DALE_PERSONAL';
+     $('cc146provider').value='LEMON_DALE_PERSONAL';
      $('cc146provider').dispatchEvent(new Event('change'));
      $('cc146tx').value=r.operation_number;
      $('cc146confirm').checked=false;
@@ -39,7 +51,7 @@ async function reload(){
      if(r.method!=='BINANCE')$('cc146amount').value=r.amount_pen;
      else $('cc146amount').value=''; // La cantidad recibida en USDT NO es el importe solicitado en PEN.
      $('cc146amount').dispatchEvent(new Event('input'));
-     $('cc146status').textContent='Verifica en la cuenta receptora el ingreso, importe y referencia. Para Binance ingresa los USDT y la tasa real. Ninguna captura acredita saldo.';
+     $('cc146status').textContent='Comprueba el ingreso PEN de Lemon/DALE y la referencia en el proveedor. Ninguna captura acredita saldo.';
      credit.scrollIntoView({behavior:'smooth',block:'start'});
     };
     article.append(btn);
