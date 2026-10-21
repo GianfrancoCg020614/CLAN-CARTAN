@@ -55,7 +55,7 @@ const seen=new Set();
 html=html.replace(scriptMatcher,(tag,name,version)=>{
  if(!unique.has(name))return tag;
  if(Number(version)!==best.get(name)||seen.has(name))return '';
- seen.add(name);return tag.endsWith('\\n')?tag:tag+'\\n';
+ seen.add(name);return tag;
 });
 if(!seen.has('v151-portal-polish.js'))html=html.replace('</body>','<script src="scripts/v151-portal-polish.js?v=151"></script>\n</body>');
 html=html.replace(/name="cc-deploy-version" content="V[0-9]+-[0-9]+"/,'name="cc-deploy-version" content="V151-20261020"');
