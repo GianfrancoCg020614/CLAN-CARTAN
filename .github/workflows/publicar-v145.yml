@@ -1,9 +1,13 @@
-name: Publicar V148 en portal CLAN CARTAN
+name: Publicar V150 en portal CLAN CARTAN
 on:
   push:
     branches: [main]
     paths:
       - scripts/patch-v145-production.mjs
+      - scripts/patch-v150-dni.mjs
+      - scripts/v150-dni-admin.js
+      - scripts/v119-clients.js
+      - supabase/functions/cc-consulta-dni/index.ts
       - .github/workflows/publicar-v145.yml
   workflow_dispatch:
 permissions:
@@ -31,15 +35,21 @@ jobs:
           node --check scripts/v127-wallet-switch.js
           node --check scripts/v146-personal-manual-topups.js
           node --check scripts/v148-manual-whatsapp.js
+          node --check scripts/v119-clients.js
+          node --check scripts/v150-dni-admin.js
       - name: Aplicar cambios de portada V145
         run: node scripts/patch-v145-production.mjs
+      - name: Integrar consulta DNI automática V150
+        run: node scripts/patch-v150-dni.mjs
       - name: Verificar módulo en el HTML
         run: |
-          grep -Fq 'content="V148-20261020"' index.html
+          grep -Fq 'content="V150-20261020"' index.html
           grep -Fq 'scripts/v145-cobra-access.js?v=145' index.html
           grep -Fq 'scripts/v145-commerce-guard.js?v=145b' index.html
           grep -Fq 'scripts/v146-personal-manual-topups.js?v=147' index.html
           grep -Fq 'scripts/v148-manual-whatsapp.js?v=148' index.html
+          grep -Fq 'scripts/v150-dni-admin.js?v=150' index.html
+          node scripts/check-v150-dni.mjs
       - name: Guardar index.html en main si cambió
         run: |
           set -euo pipefail
@@ -50,6 +60,6 @@ jobs:
           git config user.name "clan-cartan-ci[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "V147: publicar QR compartidos y mantener acreditación manual"
+          git commit -m "V150: DNI automático con permiso ADMIN, QR manuales conservados"
           git pull --rebase origin main
           git push origin HEAD:main
