@@ -1,0 +1,27 @@
+/* V159 · Logotipo oficial remitido por titular. Eliminar decorado turquesa anterior.
+   No cambia colores estructurales ni marca STREAM BULL'S / MI COCHERA. */
+:root { --ccc-cobra-logo: url("../assets/cobra-ya-premium.svg?v=159"); }
+/* El ícono principal sí debe conservarse: portada, préstamos, panel, modal y vistas pequeñas. */
+#cc77home .cc127-cobra-card .cc78service-logo,
+#cc77home .cc78service-logo.cc78cobra,
+#cy53layer .cc127-cobra-logo,
+#cy53layer .cc119-cobra-logo,
+body .cc119-cobra-logo,
+.ccc-logo-loans,
+.ln-brandmark,
+.a1-w-icon.ccc-logo-loans,
+.a1-module-icon.ccc-logo-loans {
+  background-image: url("../assets/cobra-ya-premium.svg?v=159") !important;
+  background-position: center !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+}
+/* Se retira la antigua ilustración turquesa decorativa sobrepuesta en la tarjeta
+   y en el encabezado de préstamos. NO se elimina la tarjeta de Cobra Ya. */
+#cc77home .cc127-cobra-card::before,
+#cy53layer .cywrap > .cyrow::after,
+#cy53layer .cyrow::after {
+  content: none !important;
+  display: none !important;
+  background-image: none !important;
+}
