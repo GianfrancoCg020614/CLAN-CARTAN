@@ -57,7 +57,12 @@ html=html.replace(scriptMatcher,(tag,name,version)=>{
  if(Number(version)!==best.get(name)||seen.has(name))return '';
  seen.add(name);return tag;
 });
-if(!seen.has('v151-portal-polish.js'))html=html.replace('</body>','<script src="scripts/v151-portal-polish.js?v=151"></script>\n</body>');
+// Inyectar antes del CIERRE real del documento; nunca dentro de HTML de cronogramas.
+const newTag='<script src="scripts/v151-portal-polish.js?v=151"></script>';
+html=html.replaceAll(newTag,'');
+const closing=html.lastIndexOf('</body>');
+if(closing<0||closing<html.length-500)throw Error('Cierre real de documento no encontrado');
+html=html.slice(0,closing)+newTag+'\\n'+html.slice(closing);
 html=html.replace(/name="cc-deploy-version" content="V[0-9]+-[0-9]+"/,'name="cc-deploy-version" content="V151-20261020"');
 html=html.replace('scripts/v119-clients.js?v=150','scripts/v119-clients.js?v=151');
 if(!html.includes('const verified=await window.cc119ReconcileSavedClient'))throw Error('Corrección de nombre no integrada');
