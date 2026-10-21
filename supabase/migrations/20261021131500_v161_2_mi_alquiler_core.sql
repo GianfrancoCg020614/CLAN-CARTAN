@@ -191,7 +191,7 @@ begin
  select * into l from public.ma_leases where id=p_lease and reseller_id=u for update;
  if l.id is null or l.state<>'ACTIVE' then raise exception 'Contrato no activo';end if;
  total:=l.periods+p_more;
- if total>case when l.mode='DAY' then 3650 else 120 end then raise exception 'Limite de periodos excedido';end if;
+ if (l.mode='DAY' and total>3650) or (l.mode='MONTH' and total>120) then raise exception 'Limite de periodos excedido';end if;
  duev:=case when l.mode='DAY' then l.start_on+total else (l.start_on+make_interval(months=>total))::date end;
  update public.ma_leases set periods=total,next_due_on=duev where id=l.id;
  insert into public.ma_lease_events(reseller_id,lease_id,kind,periods_delta,due_before,due_after) values(u,l.id,'EXTEND',p_more,l.next_due_on,duev);
