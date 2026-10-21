@@ -31,7 +31,7 @@ assert.ok(js.includes("LEMON / DALE"),"V137: etiqueta de recaudación ausente");
 assert.ok(js.includes("navigator.clipboard.writeText"),"V137: copiar número ausente");
 assert.ok(html.includes('<details class="cy105advanced" open><summary>Moneda y garantía (opcional)</summary>'),"V137: garantía opcional debe estar visible");
 assert.ok(html.includes('name="collateral"')&&html.includes('¿Qué dejó en garantía? (opcional)'),"V137: descripción de garantía no disponible");
-assert.ok(html.includes('content="V148-20261020"'));
+assert.ok(html.includes('content="V150-20261020"'));
 
 const qrShared=readFileSync(new URL('v146-personal-manual-topups.js',import.meta.url),'utf8');
 assert.ok(qrShared.includes("renderSharedQr('cc147manualQr'"),'QR manual no visible');
