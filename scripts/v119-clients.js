@@ -99,7 +99,7 @@ window.cc119EditClient=function(client,refresh,notice){
   '<button type="button" id="cc119checkDni" class="cc119-verify">Verificar DNI ahora</button>'+
   '<div id="cc119compare" class="cc119-compare" hidden><small>Resultado de la consulta DNI</small><div><span>Nombre registrado:</span><strong id="cc119original"></strong></div><div><span>Nombre encontrado:</span><strong id="cc119official"></strong></div></div>'+
   '<p id="cc119editStatus" role="status" aria-live="polite"></p>'+
-  '<div class="cc119-edit-actions"><button type="button" class="cc119-secondary" id="cc119editCancel">Cancelar</button><button class="cc119-primary" id="cc119editSave" type="submit">Guardar corrección</button></div>'+
+  '<div class="cc119-edit-actions"><button type="button" class="cc119-secondary" id="cc119sendWa">WhatsApp al cliente</button><button type="button" class="cc119-secondary" id="cc119editCancel">Cancelar</button><button class="cc119-primary" id="cc119editSave" type="submit">Guardar corrección</button></div>'+
   '</form></section>';
  document.body.appendChild(overlay);
  const form=byId('cc119editForm'),status=byId('cc119editStatus'),comparison=byId('cc119compare');
@@ -107,6 +107,16 @@ window.cc119EditClient=function(client,refresh,notice){
  doc.value=client.document_number||'';name.value=client.full_name||'';alias.value=client.alias||'';phone.value=client.phone||'';email.value=client.email||'';address.value=client.address||'';district.value=client.district||'';reference.value=client.address_reference||'';notes.value=client.notes||'';
  function say(text){status.textContent=text;}
  byId('cc119editClose').onclick=closeEdit;byId('cc119editCancel').onclick=closeEdit;
+ byId('cc119sendWa').onclick=()=>{
+  let number=String(phone.value||'').replace(/[^0-9]/g,'');
+  if(/^9[0-9]{8}$/.test(number))number='51'+number;
+  if(!/^[1-9][0-9]{9,14}$/.test(number)){say('Registra un WhatsApp válido del cliente, con código de país.');phone.focus();return;}
+  const message='Hola, '+(name.value.trim()||'cliente')+'. Te contactamos respecto a tu cuenta de préstamos en COBRA YA. Comunícate con tu prestamista para consultar tus pagos y vencimientos. COBRA YA | CLAN CARTAN. Mensaje preparado por tu prestamista.';
+  const url='https://wa.me/'+number+'?text='+encodeURIComponent(message);
+  window.open(url,'_blank','noopener,noreferrer');
+  say('WhatsApp preparado para el número registrado. Confirma el envío en WhatsApp.');
+ };
+
  overlay.addEventListener('click',event=>{if(event.target===overlay)closeEdit();});
  doc.addEventListener('input',()=>{comparison.hidden=true;resultName='';if(!verifying)byId('cc119checkDni').disabled=false;});
  let resultName='',verifying=false;
