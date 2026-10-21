@@ -27,7 +27,7 @@
     card.innerHTML = '<div class="ma1611-card-icon" aria-hidden="true">🏠</div>' +
       '<div class="ma1611-card-copy"><small>CLAN CARTAN · CUARTA PLATAFORMA</small>' +
       '<h2>MI ALQUILER</h2><p>Habitaciones y locales · alquiler diario y mensual</p>' +
-      '<span class="ma1611-chip">V161.1 · Interfaz de integración</span></div>' +
+      '<span class="ma1611-chip">V161.2 · Datos protegidos</span></div>' +
       '<button id="ma1611open" type="button">Ingresar a Mi Alquiler →</button>';
     card.querySelector('button').addEventListener('click', open);
     return card;
@@ -53,8 +53,8 @@
       '<p>Un acceso · datos independientes de los otros negocios</p></div></div>' +
       '<button type="button" id="ma1611close" class="ma1611-close">← Volver a CLAN CARTAN</button></header>' +
       '<section class="ma1611-notice" role="status"><strong>Etapa 1 / V161.1:</strong> navegación e interfaz incorporadas. ' +
-      'Todavía no se sincronizan inquilinos, contratos, pagos ni billeteras con Supabase. ' +
-      'Los datos y permisos se conectarán en V161.2 y siguientes.</section>' +
+      'Habitaciones, locales, inquilinos y contratos se guardan con acceso restringido en Supabase. ' +
+      'Los cobros se integrarán en V161.3; DNI y WhatsApp en V161.4.</section>' +
       '<nav class="ma1611-nav" aria-label="Secciones de Mi Alquiler"></nav>' +
       '<main id="ma1611content" class="ma1611-content" tabindex="-1"></main>' +
       '<footer class="ma1611-footer">MI ALQUILER · futura cuarta plataforma. No hay cobros ni consultas DNI en esta etapa.</footer></div>';
@@ -83,8 +83,8 @@
     target.innerHTML = '<div class="ma1611-summary"><div class="ma1611-hero-icon" aria-hidden="true">' + area.emoji + '</div>' +
       '<div><small>MI ALQUILER</small><h3>' + area.title + '</h3><p>' + area.summary + '</p></div></div>' +
       '<div class="ma1611-placeholder"><span aria-hidden="true">🔐</span><div><strong>Activación de datos pendiente</strong>' +
-      '<p>Esta sección no registra información real durante V161.1. ' +
-      'Conectaremos los datos protegidos de cada RESELLER en la siguiente etapa.</p></div></div>';
+      '<p>La siguiente integración se habilitará únicamente con los permisos del servidor.</p></div></div>';
+    if (typeof window.ma1612Enhance === 'function') window.ma1612Enhance(area.id, target);
   }
   function open() {
     if (!session()?.jwt) {
@@ -96,10 +96,12 @@
     if (!layer) { layer = layout(); document.body.append(layer); }
     layer.hidden = false;
     renderArea('inmuebles');
+    if (typeof window.ma1612OnOpen === 'function') window.ma1612OnOpen();
     layer.querySelector('#ma1611close').focus();
   }
   function close() {
     const layer = $('ma1611layer'); if (layer) layer.hidden = true;
+    const dialog = $('ma1612dialog'); if (dialog) dialog.remove();
     if ($('ma1611card')) $('ma1611open').focus();
   }
   // No se borran ni reescriben paneles de otros módulos.
