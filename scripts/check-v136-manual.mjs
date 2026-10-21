@@ -4,7 +4,8 @@ import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const js=read('scripts/v136-manual-recharges.js');
-const qrSharedNumberExposed=(source)=> /Número DALE:\\s*<strong>|CCI:\\s*<strong>|923319637/.test(source);\n
+const qrSharedNumberExposed=(source)=> /Número DALE:\\s*<strong>|CCI:\\s*<strong>|923319637/.test(source);
+
 const base=read('scripts/v122-recharges.js');
 const html=read('index.html');
 const css=read('styles/v136-manual-recharges.css');
@@ -30,7 +31,7 @@ assert.ok(js.includes('if(!readiness.enabled)'));
 assert.ok(!js.includes('923319637'),"V155: la interfaz pública no debe revelar el número DALE");
 assert.ok(!qrSharedNumberExposed(read('scripts/v146-personal-manual-topups.js')),"V155: la leyenda del QR no debe mostrar datos bancarios");
 assert.ok(js.includes("LEMON / DALE"),"V137: etiqueta de recaudación ausente");
-assert.ok(js.includes("navigator.clipboard.writeText"),"V137: copiar número ausente");
+assert.ok(!js.includes('navigator.clipboard.writeText'),"V155: retirar botón de copiar teléfono");
 assert.ok(html.includes('<details class="cy105advanced" open><summary>Moneda y garantía (opcional)</summary>'),"V137: garantía opcional debe estar visible");
 assert.ok(html.includes('name="collateral"')&&html.includes('¿Qué dejó en garantía? (opcional)'),"V137: descripción de garantía no disponible");
 assert.ok(html.includes('content="V152-20261020"'));
