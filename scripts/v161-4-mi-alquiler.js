@@ -42,7 +42,10 @@ async function load(c){
 }
 function findSimilar(hay,needle){if(hay.includes(needle))return true;if(needle.length<4)return false;
  // tolerar un error de escritura por palabra; no realiza consultas a servidores.
- return hay.split(/[^a-z0-9]+/).some(w=>{if(Math.abs(w.length-needle.length)>1)return false;let i=0,j=0,err=0;while(i<w.length&&j<needle.length){if(w[i]===needle[j]){i++;j++;continue;}err++;if(err>1)return false;if(w.length>needle.length)i++;else if(w.length<needle.length)j++;else{i++;j++;}}return err+Math.max(w.length-i,needle.length-j)<=1;});
+ return hay.split(/[^a-z0-9]+/).some(w=>{if(Math.abs(w.length-needle.length)>1)return false;
+  if(w.length===needle.length){const at=[];for(let k=0;k<w.length;k++)if(w[k]!==needle[k])at.push(k);
+   if(at.length===2&&at[1]===at[0]+1&&w[at[0]]===needle[at[1]]&&w[at[1]]===needle[at[0]])return true;}
+  let i=0,j=0,err=0;while(i<w.length&&j<needle.length){if(w[i]===needle[j]){i++;j++;continue;}err++;if(err>1)return false;if(w.length>needle.length)i++;else if(w.length<needle.length)j++;else{i++;j++;}}return err+Math.max(w.length-i,needle.length-j)<=1;});
 }
 function searchCards(text){const needle=norm(text);const terms=needle.split(/\s+/).filter(Boolean);return alerts.filter(a=>{const t=a.tenant,u=a.unit,l=a.lease;const blob=norm([a.code,u.alias,u.kind,u.floor,t.full_name,t.document_number,t.whatsapp,l.state,l.mode,a.due].join(' '));return terms.every(x=>findSimilar(blob,x));});}
 function whatsAppLink(a){const txt='Hola '+a.tenant.full_name+', te escribimos por el alquiler de '+a.code+(a.unit.alias?' ('+a.unit.alias+')':'')+'. '+(a.days<0?'El vencimiento fue el ':'El vencimiento es el ')+a.due+'. '+(a.owed>0?'Saldo registrado pendiente: '+cash(a.owed)+'. ':'')+'Por favor, confirma tu fecha de pago o renovación. Gracias.';
