@@ -30,6 +30,8 @@ async function load(){
  const rows=await api("rpc/mc_ensure_account");
  account=Array.isArray(rows)?rows[0]:rows;
  if(!account)throw Error("Sin cuenta.");
+ const detail=await window.cc80.api("mc_accounts?select=country&user_id=eq."+encodeURIComponent(ses().userId));
+ account.country=detail?.[0]?.country||"PE";
  realWallets=await window.cc80.api("cc_real_service_wallets?select=service,balance_pen&user_id=eq."+encodeURIComponent(ses().userId));
  if(!active()){showLocked();return;}
  await api("rpc/mc_sync_rents");
@@ -41,9 +43,10 @@ async function load(){
  ]);
  renderList();
 }
+function currencyPanel(){return '<section class="mc158status"><div><strong>País: '+esc(account?.country||"PE")+' · Moneda de cobros: '+esc(account?.currency||"PEN")+'</strong><p>No confundimos la moneda de los alquileres con la billetera, que siempre está en PEN.</p></div><button type="button" data-action="currency">Configurar país y moneda</button></section>';}
 function walletPanel(){const balance=realWallets.find(w=>w.service==="MI_COCHERA")?.balance_pen||0;
  return '<section class="mc158status"><div><strong>Billetera MI COCHERA · saldo REAL '+currency(balance,"PEN")+'</strong><p>Saldo real confirmado, distinto del bono gratuito.</p></div><button type="button" data-action="transfer">⇄ Transferir saldo real entre mis billeteras</button></section>';}
-function showLocked(){let el=$("mc158body");el.innerHTML=header()+walletPanel()+'<section class="mc158box"><h3>Acceso a MI COCHERA</h3><p>Mientras la mensualidad esté vencida, tus carritos, cobros y deudas permanecen guardados y protegidos.</p><p>Para activar, puedes usar saldo de bono gratuito otorgado por ADMIN. El pago con saldo real se habilitará solo tras comprobar el circuito comercial autorizado.</p><button type="button" data-action="bonus" '+(num(account.bonus_pen)<15||account.suspended?"disabled":"")+'>Activar 30 días con S/ 15 de bono</button><p id="mc158notice" role="status"></p></section>';}
+function showLocked(){let el=$("mc158body");el.innerHTML=header()+currencyPanel()+walletPanel()+'<section class="mc158box"><h3>Acceso a MI COCHERA</h3><p>Mientras la mensualidad esté vencida, tus carritos, cobros y deudas permanecen guardados y protegidos.</p><p>Para activar, puedes usar saldo de bono gratuito otorgado por ADMIN. El pago con saldo real se habilitará solo tras comprobar el circuito comercial autorizado.</p><button type="button" data-action="bonus" '+(num(account.bonus_pen)<15||account.suspended?"disabled":"")+'>Activar 30 días con S/ 15 de bono</button><p id="mc158notice" role="status"></p></section>';}
 async function loadAdmin(){
  accounts=await window.cc80.api("mc_accounts?select=user_id,invite_code,currency,subscription_until,bonus_pen,suspended&order=created_at.desc&limit=300");
  const options=accounts.map(a=>'<option value="'+esc(a.user_id)+'">'+esc(a.invite_code)+' · '+esc(a.user_id.slice(0,8))+'</option>').join("");
@@ -54,7 +57,7 @@ function balance(id){return moves.filter(m=>m.cart_id===id).reduce((s,m)=>s+num(
 function renderList(){
  const shown=carts.filter(c=>[c.alias,c.business_type,person(c.owner_person_id).full_name,person(c.owner_person_id).document_number,person(c.worker_person_id).full_name,person(c.worker_person_id).document_number,String(c.id)].join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().includes(filter.toLowerCase()));
  const pending=carts.reduce((s,c)=>s+Math.max(0,balance(c.id)),0);
- $("mc158body").innerHTML=header()+walletPanel()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==="ACTIVE").length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><input id="mc158search" placeholder="Alias, dueño, trabajador, DNI o código C-…" value="'+esc(filter)+'"><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="reload">↻ Actualizar</button></div><p id="mc158notice" role="status"></p><div class="mc158cards">'+shown.map(c=>{
+ $("mc158body").innerHTML=header()+currencyPanel()+walletPanel()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==="ACTIVE").length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><input id="mc158search" placeholder="Alias, dueño, trabajador, DNI o código C-…" value="'+esc(filter)+'"><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="reload">↻ Actualizar</button></div><p id="mc158notice" role="status"></p><div class="mc158cards">'+shown.map(c=>{
  const owner=person(c.owner_person_id),worker=person(c.worker_person_id),debt=Math.max(0,balance(c.id));
  return '<article class="mc158cart"><div class="mc158carttop"><div><small>C-'+String(c.id).padStart(3,"0")+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||owner.full_name||"Carrito")+'</h3><p>Propietario: '+esc(owner.full_name)+' · '+esc(owner.document_number)+'</p>'+(worker.id?'<p>Trabajador: '+esc(worker.full_name)+'</p>':"")+'<small>Tarifa '+currency(c.daily_rate,c.currency)+' / día</small></div><div><strong class="'+(debt>0?"mc158debt":"")+'">'+currency(debt,c.currency)+'</strong><small>'+esc(c.state==="RETIRED"?"Retirado":"Activo")+'</small></div></div><div class="mc158actions"><button type="button" data-action="payment" data-cart="'+c.id+'">Cobrar</button><button type="button" data-action="sale" data-cart="'+c.id+'">Hielo / venta</button><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="'+(c.state==="ACTIVE"?"retire":"reactivate")+'" data-cart="'+c.id+'">'+(c.state==="ACTIVE"?"Se retira":"Reactivar")+'</button></div></article>';
  }).join("")+'</div></section>';
@@ -90,6 +93,8 @@ async function submit(e){
   const f=e.target;
   const next=await api("rpc/mc_admin_grant_bonus",{p_reseller:f.elements.user.value,p_amount:num(f.elements.amount.value),p_request:crypto.randomUUID(),p_note:f.elements.reason.value});
   note("Bono registrado: nuevo saldo promocional S/ "+num(next).toFixed(2));await loadAdmin();
+ }else if(e.target.id==="mc158config"){
+  const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});$("mc158dialog")?.remove();await load();note("Moneda y país actualizados para esta cochera.");
  }else if(e.target.id==="mc158transfer"){
   const f=e.target;await api("rpc/mc_transfer_real_balance",{p_from:f.elements.from.value,p_to:f.elements.to.value,p_amount:num(f.elements.amount.value),p_request:f.dataset.request});$("mc158dialog")?.remove();await load();note("Transferencia real verificada y registrada. El bono gratuito permanece intransferible.");
  }else if(e.target.id==="mc158new"){
@@ -112,6 +117,10 @@ async function click(e){
  if(act==="close-dialog"){$("mc158dialog")?.remove();return;}
  if(act==="reload"){await load();return;}
  if(act==="new"){newCart();return;}
+ if(act==="currency"){
+  const codes=["PEN","USD","EUR","COP","MXN","ARS","CLP","BOB","BRL","UYU","PYG","CRC","DOP","CAD","GBP"];
+  drawer("País y moneda de tu cochera",'<form id="mc158config"><p>Configura la moneda antes de crear el primer carrito. No se permite convertir deudas históricas por simple cambio de símbolo.</p><label>País (ISO, dos letras)<input name="country" required minlength="2" maxlength="2" value="'+esc(account.country||"PE")+'" placeholder="PE, CO, MX"></label><label>Moneda<select name="currency">'+codes.map(c=>'<option value="'+c+'" '+(account.currency===c?"selected":"")+'>'+c+'</option>').join("")+'</select></label><button type="submit">Guardar moneda</button></form>');return;
+ }
  if(act==="transfer"){
   const opts=["MI_COCHERA","COBRA_YA","STREAM_BULLS"];
   const labels={MI_COCHERA:"MI COCHERA",COBRA_YA:"COBRA YA",STREAM_BULLS:"STREAM BULL’S"};
