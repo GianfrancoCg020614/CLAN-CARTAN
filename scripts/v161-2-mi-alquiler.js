@@ -82,6 +82,7 @@ function enhance(which,target){
  if(!session()?.jwt){target.innerHTML=section('Sesión requerida','Inicia sesión en CLAN CARTAN para continuar.','');return;}
  if(loading){target.innerHTML='<p>Cargando datos protegidos de MI ALQUILER…</p>';return;}
  if(!account){target.innerHTML='<p>Preparando acceso…</p>';return;}
+ if(typeof window.ma1613Enhance==='function' && window.ma1613Enhance(area,target,{account,leases,units,tenants,properties,sessionId:uid})) return;
  if(!account.active){target.innerHTML=locked();return;}
  target.innerHTML=area==='inmuebles'?renderProperties():area==='inquilinos'?renderTenants():area==='contratos'?renderLeases():pending(area);
 }
