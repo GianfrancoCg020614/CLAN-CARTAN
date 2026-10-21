@@ -9,6 +9,7 @@ on:
       - scripts/patch-v152-cobra.mjs
       - scripts/v152-cobra-fast.js
       - scripts/v152-admin-reconcile.js
+      - scripts/check-v152-cobra.mjs
       - scripts/v151-portal-polish.js
       - scripts/v148-manual-whatsapp.js
       - scripts/v150-dni-admin.js
