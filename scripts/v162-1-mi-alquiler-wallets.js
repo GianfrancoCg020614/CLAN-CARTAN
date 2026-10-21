@@ -12,8 +12,8 @@ const rpc=(fn,data)=>api('rpc/'+fn,'POST',data||{});
 const uid=()=>ss()?.userId;
 const uuid=()=>{if(typeof crypto.randomUUID==='function')return crypto.randomUUID();const b=new Uint8Array(16);crypto.getRandomValues(b);b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);};
 const valid=v=>Number.isFinite(v)&&v>=0.01&&v<=100000&&Math.abs(v*100-Math.round(v*100))<0.000001;
-let state={userId:'',balances:[],requests:[],loaded:false,loading:false,working:false,error:'',notice:'',receipt:null,method:'LEMON_DALE',pendingForm:false};
-const clean=()=>{state={userId:'',balances:[],requests:[],loaded:false,loading:false,working:false,error:'',notice:'',receipt:null,method:'LEMON_DALE',pendingForm:false};};
+let state={userId:'',balances:[],requests:[],loaded:false,loading:false,working:false,error:'',notice:'',receipt:null,method:'LEMON_DALE',pendingForm:false,supportPhone:''};
+const clean=()=>{state={userId:'',balances:[],requests:[],loaded:false,loading:false,working:false,error:'',notice:'',receipt:null,method:'LEMON_DALE',pendingForm:false,supportPhone:''};};
 function amount(service){return Number(state.balances.find(x=>x.service===service)?.balance_pen||0);}
 const serviceOptions=selected=>Object.entries(services).map(([key,label])=>'<option value="'+key+'" '+(selected===key?'selected':'')+'>'+esc(label)+'</option>').join('');
 function internals(){
@@ -26,7 +26,9 @@ function internals(){
  '<form id="ma1621recharge"><label>Método<select name="method" id="ma1621method"><option value="LEMON_DALE">Lemon / DALE (PEN)</option><option value="BINANCE">Binance Pay (USDT)</option></select></label><label>Monto a recargar · PEN en Lemon, USDT en Binance<input name="amount" type="number" min="0.01" max="1000" step="0.01" required></label><button type="button" data-ma1621="paid">YA PAGUÉ</button><div id="ma1621details" '+(!state.pendingForm?'hidden':'')+'><label>Nombres y apellidos del depositante<input name="payer" maxlength="120" autocomplete="name"></label><label>Número de operación<input name="operation" maxlength="120" autocomplete="off"></label><button type="submit" '+(state.working?'disabled':'')+'>Registrar solicitud pendiente</button></div></form>'+
  '<p class="ma1621-small">Lemon: ADMIN coteja el abono antes de acreditar. Binance: solo USDT efectivamente recibido y convertido con tasa segura; la referencia no constituye cobro confirmado.</p><div class="ma1621-history"><b>Últimas solicitudes Lemon</b>'+ (hist||'<p>No existen solicitudes registradas.</p>')+'</div></section>';
  const subscription='<section class="ma1621-box"><h4>Suscripción · S/15 por 30 días</h4><p>Saldo real MI ALQUILER: <b>'+money(amount('MI_ALQUILER'))+'</b>. Los bonos promocionales siguen en otra cuenta, no son transferibles.</p><button type="button" data-ma1621="renew" '+(amount('MI_ALQUILER')<15||state.working?'disabled':'')+'>Renovar con S/15 de saldo real</button></section>';
- return '<div class="ma1621-grid">'+cards+'</div>'+transfer+recharge+subscription;
+ const support=ss()?.isAdmin?'<section class="ma1621-box"><h4>ADMIN · WhatsApp para recargas</h4><p>Configura el contacto de atención; no se publica CCI ni número de billetera.</p><form id="ma1621support"><label>WhatsApp con código de país<input name="phone" value="'+esc(state.supportPhone||'')+'" placeholder="519xxxxxxxx" required></label><button type="submit">Guardar WhatsApp ADMIN</button></form></section>':'';
+ const receipt=state.receipt?'<section class="ma1621-box"><h4>Solicitud registrada · pendiente</h4><p>ADMIN verificará el ingreso; esta declaración NO acredita saldo.</p><button type="button" data-ma1621="notify-admin">'+(state.supportPhone?'Avisar por WhatsApp':'Copiar aviso para ADMIN')+'</button></section>':'';
+ return '<div class="ma1621-grid">'+cards+'</div>'+transfer+recharge+receipt+subscription+support;
 }
 function body(){
  if(!ss()?.jwt)return '<p>Inicia sesión para administrar billeteras.</p>';
@@ -45,8 +47,9 @@ async function reload(){
  try{
   const balances=await api('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+encodeURIComponent(id));
   const requests=await api('cc_manual_recharge_requests?select=id,amount_pen,status,created_at&service=eq.MI_ALQUILER&user_id=eq.'+encodeURIComponent(id)+'&order=created_at.desc&limit=8');
+  const contacts=await api('ma_payment_support_settings?select=whatsapp&id=eq.true');
   if(uid()!==id){clean();return;}
-  state.balances=Array.isArray(balances)?balances:[];state.requests=Array.isArray(requests)?requests:[];state.loaded=true;
+  state.balances=Array.isArray(balances)?balances:[];state.requests=Array.isArray(requests)?requests:[];state.supportPhone=Array.isArray(contacts)?String(contacts[0]?.whatsapp||''):'';state.loaded=true;
  }catch(e){state.error=String(e.message||e);}
  finally{state.loading=false;mount();}
 }
@@ -62,6 +65,14 @@ async function onClick(e){
  const act=b.dataset.ma1621;
  if(act==='paid'){state.pendingForm=true;const d=get('ma1621details');if(d)d.hidden=false;get('ma1621recharge')?.elements.namedItem('operation')?.focus();return;}
  if(act==='refresh'){state.loaded=false;await reload();return;}
+ if(act==='notify-admin'){
+  if(!state.receipt)return;
+  const r=state.receipt,msg='MI ALQUILER · Recarga pendiente\\nMétodo: '+r.method+'\\nMonto declarado: '+r.amount+' '+(r.method==='BINANCE'?'USDT':'PEN')+'\\nDepositante: '+r.payer+'\\nNº operación: '+r.operation+'\\nVerificar recepción real antes de acreditar.';
+  if(state.supportPhone){window.open('https://wa.me/'+state.supportPhone+'?text='+encodeURIComponent(msg),'_blank','noopener,noreferrer');state.notice='WhatsApp abierto, entrega no confirmada.';}
+  else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(msg);state.notice='Aviso copiado. ADMIN aún debe configurar WhatsApp.';}
+  else{window.prompt('Copia este aviso para ADMIN:',msg);state.notice='Aviso preparado.';}
+  mount();return;
+ }
  if(lock)return;
  if(act==='renew'){
   if(amount('MI_ALQUILER')<15)return;
@@ -70,10 +81,14 @@ async function onClick(e){
  }
 }
 async function onSubmit(e){
- const form=e.target.closest?.('#ma1621transfer,#ma1621recharge');if(!form)return;e.preventDefault();e.stopPropagation();if(lock||!ss()?.jwt)return;
+ const form=e.target.closest?.('#ma1621transfer,#ma1621recharge,#ma1621support');if(!form)return;e.preventDefault();e.stopPropagation();if(lock||!ss()?.jwt)return;
  lock=true;state.working=true;state.notice='Procesando solicitud…';mount();
  try{
-  if(form.id==='ma1621transfer'){
+  if(form.id==='ma1621support'){
+   if(!ss()?.isAdmin)throw Error('Solo ADMIN puede configurar el contacto');
+   await rpc('ma_admin_set_support_whatsapp',{p_whatsapp:String(form.elements.namedItem('phone').value||'')});
+   state.notice='Número de atención guardado por ADMIN.';
+  }else if(form.id==='ma1621transfer'){
    const from=form.elements.namedItem('from').value,to=form.elements.namedItem('to').value,v=Number(form.elements.namedItem('amount').value);
    if(!services[from]||!services[to]||from===to||!valid(v)||v>amount(from))throw Error('Selecciona otra billetera y un importe disponible de saldo REAL');
    await rpc('ma_transfer_real_balance',{p_from:from,p_to:to,p_amount:v,p_request:uuid()});
@@ -85,10 +100,12 @@ async function onSubmit(e){
    if(method==='LEMON_DALE'){
     await rpc('cc_submit_manual_recharge',{p_service:'MI_ALQUILER',p_amount:v,p_payer_name:payer,p_payer_reference:operation});
     state.notice='Solicitud Lemon PENDIENTE. Solo ADMIN puede acreditar un depósito realmente verificado.';
+    state.receipt={method,amount:v,payer,operation};
    }else{
     if(method!=='BINANCE'||v<0.5||operation.length<8)throw Error('USDT/referencia inválidos');
     const quote=await rpc('cc_notify_binance_personal_usdt',{p_service:'MI_ALQUILER',p_received_usdt:v,p_operation:operation});
     state.notice='Aviso Binance PENDIENTE. Cotización neta referencial: '+money(Array.isArray(quote)?quote[0]?.estimated_pen:quote?.estimated_pen)+'. No constituye saldo acreditado.';
+    state.receipt={method,amount:v,payer,operation};
    }
   }
   state.pendingForm=false;state.loaded=false;await reload();
