@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V161-20261021">
+<meta name="cc-deploy-version" content="V161P1-20261021">
 <meta name="cc-turnstile-sitekey" content="">
 <style>
 
@@ -4850,8 +4850,9 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSup
 async function signIn(event){
  event.preventDefault();btn.disabled=true;status.textContent='Verificando sesión y autorización…';
  try{
-  const email=document.getElementById('cc-real-email').value.trim();
+  const email=document.getElementById('cc-real-email').value.trim().toLowerCase();
   const password=document.getElementById('cc-real-pass').value;
+  if(!email||!password)throw Error('Ingresa tu correo electrónico y contraseña.');
   const auth=await api('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password,gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
   if(!auth.access_token)throw Error('No se recibió una sesión válida.');
   const jwt=auth.access_token;
@@ -4869,7 +4870,7 @@ async function signIn(event){
     document.getElementById('cc77back').style.display='none';
     document.getElementById('cc54logout')?.style?.setProperty('display','block');
     const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent=authorized?'CLAN CARTAN · RESELLER autenticado · cartera privada':commercialRole?'CLAN CARTAN · '+commercialRole.replaceAll('_',' ')+' · consulta de tus servicios':'CLAN CARTAN · Cuenta personal autenticada · servicios por activar';document.body.appendChild(banner);
-    if(typeof loginDemo==='function'){verified=false;} // Nunca otorgar rol local ADMIN a RESELLER.
+    // Mantener verificada la identidad real Supabase. El rol ADMIN solo se habilita desde cc_admins.
     document.getElementById('cy53open')?.style?.setProperty('display','block');
     if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(error){console.error('Error de interfaz tras autenticación correcta',error);document.getElementById('cc77home')?.style?.setProperty('display','block')}}
     return;
@@ -4884,7 +4885,7 @@ async function signIn(event){
  }catch(e){
  const err=String(e.message||'Error desconocido');
  const pending=/email not confirmed|email_not_confirmed/i.test(err);
- status.textContent=pending?'Confirma tu correo electrónico o solicita un nuevo código.':/invalid login credentials|invalid_grant|invalid credentials/i.test(err)?'Correo o contraseña incorrectos. Usa «¿Olvidaste tu contraseña?» para recuperarla.':err;
+ status.textContent=pending?'Confirma tu correo electrónico o solicita un nuevo código.':/invalid login credentials|invalid_grant|invalid credentials/i.test(err)?'Correo o contraseña incorrectos. Usa «¿Olvidaste tu contraseña?» para recuperarla.':/captcha|bot verification/i.test(err)?'No se pudo validar la verificación de seguridad. Actualiza la página e inténtalo nuevamente.':/failed to fetch|network|load failed|timeout/i.test(err)?'No se pudo conectar con Supabase. Comprueba tu conexión y vuelve a intentar.':err;
  if(pending){document.getElementById('cc91-email').textContent=document.getElementById('cc-real-email').value.trim();document.getElementById('cc91-confirm').style.display='block';}
  document.getElementById('cc90-resend').style.display=pending?'block':'none';
  document.getElementById('cc-real-pass').value='';
