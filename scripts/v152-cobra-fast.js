@@ -141,7 +141,7 @@ function notify(id){
   const headlines={new:'✅ *PRÉSTAMO REGISTRADO*',soon:'🔔 *PRÓXIMO A VENCER*',late:'⚠️ *PRÉSTAMO VENCIDO*',paid:'💵 *ABONO RECIBIDO*',closed:'🏁 *PRÉSTAMO CANCELADO*'};
   msg.push(headlines[type]);
   msg.push('💰 Capital: '+cash(x.principal,x.currency));
-  msg.push('📈 Interés mensual: '+Number(x.monthly_interest_rate??x.interest_rate||0)+'%');
+  msg.push('📈 Interés mensual: '+Number(x.monthly_interest_rate??x.interest_rate??0)+'%');
   msg.push('🗓️ Plazo: '+(x.duration_months||1)+' meses');
   msg.push('💳 Total acordado: '+cash(x.total_due,x.currency));
   msg.push('📅 Vencimiento: '+fmtDate);
