@@ -1,5 +1,5 @@
 /* CLAN CARTAN V119 · Alta con DNI primero y corrección verificable de clientes COBRA YA.
-   Consulta automática controlada por permiso ADMIN documentado en servidor. Actualiza solo el nombre verificado; conserva los otros campos. */
+   Consulta DNI para membresías activas con autorización automática del backend. Actualiza solo el nombre verificado; conserva los otros campos. */
 (function(){
 'use strict';
 const byId=id=>document.getElementById(id);
@@ -19,7 +19,7 @@ const escapeHtml=text=>String(text??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':
 function consentMessage(reason){
  if(['monthly_limit','quota_exhausted','plan_exhausted'].includes(reason))return 'El cupo de consultas de DNI está agotado. Corrige el nombre manualmente o vuelve a verificar cuando haya cupo.';
  if(reason==='daily_limit')return 'Alcanzaste el límite diario de consultas. Puedes corregir manualmente y verificar otro día.';
- if(reason==='not_authorized'||reason==='operator_not_approved')return 'Consulta automática pendiente de habilitación por ADMIN. Puedes ingresar los datos manualmente.';
+ if(reason==='not_authorized'||reason==='operator_not_approved')return 'Tu membresía no está activa para esta consulta. Puedes ingresar los datos manualmente.';
  if(reason==='provider_not_configured')return 'El proveedor de consultas aún no está disponible. Puedes corregir manualmente.';
  if(reason==='not_found')return 'No se encontró ese DNI. Verifica que esté bien escrito.';
  return 'La consulta DNI no está disponible en este momento. El registro manual sigue funcionando.';
@@ -40,8 +40,6 @@ window.cc119ReconcileSavedClient=async function(clientId,dni){
  const ses=getSession();
  if(!ses?.jwt||!ses.userId||!/^[0-9]{8}$/.test(dni)||!clientId)return {status:'manual'};
  try{
-  const approved=await window.cc80.api('rpc/cc_my_dni_auto_permission','POST',{});
-  if(approved!==true)return {status:'manual',reason:'operator_not_approved'};
   const verified=await queryVerifiedName(dni);
   if(verified.status!=='found'||!verified.full_name)return verified;
   const official=String(verified.full_name).trim().replace(/\\s+/g,' ').slice(0,160);
@@ -97,8 +95,8 @@ window.cc119EditClient=function(client,refresh,notice){
   '<label>Distrito / ciudad (opcional)<input name="district" maxlength="120"></label>'+
   '<label>Referencia (opcional)<input name="address_reference" maxlength="300"></label>'+
   '<label>Observaciones (opcional)<textarea name="notes" maxlength="500" rows="2"></textarea></label>'+
-  '<small>La consulta automática se utiliza únicamente cuando ADMIN ha habilitado este operador.</small>'+
-  '<button type="button" id="cc119checkDni" class="cc119-verify" hidden aria-hidden="true" tabindex="-1">Consulta automática</button>'+
+  '<small>Consulta disponible para membresías activas; si el proveedor no responde, puedes continuar manualmente.</small>'+
+  '<button type="button" id="cc119checkDni" class="cc119-verify">Verificar DNI ahora</button>'+
   '<div id="cc119compare" class="cc119-compare" hidden><small>Resultado de la consulta DNI</small><div><span>Nombre registrado:</span><strong id="cc119original"></strong></div><div><span>Nombre encontrado:</span><strong id="cc119official"></strong></div></div>'+
   '<p id="cc119editStatus" role="status" aria-live="polite"></p>'+
   '<div class="cc119-edit-actions"><button type="button" class="cc119-secondary" id="cc119editCancel">Cancelar</button><button class="cc119-primary" id="cc119editSave" type="submit">Guardar corrección</button></div>'+
@@ -112,19 +110,9 @@ window.cc119EditClient=function(client,refresh,notice){
  overlay.addEventListener('click',event=>{if(event.target===overlay)closeEdit();});
  doc.addEventListener('input',()=>{comparison.hidden=true;resultName='';if(!verifying)byId('cc119checkDni').disabled=false;});
  let resultName='',verifying=false;
- // Consulta automática al completar ocho dígitos también al corregir datos.
- let editDniTimer;
- doc.addEventListener('input',()=>{
-  clearTimeout(editDniTimer);
-  if(/^[0-9]{8}$/.test(doc.value.trim())){
-   editDniTimer=setTimeout(()=>{if(!verifying)byId('cc119checkDni')?.click();},450);
-  }
- });
  byId('cc119checkDni').addEventListener('click',async()=>{
   const dni=doc.value.trim();
   if(!/^[0-9]{8}$/.test(dni)){say('Ingresa los 8 dígitos del DNI peruano para consultar.');return;}
-  const allowed=await window.cc80.api('rpc/cc_my_dni_auto_permission','POST',{});
-  if(allowed!==true){say('ADMIN aún no habilitó la consulta automática para tu cuenta. Puedes corregir manualmente.');return;}
   if(verifying)return;
   verifying=true;
   const button=byId('cc119checkDni');button.disabled=true;comparison.hidden=true;
@@ -187,9 +175,14 @@ function simplifyNewClientDialog(){
  const repeated=modal.querySelector('.cc119-manual-note');
  if(repeated)repeated.remove();
  const intro=modal.querySelector('.cy105note');
- if(intro)intro.textContent='Escribe el DNI de 8 dígitos: COBRA YA buscará el nombre automáticamente si ADMIN habilitó este operador. Sin cupo, continúa manualmente.';
+ if(intro)intro.textContent='Ingresa el DNI y pulsa Verificar DNI ahora. Disponible con membresía activa. Sin cupo, continúa manualmente.';
  const label=dni.closest('label');
  if(label&&label.firstChild?.nodeType===Node.TEXT_NODE)label.firstChild.textContent='DNI peruano (8 dígitos) u otro documento:';
+ if(!modal.querySelector('#cc119verifyNewDni')){
+  const btn=document.createElement('button');btn.type='button';btn.id='cc119verifyNewDni';btn.className='cc119-verify';btn.textContent='Verificar DNI ahora';
+  btn.addEventListener('click',()=>{const value=dni.value.trim();if(!/^\\d{8}$/.test(value)){status.textContent='Ingresa 8 dígitos de DNI.';return;}dni.dispatchEvent(new Event('input',{bubbles:true}));dni.dispatchEvent(new Event('change',{bubbles:true}));});
+  dni.closest('label')?.insertAdjacentElement('afterend',btn);
+ }
  modal.dataset.dniSimplified='yes';
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',simplifyNewClientDialog);
