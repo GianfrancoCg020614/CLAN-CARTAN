@@ -40,6 +40,7 @@ function finance(context){
  const expenses=state.expenses.reduce((s,m)=>s+n(m.amount_pen),0);
  const blocked=state.guarantees.reduce((s,m)=>s+(m.action==='RECEIVED'?n(m.amount_pen):-n(m.amount_pen)),0);
  let cards='<div class="ma3-stats"><div><small>Saldo por cobrar (contratado)</small><b>'+cash(total)+'</b></div><div><small>Alquileres cobrados</small><b>'+cash(collected)+'</b></div><div><small>Gastos registrados</small><b>'+cash(expenses)+'</b></div><div><small>Garantías custodiadas</small><b>'+cash(blocked)+'</b></div></div>';
+ cards+='<section class="ma3-card"><h4>Invita a MI ALQUILER</h4><p>Tu código personal: <strong>'+esc(context.account.invite_code||'—')+'</strong></p>'+btn('share-invite','Copiar enlace de invitación')+'<p class="ma3-small">El referido se atribuye a tu código. No se activan suscripciones ni bonos automáticamente.</p></section>';
  cards+='<section class="ma3-card"><h4>Billetera MI ALQUILER (suscripción)</h4><p>Saldo real verificado: <b>'+cash(context.account.real_verified_pen)+'</b> · Bono gratuito: <b>'+cash(context.account.bonus_pen)+'</b></p><p>Suscripción hasta '+esc(context.account.subscription_until?new Date(context.account.subscription_until).toLocaleDateString('es-PE'):'sin activar')+' · S/15 por 30 días</p>'+btn('activate','Renovar 30 días con bono',n(context.account.bonus_pen)>=15?'':'disabled')+'<p class="ma3-small">No se habilitan depósitos Lemon, Binance ni transferencia de saldos hasta verificar proveedores y sus permisos.</p></section>';
  cards+=adminBox(context);
  const active=context.leases.filter(x=>x.state==='ACTIVE');
@@ -100,6 +101,14 @@ async function onClick(e){const b=e.target.closest('[data-ma3-action]');if(!b)re
  if(act==='expense'){dialog('Registrar gasto','<form data-ma3-form="expense"><label>Unidad (opcional)<select name="unit"><option value="">Gasto general</option>'+current.units.map(u=>'<option value="'+u.id+'">'+esc(u.code)+' · '+esc(u.alias)+'</option>').join('')+'</select></label>'+inp('Categoría','category','maxlength="80"')+inp('Descripción','description','maxlength="250"')+inp('Gasto en soles','amount','type="number" step="0.01" min="0.01"')+'<label>Medio de pago<select name="method"><option>EFECTIVO</option><option>TRANSFERENCIA</option><option>YAPE</option><option>PLIN</option></select></label><button type="submit">Guardar gasto</button></form>');return;}
  if(busy)return;busy=true;b.disabled=true;
  try{
+  if(act==='share-invite'){
+   const code=String(current?.account?.invite_code||'');
+   if(!/^ALQUILER[1-9][0-9]{0,11}$/.test(code))throw new Error('Código de invitación no disponible');
+   const link='https://www.clancartan.com/?ref='+encodeURIComponent(code)+'#registro';
+   if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(link);message('Enlace copiado para compartir con tu referido.');}
+   else{window.prompt('Copia tu enlace de invitación:',link);}
+   return;
+  }
   if(act==='refresh'){await reload();return;}
   if(act==='activate'){await rpc('ma_activate_bonus',{p_request:uuid()});await reload();return;}
  }catch(ex){message(String(ex.message||ex),true);}finally{busy=false;b.disabled=false;}
