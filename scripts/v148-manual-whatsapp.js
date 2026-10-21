@@ -78,7 +78,7 @@ function mount(){
    el('cc148status').textContent='Solicitud registrada. Abriendo WhatsApp: adjunta allí tu comprobante y envía el mensaje.';
    const opened=window.open(url,'_blank','noopener,noreferrer');
    if(!opened){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Abrir WhatsApp y adjuntar comprobante';el('cc148status').append(' ',a);}
-   close();
+   else close();
   }catch(e){el('cc148status').textContent='No se registró la solicitud: '+String(e.message||e);}
   finally{sending=false;el('cc148send').disabled=false;}
  });
