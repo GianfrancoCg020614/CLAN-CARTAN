@@ -36,3 +36,19 @@ async function mount(){
 }
 window.cc161MountMarketingConsent=mount;
 })();
+
+/* V161.1 MI ALQUILER · cargador aditivo, no altera autenticación, finanzas ni consentimiento V161. */
+(function(){
+ 'use strict';
+ function loadMiAlquiler(){
+  if(document.querySelector('script[data-ma1611-loader]'))return;
+  const script=document.createElement('script');
+  script.src='scripts/v161-1-mi-alquiler.js?v=1611';
+  script.dataset.ma1611Loader='true';
+  script.async=true;
+  script.addEventListener('error',()=>console.warn('MI ALQUILER: no se pudo cargar la interfaz.'));
+  document.head.append(script);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadMiAlquiler,{once:true});
+ else loadMiAlquiler();
+})();
