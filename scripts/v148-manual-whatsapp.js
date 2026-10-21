@@ -36,6 +36,15 @@ function mount(){
  '<p id="cc148status" role="status" aria-live="polite"></p></div>';
  document.body.appendChild(modal);
  const amount=el('cc148amount'),preview=el('cc148amountPreview');
+ const methodSelector=el('cc148method'),paidField=el('cc148paidAmount');
+ function syncPaymentCurrency(){
+  const binance=methodSelector.value==='BINANCE';
+  paidField.parentElement.firstChild.textContent=binance?'Cantidad realmente enviada (USDT)':'Monto recargado (S/)';
+  paidField.step=binance?'any':'0.01';
+  paidField.value=binance?'':(Number(amount.value)||0).toFixed(2);
+  el('cc148status').textContent=binance?'Binance recibe USDT. La tasa PEN es referencial. ADMIN debe verificar la conversión antes de acreditar.':'';
+ }
+ methodSelector.addEventListener('change',syncPaymentCurrency);
  amount.addEventListener('input',()=>{
   const n=Number(amount.value);
   preview.textContent=n>=1&&n<=1000?'Monto a recargar: '+currency(n)+' · verifica la cuenta antes de pagar':'Indica un monto entre S/ 1 y S/ 1,000.';
@@ -45,7 +54,7 @@ function mount(){
  button.addEventListener('click',()=>{
   const n=Number(amount.value);
   if(!Number.isFinite(n)||n<1||n>1000||Math.round(n*100)!==n*100){preview.textContent='Primero escribe un monto válido entre S/1 y S/1000.';amount.focus();return;}
-  el('cc148paidAmount').value=n.toFixed(2);
+  syncPaymentCurrency();
   modal.hidden=false;modal.style.display='flex';el('cc148operation').focus();
  });
  const close=()=>{modal.hidden=true;modal.style.display='none'};
@@ -59,17 +68,28 @@ function mount(){
   const paid=Number(el('cc148paidAmount').value),expected=Number(amount.value);
   const method=el('cc148method').value,ref=el('cc148operation').value.trim();
   const service=el('cc148service').value;
-  if(!Number.isFinite(paid)||paid<1||paid>1000||Math.abs(paid-expected)>.001||ref.length<5){
-   el('cc148status').textContent='Revisa el monto (debe coincidir) y el número de operación.';return;
+  if(!Number.isFinite(paid)||paid<=0||paid>1000||(method!=='BINANCE'&&Math.abs(paid-expected)>.001)||ref.length<(method==='BINANCE'?8:5)){
+   el('cc148status').textContent='Revisa el importe original '+(method==='BINANCE'?'en USDT':'en soles')+' y la referencia de operación.';return;
   }
   sending=true;el('cc148send').disabled=true;el('cc148status').textContent='Registrando solicitud pendiente…';
   try{
-   const request=await window.cc80.api('rpc/cc_notify_manual_payment','POST',{
-    p_service:service,p_method:method,p_amount:paid,p_operation:ref
-   });
+   const binance=method==='BINANCE';
+   const answer=binance
+    ? await window.cc80.api('rpc/cc_notify_binance_personal_usdt','POST',{
+       p_service:service,p_received_usdt:paid,p_operation:ref
+      })
+    : await window.cc80.api('rpc/cc_notify_manual_payment','POST',{
+       p_service:service,p_method:method,p_amount:paid,p_operation:ref
+      });
+   const row=binance?(Array.isArray(answer)?answer[0]:answer):null;
+   const request=binance?row?.request_id:answer;
    if(!request)throw Error('No se confirmó el registro');
    const msg=['*CLAN CARTAN | SOLICITUD DE RECARGA*','', 'Hola ADMIN, ya realicé un pago. Solicito verificarlo.',
-   'Billetera: *'+serviceName(service)+'*','Monto: *'+currency(paid)+'*',
+   'Billetera: *'+serviceName(service)+'*',
+   binance?'USDT enviados: *'+paid+' USDT*':'Monto: *'+currency(paid)+'*',
+   ...(binance?['Saldo PEN referencial: *'+currency(row.estimated_pen)+'*',
+     'Tasa protegida: S/ '+row.net_rate_pen_per_usdt+' por USDT',
+     'Acreditación definitiva limitada al PEN neto realmente liquidado.']:[]),
    'Método: *'+method+'*','N.º de operación: *'+ref+'*',
    'Código de solicitud: '+request,'Código de usuario: '+sess.userId,
    '','*Adjunto mi comprobante de pago en este chat.*',
