@@ -36,27 +36,26 @@ const literalReplacements=[
  ["Aún no tienes clientes registrados","Aún no tienes clientes registrados"],
 ];
 for(const [a,b] of literalReplacements){if(a!==b)html=html.replaceAll(a,b);}
-const terms=/((?:<template id="cc82-terms-text">)[\\s\\S]*?)(<\/template>)/;
-html=html.replace(terms,(full,before,end)=>{
-  let text=before;
-  text=text.replace(/El piloto usa exclusivamente saldos simulados sin valor monetario ni derecho al retiro\.[^<]*/,'Las billeteras registran saldo interno destinado exclusivamente a pagar servicios de CLAN CARTAN. Las recargas por QR requieren comprobación del ingreso real y acreditación por ADMIN; no admiten retiros, pagos de préstamos de terceros ni transferencias entre usuarios. ');
-  text=text.replace(/No se habilitarán recargas con dinero real, transferencias monetarias ni retiros sin determinar previamente su viabilidad contractual, tributaria y regulatoria\./,'Los pagos deben verificarse antes de acreditar saldo y las transacciones quedan sujetas a las condiciones legales y comerciales aplicables.');
-  text=text.replace('Los precios indicados son reglas del piloto y deben actualizarse según condiciones publicadas.','Los precios y condiciones aplicables se mostrarán antes de contratar cada servicio.');
-  return text+end;
-});
-const privacy=/((?:<template id="cc82-privacy-text">)[\\s\\S]*?)(<\/template>)/;
-html=html.replace(privacy,(full,before,end)=>{
- const fixed=before.replaceAll('saldos ficticios','saldos internos sujetos a verificación');
- return fixed+end;
-});
+// Actualizar afirmaciones públicas del antiguo piloto sin inventar funciones.
+html=html.replaceAll('El piloto usa exclusivamente saldos simulados sin valor monetario ni derecho al retiro.',
+ 'Las billeteras almacenan saldo interno para pagar servicios de CLAN CARTAN; las recargas por QR requieren verificación y acreditación por ADMIN. No hay retiros ni pagos de préstamos de terceros.');
+html=html.replaceAll('No se habilitarán recargas con dinero real, transferencias monetarias ni retiros sin determinar previamente su viabilidad contractual, tributaria y regulatoria.',
+ 'Las recargas verificadas pueden destinarse al pago de servicios internos; el operador está sujeto a las obligaciones legales y contractuales correspondientes.');
+html=html.replaceAll('Los precios indicados son reglas del piloto y deben actualizarse según condiciones publicadas.',
+ 'Los precios y condiciones aplicables se mostrarán antes de contratar cada servicio.');
 // Duplicados de los módulos dinámicos generaban pantallas y controladores repetidos.
 // Conservar la última referencia (la de versión más reciente).
 const unique=new Set(['v119-clients.js','v136-manual-recharges.js','v146-personal-manual-topups.js','v148-manual-whatsapp.js','v150-dni-admin.js','v151-portal-polish.js']);
+const best=new Map();
+const scriptMatcher=/<script src="scripts\\/(v[0-9]+-[a-z0-9-]+\\.js)\\?v=([0-9]+)"><\\/script>\\s*/g;
+for(const [,name,version] of html.matchAll(scriptMatcher)){
+ if(unique.has(name))best.set(name,Math.max(best.get(name)||0,Number(version)));
+}
 const seen=new Set();
-html=html.replace(/<script src="scripts\/(v[0-9]+-[a-z0-9-]+\.js)\?v=[0-9a-z]+"><\/script>\s*/g,(tag,name)=>{
+html=html.replace(scriptMatcher,(tag,name,version)=>{
  if(!unique.has(name))return tag;
- if(seen.has(name))return '';
- seen.add(name);return tag.endsWith('\n')?tag:tag+'\n';
+ if(Number(version)!==best.get(name)||seen.has(name))return '';
+ seen.add(name);return tag.endsWith('\\n')?tag:tag+'\\n';
 });
 if(!seen.has('v151-portal-polish.js'))html=html.replace('</body>','<script src="scripts/v151-portal-polish.js?v=151"></script>\n</body>');
 html=html.replace(/name="cc-deploy-version" content="V[0-9]+-[0-9]+"/,'name="cc-deploy-version" content="V151-20261020"');
