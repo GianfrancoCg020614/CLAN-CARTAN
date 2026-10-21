@@ -19,9 +19,16 @@ Deno.serve(async(req:Request)=>{
  const body=await req.json().catch(()=>({}));
  const dni=String(body.dni||"");
  if(!/^\d{8}$/.test(dni))return respond({status:"invalid_dni"},400,origin);
- if(body.consent!==true)return respond({status:"consent_required"},400,origin);
- if(!token)return respond({status:"manual",reason:"provider_not_configured"},200,origin);
+ // V150: la autorización corresponde a la configuración ADMIN con sustento documentado.
+ // No se interpreta un checkbox del navegador como permiso para consultar datos de terceros.
  const headers={"apikey":service,"Authorization":"Bearer "+service,"Content-Type":"application/json"};
+ const permResp=await fetch(base+"/rest/v1/rpc/cc_dni_auto_permission",{
+  method:"POST",headers,body:JSON.stringify({p_user:user.id})
+ }).catch(()=>null);
+ if(!permResp?.ok)return respond({status:"manual",reason:"authorization_unavailable"},200,origin);
+ const permission=await permResp.json().catch(()=>false);
+ if(permission!==true)return respond({status:"manual",reason:"operator_not_approved"},200,origin);
+ if(!token)return respond({status:"manual",reason:"provider_not_configured"},200,origin);
  const quotaResp=await fetch(base+"/rest/v1/rpc/cc_claim_dni_quota",{method:"POST",headers,body:JSON.stringify({p_user:user.id})}).catch(()=>null);
  if(!quotaResp?.ok)return respond({status:"manual",reason:"quota_unavailable"},200,origin);
  const quota=await quotaResp.json().catch(()=>null);
