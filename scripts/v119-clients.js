@@ -1,5 +1,5 @@
 /* CLAN CARTAN V119 · Alta con DNI primero y corrección verificable de clientes COBRA YA.
-   Consulta externa explícita, solo con consentimiento. Actualiza solo el nombre verificado tras consulta autorizada; conserva los otros campos. */
+   Consulta automática controlada por permiso ADMIN documentado en servidor. Actualiza solo el nombre verificado; conserva los otros campos. */
 (function(){
 'use strict';
 const byId=id=>document.getElementById(id);
@@ -67,7 +67,7 @@ window.cc119EditClient=function(client,refresh,notice){
   '<label>Referencia (opcional)<input name="address_reference" maxlength="300"></label>'+
   '<label>Observaciones (opcional)<textarea name="notes" maxlength="500" rows="2"></textarea></label>'+
   '<small>La consulta automática se utiliza únicamente cuando ADMIN ha habilitado este operador.</small>'+
-  '<button type="button" id="cc119checkDni" class="cc119-verify">Verificar DNI ahora</button>'+
+  '<button type="button" id="cc119checkDni" class="cc119-verify" hidden aria-hidden="true" tabindex="-1">Consulta automática</button>'+
   '<div id="cc119compare" class="cc119-compare" hidden><small>Resultado de la consulta DNI</small><div><span>Nombre registrado:</span><strong id="cc119original"></strong></div><div><span>Nombre encontrado:</span><strong id="cc119official"></strong></div></div>'+
   '<p id="cc119editStatus" role="status" aria-live="polite"></p>'+
   '<div class="cc119-edit-actions"><button type="button" class="cc119-secondary" id="cc119editCancel">Cancelar</button><button class="cc119-primary" id="cc119editSave" type="submit">Guardar corrección</button></div>'+
