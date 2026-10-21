@@ -10,7 +10,7 @@ const audit=fs.readFileSync('supabase/migrations/20261021074000_v158_wallet_audi
 const logo=fs.readFileSync('assets/mi-cochera-logo.svg','utf8');
 const readme=fs.readFileSync('docs/CONTINUIDAD-V157-LEMON-PRIMERO-ESTADO-PRESERVADO.md','utf8');
 function required(content,needle){assert.ok(content.includes(needle),'Missing: '+needle);}
-required(html,'V158-20261021');required(html,'cc158-cochera-card');
+assert.match(html,/V(?:158|160)-20261021/);required(html,'cc158-cochera-card');
 required(html,'Ingresar a Mi Cochera');
 required(html,'scripts/v158-mi-cochera.js?v=158');
 required(html,'styles/v158-mi-cochera.css?v=158');
