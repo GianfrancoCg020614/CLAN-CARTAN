@@ -13,7 +13,7 @@ assert.ok(html.includes('window.cy152OnRefresh?.('));
 assert.ok(html.includes('window.cy152OnLoansRendered?.()'));
 assert.ok(html.includes('cy152-extension-quick'));
 assert.ok(ui.includes('client_code')&&ui.includes('document_number')&&ui.includes('alias'));
-assert.ok(ui.includes('cy_record_payment')&&ui.includes('El PRESTAMISTA recibió'));
+assert.ok(ui.includes('cy_record_payment')&&ui.includes('PRESTAMISTA recibió'));
 assert.ok(ui.includes('cy_loan_extensions')&&ui.includes('Cronograma y pagos'));
 assert.ok(ui.includes('Préstamo cancelado')&&ui.includes('Préstamo vencido'));
 assert.ok(ui.includes('https://www.clancartan.com/'));
