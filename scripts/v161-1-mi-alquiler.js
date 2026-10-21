@@ -27,7 +27,7 @@
     card.innerHTML = '<div class="ma1611-card-icon" aria-hidden="true">🏠</div>' +
       '<div class="ma1611-card-copy"><small>CLAN CARTAN · CUARTA PLATAFORMA</small>' +
       '<h2>MI ALQUILER</h2><p>Habitaciones y locales · alquiler diario y mensual</p>' +
-      '<span class="ma1611-chip">V161.3 · Finanzas protegidas</span></div>' +
+      '<span class="ma1611-chip">V161.4 · Avisos y reportes</span></div>' +
       '<button id="ma1611open" type="button">Ingresar a Mi Alquiler →</button>';
     card.querySelector('button').addEventListener('click', open);
     return card;
@@ -46,18 +46,18 @@
     const layer = document.createElement('section');
     layer.id = 'ma1611layer'; layer.setAttribute('role', 'dialog');
     layer.setAttribute('aria-modal', 'true');
-    layer.setAttribute('aria-label', 'MI ALQUILER: vista de integración V161.3');
+    layer.setAttribute('aria-label', 'MI ALQUILER: vista de integración V161.4');
     layer.innerHTML = '<div class="ma1611-wrap">' +
       '<header class="ma1611-head"><div class="ma1611-brand"><span aria-hidden="true">🏠</span>' +
       '<div><small>CLAN CARTAN · MI ALQUILER</small><h2>Gestión de habitaciones y locales</h2>' +
       '<p>Un acceso · datos independientes de los otros negocios</p></div></div>' +
       '<button type="button" id="ma1611close" class="ma1611-close">← Volver a CLAN CARTAN</button></header>' +
-      '<section class="ma1611-notice" role="status"><strong>Etapa 3 / V161.3:</strong> navegación e interfaz incorporadas. ' +
+      '<section class="ma1611-notice" role="status"><strong>Etapa 4 / V161.4:</strong> navegación e interfaz incorporadas. ' +
       'Habitaciones, locales, inquilinos y contratos se guardan con acceso restringido en Supabase. ' +
-      'Cobros, medidores, garantías, gastos y bonos protegidos; DNI y WhatsApp en V161.4.</section>' +
+      'Cobros, medidores, garantías y bonos protegidos; avisos al WhatsApp del inquilino, búsqueda y Excel. La consulta DNI usa el backend y respeta la autorización disponible.</section>' +
       '<nav class="ma1611-nav" aria-label="Secciones de Mi Alquiler"></nav>' +
       '<main id="ma1611content" class="ma1611-content" tabindex="-1"></main>' +
-      '<footer class="ma1611-footer">MI ALQUILER · V161.3 en preparación. Sin recargas externas ni consultas oficiales de DNI.</footer></div>';
+      '<footer class="ma1611-footer">MI ALQUILER · V161.4 en preparación. Sin recargas externas ni envío automático desatendido de WhatsApp.</footer></div>';
     layer.querySelector('#ma1611close').addEventListener('click', close);
     layer.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     layer.addEventListener('click', e => { if (e.target === layer) close(); });
