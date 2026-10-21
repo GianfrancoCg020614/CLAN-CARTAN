@@ -34,7 +34,7 @@ assert.ok(js.includes("LEMON / DALE"),"V137: etiqueta de recaudación ausente");
 assert.ok(!js.includes('navigator.clipboard.writeText'),"V155: retirar botón de copiar teléfono");
 assert.ok(html.includes('<details class="cy105advanced" open><summary>Moneda y garantía (opcional)</summary>'),"V137: garantía opcional debe estar visible");
 assert.ok(html.includes('name="collateral"')&&html.includes('¿Qué dejó en garantía? (opcional)'),"V137: descripción de garantía no disponible");
-assert.ok(/content="(?:V152-20261020|V158-20261021|V160-20261021)"/.test(html));
+assert.ok(/content="(?:V152-20261020|V158-20261021|V160-20261021|V161-20261021)"/.test(html));
 
 const qrShared=readFileSync(new URL('v146-personal-manual-topups.js',import.meta.url),'utf8');
 assert.ok(qrShared.includes("renderSharedQr('cc147manualQr'"),'QR manual no visible');

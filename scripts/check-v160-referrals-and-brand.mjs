@@ -7,7 +7,7 @@ const css=fs.readFileSync('styles/v160-stream-bulls-brand.css','utf8');
 const sql=fs.readFileSync('supabase/migrations/20261021094000_v160_signup_cochera_referral.sql','utf8');
 const old=fs.readFileSync('scripts/v156-usdt-quote.js','utf8');
 function has(c,needle){assert.ok(c.includes(needle),'Missing '+needle);}
-has(html,'content="V160-20261021"');
+assert.match(html,/content="V(?:160|161)-20261021"/);
 has(html,'--ccc-bull-logo:url("assets/stream-bulls-logo.svg?v=160")');
 has(html,'styles/v160-stream-bulls-brand.css?v=160');
 has(html,'scripts/v160-invitation-register.js?v=160');
