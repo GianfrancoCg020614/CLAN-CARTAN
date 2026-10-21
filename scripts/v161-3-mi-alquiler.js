@@ -1,6 +1,6 @@
 /* CLAN CARTAN · MI ALQUILER V161.3
  * Cobros y costos entre arrendador e inquilino; nunca son dinero de la billetera CLAN CARTAN.
- * Únicamente backend ma_* de Supabase, sin service_role ni pasarelas no verificadas.
+ * Únicamente backend ma_* de Supabase, sin claves privilegiadas ni pasarelas no verificadas.
  */
 (function(){
 'use strict';
