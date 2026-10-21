@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V152-20261020">
+<meta name="cc-deploy-version" content="V158-20261021">
 <meta name="cc-turnstile-sitekey" content="">
 <style>
 
@@ -4761,9 +4761,9 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <label id="cc-v81-districtlabel">Distrito *<input id="cc-v81-district" placeholder="Tu distrito"></label>
 </div></fieldset>
 <fieldset><legend>3. Acceso a tu cuenta</legend><p style="font-size:12px;margin:0 0 8px">Tu correo será el usuario para todos los negocios. Escríbelo arriba junto con tu contraseña.</p><div class="cc-v81-grid"><label class="full">Confirmar contraseña *<input id="cc-v81-confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"></label>
-<label class="full">¿Qué servicio deseas conocer primero? *<select id="cc111-business"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option></select></label>
+<label class="full">¿Qué servicio deseas conocer primero? *<select id="cc111-business"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option><option value="MI_COCHERA">MI COCHERA</option></select></label>
 <label class="full">Código de invitado (opcional)
-<input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: COBRA1 o BULL1" aria-describedby="cc110-invite-hint">
+<input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: COBRA1, BULL1 o COCHERA1" aria-describedby="cc110-invite-hint">
 <span id="cc110-invite-hint" style="display:block;font-size:12px;font-weight:400;color:#b5c6d8;margin-top:5px">Puedes registrarte sin código. Todos reciben un código propio e irrepetible. El código no concede acceso ni descuenta dinero.</span>
 </label></div>
 <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0"> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a> y la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a> (borradores para revisión legal).* No autorizo comunicaciones publicitarias por este acto.</span></label>
@@ -4903,7 +4903,7 @@ inviteInput.addEventListener('input',()=>{
  document.getElementById('cc110-invite-hint').textContent='Código de invitado (opcional). Se verificará al registrarte.';
 });
 const invitationInUrl=new URLSearchParams(window.location.search).get('ref');
-if(invitationInUrl&&/^(COBRA|BULL)[1-9][0-9]{0,11}$/i.test(invitationInUrl)){
+if(invitationInUrl&&/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/i.test(invitationInUrl)){
  inviteInput.value=invitationInUrl.toUpperCase();
  document.getElementById('cc110-invite-hint').textContent='Código de invitación cargado desde tu enlace. Se validará al registrarte.';
 }
@@ -4946,8 +4946,9 @@ async function register(event){
   if(!document.getElementById('cc-v81-terms').checked)throw Error('Lee y acepta los Términos y la Política de privacidad.');
   const invitationCode=inviteInput.value.trim().toUpperCase();
   if(invitationCode){
-   if(!/^(COBRA|BULL)[1-9][0-9]{0,11}$/.test(invitationCode))throw Error('El código de invitado debe ser como COBRA1 o BULL1.');
-   const checked=await api('/rest/v1/rpc/cc_validate_invitation_code',{method:'POST',body:JSON.stringify({p_code:invitationCode})});
+   if(!/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/.test(invitationCode))throw Error('El código debe ser como COBRA1, BULL1 o COCHERA1.');
+   const rpc=/^COCHERA/.test(invitationCode)?'mc_validate_invitation_code':'cc_validate_invitation_code';
+   const checked=await api('/rest/v1/rpc/'+rpc,{method:'POST',body:JSON.stringify({p_code:invitationCode})});
    if(!Array.isArray(checked)||checked[0]?.valid!==true)throw Error('Código de invitado no válido. Revísalo o deja el campo vacío.');
    document.getElementById('cc110-invite-hint').textContent='✓ Código válido para '+(checked[0].business||'CLAN CARTAN')+'.';
   }
@@ -5650,13 +5651,14 @@ body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
 <section id="cc77home" aria-label="Página principal CLAN CARTAN">
  <div class="cc77wrap">
   <header class="cc77top"><div class="cc77brand"><span class="cc78main-logo" aria-label="Logo original de CLAN CARTAN"></span><span>CLAN CARTAN<small>EIRL. · Plataforma de negocios digitales</small></span></div><div class="cc77actions"><div id="cc95-user" style="display:none;align-items:center;gap:9px;background:#10253e;border:1px solid #345574;border-radius:30px;padding:6px 13px 6px 6px;color:#fff"><span id="cc95-avatar" style="width:35px;height:35px;display:grid;place-items:center;border-radius:50%;background:#159be2;font-weight:800">U</span><span style="display:flex;flex-direction:column;line-height:1.2"><strong id="cc95-name" style="font-size:13px">Usuario</strong><small id="cc95-role" style="color:#80def6">Usuario</small></span><div id="cc116-account-balances" class="cc116-account-balances" aria-label="Saldos de tus billeteras reales y de prueba"><span class="cc127-wallet-pill">COBRA · Real <b id="cc116-cobra">S/ --</b><small id="cc127-cobra-test">Prueba S/ --</small></span><span class="cc127-wallet-pill">BULL · Real <b id="cc116-bull">S/ --</b><small id="cc127-bull-test">Prueba S/ --</small></span></div><button type="button" class="cc116-recharge" onclick="cc116OpenRecharge()">＋ Recargar</button><button type="button" class="cc118-logout cc118-profile-logout" onclick="cc54SwitchAccount()" aria-label="Cerrar sesión" title="Cerrar sesión"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button></div><button type="button" id="cc92-admin-button" style="display:none;background:#f0c76c;color:#111b2d;font-weight:900;border-color:#f0c76c" onclick="cc92OpenAdmin()">⚙ PANEL ADMIN</button><button type="button" class="cc98-guest-action" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="primary cc98-guest-action" onclick="cc77Auth(true)">Crear cuenta</button></div></header>
-  <div class="cc77intro"><h1>CLAN CARTAN · Una cuenta, todos tus servicios</h1><p>Dos negocios, una sola cuenta. Explora STREAM BULL’S, organiza tus préstamos en COBRA YA y administra tus billeteras en un mismo lugar. Recarga, consulta tus saldos y transfiere de una billetera a otra fácilmente, siempre dentro de tu propia cuenta.</p></div>
+  <div class="cc77intro"><h1>CLAN CARTAN · Una cuenta, todos tus servicios</h1><p>Tres plataformas, una sola cuenta. Conoce MI COCHERA, explora STREAM BULL’S, organiza tus préstamos en COBRA YA y administra tus billeteras en un mismo lugar. Recarga, consulta tus saldos y transfiere de una billetera a otra fácilmente, siempre dentro de tu propia cuenta.</p></div>
   <div class="cc77cards">
    <article class="cc77card"><div class="cc77tag">CATÁLOGO PÚBLICO · SIN REGISTRO</div><div class="cc78service"><span class="cc78service-logo cc78stream" role="img" aria-label="Logo original de Stream Bull’s"></span><h2>STREAM BULL'S</h2></div><p>Streaming y software digital. Puedes explorar el catálogo y consultar los precios públicos sin iniciar sesión. Los precios especiales requieren afiliación de pago único de S/ 20 cuando esté conectada al backend.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc77Store()">Ver catálogo público</button><button type="button" onclick="cc79StreamBenefits()">Acceder a beneficios</button></div></article>
    <article class="cc77card cc127-cobra-card"><div class="cc77tag">GESTIÓN PROFESIONAL DE PRÉSTAMOS</div><div class="cc78service"><span class="cc78service-logo cc78cobra" role="img" aria-label="Logo original de COBRA YA"></span><h2>COBRA YA</h2></div><p>Lleva el control de tus préstamos sin complicaciones: registra clientes, crea cronogramas, anota abonos y revisa vencimientos desde un solo panel. Mantén tu cartera organizada y tus movimientos claros, con acceso a tu billetera y suscripción desde la plataforma.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc79Cobra()">Ingresar a Cobra Ya</button></div></article>
+   <article class="cc77card cc158-cochera-card"><div class="cc77tag">GESTIÓN DE COCHERAS Y CARRITOS · S/ 15 MENSUALES</div><div class="cc78service"><span class="cc158-cochera-mark" aria-label="MI COCHERA">🐻</span><h2>MI COCHERA</h2></div><p>Registra propietarios, trabajadores, alquileres diarios y ventas de hielo. Cada RESELLER conserva su propia cartera, sus deudas y su historial. Acceso con tu misma cuenta CLAN CARTAN.</p><div class="cc77actions"><button type="button" class="primary" onclick="mc158Open()">Ingresar a Mi Cochera</button></div></article>
   </div>
   
-  <div id="cc79logged" class="cc79hint" hidden></div><div class="cc77foot">Desarrollado por CLAN CARTAN EIRL. · <a href="https://www.clancartan.com/" target="_blank" rel="noopener">www.ClanCartan.com</a> · clancartan@gmail.com<br>Una cuenta para los dos servicios · Recargas sujetas a verificación del proveedor</div>
+  <div id="cc79logged" class="cc79hint" hidden></div><div class="cc77foot">Desarrollado por CLAN CARTAN EIRL. · <a href="https://www.clancartan.com/" target="_blank" rel="noopener">www.ClanCartan.com</a> · clancartan@gmail.com<br>Una cuenta para tres plataformas · Recargas sujetas a verificación del proveedor</div>
  </div>
 </section>
 <button type="button" id="cc77back" onclick="cc77Home()">← CLAN CARTAN</button><div id="cc77demobanner">STREAM BULL’S · catálogo informativo. Compras en línea pendientes de validación del proveedor.</div>
@@ -5950,6 +5952,8 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 
 <script src="scripts/v156-usdt-quote.js?v=156"></script>
 
+<link rel="stylesheet" href="styles/v158-mi-cochera.css?v=158">
+<script src="scripts/v158-mi-cochera.js?v=158" defer></script>
 <script src="scripts/v151-portal-polish.js?v=151"></script>
 </body>
 </html>
