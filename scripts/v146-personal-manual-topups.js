@@ -19,7 +19,7 @@ function install(){
    '<div class="cc147-qr-grid" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center">'+
    '<figure style="flex:1 1 230px;max-width:350px;margin:0;text-align:center"><strong>LEMON / DALE · PEN</strong>'+
    '<img src="assets/qr-dale-gianfranco.svg" loading="lazy" alt="Código QR personal de Lemon Cash" style="display:block;width:min(100%,260px);height:auto;margin:12px auto;image-rendering:auto;background:white;padding:8px;border-radius:12px">'+
-   '<figcaption>Número DALE: <strong>923319637</strong>. Confirma el titular en tu aplicación antes de pagar.</figcaption></figure>'+
+   '<figcaption>Escanea el QR de Lemon / DALE y comprueba el destinatario directamente en tu aplicación. No se publican teléfono ni CCI.</figcaption></figure>'+
    '<figure style="flex:1 1 230px;max-width:350px;margin:0;text-align:center"><strong>BINANCE PAY · CUENTA PERSONAL</strong>'+
    '<img src="assets/qr-binance-personal.png?v=147" loading="lazy" alt="Código QR de Binance Pay personal correspondiente al usuario User-f81cdb6a" style="display:block;width:min(100%,260px);height:auto;margin:12px auto;image-rendering:pixelated;background:white;padding:8px;border-radius:12px">'+
    '<figcaption>Usuario: <strong>User-f81cdb6a</strong><br>ID Binance: <strong>1276635702</strong><br>'+
