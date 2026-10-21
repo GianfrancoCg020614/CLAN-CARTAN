@@ -9,6 +9,10 @@ on:
       - scripts/patch-v152-cobra.mjs
       - scripts/v152-cobra-fast.js
       - scripts/v152-admin-reconcile.js
+      - scripts/v156-usdt-quote.js
+      - scripts/v146-personal-manual-topups.js
+      - scripts/v136-manual-recharges.js
+      - scripts/check-v156-usdt.mjs
       - scripts/check-v152-cobra.mjs
       - scripts/v151-portal-polish.js
       - scripts/v148-manual-whatsapp.js
@@ -49,6 +53,7 @@ jobs:
           node --check scripts/patch-v152-cobra.mjs
           node --check scripts/v152-cobra-fast.js
           node --check scripts/v152-admin-reconcile.js
+          node --check scripts/v156-usdt-quote.js
       - name: Aplicar cambios de portada V145
         run: node scripts/patch-v145-production.mjs
       - name: Integrar consulta DNI automática V150
@@ -62,7 +67,9 @@ jobs:
           grep -Fq 'content="V152-20261020"' index.html
           grep -Fq 'scripts/v145-cobra-access.js?v=145' index.html
           grep -Fq 'scripts/v145-commerce-guard.js?v=145b' index.html
-          grep -Fq 'scripts/v146-personal-manual-topups.js?v=147' index.html
+          grep -Fq 'scripts/v146-personal-manual-topups.js?v=156' index.html
+          grep -Fq 'scripts/v136-manual-recharges.js?v=156' index.html
+          grep -Fq 'scripts/v156-usdt-quote.js?v=156' index.html
           grep -Fq 'scripts/v148-manual-whatsapp.js?v=148' index.html
           grep -Fq 'scripts/v150-dni-admin.js?v=150' index.html
           grep -Fq 'scripts/v151-portal-polish.js?v=151' index.html
@@ -70,6 +77,7 @@ jobs:
           grep -Fq 'scripts/v152-admin-reconcile.js?v=152' index.html
           node scripts/check-v150-dni.mjs
           node scripts/check-v152-cobra.mjs
+          node scripts/check-v156-usdt.mjs
       - name: Guardar index.html en main si cambió
         run: |
           set -euo pipefail
