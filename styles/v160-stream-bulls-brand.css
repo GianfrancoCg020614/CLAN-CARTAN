@@ -1,0 +1,14 @@
+/* V160 · Emblema oficial de STREAM BULL’S (Bull Terrier dorado) suministrado por el titular. */
+:root{--ccc-bull-logo:url("../assets/stream-bulls-logo.svg?v=160")}
+.ccc-logo-stream,
+#cc77home .cc78service-logo.cc78stream,
+#cc77home .cc78stream,
+.brand-emblem.brand-emblem-logo,
+.a1-w-icon.ccc-logo-stream,
+.a1-module-icon.ccc-logo-stream {
+ background-image:url("../assets/stream-bulls-logo.svg?v=160")!important;
+ background-position:center!important;
+ background-repeat:no-repeat!important;
+ background-size:contain!important;
+}
+.ccc-logo-stream::before,.ccc-logo-stream::after{background-image:none!important}
