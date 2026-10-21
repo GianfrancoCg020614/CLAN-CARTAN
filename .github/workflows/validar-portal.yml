@@ -48,6 +48,11 @@ jobs:
         run: |
           node scripts/check-v160-referrals-and-brand.mjs
           node --check scripts/v160-invitation-register.js
+      - name: Validar banderas y consentimiento publicitario voluntario V161
+        run: |
+          node --check scripts/v161-global-currency-flags.js
+          node --check scripts/v161-marketing-account.js
+          node scripts/check-v161-currencies-marketing.mjs
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
