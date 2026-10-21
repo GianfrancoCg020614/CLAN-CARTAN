@@ -83,3 +83,20 @@ window.cc161MountMarketingConsent=mount;
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
 })();
+
+
+/* MI ALQUILER V161.4: alertas, Excel y verificación DNI; aislado de otros servicios. */
+(function(){
+ 'use strict';
+ function load(){
+  if(document.querySelector('script[data-ma1614-loader]'))return;
+  const css=document.createElement('link');
+  css.rel='stylesheet';css.id='ma1614css';css.href='styles/v161-4-mi-alquiler.css?v=1614';
+  if(!document.getElementById('ma1614css'))document.head.append(css);
+  const script=document.createElement('script');
+  script.dataset.ma1614Loader='true';script.src='scripts/v161-4-mi-alquiler.js?v=1614';script.async=true;
+  script.addEventListener('error',()=>console.warn('MI ALQUILER V161.4 no disponible; módulos anteriores sin afectación.'));
+  document.head.append(script);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
+})();
