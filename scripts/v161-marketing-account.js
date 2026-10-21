@@ -68,3 +68,18 @@ window.cc161MountMarketingConsent=mount;
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();
+
+
+/* MI ALQUILER V161.3: cargar módulos financieros aislados; errores no bloquean acceso global. */
+(function(){
+ 'use strict';
+ function load(){
+  if(document.querySelector('script[data-ma1613-loader]'))return;
+  const css=document.createElement('link');css.id='ma1613-css';css.rel='stylesheet';css.href='styles/v161-3-mi-alquiler.css?v=1613';
+  if(!document.getElementById('ma1613-css'))document.head.append(css);
+  const script=document.createElement('script');script.dataset.ma1613Loader='true';script.src='scripts/v161-3-mi-alquiler.js?v=1613';script.async=true;
+  script.addEventListener('error',()=>console.warn('Finanzas MI ALQUILER no disponibles. Servicios existentes sin afectación.'));
+  document.head.append(script);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
+})();
