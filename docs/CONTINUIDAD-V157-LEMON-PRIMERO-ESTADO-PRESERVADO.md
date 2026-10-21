@@ -55,3 +55,12 @@ A fecha de esta consulta de lectura:
 - `docs/CONTINUIDAD-V155-QR-LEMON-BONO-NO-TRANSFERIBLE-PUNTO1.md`: QR-only Lemon, bono intransferible.
 - `docs/CONTINUIDAD-V156-BINANCE-USDT-PEN-PUNTO1.md`: tabla USDT/PEN, tasa protegida, pruebas reversibles.
 - Repositorio: `GianfrancoCg020614/CLAN-CARTAN` rama `main`; base Supabase `pqalxtrcyrpmwqdlibqd`. Mantener Cloudflare Pages, logs de conciliación y acceso ADMIN auditado.
+
+
+### V157.1 — protección adicional y pruebas Lemon ya ejecutadas
+- Al revisar código de Supabase se halló que la función administrativa heredada `cc_admin_credit_verified_personal_payment` permitía acreditar Lemon/DALE PERSONAL con la sola confirmación ADMIN sin evaluar los flags de autorización comercial.
+- Se aplicó en producción una barrera backend `cc_internal.cc_require_authorized_lemon_personal_credit()` con trigger BEFORE INSERT `cc_personal_lemon_authorization_guard` sobre `cc_admin_verified_personal_topups`. Bloquea crédito Lemon personal mientras no sean verdaderos `collection_enabled` y `merchant_permission_verified`. No borra datos ni activa cobros.
+- Migración versionada: `supabase/migrations/20261021002500_v157_lemon_personal_authorization_guard.sql`, commit `2186eb06ae4175fb0524a443e4d7b69c6046acf0`.
+- Prueba financiera SQL completamente **reversible**: rechaza la acreditación Lemon mientras no hay autorización; simula en la misma transacción una habilitación **ficticia** y S/5 para el RESELLER COBRA YA; una única operación crea un recibo verificado, una entrada de auditoría y un saldo ficticio de S/5; repetir la referencia resulta **bloqueado**. El ensayo fue revertido explícitamente con ROLLBACK.
+- Al concluir: autorización Lemon FALSE/FALSE, suscripción comercial COBRA YA FALSE, solicitudes reales 0, acreditaciones personales 0, billeteras reales 0, auditoría 0 y recibos únicos 0. **NO HUBO PAGO REAL**.
+- El siguiente paso de usuario sigue siendo definir si el dinero que otra persona enviará a Lemon es exclusivamente una **transferencia personal de comprobación de QR** o un **pago de un RESELLER por servicios**. No presentar la primera como prueba de recarga comercial autorizada ni aconsejar la segunda sin permiso comercial.
