@@ -78,6 +78,11 @@ jobs:
           node --check scripts/v161-3-mi-alquiler.js
           node --check scripts/v161-4-mi-alquiler.js
           node scripts/check-v162-mi-alquiler.mjs
+      - name: Validar billetera MI ALQUILER y recargas comunes V162.1
+        run: |
+          node --check scripts/v162-1-mi-alquiler-wallets.js
+          node --check scripts/v161-3-mi-alquiler.js
+          node scripts/check-v162-1-mi-alquiler-wallets.mjs
       - name: Comprobar acceso resiliente V161.1
         run: node scripts/check-v161-login-resilience.mjs
       - name: Verificar acceso compartido V161 Parte 1
