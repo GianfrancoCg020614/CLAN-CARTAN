@@ -4822,7 +4822,11 @@ document.getElementById('cc90-resend').addEventListener('click',async function()
 });
 
 async function api(path,opts={},jwt=null){
- const resp=await fetch(root+path,{...opts,headers:{apikey:key,'Content-Type':'application/json',...(jwt?{Authorization:'Bearer '+jwt}:{}),...(opts.headers||{})}});
+ const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),20000);
+ let resp;
+ try{resp=await fetch(root+path,{...opts,signal:controller.signal,headers:{apikey:key,'Content-Type':'application/json',...(jwt?{Authorization:'Bearer '+jwt}:{}),...(opts.headers||{})}});}
+ catch(error){throw Error(error?.name==='AbortError'?'Supabase no respondió en 20 segundos. Comprueba tu conexión y vuelve a intentar.':'No se pudo conectar con Supabase. Revisa tu conexión e inténtalo otra vez.');}
+ finally{clearTimeout(timer);}
  const raw=await resp.text();let data={};try{data=JSON.parse(raw)}catch{}
  if(!resp.ok)throw Error(data.msg||data.error_description||data.message||'Error de autenticación ('+resp.status+')');
  return data;
@@ -4848,7 +4852,7 @@ async function refreshSupabaseSession(){
 window.setInterval(()=>{if(!document.hidden)refreshSupabaseSession();},20*60*1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSupabaseSession();});
 async function signIn(event){
- event.preventDefault();btn.disabled=true;status.textContent='Verificando sesión y autorización…';
+ event.preventDefault();if(btn.disabled)return;btn.disabled=true;status.textContent='Verificando usuario con Supabase…';
  try{
   const email=document.getElementById('cc-real-email').value.trim();
   const password=document.getElementById('cc-real-pass').value;
@@ -4982,7 +4986,16 @@ async function register(event){
  }catch(e){status.textContent=e.message||'No se pudo crear la cuenta. Revisa tus datos.';}
  finally{btn.disabled=false;toggle.disabled=false;}
 }
-form.addEventListener('submit',event=>registering?register(event):signIn(event));
+// V161: login no debe quedar bloqueado por campos internos del registro oculto.
+form.noValidate=true;
+form.addEventListener('submit',event=>{
+ event.preventDefault();
+ if(registering){void register(event);return;}
+ const email=document.getElementById('cc-real-email').value.trim();
+ const pass=document.getElementById('cc-real-pass').value;
+ if(!email||!pass){status.textContent='Escribe tu correo y contraseña para ingresar.';return;}
+ void signIn(event);
+});
 // Disable demo credential paths: no one may bypass verified admin login.
 const originalLogin=window.loginDemo;
 window.loginDemo=function(id){if(!verified||id!=='admin'){alert('Acceso no autorizado. Usa el inicio de sesión real de CLAN CARTAN.');return;}return originalLogin(id);};
