@@ -90,7 +90,7 @@ window.cc119EditClient=function(client,refresh,notice){
   '<div class="cc119-new-heading"><span class="cc119-cobra-logo" role="img" aria-label="Logo COBRA YA"></span><div><small>COBRA YA · CORRECCIÓN DE CLIENTE</small><h3 id="cc119editTitle">Corregir datos del cliente</h3></div><button type="button" class="cc119-close" id="cc119editClose" aria-label="Cerrar" title="Cerrar">✕</button></div>'+
   '<form id="cc119editForm" class="cc119-edit-form">'+
   '<label>DNI / documento<input name="doc" maxlength="20" autocomplete="off" inputmode="numeric"></label>'+
-  '<label>Nombres y apellidos<input name="name" required minlength="2" maxlength="160" autocomplete="off"></label>'+
+  '<label>Nombres y apellidos<input name="name" required minlength="2" maxlength="160" autocomplete="off"></label><label>Alias / apodo (opcional)<input name="alias" maxlength="80" autocomplete="off" placeholder="Ej. Don Pepe"></label>'+
   '<label>WhatsApp<input name="phone" type="tel" maxlength="25" autocomplete="off"></label>'+
   '<label>Correo electrónico<input name="email" type="email" maxlength="254" autocomplete="off"></label>'+
   '<label>Dirección (opcional)<input name="address" maxlength="300" autocomplete="street-address"></label>'+
@@ -105,8 +105,8 @@ window.cc119EditClient=function(client,refresh,notice){
   '</form></section>';
  document.body.appendChild(overlay);
  const form=byId('cc119editForm'),status=byId('cc119editStatus'),comparison=byId('cc119compare');
- const doc=form.elements.doc,name=form.elements.name,phone=form.elements.phone,email=form.elements.email,address=form.elements.address,district=form.elements.district,reference=form.elements.address_reference,notes=form.elements.notes;
- doc.value=client.document_number||'';name.value=client.full_name||'';phone.value=client.phone||'';email.value=client.email||'';address.value=client.address||'';district.value=client.district||'';reference.value=client.address_reference||'';notes.value=client.notes||'';
+ const doc=form.elements.doc,name=form.elements.name,alias=form.elements.alias,phone=form.elements.phone,email=form.elements.email,address=form.elements.address,district=form.elements.district,reference=form.elements.address_reference,notes=form.elements.notes;
+ doc.value=client.document_number||'';name.value=client.full_name||'';alias.value=client.alias||'';phone.value=client.phone||'';email.value=client.email||'';address.value=client.address||'';district.value=client.district||'';reference.value=client.address_reference||'';notes.value=client.notes||'';
  function say(text){status.textContent=text;}
  byId('cc119editClose').onclick=closeEdit;byId('cc119editCancel').onclick=closeEdit;
  overlay.addEventListener('click',event=>{if(event.target===overlay)closeEdit();});
@@ -170,7 +170,7 @@ window.cc119EditClient=function(client,refresh,notice){
   if(number!==String(client.document_number||'').trim()&&!window.confirm('Cambiaste el documento. ¿Confirmas que pertenece a este mismo cliente?'))return;
   const button=byId('cc119editSave');button.disabled=true;say('Guardando corrección…');
   try{
-   await updateClient(client.id,client,{full_name:full,document_number:number||null,phone:digits?'+'+digits:null,email:mail||null,
+   await updateClient(client.id,client,{full_name:full,alias:alias.value.trim().slice(0,80)||null,document_number:number||null,phone:digits?'+'+digits:null,email:mail||null,
     address:address.value.trim()||null,district:district.value.trim()||null,address_reference:reference.value.trim()||null,notes:notes.value.trim()||null});
    closeEdit();
    await refresh();
