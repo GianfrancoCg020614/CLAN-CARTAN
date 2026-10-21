@@ -19,7 +19,7 @@ const escapeHtml=text=>String(text??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':
 function consentMessage(reason){
  if(['monthly_limit','quota_exhausted','plan_exhausted'].includes(reason))return 'El cupo de consultas de DNI está agotado. Corrige el nombre manualmente o vuelve a verificar cuando haya cupo.';
  if(reason==='daily_limit')return 'Alcanzaste el límite diario de consultas. Puedes corregir manualmente y verificar otro día.';
- if(reason==='not_authorized')return 'No tienes acceso autorizado a la consulta. Puedes corregir los datos manualmente.';
+ if(reason==='not_authorized'||reason==='operator_not_approved')return 'Consulta automática pendiente de habilitación por ADMIN. Puedes ingresar los datos manualmente.';
  if(reason==='provider_not_configured')return 'El proveedor de consultas aún no está disponible. Puedes corregir manualmente.';
  if(reason==='not_found')return 'No se encontró ese DNI. Verifica que esté bien escrito.';
  return 'La consulta DNI no está disponible en este momento. El registro manual sigue funcionando.';
@@ -28,7 +28,7 @@ async function queryVerifiedName(dni){
  const ses=getSession();if(!ses?.jwt)throw Error('La sesión terminó. Vuelve a ingresar.');
  const response=await fetch(ses.root+'/functions/v1/cc-consulta-dni',{
   method:'POST',headers:{apikey:ses.key,Authorization:'Bearer '+ses.jwt,'Content-Type':'application/json'},
-  body:JSON.stringify({dni,consent:true})
+  body:JSON.stringify({dni})
  });
  const payload=await response.json().catch(()=>({status:'manual',reason:'provider_unavailable'}));
  if(!response.ok && payload.status==='unauthorized')throw Error('La sesión expiró. Vuelve a iniciar sesión.');
@@ -66,7 +66,7 @@ window.cc119EditClient=function(client,refresh,notice){
   '<label>Distrito / ciudad (opcional)<input name="district" maxlength="120"></label>'+
   '<label>Referencia (opcional)<input name="address_reference" maxlength="300"></label>'+
   '<label>Observaciones (opcional)<textarea name="notes" maxlength="500" rows="2"></textarea></label>'+
-  '<label class="cc119-consent"><input name="consent" type="checkbox"> Tengo autorización para consultar este DNI con el proveedor externo.</label>'+
+  '<small>La consulta automática se utiliza únicamente cuando ADMIN ha habilitado este operador.</small>'+
   '<button type="button" id="cc119checkDni" class="cc119-verify">Verificar DNI ahora</button>'+
   '<div id="cc119compare" class="cc119-compare" hidden><small>Resultado de la consulta DNI</small><div><span>Nombre registrado:</span><strong id="cc119original"></strong></div><div><span>Nombre encontrado:</span><strong id="cc119official"></strong></div></div>'+
   '<p id="cc119editStatus" role="status" aria-live="polite"></p>'+
@@ -81,10 +81,19 @@ window.cc119EditClient=function(client,refresh,notice){
  overlay.addEventListener('click',event=>{if(event.target===overlay)closeEdit();});
  doc.addEventListener('input',()=>{comparison.hidden=true;resultName='';if(!verifying)byId('cc119checkDni').disabled=false;});
  let resultName='',verifying=false;
+ // Consulta automática al completar ocho dígitos también al corregir datos.
+ let editDniTimer;
+ doc.addEventListener('input',()=>{
+  clearTimeout(editDniTimer);
+  if(/^[0-9]{8}$/.test(doc.value.trim())){
+   editDniTimer=setTimeout(()=>{if(!verifying)byId('cc119checkDni')?.click();},450);
+  }
+ });
  byId('cc119checkDni').addEventListener('click',async()=>{
-  const dni=doc.value.trim(),consent=form.elements.consent.checked;
+  const dni=doc.value.trim();
   if(!/^[0-9]{8}$/.test(dni)){say('Ingresa los 8 dígitos del DNI peruano para consultar.');return;}
-  if(!consent){say('Marca la autorización antes de consultar el DNI.');return;}
+  const allowed=await window.cc80.api('rpc/cc_my_dni_auto_permission','POST',{});
+  if(allowed!==true){say('ADMIN aún no habilitó la consulta automática para tu cuenta. Puedes corregir manualmente.');return;}
   if(verifying)return;
   verifying=true;
   const button=byId('cc119checkDni');button.disabled=true;comparison.hidden=true;
@@ -92,7 +101,7 @@ window.cc119EditClient=function(client,refresh,notice){
   try{
    const response=await queryVerifiedName(dni);
    if(!document.body.contains(overlay))return;
-   if(doc.value.trim()!==dni||!form.elements.consent.checked){say('El DNI o la autorización cambió durante la consulta. Vuelve a verificar.');return;}
+   if(doc.value.trim()!==dni){say('El DNI o la autorización cambió durante la consulta. Vuelve a verificar.');return;}
    if(response.status==='found'&&typeof response.full_name==='string'&&response.full_name.trim()){
     resultName=response.full_name.trim().replace(/\s+/g,' ');
     byId('cc119original').textContent=name.value;
@@ -104,7 +113,7 @@ window.cc119EditClient=function(client,refresh,notice){
     }else{
      say('Guardando nombre verificado sin modificar contacto ni otros datos…');
      try{
-      if(doc.value.trim()!==dni||!form.elements.consent.checked)throw Error('DNI o autorización cambiaron; no se guardó la corrección.');
+      if(doc.value.trim()!==dni)throw Error('DNI o autorización cambiaron; no se guardó la corrección.');
       await updateClient(client.id,client,{full_name:resultName});
       if(!document.body.contains(overlay))return;
       name.value=resultName;
@@ -142,16 +151,12 @@ window.cc119EditClient=function(client,refresh,notice){
 // V149: mantener un solo formulario emergente y situar la autorización junto al DNI.
 function simplifyNewClientDialog(){
  const modal=byId('cc119newClientModal'),dni=byId('cy105dni'),status=byId('cy105dniStatus');
- const consent=byId('cy106consent');
- if(!modal||!dni||!status||!consent||modal.dataset.dniSimplified==='yes')return;
- const consentLabel=consent.closest('label');
- // El motor V105 ya consulta automáticamente al completar 8 dígitos con autorización.
- // Solo reorganizamos el formulario: no creamos una segunda consulta ni consumimos cupos.
- if(consentLabel){status.after(consentLabel);consentLabel.classList.add('cc149-consent-near-dni');}
+ if(!modal||!dni||!status||modal.dataset.dniSimplified==='yes')return;
+ // Sin casillas por cliente: el servidor verifica el permiso ADMIN documentado.
  const repeated=modal.querySelector('.cc119-manual-note');
  if(repeated)repeated.remove();
  const intro=modal.querySelector('.cy105note');
- if(intro)intro.textContent='DNI de 8 dígitos + autorización: el nombre se completará automáticamente cuando API Perú responda. Si no hay cupo, ingrésalo manualmente.';
+ if(intro)intro.textContent='Escribe el DNI de 8 dígitos: COBRA YA buscará el nombre automáticamente si ADMIN habilitó este operador. Sin cupo, continúa manualmente.';
  const label=dni.closest('label');
  if(label&&label.firstChild?.nodeType===Node.TEXT_NODE)label.firstChild.textContent='DNI peruano (8 dígitos) u otro documento:';
  modal.dataset.dniSimplified='yes';
