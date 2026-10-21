@@ -22,7 +22,7 @@ CREATE OR REPLACE FUNCTION public.ma_ensure_account()
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$
+AS $function$;
 declare u uuid:=auth.uid();a public.ma_accounts%rowtype;admin_role boolean;verified_balance numeric;
 begin
  if u is null then raise exception 'Inicia sesión';end if;
@@ -36,14 +36,14 @@ begin
   'role',case when admin_role then 'ADMIN' else 'RESELLER' end,
   'active',admin_role or (not a.suspended and a.subscription_until>now()),
   'bonus_pen',a.bonus_pen,'real_verified_pen',coalesce(verified_balance,0));
-end $function$
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.ma_transfer_real_balance(p_from text, p_to text, p_amount numeric, p_request uuid)
  RETURNS uuid
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$
+AS $function$;
 declare
  uid uuid:=auth.uid();
  source_amount numeric;
@@ -79,7 +79,7 @@ begin
  insert into public.mc_real_transfer_requests(request_id,user_id,from_service,to_service,amount_pen,transfer_id)
  values(p_request,uid,p_from,p_to,p_amount,new_id);
  return new_id;
-end $function$
+end $function$;
 
 revoke all on function public.ma_transfer_real_balance(text,text,numeric,uuid) from public,anon,authenticated;
 grant execute on function public.ma_transfer_real_balance(text,text,numeric,uuid) to authenticated;
@@ -88,7 +88,7 @@ CREATE OR REPLACE FUNCTION public.cc_submit_manual_recharge(p_service text, p_am
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$
+AS $function$;
 declare v_user uuid:=auth.uid();v_id uuid;v_order uuid;v_name text:=trim(regexp_replace(coalesce(p_payer_name,''),'[[:space:]]+',' ','g'));
  v_ref text:=nullif(trim(coalesce(p_payer_reference,'')),'');
 begin
@@ -116,14 +116,14 @@ begin
   order_id,user_id,service,amount_pen,payer_name,payer_reference
  ) values(v_order,v_user,p_service,p_amount,v_name,v_ref) returning id into v_id;
  return v_id;
-end $function$
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.cc_notify_manual_payment(p_service text, p_method text, p_amount numeric, p_operation text)
  RETURNS uuid
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$
+AS $function$;
 declare v_user uuid:=auth.uid();v_id uuid;v_op text:=upper(trim(coalesce(p_operation,'')));
 begin
  if v_user is null then raise exception 'Inicia sesión'; end if;
@@ -136,14 +136,14 @@ begin
  values(v_user,p_service,p_method,p_amount,v_op) returning id into v_id;
  return v_id;
 exception when unique_violation then raise exception 'Esta operación ya fue registrada'; 
-end $function$
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.cc_notify_binance_personal_usdt(p_service text, p_received_usdt numeric, p_operation text)
  RETURNS TABLE(request_id uuid, estimated_pen numeric, net_rate_pen_per_usdt numeric, rate_source text)
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$
+AS $function$;
 declare v_user uuid:=auth.uid();v_id uuid;v_usdt numeric;v_pen numeric;v_op text:=upper(btrim(coalesce(p_operation,'')));
  q public.cc_usdt_pen_reference_rates%rowtype;
 begin
@@ -174,7 +174,7 @@ begin
  return query select v_id,v_pen,q.rate_pen_per_usdt,q.source;
 exception when unique_violation then
  raise exception 'Esta operación Binance ya fue declarada';
-end $function$
+end $function$;
 
 create or replace function public.ma_activate_real_wallet(p_request uuid)
 returns timestamptz language plpgsql security definer set search_path='' as $ma$
