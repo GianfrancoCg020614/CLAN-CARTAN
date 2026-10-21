@@ -34,6 +34,37 @@ async function queryVerifiedName(dni){
  if(!response.ok && payload.status==='unauthorized')throw Error('La sesión expiró. Vuelve a iniciar sesión.');
  return payload;
 }
+// V151: si un DNI ya se guardó manualmente con nombre equivocado, conciliar
+// automáticamente SOLO el nombre, sin tocar teléfono, correo, préstamos ni demás datos.
+window.cc119ReconcileSavedClient=async function(clientId,dni){
+ const ses=getSession();
+ if(!ses?.jwt||!ses.userId||!/^[0-9]{8}$/.test(dni)||!clientId)return {status:'manual'};
+ try{
+  const approved=await window.cc80.api('rpc/cc_my_dni_auto_permission','POST',{});
+  if(approved!==true)return {status:'manual',reason:'operator_not_approved'};
+  const verified=await queryVerifiedName(dni);
+  if(verified.status!=='found'||!verified.full_name)return verified;
+  const official=String(verified.full_name).trim().replace(/\\s+/g,' ').slice(0,160);
+  const url=ses.root+'/rest/v1/cy_clients?id=eq.'+encodeURIComponent(clientId)+
+    '&owner_id=eq.'+encodeURIComponent(ses.userId)+
+    '&document_number=eq.'+encodeURIComponent(dni)+
+    '&select=id,full_name';
+  const before=await fetch(url,{headers:{apikey:ses.key,Authorization:'Bearer '+ses.jwt}});
+  if(!before.ok)return {status:'manual',reason:'lookup_failed'};
+  const rows=await before.json().catch(()=>[]);
+  if(!Array.isArray(rows)||rows.length!==1)return {status:'manual',reason:'client_not_found'};
+  if(official.localeCompare(String(rows[0].full_name||'').trim(),'es',{sensitivity:'base'})===0)
+   return {status:'found',full_name:official,corrected:false};
+  const response=await fetch(url,{method:'PATCH',headers:{
+   apikey:ses.key,Authorization:'Bearer '+ses.jwt,'Content-Type':'application/json',Prefer:'return=representation'
+  },body:JSON.stringify({full_name:official})});
+  const updated=await response.json().catch(()=>[]);
+  if(!response.ok||!Array.isArray(updated)||updated.length!==1)
+   return {status:'manual',reason:'update_failed'};
+  return {status:'found',full_name:official,corrected:true};
+ }catch(_){return {status:'manual',reason:'provider_unavailable'};}
+};
+
 async function updateClient(id,original,changes){
  const ses=getSession();if(!ses?.jwt||ses.userId!==original.owner_id)throw Error('No tienes permiso para modificar los datos de este cliente.');
  const res=await fetch(ses.root+'/rest/v1/cy_clients?id=eq.'+encodeURIComponent(id)+'&owner_id=eq.'+encodeURIComponent(ses.userId),{
