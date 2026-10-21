@@ -4761,9 +4761,9 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <label id="cc-v81-districtlabel">Distrito *<input id="cc-v81-district" placeholder="Tu distrito"></label>
 </div></fieldset>
 <fieldset><legend>3. Acceso a tu cuenta</legend><p style="font-size:12px;margin:0 0 8px">Tu correo será el usuario para todos los negocios. Escríbelo arriba junto con tu contraseña.</p><div class="cc-v81-grid"><label class="full">Confirmar contraseña *<input id="cc-v81-confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"></label>
-<label class="full">¿Qué servicio deseas conocer primero? *<select id="cc111-business"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option></select></label>
+<label class="full">¿Qué servicio deseas conocer primero? *<select id="cc111-business"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option><option value="MI_COCHERA">MI COCHERA</option></select></label>
 <label class="full">Código de invitado (opcional)
-<input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: COBRA1 o BULL1" aria-describedby="cc110-invite-hint">
+<input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: COBRA1, BULL1 o COCHERA1" aria-describedby="cc110-invite-hint">
 <span id="cc110-invite-hint" style="display:block;font-size:12px;font-weight:400;color:#b5c6d8;margin-top:5px">Puedes registrarte sin código. Todos reciben un código propio e irrepetible. El código no concede acceso ni descuenta dinero.</span>
 </label></div>
 <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0"> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a> y la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a> (borradores para revisión legal).* No autorizo comunicaciones publicitarias por este acto.</span></label>
@@ -4903,7 +4903,7 @@ inviteInput.addEventListener('input',()=>{
  document.getElementById('cc110-invite-hint').textContent='Código de invitado (opcional). Se verificará al registrarte.';
 });
 const invitationInUrl=new URLSearchParams(window.location.search).get('ref');
-if(invitationInUrl&&/^(COBRA|BULL)[1-9][0-9]{0,11}$/i.test(invitationInUrl)){
+if(invitationInUrl&&/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/i.test(invitationInUrl)){
  inviteInput.value=invitationInUrl.toUpperCase();
  document.getElementById('cc110-invite-hint').textContent='Código de invitación cargado desde tu enlace. Se validará al registrarte.';
 }
@@ -4946,8 +4946,9 @@ async function register(event){
   if(!document.getElementById('cc-v81-terms').checked)throw Error('Lee y acepta los Términos y la Política de privacidad.');
   const invitationCode=inviteInput.value.trim().toUpperCase();
   if(invitationCode){
-   if(!/^(COBRA|BULL)[1-9][0-9]{0,11}$/.test(invitationCode))throw Error('El código de invitado debe ser como COBRA1 o BULL1.');
-   const checked=await api('/rest/v1/rpc/cc_validate_invitation_code',{method:'POST',body:JSON.stringify({p_code:invitationCode})});
+   if(!/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/.test(invitationCode))throw Error('El código debe ser como COBRA1, BULL1 o COCHERA1.');
+   const rpc=/^COCHERA/.test(invitationCode)?'mc_validate_invitation_code':'cc_validate_invitation_code';
+   const checked=await api('/rest/v1/rpc/'+rpc,{method:'POST',body:JSON.stringify({p_code:invitationCode})});
    if(!Array.isArray(checked)||checked[0]?.valid!==true)throw Error('Código de invitado no válido. Revísalo o deja el campo vacío.');
    document.getElementById('cc110-invite-hint').textContent='✓ Código válido para '+(checked[0].business||'CLAN CARTAN')+'.';
   }
