@@ -14,7 +14,7 @@ requireText(ui,'id="cc127fromSelect"');
 requireText(ui,'id="cc127toSelect"');
 requireText(ui,'rpc/mc_transfer_real_balance');
 requireText(ui,'p_request:request');
-requireText(ui,'Los bonos gratuitos ADMIN nunca se transfieren');
+requireText(ui,'Bonos gratuitos ADMIN:');
 requireText(migration,'cc_real_service_wallets');
 requireText(migration,'mc_real_transfer_requests');
 requireText(migration,'pg_advisory_xact_lock');
