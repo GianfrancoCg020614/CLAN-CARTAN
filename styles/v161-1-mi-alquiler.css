@@ -36,3 +36,9 @@
 #ma1611layer .ma1611-placeholder p{margin:6px 0;color:#b4c2d0;font-size:13px}
 #ma1611layer .ma1611-footer{text-align:center;color:#8da4b6;font-size:11px;padding:18px}
 @media(max-width:620px){#ma1611layer{padding:8px}#ma1611layer .ma1611-head{padding:13px}#ma1611layer .ma1611-nav{display:grid;grid-template-columns:1fr 1fr}#ma1611layer .ma1611-nav button{font-size:12px;padding:9px 7px}#ma1611layer .ma1611-content{padding:14px}#ma1611layer .ma1611-summary{align-items:flex-start}#cc77home .ma1611-card{padding:13px}#cc77home .ma1611-card button{width:100%}}
+
+/* V163.1 — emblema oficial MI ALQUILER; no modifica estilos de otros módulos. */
+#cc77home .ma1611-card-icon{overflow:hidden;padding:2px}
+#cc77home .ma1611-card-icon img{width:100%;height:100%;display:block;object-fit:contain;border-radius:10px}
+#ma1611layer .ma1611-brand-logo{width:70px;height:70px;flex:0 0 70px;display:block;object-fit:contain;border-radius:11px;background:#0d1824}
+@media(max-width:620px){#ma1611layer .ma1611-brand-logo{width:55px;height:55px;flex-basis:55px}}

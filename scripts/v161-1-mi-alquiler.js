@@ -24,7 +24,7 @@
     const card = document.createElement('article');
     card.id = 'ma1611card'; card.className = 'ma1611-card';
     card.setAttribute('aria-label', 'Cuarta plataforma: Mi Alquiler');
-    card.innerHTML = '<div class="ma1611-card-icon" aria-hidden="true">🏠</div>' +
+    card.innerHTML = '<div class="ma1611-card-icon"><img src="assets/mi-alquiler-logo.svg" alt="Logo oficial de MI ALQUILER CLAN CARTAN" width="76" height="76" loading="lazy" decoding="async"></div>' +
       '<div class="ma1611-card-copy"><small>CLAN CARTAN · CUARTA PLATAFORMA</small>' +
       '<h2>MI ALQUILER</h2><p>Habitaciones y locales · alquiler diario y mensual</p>' +
       '<span class="ma1611-chip">V161.4 · Avisos y reportes</span></div>' +
@@ -48,7 +48,7 @@
     layer.setAttribute('aria-modal', 'true');
     layer.setAttribute('aria-label', 'MI ALQUILER: vista de integración V161.4');
     layer.innerHTML = '<div class="ma1611-wrap">' +
-      '<header class="ma1611-head"><div class="ma1611-brand"><span aria-hidden="true">🏠</span>' +
+      '<header class="ma1611-head"><div class="ma1611-brand"><img class="ma1611-brand-logo" src="assets/mi-alquiler-logo.svg" alt="MI ALQUILER" width="70" height="70" decoding="async">' +
       '<div><small>CLAN CARTAN · MI ALQUILER</small><h2>Gestión de habitaciones y locales</h2>' +
       '<p>Un acceso · datos independientes de los otros negocios</p></div></div>' +
       '<button type="button" id="ma1611close" class="ma1611-close">← Volver a CLAN CARTAN</button></header>' +
