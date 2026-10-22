@@ -49,7 +49,7 @@ Deno.serve(async req=>{
  if(!slot?.allowed)return answer({status:'manual',reason:slot?.reason||'quota_exhausted',remaining:slot?.remaining??0},200,origin);
  const ctl=new AbortController(),timeout=setTimeout(()=>ctl.abort(),9000);
  try{
-  const remote=await fetch('https://api.apiperu.pe/dni',{method:'POST',signal:ctl.signal,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({dni})});
+  const remote=await fetch('https://api.apiperu.dev/dni',{method:'POST',signal:ctl.signal,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({dni})});
   const data=await remote.json().catch(()=>({}));
   if(remote.status===429||/quota|credit|limit|plan_exhausted/i.test(clean(data?.code)+' '+clean(data?.message))){
    await fetch(base+'/rest/v1/rpc/cc_mark_dni_provider_exhausted',{method:'POST',headers,body:'{}'}).catch(()=>{});
