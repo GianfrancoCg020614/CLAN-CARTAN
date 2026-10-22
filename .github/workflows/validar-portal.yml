@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, integracion/mi-alquiler-v162-1-billeteras]
   workflow_dispatch:
 
 permissions:
@@ -57,6 +57,10 @@ jobs:
         run: |
           node --check scripts/v161-1-mi-alquiler.js
           node scripts/check-v161-1-mi-alquiler.mjs
+      - name: Verificar identidad oficial MI ALQUILER V163.1
+        run: |
+          node --check scripts/v161-1-mi-alquiler.js
+          node scripts/check-v163-1-mi-alquiler-brand.mjs
       - name: Revisar contratos y permisos MI ALQUILER V161.2
         run: |
           node --check scripts/v161-2-mi-alquiler.js
