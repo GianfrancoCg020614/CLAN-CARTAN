@@ -2,7 +2,7 @@
   "project": "CLAN CARTAN / MI ALQUILER",
   "version": "V163.5",
   "fecha": "2026-10-22",
-  "status": "RAMa_INTEGRACION_GITHUB_NO_PUBLICADA",
+  "status": "CI_APROBADO_PREVIEW_DISPONIBLE_NO_PUBLICADO",
   "starting_branch": "feature/v163-1-mi-alquiler-logo-oficial",
   "integration_branch": "feature/v163-5-integracion-segura",
   "base_branch": "integracion/mi-alquiler-v162-1-billeteras",
@@ -14,7 +14,8 @@
     "V163_2_checks": "77/77",
     "V163_4_checks": "174/174",
     "e2e_executed": 0,
-    "e2e_total": 24
+    "e2e_total": 24,
+    "live_rechecked": "2026-10-22"
   },
   "controls": {
     "real_payments_enabled": false,
@@ -38,5 +39,12 @@
     "La dirección API Perú se corrigió solamente en el código GitHub; la función desplegada no se sustituye sin validar token del proveedor.",
     "No se activó ni configuró CAPTCHA ni SMTP en la instancia viva.",
     "No ejecutar ninguna E2E financiera contra producción ni acreditar fondos de prueba."
-  ]
+  ],
+  "integration_pr": 31,
+  "backup_refs": {
+    "main": "respaldo/clan-cartan-main-v161-20261022",
+    "v162_1": "respaldo/mi-alquiler-v162-1-20261022"
+  },
+  "last_verified_ci_commit": "ec7bc8beb18d5a2f1683807b852b69aa54835c26",
+  "last_verified_preview": "https://8d01bab6.clan-cartan.pages.dev"
 }

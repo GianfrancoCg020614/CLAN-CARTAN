@@ -18,3 +18,6 @@ COBRA-YA, STREAM BULL'S, MI COCHERA y MI ALQUILER; cuentas, referidos, DNI conse
 - Una vez completado QA, fusionar con control de dependencias a V162.1, después aprobar el PR #27 a `main`, verificando que todos los gates están aprobados. Publicar y comprobar producción, manteniendo rollback.
 ## Secretos
 No publicar service_role, APIPERU_TOKEN, SMTP o Turnstile secret. No desplegar `ma-verify-dni` hasta confirmar su token `.dev`. No habilitar WhatsApp automático ni cobros reales.
+
+## Continuidad y restauración (registrada)
+Ramas de respaldo antes de fusionar: `respaldo/clan-cartan-main-v161-20261022` y `respaldo/mi-alquiler-v162-1-20261022`. No hacen rollback automático; sirven como referencias verificables de fuentes para restauración controlada. Consolidación PR #31 abierta en borrador. No eliminar o rebasar ramas originales #27–#30. Antes de liberar, cotejar preview con respaldo y obtener aprobación comercial y E2E.
