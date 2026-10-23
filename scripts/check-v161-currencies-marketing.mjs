@@ -9,7 +9,7 @@ test(html,'content="V161-20261021"');
 test(html,'id="cc161-marketing"');
 test(html,'Autorizo comunicaciones publicitarias de CLAN CARTAN por correo y WhatsApp');
 test(html,"marketing_consent:document.getElementById('cc161-marketing').checked");
-test(html,"invite_business:invitationCode?(invitationCode.startsWith('COCHERA')");
+test(html,"invite_business:invitationCode?(invitationCode.startsWith('CLAN')?null");
 test(html,"preferred_service:document.getElementById('cc111-business').value");
 test(html,"terms_version:'V161-20261021'");
 test(html,'scripts/v161-global-currency-flags.js?v=161');
