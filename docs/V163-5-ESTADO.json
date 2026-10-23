@@ -2,7 +2,7 @@
   "project": "CLAN CARTAN / MI ALQUILER",
   "version": "V163.5",
   "fecha": "2026-10-22",
-  "status": "ERRORES_SINCRONIZACION_Y_TEXTOS_CORREGIDOS_CI_OK_PREVIEW_SIN_PUBLICAR",
+  "status": "UI_4_NEGOCIOS_CI_OK_PREVIEW_PENDIENTE_E2E",
   "starting_branch": "feature/v163-1-mi-alquiler-logo-oficial",
   "integration_branch": "feature/v163-5-integracion-segura",
   "base_branch": "integracion/mi-alquiler-v162-1-billeteras",
@@ -38,20 +38,49 @@
     "El logo V163.1 está presente en tarjeta y encabezado; el PNG original se conserva en el paquete de respaldo externo.",
     "La dirección API Perú se corrigió solamente en el código GitHub; la función desplegada no se sustituye sin validar token del proveedor.",
     "No se activó ni configuró CAPTCHA ni SMTP en la instancia viva.",
-    "No ejecutar ninguna E2E financiera contra producción ni acreditar fondos de prueba."
+    "No ejecutar ninguna E2E financiera contra producción ni acreditar fondos de prueba.",
+    "Recompensas de referidos como dinero real y exclusividad de bonos ADMIN quedan diseñadas, NO activadas ni acreditadas sin staging y presupuesto verificado."
   ],
   "integration_pr": 31,
   "backup_refs": {
     "main": "respaldo/clan-cartan-main-v161-20261022",
     "v162_1": "respaldo/mi-alquiler-v162-1-20261022"
   },
-  "last_verified_ci_commit": "cfc78f4ff7545fec331231e577036ec5dc65d94d",
-  "last_verified_preview": "https://fdaeec3a.clan-cartan.pages.dev",
+  "last_verified_ci_commit": "77bf129fd4555f09bbebbb8e0df25fef23f02210",
+  "last_verified_preview": "https://34ee10f7.clan-cartan.pages.dev",
   "corrected_code_commit": "cfc78f4ff7545fec331231e577036ec5dc65d94d",
   "corrections": [
     "Cargas asíncronas esperables y deduplicadas en MI ALQUILER",
     "Avisos y finanzas invalidados después de operaciones",
     "Respuestas de consultas obsoletas descartadas",
     "Interfaz V163.5 informa que es una vista previa y corrige textos de etapas anteriores"
-  ]
+  ],
+  "last_verified_ci_run": "https://github.com/GianfrancoCg020614/CLAN-CARTAN/actions/runs/39988218220",
+  "last_verified_ui_changes": "2026-10-23",
+  "interface": {
+    "business_modules": [
+      "STREAM_BULLS",
+      "COBRA_YA",
+      "MI_COCHERA",
+      "MI_ALQUILER"
+    ],
+    "color_themes": [
+      "dark",
+      "light"
+    ],
+    "theme_preference_storage": "cc164-theme, solo UI",
+    "registration_gate": [
+      "cc-v81-terms",
+      "cc164-privacy"
+    ],
+    "marketing_signup": "opt-in independiente no obligatorio; revocable",
+    "code_formats": [
+      "BULL1..4",
+      "COBRA1..4",
+      "COCHERA1..3",
+      "ALQUILER1..3"
+    ],
+    "referral_codes": "mostrar solamente codigos reales asignados por backend",
+    "wallet_display": "4 saldos REALES verificados, total visual en PEN; no bonos ni saldos de prueba"
+  }
 }

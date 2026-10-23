@@ -16,3 +16,13 @@ Fecha 22/10/2026. Este registro se guarda en GitHub en una rama separada para co
 - Backups GitHub: `respaldo/clan-cartan-main-v161-20261022` (SHA `1119615c...`) y `respaldo/mi-alquiler-v162-1-20261022` (SHA `6d4889d...`).
 - 24 E2E de operaciones reales siguen pendientes de staging, 0 aprobadas; la publicación de producción permanece no autorizada.
 - Lo anterior constituye pruebas estáticas + despliegue de vista previa, no certificación de suscripción ni cobro comercial ni captura de DNI/OTP.
+
+## Actualización de interfaz cuatro negocios (23-OCT-2026)
+- Registro protegido: Términos y autorización de tratamiento necesario marcados para habilitar Registro. Publicidad por correo/WhatsApp separada, desmarcada y revocable.
+- Códigos compatibles BULL1–4, COBRA1–4, COCHERA1–3, ALQUILER1–3 como formatos; solo enlaces del usuario dueño y validados, MI ALQUILER consultado en RLS.
+- Tarjetas modernas unificadas, claro/oscuro persistente para presentación.
+- Billetera global de visualización: solo saldos reales verificados de cuatro servicios, sin mezclar bonos.
+- CI GitHub PASSED: `39988218220`, commit `77bf129fd4555f09bbebbb8e0df25fef23f02210`.
+- Preview comprobada por estado de despliegue Cloudflare: `https://34ee10f7.clan-cartan.pages.dev` SUCCESS.
+- 24 E2E de usuarios reales faltan; reglas financieras de bonos de referido a saldo real NO activadas, requieren ledger y pruebas.
+- Producción `main` conserva `1119615c6aed1d9bc5ef6f2ad0af370d3128e78a`.
