@@ -4,11 +4,11 @@
 (function () {
   'use strict';
   const HOME = 'https://www.clancartan.com/';
-  const PREFIXES = Object.freeze({ COBRA: 'COBRA YA', BULL: "STREAM BULL'S", COCHERA: 'MI COCHERA' });
+  const PREFIXES = Object.freeze({ CLAN:'CLAN CARTAN', COBRA: 'COBRA YA', BULL: "STREAM BULL'S", COCHERA: 'MI COCHERA', ALQUILER:'MI ALQUILER' });
   const clean = value => String(value == null ? '' : value).trim().toUpperCase();
   const parse = value => {
     const code = clean(value);
-    const match = /^(COCHERA|COBRA|BULL)([1-9][0-9]*)$/.exec(code);
+    const match = /^(CLAN|COCHERA|COBRA|BULL|ALQUILER)([1-9][0-9]*)$/.exec(code);
     return match ? Object.freeze({code, business: PREFIXES[match[1]], prefix: match[1]}) : null;
   };
   function incomingCode() {
@@ -40,10 +40,10 @@
     const item = parse(rawCode);
     if (!item) return {valid:false, business:null};
     if (!supabaseClient || typeof supabaseClient.rpc !== 'function') throw new Error('Supabase no disponible');
-    const {data,error} = await supabaseClient.rpc('cc_validate_invitation_code', {p_code:item.code});
+    const {data,error} = await supabaseClient.rpc('cc_clan_validate_code', {p_code:item.code});
     if (error) throw error;
     // La forma de retorno de RPC debe confirmarse contra V161 antes de integrar.
-    return {raw:data, code:item.code, business:item.business};
+    return {valid:Array.isArray(data)&&data[0]?.valid===true,raw:data,code:item.code,business:item.business};
   }
   function renderOwnedCodes(root, ownedCodes) {
     if (!root) return;
