@@ -7,9 +7,13 @@ python3 - <<'PY'
 from pathlib import Path
 cfg=Path('supabase/config.toml')
 s=cfg.read_text()
-if '[auth.hook.before_user_created]' in s:
-    raise SystemExit('La configuración inicial no debe tener hook activo predefinido')
-s+='''\n[auth.hook.before_user_created]\nenabled = true\nuri = "pg-functions://postgres/cc_internal/cc_part1_before_user_created"\n'''
+import re
+hook='''[auth.hook.before_user_created]\nenabled = true\nuri = "pg-functions://postgres/cc_internal/cc_part1_before_user_created"\n'''
+section=r'(?ms)^\[auth\.hook\.before_user_created\]\s*.*?(?=^\[|\Z)'
+if re.search(section,s):
+    s=re.sub(section,hook+'\n',s,count=1)
+else:
+    s+='\n'+hook
 s=s.replace('enable_confirmations = true','enable_confirmations = false')
 cfg.write_text(s)
 PY
