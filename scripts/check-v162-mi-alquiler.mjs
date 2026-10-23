@@ -14,7 +14,7 @@ for(const s of ['session()?.jwt','ma1611layer'])has(scripts[0],s);
 for(const s of ['ma_ensure_account','reseller_id=eq.','ma_start_lease','ma1614Enhance'])has(scripts[1],s);
 for(const s of ['ma_record_payment','ma_record_meter','ma_record_guarantee','ma_activate_bonus'])has(scripts[2],s);
 for(const s of ['tenant.whatsapp','consent_whatsapp','https://wa.me/','ma_log_notice','t="inlineStr"'])has(scripts[3],s);
-for(const s of ['APIPERU_TOKEN','cc_dni_auto_permission','cc_claim_dni_quota','auth/v1/user','https://api.apiperu.pe/dni'])has(edge,s);
+for(const s of ['APIPERU_TOKEN','cc_dni_auto_permission','cc_claim_dni_quota','auth/v1/user','https://api.apiperu.dev/dni'])has(edge,s);
 for(const s of ['p.lease_id<>p_lease','p.tenant_id<>r.tenant_id','p.due_on<>p_due_on','p.phone_snapshot','revoke all'])has(sql,s);
 assert.ok(!scripts.join('').includes('SUPABASE_SERVICE_ROLE_KEY'),'No claves privilegiadas en frontend');
 const win={},context=vm.createContext({window:win,document:{readyState:'loading',addEventListener(){}},crypto:webcrypto,TextEncoder,Blob,Intl,Date,Uint8Array,console});
