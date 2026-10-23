@@ -21,7 +21,7 @@ assert.ok(!js.includes('marketing.checked'),'Publicidad debe seguir opcional');
 assert.ok(js.includes("localStorage.setItem(key,value)"),'Tema visual debe persistir');
 assert.ok(js.includes("cc_real_service_wallets?select=service,balance_pen&user_id=eq."),'Saldos solo del usuario');
 assert.ok(!js.includes('rpc/ma_transfer_real_balance')&&!js.includes('p_amount'),'Visual no mueve fondos');
-assert.ok(js.includes("old.hidden=true")&&js.includes('Saldo REAL'),'Reemplazar valores viejos por total REAL');
+assert.ok(js.includes("old.hidden=true")&&js.includes('MI SALDO REAL TOTAL'),'Reemplazar valores viejos por total REAL');
 assert.ok(css.includes('repeat(4,minmax(0,1fr))'),'Cuatro tarjetas en escritorio');
 assert.ok(css.includes('data-cc-theme="light"'),'Tema claro');
 assert.ok(css.includes('data-cc-theme="light"] #ma1611layer'),'Tema claro MI ALQUILER');
