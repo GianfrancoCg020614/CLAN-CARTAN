@@ -44,12 +44,13 @@ function consentGate(){
  if(!terms||!privacy||!btn||!toggle)return;
  const update=()=>{
   const register=btn.textContent.includes('Registrar mi cuenta');
-  const blocked=register&&!(terms.checked&&privacy.checked);
+  const blocked=register&&(!(terms.checked&&privacy.checked)||window.CC_PART1_SIGNUP_PENDING===true);
   btn.disabled=blocked;
   btn.setAttribute('aria-disabled',String(blocked));
  };
  terms.addEventListener('change',update);privacy.addEventListener('change',update);
  toggle.addEventListener('click',()=>queueMicrotask(update));
+ window.ccParte1SyncRegisterButton=update;
  const observer=new MutationObserver(update);
  observer.observe(btn,{childList:true,subtree:true});
  update();
@@ -115,8 +116,21 @@ async function refreshWallet(){
 function afterLogin(){walletShell();void refreshWallet();rentalCard();}
 window.cc164AfterLogin=afterLogin;
 window.cc164RefreshRealWallet=refreshWallet;
+function previewBanner(){
+ if(!window.CC_P1_IS_PREVIEW)return;
+ const host=by('cc-real-login')?.querySelector('.cc-authbox');
+ if(!host||by('cc-p1-preview-info'))return;
+ const section=document.createElement('aside');
+ section.id='cc-p1-preview-info';
+ const title=document.createElement('strong');title.textContent='PARTE 1/7 · VISTA PREVIA SEGURA';
+ const paragraph=document.createElement('p');
+ paragraph.textContent='Esta vista mantiene el diseño de CLAN CARTAN. Las operaciones de cuenta real no se prueban aquí: aún falta conectar un Supabase de pruebas aislado.';
+ const a=document.createElement('a');a.href='/pruebas/parte1.html';
+ a.textContent='Abrir formulario de prueba sin datos reales ↗';
+ section.append(title,paragraph,a);host.prepend(section);
+}
 function init(){
- theme();consentGate();rentalCard();
+ theme();consentGate();rentalCard();previewBanner();
  const home=by('cc77home');
  if(home){
   const watch=new MutationObserver(()=>rentalCard());

@@ -86,3 +86,11 @@ html[data-cc-theme="light"] #ma1611layer h2,html[data-cc-theme="light"] #ma1611l
 html[data-cc-theme="light"] #ma1611layer .ma1611-head p,html[data-cc-theme="light"] #ma1611layer .ma1611-summary p{color:#506a7c}
 html[data-cc-theme="light"] #ma1611layer button:not(.active){background:#eaf3f7;color:#25485a;border-color:#b8ced8}
 @media(prefers-reduced-motion:reduce){#cc77home .cc77card,#cc77home .ma1611-card{transition:none!important}#cc77home .cc77card:hover,#cc77home .ma1611-card:hover{transform:none!important}}
+/* Parte 1/7: aviso únicamente en despliegues preview; conserva estilo oficial */
+#cc-real-login #cc-p1-preview-info{padding:14px;margin:0 0 16px;background:#163447;border:1px solid #7cbbca;border-radius:14px;color:#e9f9fa;text-align:left}
+#cc-real-login #cc-p1-preview-info strong{display:block;color:#92f3e6;font-size:11px;letter-spacing:.07em}
+#cc-real-login #cc-p1-preview-info p{font-size:12px;color:#d0e6ec;line-height:1.55;margin:8px 0}
+#cc-real-login #cc-p1-preview-info a{color:#0b2735;background:#7be1d7;border-radius:9px;display:block;text-align:center;padding:12px 14px;text-decoration:none;font-size:12px;font-weight:850}
+html[data-cc-theme="light"] #cc-real-login #cc-p1-preview-info{background:#ebfaf9;color:#194054;border-color:#9acdcf}
+html[data-cc-theme="light"] #cc-real-login #cc-p1-preview-info strong{color:#0f6370}
+html[data-cc-theme="light"] #cc-real-login #cc-p1-preview-info p{color:#3c6173}
