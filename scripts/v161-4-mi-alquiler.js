@@ -139,6 +139,6 @@ function init(){document.addEventListener('click',e=>{if(e.target.closest('butto
  document.addEventListener('input',e=>{if(e.target.id==='ma4-search')renderList(searchCards(e.target.value));});
  document.addEventListener('click',e=>{if(e.target.closest('#cc54logout'))clear();},true);
 }
-window.ma1614Enhance=enhance;window.ma1614Test=Object.freeze({phoneDigits,dateDiff,workbook,exportSheets,searchCards});
+window.ma1614Enhance=enhance;window.ma1614Invalidate=()=>{loaded=false;error='';};window.ma1614Test=Object.freeze({phoneDigits,dateDiff,workbook,exportSheets,searchCards});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

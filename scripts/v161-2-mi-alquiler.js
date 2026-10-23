@@ -88,10 +88,16 @@ function enhance(which,target){
  target.innerHTML=area==='inmuebles'?renderProperties():area==='inquilinos'?renderTenants():area==='contratos'?renderLeases():pending(area);
 }
 function rerender(){enhance(area,$('ma1611content'));}
-async function load(){
- if(loading)return;loading=true;rerender();
- try{await refresh();}catch(e){reset();const el=$('ma1611content');if(el)el.innerHTML=section('No se pudieron cargar los datos','Sin operaciones realizadas.', '<p class="ma1612-error">'+esc(e.message||e)+'</p>'+actionButton('reload','Reintentar'));}
- finally{loading=false;if(account)rerender();}
+let pendingLoad=null;
+function load(){
+ if(pendingLoad)return pendingLoad;
+ const task=(async()=>{
+  loading=true;rerender();
+  try{await refresh();}catch(e){reset();const el=$('ma1611content');if(el)el.innerHTML=section('No se pudieron cargar los datos','Sin operaciones realizadas.', '<p class="ma1612-error">'+esc(e.message||e)+'</p>'+actionButton('reload','Reintentar'));}
+  finally{loading=false;if(account)rerender();}
+ })();
+ pendingLoad=task;
+ return task.finally(()=>{if(pendingLoad===task)pendingLoad=null;});
 }
 function dialog(title,form){
  $('ma1612dialog')?.remove();
@@ -157,7 +163,7 @@ function init(){
 }
 // No redeclarar la sesión original ni alterar otros módulos.
 window.ma1612Enhance=enhance;
-window.ma1612OnOpen=()=>void load();
+window.ma1612OnOpen=()=>load();
 window.ma1612Reset=reset;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

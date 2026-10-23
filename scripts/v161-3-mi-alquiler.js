@@ -124,7 +124,7 @@ async function onSubmit(e){const f=e.target.closest('[data-ma3-form]');if(!f)ret
   if(kind==='guarantee')await rpc('ma_record_guarantee',{p_lease:id,p_action:v('action'),p_amount:num('amount'),p_reason:v('reason'),p_request:request});
   if(kind==='expense')await rpc('ma_record_expense',{p_unit:v('unit')?Number(v('unit')):null,p_category:v('category'),p_description:v('description'),p_amount:num('amount'),p_method:v('method'),p_request:request});
   if(kind==='bonus')await rpc('ma_admin_grant_bonus',{p_reseller:v('reseller'),p_amount:num('amount'),p_note:v('note'),p_request:request});
-  $('ma3dialog')?.remove();await reload();message('Movimiento guardado y auditado.');
+  window.ma1614Invalidate?.();$('ma3dialog')?.remove();await reload();message('Movimiento guardado y auditado.');
  }catch(ex){const p=$('ma3-dialog-status')||$('ma3-status');if(p){p.textContent='No se registró: '+String(ex.message||ex);p.classList.add('ma3-error');}}
  finally{busy=false;if(button)button.disabled=false;}
 }

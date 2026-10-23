@@ -61,6 +61,12 @@ jobs:
         run: |
           node --check scripts/v161-1-mi-alquiler.js
           node scripts/check-v163-1-mi-alquiler-brand.mjs
+      - name: Probar sincronización y actualización MI ALQUILER V163.5
+        run: |
+          node --check scripts/v161-2-mi-alquiler.js
+          node --check scripts/v161-3-mi-alquiler.js
+          node --check scripts/v161-4-mi-alquiler.js
+          node scripts/check-v163-5-loading.mjs
       - name: Verificar integración consolidada V163.5
         run: |
           node --check scripts/v161-1-mi-alquiler.js
