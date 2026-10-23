@@ -1,0 +1,46 @@
+name: Parte 1 · Auth real LOCAL y consentimientos
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/sql-propuestas/parte1-before-user-created.sql'
+      - 'docs/sql-propuestas/parte1-consent-audit-and-guard.sql'
+      - 'scripts/check-parte1-auth-local.mjs'
+      - 'scripts/parte1-start-local.sh'
+      - '.github/workflows/probar-parte1-auth-local.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/sql-propuestas/parte1-before-user-created.sql'
+      - 'docs/sql-propuestas/parte1-consent-audit-and-guard.sql'
+      - 'scripts/check-parte1-auth-local.mjs'
+      - 'scripts/parte1-start-local.sh'
+      - '.github/workflows/probar-parte1-auth-local.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  auth-local:
+    name: Signup y login Supabase Auth 100% local
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      - name: Auth local, términos, privacidad, login y recuperación
+        run: bash scripts/parte1-start-local.sh
+      - name: Detener infraestructura temporal
+        if: always()
+        run: |
+          if [ -f .parte1-local/supabase/config.toml ]; then
+            cd .parte1-local
+            supabase stop --no-backup || true
+          fi
