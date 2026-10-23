@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, integracion/mi-alquiler-v162-1-billeteras]
   workflow_dispatch:
 
 permissions:
@@ -57,6 +57,30 @@ jobs:
         run: |
           node --check scripts/v161-1-mi-alquiler.js
           node scripts/check-v161-1-mi-alquiler.mjs
+      - name: Verificar identidad oficial MI ALQUILER V163.1
+        run: |
+          node --check scripts/v161-1-mi-alquiler.js
+          node scripts/check-v163-1-mi-alquiler-brand.mjs
+      - name: Probar sincronización y actualización MI ALQUILER V163.5
+        run: |
+          node --check scripts/v161-2-mi-alquiler.js
+          node --check scripts/v161-3-mi-alquiler.js
+          node --check scripts/v161-4-mi-alquiler.js
+          node scripts/check-v163-5-loading.mjs
+      - name: Validar portal unificado CLAN CARTAN y consentimiento V164
+        run: |
+          node --check scripts/v164-portal-4-negocios.js
+          node scripts/check-v164-portal.mjs
+      - name: Comprobar separación de bonos de referidos y activación
+        run: node scripts/check-v163-5-bonus-policy.mjs
+      - name: Verificar integración consolidada V163.5
+        run: |
+          node --check scripts/v161-1-mi-alquiler.js
+          node --check scripts/v161-4-mi-alquiler.js
+          node scripts/check-v163-5-integracion.mjs
+      - name: Bloquear publicación sin E2E V163.5
+        if: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' }}
+        run: node scripts/check-v163-5-prepublicacion.mjs
       - name: Revisar contratos y permisos MI ALQUILER V161.2
         run: |
           node --check scripts/v161-2-mi-alquiler.js

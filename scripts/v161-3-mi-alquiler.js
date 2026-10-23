@@ -18,7 +18,8 @@ const uuid=()=>{
 };
 const rpc=(p,body)=>window.cc80.api('rpc/'+p,'POST',body||{});
 const api=(p)=>window.cc80.api(p);
-let state={userId:null,ledger:[],meters:[],guarantees:[],expenses:[],adminAccounts:[],subscriptions:[],loaded:false,loading:false,error:null},current=null;
+let state={userId:null,ledger:[],meters:[],guarantees:[],expenses:[],adminAccounts:[],subscriptions:[],loaded:false,loading:false,error:null},current=null,version=0;
+const invalidate=()=>{version++;state.loaded=false;state.error=null;};
 const reset=()=>{state={userId:null,ledger:[],meters:[],guarantees:[],expenses:[],adminAccounts:[],subscriptions:[],loaded:false,loading:false,error:null};current=null;};
 const leaseName=(l,context)=>{const u=context.units.find(a=>Number(a.id)===Number(l.unit_id))||{},t=context.tenants.find(a=>a.id===l.tenant_id)||{};return (u.code||((u.kind==='LOCAL'?'L-':'H-')+String(u.serial||0).padStart(3,'0')))+' · '+(t.full_name||'Inquilino');};
 const balance=id=>state.ledger.filter(m=>m.lease_id===id).reduce((s,m)=>s+n(m.amount_pen),0);
@@ -41,7 +42,7 @@ function finance(context){
  const blocked=state.guarantees.reduce((s,m)=>s+(m.action==='RECEIVED'?n(m.amount_pen):-n(m.amount_pen)),0);
  let cards='<div class="ma3-stats"><div><small>Saldo por cobrar (contratado)</small><b>'+cash(total)+'</b></div><div><small>Alquileres cobrados</small><b>'+cash(collected)+'</b></div><div><small>Gastos registrados</small><b>'+cash(expenses)+'</b></div><div><small>Garantías custodiadas</small><b>'+cash(blocked)+'</b></div></div>';
  cards+='<section class="ma3-card"><h4>Invita a MI ALQUILER</h4><p>Tu código personal: <strong>'+esc(context.account.invite_code||'—')+'</strong></p>'+btn('share-invite','Copiar enlace de invitación')+'<p class="ma3-small">El referido se atribuye a tu código. No se activan suscripciones ni bonos automáticamente.</p></section>';
- cards+='<section class="ma3-card"><h4>Billetera MI ALQUILER (suscripción)</h4><p>Saldo real verificado: <b>'+cash(context.account.real_verified_pen)+'</b> · Bono gratuito: <b>'+cash(context.account.bonus_pen)+'</b></p><p>Suscripción hasta '+esc(context.account.subscription_until?new Date(context.account.subscription_until).toLocaleDateString('es-PE'):'sin activar')+' · S/15 por 30 días</p>'+btn('activate','Renovar 30 días con bono',n(context.account.bonus_pen)>=15?'':'disabled')+'<p class="ma3-small">No se habilitan depósitos Lemon, Binance ni transferencia de saldos hasta verificar proveedores y sus permisos.</p></section>';
+ cards+='<section class="ma3-card"><h4>Billetera MI ALQUILER (suscripción)</h4><p>Saldo real verificado: <b>'+cash(context.account.real_verified_pen)+'</b> · Bono gratuito: <b>'+cash(context.account.bonus_pen)+'</b></p><p>Suscripción hasta '+esc(context.account.subscription_until?new Date(context.account.subscription_until).toLocaleDateString('es-PE'):'sin activar')+' · S/15 por 30 días</p>'+btn('activate','Renovar 30 días con bono',n(context.account.bonus_pen)>=15?'':'disabled')+'<p class="ma3-small">Las transferencias usan saldo real verificado; las solicitudes de recarga permanecen pendientes hasta revisión del ADMIN.</p></section>';
  cards+=adminBox(context);
  const active=context.leases.filter(x=>x.state==='ACTIVE');
  cards+='<section class="ma3-card"><h4>Gastos de mantenimiento y operación</h4>'+btn('expense','＋ Registrar gasto')+'<p class="ma3-small">Son gastos del arrendador, no deuda del inquilino.</p></section>';
@@ -57,13 +58,14 @@ function finance(context){
 }
 async function fetchMore(context,rerender){
  if(state.loading||state.loaded&&state.userId===context.sessionId)return;
- state.loading=true;state.userId=context.sessionId;
+ state.loading=true;state.userId=context.sessionId;const started=version;
  try{
   const q='&reseller_id=eq.'+encodeURIComponent(context.sessionId);
   const urls=['ma_ledger?select=*&order=created_at.desc&limit=3000'+q,'ma_meter_readings?select=*&order=created_at.desc&limit=1500'+q,'ma_guarantee_events?select=*&order=created_at.desc&limit=1500'+q,'ma_expenses?select=*&order=created_at.desc&limit=1500'+q,'ma_subscription_events?select=*&order=created_at.desc&limit=100'+q];
   if(context.account.role==='ADMIN')urls.push('ma_accounts?select=user_id,invite_code,bonus_pen,subscription_until,suspended&order=created_at.desc&limit=200');
   const items=await Promise.all(urls.map(api));
   if(ss()?.userId!==context.sessionId){reset();return;}
+  if(version!==started){state.loaded=false;return;}
   [state.ledger,state.meters,state.guarantees,state.expenses,state.subscriptions]=items.slice(0,5).map(i=>Array.isArray(i)?i:[]);
   state.adminAccounts=Array.isArray(items[5])?items[5]:[];state.loaded=true;state.error=null;
  }catch(e){state.loaded=false;state.error='No se pudo cargar contabilidad: '+String(e.message||e);}
@@ -124,11 +126,11 @@ async function onSubmit(e){const f=e.target.closest('[data-ma3-form]');if(!f)ret
   if(kind==='guarantee')await rpc('ma_record_guarantee',{p_lease:id,p_action:v('action'),p_amount:num('amount'),p_reason:v('reason'),p_request:request});
   if(kind==='expense')await rpc('ma_record_expense',{p_unit:v('unit')?Number(v('unit')):null,p_category:v('category'),p_description:v('description'),p_amount:num('amount'),p_method:v('method'),p_request:request});
   if(kind==='bonus')await rpc('ma_admin_grant_bonus',{p_reseller:v('reseller'),p_amount:num('amount'),p_note:v('note'),p_request:request});
-  $('ma3dialog')?.remove();await reload();message('Movimiento guardado y auditado.');
+  window.ma1614Invalidate?.();$('ma3dialog')?.remove();await reload();message('Movimiento guardado y auditado.');
  }catch(ex){const p=$('ma3-dialog-status')||$('ma3-status');if(p){p.textContent='No se registró: '+String(ex.message||ex);p.classList.add('ma3-error');}}
  finally{busy=false;if(button)button.disabled=false;}
 }
 function init(){document.addEventListener('click',onClick);document.addEventListener('submit',onSubmit);document.addEventListener('click',e=>{if(e.target.closest('#cc54logout'))reset();},true);}
-window.ma1613Enhance=enhance;
+window.ma1613Enhance=enhance;window.ma1613Invalidate=invalidate;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

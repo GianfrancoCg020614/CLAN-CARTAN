@@ -1,0 +1,88 @@
+/* V163.5 — CLAN CARTAN: estilo unificado, cuatro negocios y tema claro/oscuro. */
+:root{--cc164-surface:#0b1e2d;--cc164-text:#f1f6fc;--cc164-muted:#b8d0dc;--cc164-line:#365569;--cc164-gold:#dfb35c;--cc164-turq:#53d8d1}
+#cc77home{color:#f1f6fc}
+#cc77home .cc77wrap{max-width:1490px;margin:auto}
+#cc77home .cc77intro{padding:36px 0 27px;max-width:950px}
+#cc77home .cc77intro h1{font-size:clamp(28px,3.4vw,46px);line-height:1.14;letter-spacing:-.035em;text-wrap:balance}
+#cc77home .cc77intro p{font-size:clamp(14px,1.2vw,17px);line-height:1.7;max-width:830px}
+#cc77home .cc77cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:stretch}
+#cc77home .cc77card,#cc77home .ma1611-card{display:flex;flex-direction:column;align-items:stretch;gap:13px;min-width:0;min-height:365px;margin:0;padding:22px;border:1px solid rgba(112,173,189,.42);border-radius:21px;background:linear-gradient(155deg,rgba(23,53,68,.97),rgba(6,23,38,.97));box-shadow:0 15px 34px #030e1d55;backdrop-filter:blur(12px);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;color:#f5f8fc;font:14px/1.55 system-ui,-apple-system,sans-serif}
+#cc77home .cc77card:hover,#cc77home .ma1611-card:hover{transform:translateY(-3px);box-shadow:0 20px 37px #02081770}
+#cc77home .cc77card:nth-child(1){border-top:3px solid #46bfde}
+#cc77home .cc77card:nth-child(2){border-top:3px solid #58c9ac}
+#cc77home .cc77card:nth-child(3){border-top:3px solid #e7b86a}
+#cc77home .ma1611-card{border-top:3px solid #d9ad65;border-color:#b38a4b;background:linear-gradient(155deg,#27312c,#132537 75%)}
+#cc77home .cc77tag,#cc77home .ma1611-card-copy small{color:#91e8df;font-size:10px;font-weight:800;letter-spacing:.085em;line-height:1.45}
+#cc77home .cc77card:nth-child(3) .cc77tag,#cc77home .ma1611-card-copy small{color:#eac889}
+#cc77home .cc78service,#cc77home .ma1611-card-icon{display:flex;align-items:center;gap:12px}
+#cc77home .ma1611-card-icon{width:80px;height:80px;flex:0 0 auto;background:#1d2b37}
+#cc77home .cc78service-logo{width:70px;height:70px;flex-basis:70px}
+#cc77home .cc77card h2,#cc77home .ma1611-card h2{font-size:clamp(20px,1.5vw,25px);line-height:1.13;letter-spacing:-.025em;color:#fff;margin:0}
+#cc77home .ma1611-card-copy{flex:1 1 auto}
+#cc77home .ma1611-card-copy h2{margin:10px 0}
+#cc77home .cc77card p,#cc77home .ma1611-card p{font-size:13px;line-height:1.72;color:#c6d7e1;margin:0;flex:1}
+#cc77home .cc77card .cc77actions{margin-top:auto;align-items:stretch;gap:9px}
+#cc77home .cc77actions button,#cc77home .ma1611-card button{min-height:42px;border-radius:11px;font-size:12px;font-weight:800;padding:11px 13px;white-space:normal;line-height:1.3;cursor:pointer}
+#cc77home .ma1611-card button{margin-top:auto;background:#e2b35b;color:#211a11}
+#cc77home .ma1611-chip{display:inline-block;margin-top:8px;padding:5px 8px;border-radius:8px;color:#eac990;background:#142a38;font-size:10px}
+#cc77home .cc164-theme-btn{background:#152d3b;border:1px solid #6ba0aa;color:#eaf8fa;padding:9px 13px;border-radius:12px;white-space:nowrap;min-height:41px;font:750 12px system-ui;cursor:pointer}
+#cc77home .cc164-theme-btn:focus-visible{outline:3px solid #72dde1;outline-offset:3px}
+#cc-real-login .cc164-legal-consent,#cc-real-login .cc164-marketing-consent{display:flex;align-items:flex-start;gap:9px;line-height:1.5;margin:12px 0;color:#eff8ff}
+#cc-real-login .cc164-legal-consent input,#cc-real-login .cc164-marketing-consent input{width:18px;height:18px;flex:0 0 18px;margin-top:2px;accent-color:#0caabb}
+#cc-real-login .cc164-optin-note{font-size:11px;color:#b4c9d6;margin:1px 0 10px}
+#cc-real-login #cc-real-button:disabled{background:#415264!important;border-color:#415264!important;color:#d5e0e9!important;cursor:not-allowed!important;opacity:.6!important;filter:none!important}
+#cc77home .cc164-code-examples{font-size:11px;line-height:1.6;color:#b5d0d8;margin:4px 0 12px}
+#cc77home .cc164-preferences{background:#102434!important;padding:9px 15px!important;border-radius:13px!important}
+#cc77home .cc164-preferences summary{color:#aedce7;font-size:12px;font-weight:750;cursor:pointer}
+#cc77home .cc164-preferences label{color:#eaf5fd}
+#cc77home #cc164-wallet{display:flex;flex-direction:column;gap:6px;min-width:225px;max-width:500px;margin:0 5px;padding:9px 12px;background:#071d2d;border:1px solid #2e7c87;border-radius:13px;box-shadow:inset 0 0 0 1px #224a57}
+#cc77home .cc164-wallet-top{display:flex;align-items:center;justify-content:space-between;gap:9px}
+#cc77home .cc164-wallet-top div{display:flex;flex-direction:column;min-width:0}
+#cc77home .cc164-kicker{font-size:9px;font-weight:800;letter-spacing:.08em;color:#8ddfcf}
+#cc77home #cc164-total{color:#fff5d2;font-weight:850;font-size:16px;white-space:nowrap}
+#cc77home #cc164-wallet-reload{background:transparent;border:1px solid #477887;color:#b6e8ed;border-radius:8px;padding:6px 9px;cursor:pointer}
+#cc77home .cc164-balances{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+#cc77home .cc164-balance{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:5px 7px;background:#112d3a;border:1px solid #284e5c;border-radius:8px;font-size:10px;color:#d5e7eb}
+#cc77home .cc164-balance strong{font-size:11px;color:#fff;white-space:nowrap}
+#cc77home .cc164-wallet-note{color:#a5cad3;font-size:9px;line-height:1.35}
+#cc77home #cc116-account-balances[hidden]{display:none!important}
+@media(max-width:1130px){#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))}#cc77home .cc77card,#cc77home .ma1611-card{min-height:315px}}
+@media(max-width:590px){#cc77home .cc77cards{grid-template-columns:1fr;gap:14px}#cc77home .cc77card,#cc77home .ma1611-card{padding:20px;min-height:auto}#cc77home #cc164-wallet{width:100%;max-width:none}#cc77home .cc164-balance{font-size:10px}#cc77home .cc164-theme-btn{font-size:11px}}
+/* Modo claro. No invierte logotipos originales ni altera valores de la aplicación. */
+html[data-cc-theme="light"]{color-scheme:light}
+html[data-cc-theme="light"] #cc77home{background-image:linear-gradient(150deg,#eef7f8ef,#e5eef7f2),var(--clanPoster)!important;background-color:#eef4f8!important;color:#14283a!important}
+html[data-cc-theme="light"] #cc77home .cc77intro{text-shadow:none}
+html[data-cc-theme="light"] #cc77home .cc77intro h1{color:#102437;text-shadow:none}
+html[data-cc-theme="light"] #cc77home .cc77intro p{color:#335569;text-shadow:none}
+html[data-cc-theme="light"] #cc77home .cc77card,html[data-cc-theme="light"] #cc77home .ma1611-card{background:linear-gradient(160deg,#fff,#edf5fa)!important;color:#183348!important;box-shadow:0 14px 28px #29475918;border-color:#b4ccd7!important}
+html[data-cc-theme="light"] #cc77home .cc77card h2,html[data-cc-theme="light"] #cc77home .ma1611-card h2{color:#102837!important}
+html[data-cc-theme="light"] #cc77home .cc77card p,html[data-cc-theme="light"] #cc77home .ma1611-card p{color:#365266!important}
+html[data-cc-theme="light"] #cc77home .cc77tag,html[data-cc-theme="light"] #cc77home .ma1611-card-copy small{color:#176e74!important}
+html[data-cc-theme="light"] #cc77home .ma1611-chip{background:#e1ebf1;color:#4c6070}
+html[data-cc-theme="light"] #cc77home .cc77foot,html[data-cc-theme="light"] #cc77home .cc77foot a{color:#365365!important}
+html[data-cc-theme="light"] #cc77home .cc164-theme-btn{color:#214658;background:#fff;border-color:#9abecb}
+html[data-cc-theme="light"] #cc77home #cc95-user{background:#fff!important;color:#1c3445!important;border-color:#bbd3db!important;box-shadow:0 8px 22px #4761711b}
+html[data-cc-theme="light"] #cc77home #cc95-name{color:#123449}
+html[data-cc-theme="light"] #cc77home #cc164-wallet{background:#f1f7f9;border-color:#9dbcc8}
+html[data-cc-theme="light"] #cc77home #cc164-total{color:#14384c}
+html[data-cc-theme="light"] #cc77home .cc164-kicker,html[data-cc-theme="light"] #cc77home .cc164-wallet-note{color:#356274}
+html[data-cc-theme="light"] #cc77home .cc164-balance{background:#fff;border-color:#ccdce2;color:#305264}
+html[data-cc-theme="light"] #cc77home .cc164-balance strong{color:#15374a}
+html[data-cc-theme="light"] #cc77home #cc164-wallet-reload{color:#155164;border-color:#b4cbd7}
+html[data-cc-theme="light"] #cc77home .cc116-code-panel,html[data-cc-theme="light"] #cc77home .cc164-preferences{background:#fff!important;color:#173748!important;border-color:#c6d8df!important}
+html[data-cc-theme="light"] #cc77home .cc164-code-examples,html[data-cc-theme="light"] #cc77home .cc164-preferences summary{color:#36596b}
+html[data-cc-theme="light"] #cc77home .cc116-code-row{border-color:#d4e1e7}
+html[data-cc-theme="light"] #cc77home .cc116-code-business{color:#264c60}
+html[data-cc-theme="light"] #cc77home .cc116-code-value{background:#f6fafc;color:#13334b;border-color:#bdd3df}
+html[data-cc-theme="light"] #cc77home .cc164-preferences label{color:#1f4050}
+html[data-cc-theme="light"] #cc-real-login .cc-authbox{background:#f7fafc!important;color:#173145!important}
+html[data-cc-theme="light"] #cc-real-login .cc-authbox h2,html[data-cc-theme="light"] #cc-real-login .cc-authbox p{color:#233e51}
+html[data-cc-theme="light"] #cc-real-login .cc164-legal-consent,html[data-cc-theme="light"] #cc-real-login .cc164-marketing-consent{color:#16354a}
+html[data-cc-theme="light"] #cc-real-login input,html[data-cc-theme="light"] #cc-real-login select{background:#fff;color:#1c3649;border-color:#b8cad5}
+html[data-cc-theme="light"] #cc-real-login #cc-real-button:disabled{color:#c4d1d9!important}
+html[data-cc-theme="light"] #ma1611layer{background:#edf4f7;color:#183348}
+html[data-cc-theme="light"] #ma1611layer .ma1611-head,html[data-cc-theme="light"] #ma1611layer .ma1611-content,html[data-cc-theme="light"] #ma1611layer .ma1611-notice{background:#fff;color:#28475a;border-color:#c3d6dd}
+html[data-cc-theme="light"] #ma1611layer h2,html[data-cc-theme="light"] #ma1611layer .ma1611-summary h3{color:#1c3b4c}
+html[data-cc-theme="light"] #ma1611layer .ma1611-head p,html[data-cc-theme="light"] #ma1611layer .ma1611-summary p{color:#506a7c}
+html[data-cc-theme="light"] #ma1611layer button:not(.active){background:#eaf3f7;color:#25485a;border-color:#b8ced8}
+@media(prefers-reduced-motion:reduce){#cc77home .cc77card,#cc77home .ma1611-card{transition:none!important}#cc77home .cc77card:hover,#cc77home .ma1611-card:hover{transform:none!important}}

@@ -1,0 +1,3 @@
+# V163.2 — Compatibilidad de datos
+Fecha: 2026-10-22. Auditada la base Supabase `pqalxtrcyrpmwqdlibqd`.
+La base activa V162.1 contiene 16 tablas `ma_*` con RLS y sin escritura directa para anon/authenticated. Se verificaron 77/77 controles estáticos y ninguna operación financiera de prueba. **No ejecutar la rama experimental `feature/v163-mi-alquiler`**, que redefine `ma_units`, `ma_leases`, `ma_ledger`, `ma_meter_readings`, `ma_expenses`, garantías y otros campos. Preservar `ma_properties`, `ma_guarantee_events`, `ma_wallets`, `cc_real_service_wallets`, histórico y funciones. No cambiar tablas sin staging, revisión de migración y respaldo. Ver `scripts/auditoria-v163-2-supabase.sql`.

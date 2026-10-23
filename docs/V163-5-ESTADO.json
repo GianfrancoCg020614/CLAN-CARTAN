@@ -1,0 +1,118 @@
+{
+  "project": "CLAN CARTAN / MI ALQUILER",
+  "version": "V163.5",
+  "fecha": "2026-10-22",
+  "status": "UI_4_NEGOCIOS_CI_OK_PREVIEW_PENDIENTE_E2E",
+  "starting_branch": "feature/v163-1-mi-alquiler-logo-oficial",
+  "integration_branch": "feature/v163-5-integracion-segura",
+  "base_branch": "integracion/mi-alquiler-v162-1-billeteras",
+  "production_branch": "main",
+  "preserved_commit": "529dcf3b6bee0143965e5ca674e0d0eb5540edc5",
+  "production_commit_prior": "1119615c6aed1d9bc5ef6f2ad0af370d3128e78a",
+  "supabase_project_id": "pqalxtrcyrpmwqdlibqd",
+  "audits": {
+    "V163_2_checks": "77/77",
+    "V163_4_checks": "174/174",
+    "e2e_executed": 0,
+    "e2e_total": 24,
+    "live_rechecked": "2026-10-22"
+  },
+  "controls": {
+    "real_payments_enabled": false,
+    "automatic_whatsapp_send_enabled": false,
+    "turnstile_auth_enabled": false,
+    "production_merge_approved": false
+  },
+  "gates": {
+    "api_peru_provider_token_verified": false,
+    "brevo_real_otp_received": false,
+    "turnstile_frontend_server_e2e": false,
+    "whatsapp_consent_manual_flow_tested": false,
+    "e2e_24_passed_on_isolated_staging": false,
+    "security_advisors_reviewed": false,
+    "rollback_preview_confirmed": false,
+    "production_merge_approved": false
+  },
+  "notes": [
+    "La migración experimental V163 no es compatible con V162.1: no aplicarla.",
+    "El logo V163.1 está presente en tarjeta y encabezado; el PNG original se conserva en el paquete de respaldo externo.",
+    "La dirección API Perú se corrigió solamente en el código GitHub; la función desplegada no se sustituye sin validar token del proveedor.",
+    "No se activó ni configuró CAPTCHA ni SMTP en la instancia viva.",
+    "No ejecutar ninguna E2E financiera contra producción ni acreditar fondos de prueba.",
+    "Recompensas de referidos como dinero real y exclusividad de bonos ADMIN quedan diseñadas, NO activadas ni acreditadas sin staging y presupuesto verificado."
+  ],
+  "integration_pr": 31,
+  "backup_refs": {
+    "main": "respaldo/clan-cartan-main-v161-20261022",
+    "v162_1": "respaldo/mi-alquiler-v162-1-20261022"
+  },
+  "last_verified_ci_commit": "77bf129fd4555f09bbebbb8e0df25fef23f02210",
+  "last_verified_preview": "https://34ee10f7.clan-cartan.pages.dev",
+  "corrected_code_commit": "cfc78f4ff7545fec331231e577036ec5dc65d94d",
+  "corrections": [
+    "Cargas asíncronas esperables y deduplicadas en MI ALQUILER",
+    "Avisos y finanzas invalidados después de operaciones",
+    "Respuestas de consultas obsoletas descartadas",
+    "Interfaz V163.5 informa que es una vista previa y corrige textos de etapas anteriores"
+  ],
+  "last_verified_ci_run": "https://github.com/GianfrancoCg020614/CLAN-CARTAN/actions/runs/39988218220",
+  "last_verified_ui_changes": "2026-10-23",
+  "interface": {
+    "business_modules": [
+      "STREAM_BULLS",
+      "COBRA_YA",
+      "MI_COCHERA",
+      "MI_ALQUILER"
+    ],
+    "color_themes": [
+      "dark",
+      "light"
+    ],
+    "theme_preference_storage": "cc164-theme, solo UI",
+    "registration_gate": [
+      "cc-v81-terms",
+      "cc164-privacy"
+    ],
+    "marketing_signup": "opt-in independiente no obligatorio; revocable",
+    "code_formats": [
+      "BULL1..4",
+      "COBRA1..4",
+      "COCHERA1..3",
+      "ALQUILER1..3"
+    ],
+    "referral_codes": "mostrar solamente codigos reales asignados por backend",
+    "wallet_display": "4 saldos REALES verificados, total visual en PEN; no bonos ni saldos de prueba"
+  },
+  "financial_business_rule_confirmed_on": "2026-10-23",
+  "financial_business_rule": {
+    "real_balance": "Solo recargas realmente verificadas y recompensas por referidos GANADAS/APROBADAS, respaldadas por libro contable; apto para los cuatro servicios",
+    "referral_reward": {
+      "becomes_real_after": "validación, elegibilidad, financiación y acreditación contable única",
+      "services": [
+        "STREAM_BULLS",
+        "COBRA_YA",
+        "MI_COCHERA",
+        "MI_ALQUILER"
+      ],
+      "automatic_credit_enabled": false
+    },
+    "welcome_and_admin_activation_bonus": {
+      "purpose": "solo activaciones de plataforma, sin compras/retiros/transferencias",
+      "services_allowed": [
+        "COBRA_YA",
+        "MI_COCHERA",
+        "MI_ALQUILER"
+      ],
+      "services_forbidden": [
+        "STREAM_BULLS"
+      ],
+      "convertible_to_real": false,
+      "server_side_restriction_verified": false
+    },
+    "wallet_plan": {
+      "current": "4 subbilleteras reales; total visual unificado",
+      "future": "un libro real central y libro promocional aparte, únicamente tras migración conciliada",
+      "back_end_unification_implemented": false
+    }
+  }
+}

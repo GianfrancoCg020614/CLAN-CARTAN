@@ -4734,7 +4734,7 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 #cc-real-login{position:fixed;inset:0;z-index:2147483640;background:rgba(3,9,20,.98);display:flex;align-items:center;justify-content:center;padding:18px;color:#ebf5ff;font-family:system-ui,Arial,sans-serif}
 #cc-real-login *{box-sizing:border-box}#cc-real-login .cc-authbox{background:#101d30;border:1px solid #30465e;border-radius:22px;max-width:470px;width:100%;padding:26px;box-shadow:0 20px 80px #0008}#cc-real-login h2{margin:0 0 10px;font-size:24px}#cc-real-login p{color:#acc3d6;font-size:14px;line-height:1.5}#cc-real-login input{display:block;width:100%;padding:13px;margin:12px 0;border-radius:9px;background:#091322;border:1px solid #44617c;color:#fff}#cc-real-login button{padding:12px 17px;border:0;border-radius:9px;background:#23b6e8;color:#041422;font-weight:700;cursor:pointer;width:100%;margin-top:8px}#cc-real-login .cc-error{color:#ffb5b5;min-height:18px;font-size:13px}#cc-real-login .cc-small{font-size:12px;color:#93a9bb}#cc-real-banner{position:fixed;bottom:0;left:0;right:0;z-index:2147483639;background:#3b2609;color:#ffeec4;text-align:center;padding:9px 15px;font:600 13px system-ui;box-shadow:0 -2px 15px #0005}
 </style>
-<div id="cc-real-login"><div class="cc-authbox"><small style="color:#64d3f2">CLAN CARTAN · ACCESO ÚNICO</small><h2>Tu cuenta CLAN CARTAN</h2><p>Ingresa con tu correo y contraseña. La misma cuenta te sirve para STREAM BULL’S, COBRA YA y MI COCHERA. El saldo real se acredita únicamente tras verificar cada pago. Los bonos gratuitos se utilizan dentro del módulo que los otorga; son intransferibles.</p><form id="cc-real-form"><input id="cc-real-email" type="email" autocomplete="username" placeholder="Correo de tu cuenta" required><input id="cc-real-pass" type="password" autocomplete="current-password" placeholder="Contraseña" required><button id="cc-real-button">Ingresar a CLAN CARTAN</button></form><button id="cc-register-toggle" type="button" style="background:transparent;color:#90e9fd;border:1px solid #4d8d9e">Crear cuenta nueva</button><button id="cc86-forgot" type="button" style="background:transparent;color:#f4ce84;border:none;text-decoration:underline;font-size:13px;padding:6px;margin-top:4px">¿Olvidaste tu contraseña?</button><button id="cc90-resend" type="button" style="display:none;width:100%;background:transparent;border:1px solid #4d8d9e;border-radius:9px;color:#90e9fd;padding:12px;margin-top:8px;cursor:pointer">Reenviar correo de confirmación</button><style>
+<div id="cc-real-login"><div class="cc-authbox"><small style="color:#64d3f2">CLAN CARTAN · ACCESO ÚNICO</small><h2>Tu cuenta CLAN CARTAN</h2><p>Ingresa con tu correo y contraseña. La misma cuenta te sirve para STREAM BULL’S, COBRA YA, MI COCHERA y MI ALQUILER. El saldo real se acredita únicamente tras verificar cada pago. Los bonos gratuitos se utilizan dentro del módulo que los otorga; son intransferibles.</p><form id="cc-real-form"><input id="cc-real-email" type="email" autocomplete="username" placeholder="Correo de tu cuenta" required><input id="cc-real-pass" type="password" autocomplete="current-password" placeholder="Contraseña" required><button id="cc-real-button">Ingresar a CLAN CARTAN</button></form><button id="cc-register-toggle" type="button" style="background:transparent;color:#90e9fd;border:1px solid #4d8d9e">Crear cuenta nueva</button><button id="cc86-forgot" type="button" style="background:transparent;color:#f4ce84;border:none;text-decoration:underline;font-size:13px;padding:6px;margin-top:4px">¿Olvidaste tu contraseña?</button><button id="cc90-resend" type="button" style="display:none;width:100%;background:transparent;border:1px solid #4d8d9e;border-radius:9px;color:#90e9fd;padding:12px;margin-top:8px;cursor:pointer">Reenviar correo de confirmación</button><style>
 #cc-real-login .cc-authbox{max-width:600px!important;max-height:94vh;overflow-y:auto}
 #cc-v81-fields{display:none;text-align:left;margin:12px 0}
 #cc-v81-fields fieldset{border:1px solid #36566d;border-radius:12px;padding:12px;margin:10px 0}
@@ -4766,8 +4766,10 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: COBRA1, BULL1, COCHERA1 o ALQUILER1" aria-describedby="cc110-invite-hint">
 <span id="cc110-invite-hint" style="display:block;font-size:12px;font-weight:400;color:#b5c6d8;margin-top:5px">Puedes registrarte sin código. Todos reciben un código propio e irrepetible. El código no concede acceso ni descuenta dinero.</span>
 </label></div>
-<label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0" required> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a> y la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a> .*</span></label>
-<label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc161-marketing" type="checkbox" style="width:auto;margin:3px 0"> <span>Yo autorizo comunicaciones publicitarias de CLAN CARTAN por correo electrónico y WhatsApp. (Opcional; puedo retirar mi autorización en cualquier momento).</span></label>
+<label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0" required> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a>.</span></label>
+<label class="cc164-legal-consent"><input id="cc164-privacy" type="checkbox" required> <span>Autorizo el tratamiento de mis datos personales necesarios para crear y gestionar mi cuenta, conforme a la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a>.</span></label>
+<label class="cc164-marketing-consent"><input id="cc161-marketing" type="checkbox"> <span>Autorizo comunicaciones publicitarias de CLAN CARTAN por correo y WhatsApp.</span></label>
+<p class="cc164-optin-note">Puedes modificar o retirar la autorización publicitaria en tus preferencias de cuenta.</p>
 <p style="font-size:11px;color:#a6b6c9">Tu correo electrónico requerirá confirmación para proteger el acceso.</p>
 </fieldset></div><p id="cc-register-help" class="cc-small" style="display:none">Registra tu correo y contraseña. La contraseña debe tener al menos 12 caracteres. Luego confirma tu correo electrónico si se solicita.</p><section id="cc91-confirm" role="status" aria-live="polite" style="display:none;text-align:left;background:#0c2c30;border:1px solid #2b9b91;border-radius:14px;padding:17px;margin:12px 0"><h3 style="margin:0 0 8px;color:#aeefd0">✉️ Verificación de correo electrónico</h3><p style="margin:0 0 8px">Hemos enviado un código de 8 dígitos a tu correo electrónico:</p><strong id="cc91-email" style="overflow-wrap:anywhere;color:#fff"></strong><div id="cc106otp" style="display:flex;gap:7px;margin:14px 0"><input inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Dígito 1"><input inputmode="numeric" maxlength="1" aria-label="Dígito 2"><input inputmode="numeric" maxlength="1" aria-label="Dígito 3"><input inputmode="numeric" maxlength="1" aria-label="Dígito 4"><input inputmode="numeric" maxlength="1" aria-label="Dígito 5"><input inputmode="numeric" maxlength="1" aria-label="Dígito 6"><input inputmode="numeric" maxlength="1" aria-label="Dígito 7"><input inputmode="numeric" maxlength="1" aria-label="Dígito 8"></div><button id="cc106verify" type="button" style="background:#5a86e5;color:#fff;width:100%;padding:12px;border:0;border-radius:10px;font-weight:700">Verificar cuenta</button><p style="font-size:13px;margin:11px 0 0">Escribe el código de 8 dígitos que recibiste para verificar tu cuenta.</p><p style="font-size:12px;color:#bbccda;margin:8px 0 0">¿No recibiste el código? Revisa Spam o usa Reenviar.</p></section><p id="cc-real-status" class="cc-error" role="status"></p><p class="cc-small">Los permisos se consultan desde la base de datos. No se permite ingresar con contraseñas ajenas o accesos no autorizados. No compartas claves privadas.</p></div></div>
 <script>
@@ -4955,7 +4957,7 @@ async function register(event){
   if(!/^\+[0-9]{1,4}$/.test(dial)||phone.length<6||phone.length>15)throw Error('Revisa el código internacional y el número de celular.');
   if(!region||!province||!district)throw Error('Completa tu ubicación.');
   if(password!==document.getElementById('cc-v81-confirm').value)throw Error('Las contraseñas no coinciden.');
-  if(!document.getElementById('cc-v81-terms').checked)throw Error('Lee y acepta los Términos y la Política de privacidad.');
+  if(!document.getElementById('cc-v81-terms').checked||!document.getElementById('cc164-privacy').checked)throw Error('Acepta los Términos y el tratamiento de datos necesarios para abrir tu cuenta.');
   const invitationCode=inviteInput.value.trim().toUpperCase();
   if(invitationCode){
    if(!(/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/.test(invitationCode)||/^ALQUILER[1-9][0-9]{0,11}$/.test(invitationCode)))throw Error('El código debe ser como COBRA1, BULL1 o COCHERA1.');
@@ -4966,7 +4968,7 @@ async function register(event){
   }
   const siteHost=window.location.hostname.toLowerCase();
    const authRedirect=['www.clancartan.com','clancartan.com','clan-cartan.pages.dev'].includes(siteHost)?window.location.origin+'/':'https://clan-cartan.pages.dev/';
-   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V161-20261021',privacy_version:'V161-20261021',legal_accepted:true,marketing_consent:document.getElementById('cc161-marketing').checked,invitation_code:invitationCode||null,invite_business:invitationCode?(invitationCode.startsWith('COCHERA')?'MI_COCHERA':invitationCode.startsWith('ALQUILER')?'MI_ALQUILER':invitationCode.startsWith('BULL')?'STREAM_BULLS':'COBRA_YA'):null,preferred_service:document.getElementById('cc111-business').value},gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
+   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V161-20261021',privacy_version:'V161-20261021',legal_accepted:true,data_processing_accepted:document.getElementById('cc164-privacy').checked,data_processing_version:'V164-20261023',marketing_consent:document.getElementById('cc161-marketing').checked,invitation_code:invitationCode||null,invite_business:invitationCode?(invitationCode.startsWith('COCHERA')?'MI_COCHERA':invitationCode.startsWith('ALQUILER')?'MI_ALQUILER':invitationCode.startsWith('BULL')?'STREAM_BULLS':'COBRA_YA'):null,preferred_service:document.getElementById('cc111-business').value},gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
   document.getElementById('cc-real-pass').value='';
   if(result?.access_token){setRegisterMode(false);status.textContent='Cuenta creada. Inicia sesión con tu correo y contraseña. Los servicios se activan por separado.';}
   else{
@@ -5670,14 +5672,14 @@ body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
 <section id="cc77home" aria-label="Página principal CLAN CARTAN">
  <div class="cc77wrap">
   <header class="cc77top"><div class="cc77brand"><span class="cc78main-logo" aria-label="Logo original de CLAN CARTAN"></span><span>CLAN CARTAN<small>EIRL. · Plataforma de negocios digitales</small></span></div><div class="cc77actions"><div id="cc95-user" style="display:none;align-items:center;gap:9px;background:#10253e;border:1px solid #345574;border-radius:30px;padding:6px 13px 6px 6px;color:#fff"><span id="cc95-avatar" style="width:35px;height:35px;display:grid;place-items:center;border-radius:50%;background:#159be2;font-weight:800">U</span><span style="display:flex;flex-direction:column;line-height:1.2"><strong id="cc95-name" style="font-size:13px">Usuario</strong><small id="cc95-role" style="color:#80def6">Usuario</small></span><div id="cc116-account-balances" class="cc116-account-balances" aria-label="Saldos de tus billeteras reales y de prueba"><span class="cc127-wallet-pill">COBRA · Real <b id="cc116-cobra">S/ --</b><small id="cc127-cobra-test">Prueba S/ --</small></span><span class="cc127-wallet-pill">BULL · Real <b id="cc116-bull">S/ --</b><small id="cc127-bull-test">Prueba S/ --</small></span><span class="cc127-wallet-pill">COCHERA · Total <b id="mc158-home-wallet">S/ --</b></span></div><button type="button" class="cc116-recharge" onclick="cc116OpenRecharge()">＋ Recargar</button><button type="button" class="cc118-logout cc118-profile-logout" onclick="cc54SwitchAccount()" aria-label="Cerrar sesión" title="Cerrar sesión"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button></div><button type="button" id="cc92-admin-button" style="display:none;background:#f0c76c;color:#111b2d;font-weight:900;border-color:#f0c76c" onclick="cc92OpenAdmin()">⚙ PANEL ADMIN</button><button type="button" class="cc98-guest-action" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="primary cc98-guest-action" onclick="cc77Auth(true)">Crear cuenta</button></div></header>
-  <div class="cc77intro"><h1>CLAN CARTAN · Una cuenta, todos tus servicios</h1><p>Tres plataformas, una sola cuenta. Conoce MI COCHERA, explora STREAM BULL’S, organiza tus préstamos en COBRA YA y administra tus billeteras en un mismo lugar. Recarga, consulta tus saldos y transfiere de una billetera a otra fácilmente, siempre dentro de tu propia cuenta.</p></div>
+  <div class="cc77intro"><h1>CLAN CARTAN · Una cuenta, todos tus servicios</h1><p>Cuatro negocios, una sola cuenta. Explora servicios digitales en STREAM BULL’S, organiza tus cobranzas en COBRA YA, administra cocheras y trabajadores en MI COCHERA, y gestiona habitaciones y locales en MI ALQUILER. Consulta tus saldos reales verificados desde un mismo panel, con la información de cada negocio claramente separada.</p></div>
   <div class="cc77cards">
-   <article class="cc77card"><div class="cc77tag">CATÁLOGO PÚBLICO · SIN REGISTRO</div><div class="cc78service"><span class="cc78service-logo cc78stream" role="img" aria-label="Logo original de Stream Bull’s"></span><h2>STREAM BULL'S</h2></div><p>Streaming y software digital. Puedes explorar el catálogo y consultar los precios públicos sin iniciar sesión. Los precios especiales requieren afiliación de pago único de S/ 20 cuando esté conectada al backend.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc77Store()">Ver catálogo público</button><button type="button" onclick="cc79StreamBenefits()">Acceder a beneficios</button></div></article>
-   <article class="cc77card cc127-cobra-card"><div class="cc77tag">GESTIÓN PROFESIONAL DE PRÉSTAMOS</div><div class="cc78service"><span class="cc78service-logo cc78cobra" role="img" aria-label="Logo original de COBRA YA"></span><h2>COBRA YA</h2></div><p>Lleva el control de tus préstamos sin complicaciones: registra clientes, crea cronogramas, anota abonos y revisa vencimientos desde un solo panel. Mantén tu cartera organizada y tus movimientos claros, con acceso a tu billetera y suscripción desde la plataforma.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc79Cobra()">Ingresar a Cobra Ya</button></div></article>
-   <article class="cc77card cc158-cochera-card"><div class="cc77tag">GESTIÓN DE COCHERAS Y CARRITOS · S/ 15 MENSUALES</div><div class="cc78service"><span class="cc158-cochera-mark" aria-label="MI COCHERA">🐻</span><h2>MI COCHERA</h2></div><p>Registra propietarios, trabajadores, alquileres diarios y ventas de hielo. Cada RESELLER conserva su propia cartera, sus deudas y su historial. Acceso con tu misma cuenta CLAN CARTAN.</p><div class="cc77actions"><button type="button" class="primary" onclick="mc158Open()">Ingresar a Mi Cochera</button></div></article>
+   <article class="cc77card"><div class="cc77tag">SERVICIOS DIGITALES · CATÁLOGO PÚBLICO</div><div class="cc78service"><span class="cc78service-logo cc78stream" role="img" aria-label="Logo original de Stream Bull’s"></span><h2>STREAM BULL'S</h2></div><p>Streaming y soluciones digitales en un solo catálogo. Explora servicios, compara opciones y consulta precios y disponibilidad antes de solicitar tu compra. Las condiciones de afiliación se verifican por separado.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc77Store()">Ver catálogo público</button><button type="button" onclick="cc79StreamBenefits()">Acceder a beneficios</button></div></article>
+   <article class="cc77card cc127-cobra-card"><div class="cc77tag">GESTIÓN PROFESIONAL DE PRÉSTAMOS</div><div class="cc78service"><span class="cc78service-logo cc78cobra" role="img" aria-label="Logo original de COBRA YA"></span><h2>COBRA YA</h2></div><p>Controla tu cartera de préstamos con orden: registra clientes, programa cuotas, administra abonos, revisa vencimientos y consulta movimientos. Toda tu gestión en un panel privado con acceso desde una sola cuenta.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc79Cobra()">Ingresar a Cobra Ya</button></div></article>
+   <article class="cc77card cc158-cochera-card"><div class="cc77tag">GESTIÓN DE COCHERAS · OPERACIONES DIARIAS</div><div class="cc78service"><span class="cc158-cochera-mark" aria-label="MI COCHERA">🐻</span><h2>MI COCHERA</h2></div><p>Gestiona cocheras y espacios, propietarios, trabajadores y alquileres diarios; organiza las operaciones auxiliares y el historial de tus clientes desde un panel propio con datos protegidos.</p><div class="cc77actions"><button type="button" class="primary" onclick="mc158Open()">Ingresar a Mi Cochera</button></div></article>
   </div>
   
-  <div id="cc79logged" class="cc79hint" hidden></div><div class="cc77foot">Desarrollado por CLAN CARTAN EIRL. · <a href="https://www.clancartan.com/" target="_blank" rel="noopener">www.ClanCartan.com</a> · clancartan@gmail.com<br>Una cuenta para tres plataformas · Recargas sujetas a verificación del proveedor</div>
+  <div id="cc79logged" class="cc79hint" hidden></div><div class="cc77foot">Desarrollado por CLAN CARTAN EIRL. · <a href="https://www.clancartan.com/" target="_blank" rel="noopener">www.ClanCartan.com</a> · clancartan@gmail.com<br>Una cuenta para cuatro negocios · Recargas sujetas a verificación del proveedor</div>
  </div>
 </section>
 <button type="button" id="cc77back" onclick="cc77Home()">← CLAN CARTAN</button><div id="cc77demobanner">STREAM BULL’S · catálogo informativo. Compras en línea pendientes de validación del proveedor.</div>
@@ -5737,12 +5739,29 @@ async function cc110ShowMyInvitationCodes(){
   });
   if(!response.ok)return;
   const found=await response.json();
-  if(!Array.isArray(found)||!found.length||window.CC_V53_SESSION?.userId!==ses.userId)return;
+  if(!Array.isArray(found)||window.CC_V53_SESSION?.userId!==ses.userId)return;
+  // No inventar referidos: se añade MI ALQUILER únicamente si el código pertenece al usuario.
+  try{
+   const rental=await fetch(ses.root+'/rest/v1/ma_accounts?select=invite_code&user_id=eq.'+encodeURIComponent(ses.userId)+'&limit=1',{
+    headers:{apikey:ses.key,Authorization:'Bearer '+ses.jwt}
+   });
+   if(rental.ok){
+    const owned=await rental.json();
+    const invite=String(owned?.[0]?.invite_code||'').trim().toUpperCase();
+    if(/^ALQUILER[1-9][0-9]{0,11}$/.test(invite)&&!found.some(row=>row.code===invite)){
+     found.push({code:invite,business:'MI ALQUILER',affiliate_role:ses.isAdmin?'ADMIN':'RESELLER'});
+    }
+   }
+  }catch(_){/* Sin afectar códigos de otros negocios si MI ALQUILER está temporalmente indisponible. */}
+  if(!found.length||window.CC_V53_SESSION?.userId!==ses.userId)return;
   const panel=document.createElement('div');panel.id='cc110mycodes';
   panel.className='cc116-code-panel';
-  const title=document.createElement('div');title.textContent='Tus códigos personales';title.className='cc116-code-title';panel.appendChild(title);
+  const title=document.createElement('div');title.textContent='Tus códigos personales · 4 negocios';title.className='cc116-code-title';panel.appendChild(title);
+  const samples=document.createElement('p');samples.className='cc164-code-examples';
+  samples.textContent='Formatos: BULL1, BULL2, BULL3, BULL4 · COBRA1, COBRA2, COBRA3, COBRA4 · COCHERA1, COCHERA2, COCHERA3 · ALQUILER1, ALQUILER2, ALQUILER3. Se muestran para copiar únicamente los códigos que te pertenecen.';
+  panel.appendChild(samples);
   for(const entry of found){
-   if(!/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/.test(String(entry.code||'')))continue;
+   if(!(/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/.test(String(entry.code||''))||/^ALQUILER[1-9][0-9]{0,11}$/.test(String(entry.code||''))))continue;
    const row=document.createElement('div');row.className='cc116-code-row';
    const name=document.createElement('span');name.textContent=(entry.business||'Negocio')+' · '+(entry.affiliate_role||'USUARIO');name.className='cc116-code-business';
    const code=document.createElement('input');code.type='text';code.readOnly=true;code.value=entry.code;code.className='cc116-code-value';code.setAttribute('aria-label','Código '+(entry.business||'personal'));
@@ -5751,6 +5770,9 @@ async function cc110ShowMyInvitationCodes(){
    const share=document.createElement('button');share.type='button';share.textContent='Copiar enlace';share.className='cc116-code-copy';
    share.addEventListener('click',()=>{const link='https://www.clancartan.com/?ref='+encodeURIComponent(entry.code)+'#registro';void cc160CopyText(link,share);});
    row.append(name,code,copy,share);panel.appendChild(row);
+  }
+  if(!found.some(row=>/^ALQUILER/.test(String(row.code||'')))){
+   const note=document.createElement('p');note.className='cc164-code-examples';note.textContent='MI ALQUILER: tu código aparecerá aquí cuando tengas un perfil creado en ese negocio.';panel.appendChild(note);
   }
   wrapper.appendChild(panel);
  }catch(e){console.warn('No se pudieron cargar códigos de invitación.',e?.message||e);}
@@ -5765,6 +5787,7 @@ function cc79AfterLogin(){
   const adminBtn=document.getElementById('cc92-admin-button');if(adminBtn)adminBtn.style.display=window.CC_V53_SESSION?.isAdmin===true?'inline-flex':'none';
   cc95RenderUser();
   void window.cc161MountMarketingConsent?.();
+  void window.cc164AfterLogin?.();
 }
 function cc92OpenAdmin(){
  const session=window.CC_V53_SESSION;
@@ -5998,6 +6021,8 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <script src="scripts/v160-invitation-register.js?v=160" defer></script>
 <script src="scripts/v161-global-currency-flags.js?v=161" defer></script>
 <script src="scripts/v161-marketing-account.js?v=161" defer></script>
+<link rel="stylesheet" href="styles/v164-portal-4-negocios.css?v=1641">
+<script src="scripts/v164-portal-4-negocios.js?v=1641" defer></script>
 <script src="scripts/v151-portal-polish.js?v=151"></script>
 </body>
 </html>
