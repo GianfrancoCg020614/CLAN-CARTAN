@@ -8,3 +8,8 @@ Revisión: 22–23 de octubre de 2026. Rama `feature/v163-5-integracion-segura`.
 
 ## Alcance y preservación
 Modificados exclusivamente módulos JS de MI ALQUILER y pipeline CI. No se cambia ningún RPC, saldo, tabla, migración, Auth, dominio ni el código de los otros tres sistemas. Aplicar solo en rama de integración; preservar PR #31 como borrador hasta E2E. Pruebas bancarias y autenticación real siguen pendientes.
+
+## Segunda corrección: contratos y solicitudes en vuelo
+- Después de registrar, ampliar o finalizar contratos se invalidan las vistas de Finanzas y Avisos antes de su próxima lectura; los cobros fijos y vencimientos no deben mostrar instantáneas de contratos previos.
+- Los módulos descartan respuestas antiguas si se produjo una invalidación mientras la consulta estaba en vuelo. El siguiente refresco obtiene información reciente del servidor.
+- La CI incorpora aserciones de regresión para invalidación desde contratos y control de consultas en vuelo.

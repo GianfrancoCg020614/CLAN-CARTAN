@@ -128,11 +128,11 @@ async function onClick(e){const b=e.target.closest('[data-ma-action]');if(!b)ret
   if(act==='extend'){
    const count=Number(window.prompt('¿Cuántos días o meses adicionales?', '1'));
    if(!Number.isInteger(count)||count<1||count>365)return;
-   await rpc('ma_extend_lease',{p_lease:b.dataset.lease,p_more:count});await load();return;
+   await rpc('ma_extend_lease',{p_lease:b.dataset.lease,p_more:count});window.ma1613Invalidate?.();window.ma1614Invalidate?.();await load();return;
   }
   if(act==='end'){
    if(!window.confirm('¿Confirmar retiro? La habitación/local pasará a limpieza. El historial no se eliminará.'))return;
-   await rpc('ma_end_lease',{p_lease:b.dataset.lease});await load();return;
+   await rpc('ma_end_lease',{p_lease:b.dataset.lease});window.ma1613Invalidate?.();window.ma1614Invalidate?.();await load();return;
   }
   if(act==='ready'||act==='disable'){
    await rpc('ma_set_unit_state',{p_unit:Number(b.dataset.unit),p_state:act==='ready'?'READY':'DISABLED'});await load();return;
@@ -151,7 +151,7 @@ async function onSubmit(e){const form=e.target.closest('[data-ma-form]');if(!for
    await rpc('ma_save_tenant',{p_id:form.dataset.id||null,p_kind:v('kind'),p_number:v('document'),p_name:v('name'),p_whatsapp:phone,p_consent:!!form.elements.namedItem('consent').checked});
   }
   if(kind==='lease') await rpc('ma_start_lease',{p_unit:Number(v('unit')),p_tenant:v('tenant'),p_mode:v('mode'),p_start:v('start')});
-  $('ma1612dialog')?.remove();await load();note('Guardado correctamente.');
+  window.ma1613Invalidate?.();window.ma1614Invalidate?.();$('ma1612dialog')?.remove();await load();note('Guardado correctamente.');
  }catch(err){if(ds){ds.classList.add('error');ds.textContent='No se guardó: '+String(err.message||err);} }
  finally{busy=false;if(btn)btn.disabled=false;}
 }

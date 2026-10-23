@@ -18,7 +18,8 @@ const uuid=()=>{
 };
 const rpc=(p,body)=>window.cc80.api('rpc/'+p,'POST',body||{});
 const api=(p)=>window.cc80.api(p);
-let state={userId:null,ledger:[],meters:[],guarantees:[],expenses:[],adminAccounts:[],subscriptions:[],loaded:false,loading:false,error:null},current=null;
+let state={userId:null,ledger:[],meters:[],guarantees:[],expenses:[],adminAccounts:[],subscriptions:[],loaded:false,loading:false,error:null},current=null,version=0;
+const invalidate=()=>{version++;state.loaded=false;state.error=null;};
 const reset=()=>{state={userId:null,ledger:[],meters:[],guarantees:[],expenses:[],adminAccounts:[],subscriptions:[],loaded:false,loading:false,error:null};current=null;};
 const leaseName=(l,context)=>{const u=context.units.find(a=>Number(a.id)===Number(l.unit_id))||{},t=context.tenants.find(a=>a.id===l.tenant_id)||{};return (u.code||((u.kind==='LOCAL'?'L-':'H-')+String(u.serial||0).padStart(3,'0')))+' · '+(t.full_name||'Inquilino');};
 const balance=id=>state.ledger.filter(m=>m.lease_id===id).reduce((s,m)=>s+n(m.amount_pen),0);
@@ -57,13 +58,14 @@ function finance(context){
 }
 async function fetchMore(context,rerender){
  if(state.loading||state.loaded&&state.userId===context.sessionId)return;
- state.loading=true;state.userId=context.sessionId;
+ state.loading=true;state.userId=context.sessionId;const started=version;
  try{
   const q='&reseller_id=eq.'+encodeURIComponent(context.sessionId);
   const urls=['ma_ledger?select=*&order=created_at.desc&limit=3000'+q,'ma_meter_readings?select=*&order=created_at.desc&limit=1500'+q,'ma_guarantee_events?select=*&order=created_at.desc&limit=1500'+q,'ma_expenses?select=*&order=created_at.desc&limit=1500'+q,'ma_subscription_events?select=*&order=created_at.desc&limit=100'+q];
   if(context.account.role==='ADMIN')urls.push('ma_accounts?select=user_id,invite_code,bonus_pen,subscription_until,suspended&order=created_at.desc&limit=200');
   const items=await Promise.all(urls.map(api));
   if(ss()?.userId!==context.sessionId){reset();return;}
+  if(version!==started){state.loaded=false;return;}
   [state.ledger,state.meters,state.guarantees,state.expenses,state.subscriptions]=items.slice(0,5).map(i=>Array.isArray(i)?i:[]);
   state.adminAccounts=Array.isArray(items[5])?items[5]:[];state.loaded=true;state.error=null;
  }catch(e){state.loaded=false;state.error='No se pudo cargar contabilidad: '+String(e.message||e);}
@@ -129,6 +131,6 @@ async function onSubmit(e){const f=e.target.closest('[data-ma3-form]');if(!f)ret
  finally{busy=false;if(button)button.disabled=false;}
 }
 function init(){document.addEventListener('click',onClick);document.addEventListener('submit',onSubmit);document.addEventListener('click',e=>{if(e.target.closest('#cc54logout'))reset();},true);}
-window.ma1613Enhance=enhance;
+window.ma1613Enhance=enhance;window.ma1613Invalidate=invalidate;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

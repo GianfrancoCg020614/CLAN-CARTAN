@@ -13,7 +13,7 @@ const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLo
 const dateDiff=(d,now=today())=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(String(d)))return null;return Math.round((Date.parse(d+'T00:00:00Z')-Date.parse(now+'T00:00:00Z'))/86400000);};
 const phoneDigits=p=>{let s=String(p||'').replace(/\D/g,'');if(/^9\d{8}$/.test(s))s='51'+s;return /^\d{10,15}$/.test(s)&&!/^0+$/.test(s)?s:null;};
 const id=()=>{if(crypto?.randomUUID)return crypto.randomUUID();const a=new Uint8Array(16);crypto.getRandomValues(a);a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;const h=[...a].map(x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);};
-let owner=null,loaded=false,loading=false,error='',ledger=[],guarantees=[],expenses=[],notices=[],ctx=null,alerts=[],allRows=[];
+let owner=null,loaded=false,loading=false,error='',ledger=[],guarantees=[],expenses=[],notices=[],ctx=null,alerts=[],allRows=[],version=0;
 function clear(){owner=null;loaded=false;loading=false;error='';ledger=[];guarantees=[];expenses=[];notices=[];ctx=null;alerts=[];allRows=[];}
 const code=u=>u.code||((u.kind==='LOCAL'?'L-':'H-')+String(u.serial||0).padStart(3,'0'));
 function status(days){if(days===null)return ['Sin fecha','other'];if(days<0)return ['Vencido hace '+Math.abs(days)+' día(s)','late'];if(days===0)return ['Vence hoy','today'];if(days<=5)return ['Vence en '+days+' día(s)','soon'];return ['Vence en '+days+' días','later'];}
@@ -29,12 +29,13 @@ function generated(c){
 }
 async function load(c){
  if(loading||loaded&&owner===c.sessionId)return;
- loading=true;owner=c.sessionId;error='';
+ loading=true;owner=c.sessionId;error='';const started=version;
  try{
   const q='&reseller_id=eq.'+encodeURIComponent(c.sessionId);
   const paths=['ma_ledger?select=*&order=created_at.desc&limit=5000'+q,'ma_guarantee_events?select=*&order=created_at.desc&limit=3000'+q,'ma_expenses?select=*&order=created_at.desc&limit=3000'+q,'ma_whatsapp_notice_events?select=*&order=created_at.desc&limit=3000'+q];
   const data=await Promise.all(paths.map(api));
   if(ss()?.userId!==c.sessionId){clear();return;}
+  if(version!==started){loaded=false;return;}
   [ledger,guarantees,expenses,notices]=data.map(x=>Array.isArray(x)?x:[]);
   loaded=true;alerts=generated(c);allRows=[];
  }catch(e){loaded=false;error='No se pudieron cargar los avisos: '+String(e.message||e);}
@@ -139,6 +140,6 @@ function init(){document.addEventListener('click',e=>{if(e.target.closest('butto
  document.addEventListener('input',e=>{if(e.target.id==='ma4-search')renderList(searchCards(e.target.value));});
  document.addEventListener('click',e=>{if(e.target.closest('#cc54logout'))clear();},true);
 }
-window.ma1614Enhance=enhance;window.ma1614Invalidate=()=>{loaded=false;error='';};window.ma1614Test=Object.freeze({phoneDigits,dateDiff,workbook,exportSheets,searchCards});
+window.ma1614Enhance=enhance;window.ma1614Invalidate=()=>{version++;loaded=false;error='';};window.ma1614Test=Object.freeze({phoneDigits,dateDiff,workbook,exportSheets,searchCards});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
