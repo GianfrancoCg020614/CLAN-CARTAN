@@ -1,0 +1,82 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import fs from 'node:fs';
+const entries=fs.readFileSync('.parte2-local/status.env','utf8').split('\n').map(s=>s.trim()).filter(s=>/^[A-Z][A-Z_0-9]*=/.test(s));
+const vars=Object.fromEntries(entries.map(line=>{const i=line.indexOf('=');return [line.slice(0,i),line.slice(i+1).replace(/^"|"$/g,'')]}));
+const api=vars.API_URL||vars.SUPABASE_URL||'http://127.0.0.1:54321',key=vars.ANON_KEY||vars.SUPABASE_ANON_KEY;
+assert.ok(key&&/^(https?:\/\/)?(127\.0\.0\.1|localhost)(:|\/)/.test(api),'Conectar únicamente al Supabase LOCAL');
+const password='CLANpruebaLocal2026!Seguro';
+const stamp=randomUUID().replace(/-/g,'').slice(0,18);
+const meta={
+ full_name:'Usuario Prueba',legal_accepted:true,data_processing_accepted:true,
+ terms_version:'V161-20261021',privacy_version:'V161-20261021',
+ data_processing_version:'V164-20261023',marketing_consent:false
+};
+const request=async(method,path,body,jwt)=>{
+ const resp=await fetch(api+path,{method,headers:{apikey:key,...(jwt?{Authorization:'Bearer '+jwt}:{}),...((body!==undefined)?{'Content-Type':'application/json'}:{})},...(body!==undefined?{body:JSON.stringify(body)}:{})});
+ let data=null;try{data=await resp.json()}catch{}
+ return {ok:resp.ok,status:resp.status,data};
+};
+const signup=(email,data)=>request('POST','/auth/v1/signup',{email,password,data});
+const signedIn=async(email)=>{
+ const result=await request('POST','/auth/v1/token?grant_type=password',{email,password});
+ assert.equal(result.ok,true,'Supabase Auth LOCAL no inició sesión: '+JSON.stringify(result.data));
+ return result.data.access_token;
+};
+const invEmail='clan-inviter-'+stamp+'@example.test';
+const inv=await signup(invEmail,meta);
+assert.equal(inv.ok,true,'Alta invitador: '+JSON.stringify(inv.data));
+const inviterToken=await signedIn(invEmail);
+const personal=await request('POST','/rest/v1/rpc/cc_clan_my_summary',{},inviterToken);
+assert.equal(personal.ok,true,'Mi código no accesible: '+JSON.stringify(personal.data));
+const code=personal.data.code;
+assert.match(code,/^CLAN[1-9][0-9]*$/);
+assert.equal(personal.data.referrals,0);
+assert.equal(personal.data.rewards_enabled,false);
+console.log('PASS 1: signup genera código CLAN único');
+const check=await request('POST','/rest/v1/rpc/cc_clan_validate_code',{p_code:code});
+assert.equal(check.ok,true);
+assert.equal(check.data?.[0]?.valid,true,'CLAN debe poder validarse desde registro anónimo');
+const bad=await request('POST','/rest/v1/rpc/cc_clan_validate_code',{p_code:'CLAN000'});
+assert.equal(bad.ok,true);assert.equal(bad.data?.[0]?.valid,false);
+console.log('PASS 2: validación pública sin datos personales');
+const friendEmail='clan-friend-'+stamp+'@example.test';
+const friend=await signup(friendEmail,{...meta,invitation_code:code});
+assert.equal(friend.ok,true,'Registro referido: '+JSON.stringify(friend.data));
+const friendToken=await signedIn(friendEmail);
+const refer=await request('POST','/rest/v1/rpc/cc_clan_my_summary',{},inviterToken);
+assert.equal(refer.data.referrals,1,'Invitador debe ver un referido validado');
+const own=await request('POST','/rest/v1/rpc/cc_clan_my_summary',{},friendToken);
+assert.match(own.data.code,/^CLAN[1-9][0-9]*$/);
+assert.notEqual(own.data.code,code);
+console.log('PASS 3: vincula referido en servidor, otro CLAN personal');
+const third=await signup('clan-independent-'+stamp+'@example.test',meta);
+assert.equal(third.ok,true);
+const thirdToken=await signedIn('clan-independent-'+stamp+'@example.test');
+const stranger=await request('GET','/rest/v1/cc_clan_attributions?select=*',undefined,thirdToken);
+assert.equal(stranger.ok,true);
+assert.equal(stranger.data.length,0,'RLS no puede exponer referidos ajenos');
+const anonymous=await request('GET','/rest/v1/cc_clan_attributions?select=*');
+assert.equal(anonymous.ok,false,'Anon no puede consultar referencias privadas');
+console.log('PASS 4: RLS protege referidos de otros y anónimos');
+const refs=await request('POST','/rest/v1/rpc/cc_clan_my_referrals',{},inviterToken);
+assert.equal(refs.ok,true);
+assert.equal(refs.data.length,1);
+assert.match(refs.data[0].label,/^Referido #[1-9][0-9]*$/);
+assert.ok(!refs.data[0].referred_user_id&&!refs.data[0].email,'No divulgar PII');
+console.log('PASS 5: listado de referidos no incluye datos personales');
+const invalid=await signup('clan-invalid-'+stamp+'@example.test',{...meta,invitation_code:'CLAN999999999'});
+assert.equal(invalid.ok,false,'Un código ficticio no permite alta');
+console.log('PASS 6: registro rechaza códigos inexistentes');
+const none=await signup('clan-no-code-'+stamp+'@example.test',meta);
+assert.equal(none.ok,true,'Registro sin código sigue permitido');
+const refer2=await request('POST','/rest/v1/rpc/cc_clan_my_summary',{},inviterToken);
+assert.equal(refer2.data.referrals,1,'Un registro sin código no se atribuye');
+console.log('PASS 7: registro sin referido no otorga recompensas');
+const exposed=await request('GET','/rest/v1/cc_clan_codes?select=user_id,code');
+assert.equal(exposed.ok,false,'Directorio privado no puede leerse sin sesión');
+console.log('PASS 8: propiedad de códigos protegida');
+const protectedWrite=await request('POST','/rest/v1/cc_clan_codes',{user_id:inv.data.user.id,code:'CLAN999',code_number:999},friendToken);
+assert.equal(protectedWrite.ok,false,'Usuario no puede alterar código propio ni ajeno');
+console.log('PASS 9: códigos no editables desde navegador');
+console.log('PASS CLAN Parte 2: auth LOCAL, referidos, privacidad, unicidad, sin abonos');
