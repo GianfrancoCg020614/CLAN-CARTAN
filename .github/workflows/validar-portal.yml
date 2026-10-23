@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, integracion/mi-alquiler-v162-1-billeteras]
+    branches: [main, integracion/mi-alquiler-v162-1-billeteras, feature/v163-5-integracion-segura]
   workflow_dispatch:
 
 permissions:
@@ -67,6 +67,11 @@ jobs:
           node --check scripts/v161-3-mi-alquiler.js
           node --check scripts/v161-4-mi-alquiler.js
           node scripts/check-v163-5-loading.mjs
+      - name: Parte 1/7 — Validar registro aislado, privacidad y Auth
+        run: |
+          node --check scripts/parte1-registro.js
+          node --check scripts/parte1-demo.js
+          node scripts/check-parte1-registro.mjs
       - name: Validar portal unificado CLAN CARTAN y consentimiento V164
         run: |
           node --check scripts/v164-portal-4-negocios.js
