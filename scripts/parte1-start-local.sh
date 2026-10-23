@@ -19,6 +19,7 @@ cfg.write_text(s)
 PY
 mkdir -p supabase/migrations
 cp ../docs/sql-propuestas/parte1-before-user-created.sql supabase/migrations/20261023000100_part1_before_user_created.sql
+cp ../docs/sql-propuestas/parte1-consent-audit-and-guard.sql supabase/migrations/20261023000200_part1_consent_audit_and_guard.sql
 echo "Iniciando SOLO Supabase local, nunca enlazar proyecto remoto."
 supabase start --exclude studio,realtime,storage,functions,analytics,pooler
 supabase status -o env > status.env

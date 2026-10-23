@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'docs/sql-propuestas/parte1-before-user-created.sql'
+      - 'docs/sql-propuestas/parte1-consent-audit-and-guard.sql'
       - 'scripts/check-parte1-auth-local.mjs'
       - 'scripts/parte1-start-local.sh'
       - '.github/workflows/probar-parte1-auth-local.yml'
@@ -12,6 +13,7 @@ on:
     branches: [main]
     paths:
       - 'docs/sql-propuestas/parte1-before-user-created.sql'
+      - 'docs/sql-propuestas/parte1-consent-audit-and-guard.sql'
       - 'scripts/check-parte1-auth-local.mjs'
       - 'scripts/parte1-start-local.sh'
       - '.github/workflows/probar-parte1-auth-local.yml'
