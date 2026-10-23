@@ -1,0 +1,62 @@
+name: Parte 1 · Hook Auth en Postgres aislado
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/sql-propuestas/parte1-before-user-created.sql'
+      - 'scripts/check-parte1-backend.sql'
+      - '.github/workflows/probar-parte1-auth.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/sql-propuestas/parte1-before-user-created.sql'
+      - 'scripts/check-parte1-backend.sql'
+      - '.github/workflows/probar-parte1-auth.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  consentimiento-servidor:
+    name: Probar política de alta sin Supabase real
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: localtest
+          POSTGRES_DB: parte1
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d parte1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGDATABASE: parte1
+      PGPASSWORD: localtest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cliente PostgreSQL
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+      - name: Roles de prueba aislados
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE supabase_auth_admin NOLOGIN;"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN;"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN;"
+      - name: Ejecutar propuesta SQL SOLO en PostgreSQL temporal
+        run: psql -v ON_ERROR_STOP=1 -f docs/sql-propuestas/parte1-before-user-created.sql
+      - name: Ejecutar 14 verificaciones del hook
+        run: psql -v ON_ERROR_STOP=1 -f scripts/check-parte1-backend.sql
