@@ -157,17 +157,19 @@ BEGIN
  END IF;
  IF v_code LIKE 'CLAN%' THEN
   RETURN QUERY SELECT true,'CLAN CARTAN'::text FROM public.cc_clan_codes c WHERE c.code=v_code LIMIT 1;
+ ELSIF v_code LIKE 'ALQUILER%' AND to_regclass('public.ma_accounts') IS NOT NULL THEN
+  RETURN QUERY SELECT true,'CLAN CARTAN'::text FROM public.cc_clan_legacy_aliases a
+   WHERE a.code=v_code AND EXISTS(
+     SELECT 1 FROM public.ma_accounts ma
+     WHERE ma.invite_code=v_code AND ma.user_id=a.owner_user_id
+       AND (EXISTS(SELECT 1 FROM public.cc_admins ad WHERE ad.user_id=a.owner_user_id)
+         OR (NOT ma.suspended AND ma.subscription_until>now()))
+   ) LIMIT 1;
+ ELSIF v_code LIKE 'ALQUILER%' THEN
+  RETURN QUERY SELECT false,''::text; RETURN;
  ELSE
   RETURN QUERY SELECT true,'CLAN CARTAN'::text FROM public.cc_clan_legacy_aliases a
-   WHERE a.code=v_code AND (
-    a.legacy_source<>'ALQUILER'
-    OR EXISTS (
-      SELECT 1 FROM public.ma_accounts ma
-      WHERE ma.invite_code=v_code AND ma.user_id=a.owner_user_id
-        AND (EXISTS(SELECT 1 FROM public.cc_admins ad WHERE ad.user_id=a.owner_user_id)
-          OR (NOT ma.suspended AND ma.subscription_until>now()))
-    )
-   ) LIMIT 1;
+   WHERE a.code=v_code LIMIT 1;
  END IF;
  IF NOT FOUND THEN RETURN QUERY SELECT false,''::text; END IF;
 END $function$;
@@ -251,15 +253,17 @@ BEGIN
  END IF;
  IF v_inviter IS NULL OR v_inviter=NEW.id THEN RETURN NEW; END IF;
  -- Si ya hay atribución histórica, respetarla y no cambiar de invitador.
- SELECT a.inviter_user_id INTO v_prior FROM public.cc_invitation_attributions a
- WHERE a.registered_user_id=NEW.id LIMIT 1;
- IF v_prior IS NULL THEN
-   SELECT a.inviter_user_id INTO v_prior FROM public.mc_invitation_attributions a
-   WHERE a.registered_user_id=NEW.id LIMIT 1;
+ IF to_regclass('public.cc_invitation_attributions') IS NOT NULL THEN
+  SELECT a.inviter_user_id INTO v_prior FROM public.cc_invitation_attributions a
+  WHERE a.registered_user_id=NEW.id LIMIT 1;
  END IF;
- IF v_prior IS NULL THEN
-   SELECT a.inviter_user_id INTO v_prior FROM public.ma_invitation_attributions a
-   WHERE a.registered_user_id=NEW.id LIMIT 1;
+ IF v_prior IS NULL AND to_regclass('public.mc_invitation_attributions') IS NOT NULL THEN
+  SELECT a.inviter_user_id INTO v_prior FROM public.mc_invitation_attributions a
+  WHERE a.registered_user_id=NEW.id LIMIT 1;
+ END IF;
+ IF v_prior IS NULL AND to_regclass('public.ma_invitation_attributions') IS NOT NULL THEN
+  SELECT a.inviter_user_id INTO v_prior FROM public.ma_invitation_attributions a
+  WHERE a.registered_user_id=NEW.id LIMIT 1;
  END IF;
  IF v_prior IS NOT NULL AND v_prior<>v_inviter THEN
   INSERT INTO public.cc_clan_attribution_conflicts(referred_user_id,legacy_source,conflicting_inviter_id,conflicting_code)
