@@ -14,7 +14,7 @@ async function mount(){
  const title=document.createElement('strong');title.textContent='Comunicaciones publicitarias';
  const row=document.createElement('label');row.style.cssText='display:flex;align-items:flex-start;gap:10px;margin-top:10px;font-size:13px;';
  const input=document.createElement('input');input.type='checkbox';input.style.cssText='width:18px;height:18px;flex-shrink:0;';
- const text=document.createElement('span');text.textContent='Yo autorizo comunicaciones publicitarias de CLAN CARTAN por correo y WhatsApp (puedo revocar esta autorización).';
+ const text=document.createElement('span');text.textContent='Autorizo comunicaciones publicitarias de CLAN CARTAN por correo y WhatsApp.';
  const status=document.createElement('small');status.style.cssText='display:block;opacity:.75;margin-top:8px;';status.setAttribute('role','status');status.textContent='Consultando tu preferencia…';
  row.append(input,text);card.append(title,row,status);root.append(card);
  input.disabled=true;

@@ -4735,6 +4735,11 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 #cc-real-login *{box-sizing:border-box}#cc-real-login .cc-authbox{background:#101d30;border:1px solid #30465e;border-radius:22px;max-width:470px;width:100%;padding:26px;box-shadow:0 20px 80px #0008}#cc-real-login h2{margin:0 0 10px;font-size:24px}#cc-real-login p{color:#acc3d6;font-size:14px;line-height:1.5}#cc-real-login input{display:block;width:100%;padding:13px;margin:12px 0;border-radius:9px;background:#091322;border:1px solid #44617c;color:#fff}#cc-real-login button{padding:12px 17px;border:0;border-radius:9px;background:#23b6e8;color:#041422;font-weight:700;cursor:pointer;width:100%;margin-top:8px}#cc-real-login .cc-error{color:#ffb5b5;min-height:18px;font-size:13px}#cc-real-login .cc-small{font-size:12px;color:#93a9bb}#cc-real-banner{position:fixed;bottom:0;left:0;right:0;z-index:2147483639;background:#3b2609;color:#ffeec4;text-align:center;padding:9px 15px;font:600 13px system-ui;box-shadow:0 -2px 15px #0005}
 </style>
 <div id="cc-real-login"><div class="cc-authbox"><small style="color:#64d3f2">CLAN CARTAN · ACCESO ÚNICO</small><h2>Tu cuenta CLAN CARTAN</h2><p>Ingresa con tu correo y contraseña. La misma cuenta te sirve para STREAM BULL’S, COBRA YA y MI COCHERA. El saldo real se acredita únicamente tras verificar cada pago. Los bonos gratuitos se utilizan dentro del módulo que los otorga; son intransferibles.</p><form id="cc-real-form"><input id="cc-real-email" type="email" autocomplete="username" placeholder="Correo de tu cuenta" required><input id="cc-real-pass" type="password" autocomplete="current-password" placeholder="Contraseña" required><button id="cc-real-button">Ingresar a CLAN CARTAN</button></form><button id="cc-register-toggle" type="button" style="background:transparent;color:#90e9fd;border:1px solid #4d8d9e">Crear cuenta nueva</button><button id="cc86-forgot" type="button" style="background:transparent;color:#f4ce84;border:none;text-decoration:underline;font-size:13px;padding:6px;margin-top:4px">¿Olvidaste tu contraseña?</button><button id="cc90-resend" type="button" style="display:none;width:100%;background:transparent;border:1px solid #4d8d9e;border-radius:9px;color:#90e9fd;padding:12px;margin-top:8px;cursor:pointer">Reenviar correo de confirmación</button><style>
+#cc-real-login .ccp1-consent{display:flex;gap:9px;align-items:flex-start;margin:13px 0;line-height:1.5}
+#cc-real-login .ccp1-consent input{flex:0 0 18px;min-width:18px;height:18px;accent-color:#2bd3c7;cursor:pointer}
+#cc-real-login .ccp1-consent span{font-size:12px;color:#e6f3f9}
+#cc-real-login .ccp1-consent-note{font-size:11px;color:#adc9d7;margin:2px 0 11px}
+#cc-real-login #cc-real-button:disabled{opacity:.55;cursor:not-allowed;background:#52657a!important;color:#e3ebf0!important}
 #cc-real-login .cc-authbox{max-width:600px!important;max-height:94vh;overflow-y:auto}
 #cc-v81-fields{display:none;text-align:left;margin:12px 0}
 #cc-v81-fields fieldset{border:1px solid #36566d;border-radius:12px;padding:12px;margin:10px 0}
@@ -4766,10 +4771,13 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: COBRA1, BULL1 o COCHERA1" aria-describedby="cc110-invite-hint">
 <span id="cc110-invite-hint" style="display:block;font-size:12px;font-weight:400;color:#b5c6d8;margin-top:5px">Puedes registrarte sin código. Todos reciben un código propio e irrepetible. El código no concede acceso ni descuenta dinero.</span>
 </label></div>
-<label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0" required> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a> y la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a> .*</span></label>
-<label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px"><input id="cc161-marketing" type="checkbox" style="width:auto;margin:3px 0"> <span>Yo autorizo comunicaciones publicitarias de CLAN CARTAN por correo electrónico y WhatsApp. (Opcional; puedo retirar mi autorización en cualquier momento).</span></label>
+<label class="ccp1-consent"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0" required> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a>.</span></label>
+<label class="ccp1-consent"><input id="cc164-privacy" type="checkbox" style="width:auto;margin:3px 0" required> <span>Autorizo el tratamiento de mis datos personales necesarios para crear y administrar mi cuenta, conforme a la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a>.</span></label>
+<label class="ccp1-consent"><input id="cc161-marketing" type="checkbox" style="width:auto;margin:3px 0"> <span>Autorizo comunicaciones publicitarias de CLAN CARTAN por correo y WhatsApp.</span></label>
+<p class="ccp1-consent-note">Puedes modificar o retirar la autorización publicitaria desde tu perfil.</p>
 <p style="font-size:11px;color:#a6b6c9">Tu correo electrónico requerirá confirmación para proteger el acceso.</p>
 </fieldset></div><p id="cc-register-help" class="cc-small" style="display:none">Registra tu correo y contraseña. La contraseña debe tener al menos 12 caracteres. Luego confirma tu correo electrónico si se solicita.</p><section id="cc91-confirm" role="status" aria-live="polite" style="display:none;text-align:left;background:#0c2c30;border:1px solid #2b9b91;border-radius:14px;padding:17px;margin:12px 0"><h3 style="margin:0 0 8px;color:#aeefd0">✉️ Verificación de correo electrónico</h3><p style="margin:0 0 8px">Hemos enviado un código de 8 dígitos a tu correo electrónico:</p><strong id="cc91-email" style="overflow-wrap:anywhere;color:#fff"></strong><div id="cc106otp" style="display:flex;gap:7px;margin:14px 0"><input inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Dígito 1"><input inputmode="numeric" maxlength="1" aria-label="Dígito 2"><input inputmode="numeric" maxlength="1" aria-label="Dígito 3"><input inputmode="numeric" maxlength="1" aria-label="Dígito 4"><input inputmode="numeric" maxlength="1" aria-label="Dígito 5"><input inputmode="numeric" maxlength="1" aria-label="Dígito 6"><input inputmode="numeric" maxlength="1" aria-label="Dígito 7"><input inputmode="numeric" maxlength="1" aria-label="Dígito 8"></div><button id="cc106verify" type="button" style="background:#5a86e5;color:#fff;width:100%;padding:12px;border:0;border-radius:10px;font-weight:700">Verificar cuenta</button><p style="font-size:13px;margin:11px 0 0">Escribe el código de 8 dígitos que recibiste para verificar tu cuenta.</p><p style="font-size:12px;color:#bbccda;margin:8px 0 0">¿No recibiste el código? Revisa Spam o usa Reenviar.</p></section><p id="cc-real-status" class="cc-error" role="status"></p><p class="cc-small">Los permisos se consultan desde la base de datos. No se permite ingresar con contraseñas ajenas o accesos no autorizados. No compartas claves privadas.</p></div></div>
+<script src="scripts/parte1-registro.js?v=171"></script>
 <script>
 /* V52 pilot: server-verified identity + role; UI and all business data remain demonstrative.
    Publishable browser key, not a privileged service-role credential. */
@@ -4895,7 +4903,15 @@ async function signIn(event){
 }
  finally{btn.disabled=false;}
 }
-let registering=false;
+let registering=false,registrationPending=false;
+const ccParte1LegalReady=()=>document.getElementById('cc-v81-terms').checked&&document.getElementById('cc164-privacy').checked;
+function ccParte1SyncRegisterButton(){
+ const blocked=registrationPending||(registering&&!ccParte1LegalReady());
+ btn.disabled=blocked;
+ btn.setAttribute('aria-disabled',String(blocked));
+}
+document.getElementById('cc-v81-terms').addEventListener('change',ccParte1SyncRegisterButton);
+document.getElementById('cc164-privacy').addEventListener('change',ccParte1SyncRegisterButton);
 const toggle=document.getElementById('cc-register-toggle');
 const help=document.getElementById('cc-register-help');
 // V89: El formulario mantiene el botón de registro AL FINAL de todos los campos.
@@ -4933,10 +4949,15 @@ function setRegisterMode(next){
  status.textContent='';
  document.getElementById('cc91-confirm').style.display='none';
  document.getElementById('cc90-resend').style.display='none';
+ ccParte1SyncRegisterButton();
 }
 toggle.addEventListener('click',()=>setRegisterMode(!registering));
 async function register(event){
- event.preventDefault();btn.disabled=true;toggle.disabled=true;status.textContent='Registrando cuenta en Supabase…';
+ event.preventDefault();
+ if(registrationPending)return;
+ if(!ccParte1LegalReady()){ccParte1SyncRegisterButton();return;}
+ registrationPending=true;ccParte1SyncRegisterButton();
+ toggle.disabled=true;status.textContent='Registrando cuenta en Supabase…';
  try{
   const email=document.getElementById('cc-real-email').value.trim().toLowerCase();
   const password=document.getElementById('cc-real-pass').value;
@@ -4950,12 +4971,21 @@ async function register(event){
   const region=document.getElementById('cc-v81-region').value.trim();
   const province=document.getElementById('cc-v81-province').value.trim();
   const district=document.getElementById('cc-v81-district').value.trim();
+  const validation=window.CC_PART1_REGISTRATION?.validate({
+   email,password,confirmPassword:document.getElementById('cc-v81-confirm').value,
+   fullName:name,documentNumber,dial,phone,region,province,district,
+   preferredService:document.getElementById('cc111-business').value,
+   termsAccepted:document.getElementById('cc-v81-terms').checked,
+   privacyAccepted:document.getElementById('cc164-privacy').checked,
+   marketingAccepted:document.getElementById('cc161-marketing').checked
+  });
+  if(!validation?.ok)throw Error(validation?.message||'No se cargó el validador del registro. Actualiza e intenta de nuevo.');
   if(name.length<5 || !name.includes(' '))throw Error('Escribe tu nombre completo.');
   if(!documentNumber || documentNumber.length<4)throw Error('Ingresa tu documento de identidad.');
   if(!/^\+[0-9]{1,4}$/.test(dial)||phone.length<6||phone.length>15)throw Error('Revisa el código internacional y el número de celular.');
   if(!region||!province||!district)throw Error('Completa tu ubicación.');
   if(password!==document.getElementById('cc-v81-confirm').value)throw Error('Las contraseñas no coinciden.');
-  if(!document.getElementById('cc-v81-terms').checked)throw Error('Lee y acepta los Términos y la Política de privacidad.');
+  if(!ccParte1LegalReady())throw Error('Revisa los Términos y la Política de privacidad para continuar.');
   const invitationCode=inviteInput.value.trim().toUpperCase();
   if(invitationCode){
    if(!/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/.test(invitationCode))throw Error('El código debe ser como COBRA1, BULL1 o COCHERA1.');
@@ -4966,7 +4996,7 @@ async function register(event){
   }
   const siteHost=window.location.hostname.toLowerCase();
    const authRedirect=['www.clancartan.com','clancartan.com','clan-cartan.pages.dev'].includes(siteHost)?window.location.origin+'/':'https://clan-cartan.pages.dev/';
-   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V161-20261021',privacy_version:'V161-20261021',legal_accepted:true,marketing_consent:document.getElementById('cc161-marketing').checked,invitation_code:invitationCode||null,invite_business:invitationCode?(invitationCode.startsWith('COCHERA')?'MI_COCHERA':invitationCode.startsWith('BULL')?'STREAM_BULLS':'COBRA_YA'):null,preferred_service:document.getElementById('cc111-business').value},gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
+   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V161-20261021',privacy_version:'V161-20261021',legal_accepted:true,data_processing_accepted:document.getElementById('cc164-privacy').checked,data_processing_version:'V164-20261023',marketing_consent:document.getElementById('cc161-marketing').checked,invitation_code:invitationCode||null,invite_business:invitationCode?(invitationCode.startsWith('COCHERA')?'MI_COCHERA':invitationCode.startsWith('BULL')?'STREAM_BULLS':'COBRA_YA'):null,preferred_service:document.getElementById('cc111-business').value},gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
   document.getElementById('cc-real-pass').value='';
   if(result?.access_token){setRegisterMode(false);status.textContent='Cuenta creada. Inicia sesión con tu correo y contraseña. Los servicios se activan por separado.';}
   else{
@@ -4979,7 +5009,7 @@ async function register(event){
    status.textContent='Registro recibido. Escribe los 8 dígitos enviados a tu correo para confirmar tu cuenta.';
   }
  }catch(e){status.textContent=e.message||'No se pudo crear la cuenta. Revisa tus datos.';}
- finally{btn.disabled=false;toggle.disabled=false;}
+ finally{registrationPending=false;toggle.disabled=false;ccParte1SyncRegisterButton();window.cc123ResetCaptcha?.();}
 }
 // Login: los campos requeridos del registro permanecen ocultos y no deben bloquear el acceso.
 form.noValidate=true;
