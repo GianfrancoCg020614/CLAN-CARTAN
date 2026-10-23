@@ -48,3 +48,13 @@ Consulta: https://supabase.com/docs/guides/database/database-linter
 - Ejecutar `node scripts/check-parte1-registro.mjs` y las pruebas de regresión existentes mediante GitHub Actions.
 - Verificar despliegue Cloudflare Pages `preview` y comparar HEAD `main` antes y después.
 - Probar manualmente formulario aislado en escritorio y móvil; establecer Supabase separado antes de E2E Auth.
+
+## Verificación de código y despliegue de la Parte 1
+
+- GitHub Actions, commit `d9695c9d61e68086117a48b87eff3fb246ddd4f6`: **SUCCESS**.
+- Workflow: https://github.com/GianfrancoCg020614/CLAN-CARTAN/actions/runs/40019186015
+- Cloudflare Pages preview, commit `d9695c9d61e68086117a48b87eff3fb246ddd4f6`: **SUCCESS**.
+- Vista aislada (sin conexiones de red): https://6ff9bb89.clan-cartan.pages.dev/pruebas/parte1.html
+- PR borrador de esta Parte 1: https://github.com/GianfrancoCg020614/CLAN-CARTAN/pull/32
+- Código principal `main` comprobado sin cambios: `1119615c6aed1d9bc5ef6f2ad0af370d3128e78a`.
+- **Los flujos reales de altas, OTP y consentimiento de base de datos no se han probado con staging Supabase**, porque no hay instancia separada conectada.
