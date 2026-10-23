@@ -7,7 +7,7 @@ const css=fs.readFileSync('styles/v160-stream-bulls-brand.css','utf8');
 const sql=fs.readFileSync('supabase/migrations/20261021094000_v160_signup_cochera_referral.sql','utf8');
 const old=fs.readFileSync('scripts/v156-usdt-quote.js','utf8');
 function has(c,needle){assert.ok(c.includes(needle),'Missing '+needle);}
-assert.match(html,/content="V(?:160|161)-20261021"/);
+assert.match(html,/content="V(?:160|161)-20261021"|content="V172-20261023"/);
 has(html,'--ccc-bull-logo:url("assets/stream-bulls-logo.svg?v=160")');
 has(html,'styles/v160-stream-bulls-brand.css?v=160');
 has(html,'scripts/v160-invitation-register.js?v=160');
@@ -16,7 +16,7 @@ has(html,"void cc160CopyText(link,share)");
 has(html,"navigator.clipboard&&window.isSecureContext");
 has(html,"document.execCommand('copy')");
 has(html,"window.prompt('Copia este enlace o código:'");
-has(html,'/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/');
+has(html,'/^(CLAN|COBRA|BULL|COCHERA|ALQUILER)[1-9][0-9]{0,14}$/');
 has(setup,"new URLSearchParams(window.location.search)");
 has(setup,"kind.value=business");
 has(setup,"window.cc77Auth(true)");

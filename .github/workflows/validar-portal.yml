@@ -53,6 +53,11 @@ jobs:
           node --check scripts/v161-global-currency-flags.js
           node --check scripts/v161-marketing-account.js
           node scripts/check-v161-currencies-marketing.mjs
+      - name: Parte 2 — Código único CLAN y compatibilidad de referidos
+        run: |
+          node --check scripts/v172-clan-referrals.js
+          node --check scripts/v160-invitation-register.js
+          node scripts/check-v172-clan.mjs
       - name: Parte 1 — Verificar integración incremental en web oficial
         run: |
           node --check scripts/parte1-registro.js

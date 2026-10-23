@@ -11,6 +11,7 @@
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
 <meta name="cc-deploy-version" content="V161-20261021">
+<meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="">
 <style>
 
@@ -4766,10 +4767,10 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <label id="cc-v81-districtlabel">Distrito *<input id="cc-v81-district" placeholder="Tu distrito"></label>
 </div></fieldset>
 <fieldset><legend>3. Acceso a tu cuenta</legend><p style="font-size:12px;margin:0 0 8px">Tu correo será el usuario para todos los negocios. Escríbelo arriba junto con tu contraseña.</p><div class="cc-v81-grid"><label class="full">Confirmar contraseña *<input id="cc-v81-confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"></label>
-<label class="full">¿Qué servicio deseas conocer primero? *<select id="cc111-business"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option><option value="MI_COCHERA">MI COCHERA</option></select></label>
+<label class="full">¿Qué servicio deseas conocer primero? *<select id="cc111-business"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option><option value="MI_COCHERA">MI COCHERA</option><option value="MI_ALQUILER">MI ALQUILER (próximamente)</option></select></label>
 <label class="full">Código de invitado (opcional)
-<input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: COBRA1, BULL1 o COCHERA1" aria-describedby="cc110-invite-hint">
-<span id="cc110-invite-hint" style="display:block;font-size:12px;font-weight:400;color:#b5c6d8;margin-top:5px">Puedes registrarte sin código. Todos reciben un código propio e irrepetible. El código no concede acceso ni descuenta dinero.</span>
+<input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: CLAN1 (o tu código anterior)" aria-describedby="cc110-invite-hint">
+<span id="cc110-invite-hint" style="display:block;font-size:12px;font-weight:400;color:#b5c6d8;margin-top:5px">Puedes registrarte sin código. Recibirás un único código CLAN para los cuatro negocios. Los códigos anteriores siguen siendo válidos. El código no entrega dinero por registrarte.</span>
 </label></div>
 <label class="ccp1-consent"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0" required> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a>.</span></label>
 <label class="ccp1-consent"><input id="cc164-privacy" type="checkbox" style="width:auto;margin:3px 0" required> <span>Autorizo el tratamiento de mis datos personales necesarios para crear y administrar mi cuenta, conforme a la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a>.</span></label>
@@ -4988,15 +4989,15 @@ async function register(event){
   if(!ccParte1LegalReady())throw Error('Revisa los Términos y la Política de privacidad para continuar.');
   const invitationCode=inviteInput.value.trim().toUpperCase();
   if(invitationCode){
-   if(!/^(COBRA|BULL|COCHERA)[1-9][0-9]{0,11}$/.test(invitationCode))throw Error('El código debe ser como COBRA1, BULL1 o COCHERA1.');
-   const rpc=/^COCHERA/.test(invitationCode)?'mc_validate_invitation_code':'cc_validate_invitation_code';
+   if(!/^(CLAN|COBRA|BULL|COCHERA|ALQUILER)[1-9][0-9]{0,14}$/.test(invitationCode))throw Error('Escribe un código como CLAN1 o un código anterior válido.');
+   const rpc='cc_clan_validate_code';
    const checked=await api('/rest/v1/rpc/'+rpc,{method:'POST',body:JSON.stringify({p_code:invitationCode})});
    if(!Array.isArray(checked)||checked[0]?.valid!==true)throw Error('Código de invitado no válido. Revísalo o deja el campo vacío.');
    document.getElementById('cc110-invite-hint').textContent='✓ Código referido válido para '+(checked[0].business||'CLAN CARTAN')+'. No genera bono ni altera permisos de acceso.';
   }
   const siteHost=window.location.hostname.toLowerCase();
    const authRedirect=['www.clancartan.com','clancartan.com','clan-cartan.pages.dev'].includes(siteHost)?window.location.origin+'/':'https://clan-cartan.pages.dev/';
-   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V161-20261021',privacy_version:'V161-20261021',legal_accepted:true,data_processing_accepted:document.getElementById('cc164-privacy').checked,data_processing_version:'V164-20261023',marketing_consent:document.getElementById('cc161-marketing').checked,invitation_code:invitationCode||null,invite_business:invitationCode?(invitationCode.startsWith('COCHERA')?'MI_COCHERA':invitationCode.startsWith('BULL')?'STREAM_BULLS':'COBRA_YA'):null,preferred_service:document.getElementById('cc111-business').value},gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
+   const result=await api('/auth/v1/signup?redirect_to='+encodeURIComponent(authRedirect),{method:'POST',body:JSON.stringify({email,password,data:{display_name:name,full_name:name,country,document_type:docType,document_number:documentNumber,phone:dial+phone,region,province,district,other_country:document.getElementById('cc-v82-other-country').value.trim(),preferred_currency:document.getElementById('cc-v82-currency').value,terms_version:'V161-20261021',privacy_version:'V161-20261021',legal_accepted:true,data_processing_accepted:document.getElementById('cc164-privacy').checked,data_processing_version:'V164-20261023',marketing_consent:document.getElementById('cc161-marketing').checked,invitation_code:invitationCode||null,invite_business:invitationCode?(invitationCode.startsWith('CLAN')?null:invitationCode.startsWith('ALQUILER')?'MI_ALQUILER':invitationCode.startsWith('COCHERA')?'MI_COCHERA':invitationCode.startsWith('BULL')?'STREAM_BULLS':'COBRA_YA'):null,preferred_service:document.getElementById('cc111-business').value},gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
   document.getElementById('cc-real-pass').value='';
   if(result?.access_token){setRegisterMode(false);status.textContent='Cuenta creada. Inicia sesión con tu correo y contraseña. Los servicios se activan por separado.';}
   else{
@@ -5791,7 +5792,7 @@ function cc79AfterLogin(){
   const back=document.getElementById('cc77back');if(back)back.style.display='none';
   const box=document.getElementById('cc79logged');if(box){box.hidden=false;box.textContent=''}
   const banner=document.getElementById('cc-real-banner');if(banner)banner.style.display='none';
-  cc110ShowMyInvitationCodes();
+  void window.cc172ShowClanReferrals?.();
   const adminBtn=document.getElementById('cc92-admin-button');if(adminBtn)adminBtn.style.display=window.CC_V53_SESSION?.isAdmin===true?'inline-flex':'none';
   cc95RenderUser();
   void window.cc161MountMarketingConsent?.();
@@ -6025,7 +6026,9 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <link rel="stylesheet" href="styles/v159-cobra-logo-cleanup.css?v=159">
 <link rel="stylesheet" href="styles/v160-stream-bulls-brand.css?v=160">
 <script src="scripts/v158-mi-cochera.js?v=158" defer></script>
+<link rel="stylesheet" href="styles/v172-clan-referrals.css?v=172">
 <script src="scripts/v160-invitation-register.js?v=160" defer></script>
+<script src="scripts/v172-clan-referrals.js?v=172" defer></script>
 <script src="scripts/v161-global-currency-flags.js?v=161" defer></script>
 <script src="scripts/v161-marketing-account.js?v=161" defer></script>
 <script src="scripts/v151-portal-polish.js?v=151"></script>

@@ -15,7 +15,7 @@ required(html,'Ingresar a Mi Cochera');
 required(html,'scripts/v158-mi-cochera.js?v=158');
 required(html,'styles/v158-mi-cochera.css?v=158');
 required(html,'<option value="MI_COCHERA">MI COCHERA</option>');
-required(html,"'mc_validate_invitation_code':'cc_validate_invitation_code'");
+required(html,"const rpc='cc_clan_validate_code';");
 required(html,'cc77Store()');required(html,'cc79Cobra()');
 required(html,'scripts/v156-usdt-quote.js?v=156');
 required(html,'scripts/v145-commerce-guard.js?v=145b');

@@ -1,0 +1,42 @@
+name: Parte 2 · CLAN universal · Supabase local
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/20261023225000_v172_clan_global_referrals.sql'
+      - 'scripts/check-v172-clan-auth-local.mjs'
+      - 'scripts/parte2-start-local.sh'
+      - '.github/workflows/probar-parte2-clan.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/20261023225000_v172_clan_global_referrals.sql'
+      - 'scripts/check-v172-clan-auth-local.mjs'
+      - 'scripts/parte2-start-local.sh'
+      - '.github/workflows/probar-parte2-clan.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  clan-auth:
+    name: CLAN con signup y acceso RLS aislado
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      - name: Registro y referidos CLAN con Supabase REAL LOCAL
+        run: bash scripts/parte2-start-local.sh
+      - name: Detener Supabase temporal
+        if: always()
+        run: |
+          if [ -f .parte2-local/supabase/config.toml ]; then
+            cd .parte2-local
+            supabase stop --no-backup || true
+          fi
