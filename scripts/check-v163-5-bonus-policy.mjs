@@ -14,7 +14,7 @@ assert.equal(rule.welcome_and_admin_activation_bonus.convertible_to_real,false);
 assert.equal(rule.welcome_and_admin_activation_bonus.server_side_restriction_verified,false);
 assert.equal(rule.wallet_plan.back_end_unification_implemented,false);
 assert.ok(spec.includes('Recompensa por referido ganado')&&spec.includes('saldo REAL verificado'));
-assert.ok(spec.includes('Bono de bienvenida o asignado por ADMIN')&&spec.includes('STREAM BULL\\'S'));
+assert.ok(spec.includes('Bono de bienvenida o asignado por ADMIN')&&spec.includes("STREAM BULL\'S"));
 assert.ok(prompt.includes('DECISIÓN EMPRESARIAL FINAL SOBRE BONOS'));
 assert.ok(wallet.includes('recompensas de referidos se vuelven saldo REAL únicamente al aprobarse y acreditarse'));
 assert.ok(!wallet.includes('Bono ADMIN y referidos NO transferibles.'));
