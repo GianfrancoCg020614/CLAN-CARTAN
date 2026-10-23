@@ -22,3 +22,13 @@
 - Comprobar en móviles y escritorio tema, consentimiento de datos, registro no iniciado sin aceptación, mantenimiento del login, catálogo, recibos, accesibilidad, lista de códigos propios y consultas RLS.
 - Ejecutar 24 E2E de MI ALQUILER en staging protegido antes de fusionar a `main` y activar servicios externos.
 - Conservar PR #31, ramas respaldo, datos históricos y esquema V162.1. No aplicar migración experimental V163.
+
+## Política comercial CONFIRMADA por el titular — 23 octubre 2026
+La denominación «bono» describe dos conceptos contables **que no deben confundirse**:
+
+1. **Recompensa por referido ganado:** luego de cumplir las reglas de elegibilidad y fraude, validarse la operación que genera la comisión, aprobarse su financiación y registrarse una acreditación única en el servidor, se convierte en **saldo REAL verificado en PEN**, disponible para los cuatro negocios **STREAM BULL'S, COBRA YA, MI COCHERA y MI ALQUILER**. No se acredita por simplemente compartir un código ni por registros sin comprobar. Un bono de activación anterior nunca se convierte automáticamente en saldo real.
+2. **Bono de bienvenida o asignado por ADMIN:** es un crédito promocional **solo de activación de acceso** válido en **COBRA YA, MI COCHERA y MI ALQUILER**; queda terminantemente prohibido usarlo en **STREAM BULL'S**, pagar productos/servicios distintos, transferirlo a otro titular, retirarlo o convertirlo en saldo real. La limitación requiere control del **backend de las tres plataformas**, no solo ocultar un botón.
+
+**Diseño de billetera:** una única experiencia de usuario con total REAL disponible para los cuatro servicios; los bonos de activación aparecen por separado sin sumarse al real. Actualmente `cc_real_service_wallets` utiliza cuatro subbilleteras reales: solo se suma su valor en pantalla y las transferencias siguen mediante operaciones seguras existentes; una cuenta financiera REAL única en backend requiere migración reconciliada, controles contra doble gasto, reversos y staging antes de desplegar. La recompensa por referido que pase a real se acredita **solo una vez** en el libro transaccional autorizado, jamás desde JavaScript.
+
+**ESTADO:** política y textos documentados en GitHub; **NO hay función de conversión de bonos a real implementada ni nuevas acreditaciones de recompensas en Supabase o producción**. Toda implementación contable será en fase posterior aislada y auditada.

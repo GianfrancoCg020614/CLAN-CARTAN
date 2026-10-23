@@ -14,3 +14,9 @@ Trabaja en el repositorio `GianfrancoCg020614/CLAN-CARTAN`, rama `feature/v163-5
 9. **Preservación:** respaldar commits de `main`, V162.1 y V163.5; no sobrescribir archivos secretos ni aplicar schema experimental. Registrar cambios, estado, CI, commit y URL de preview en docs. Solo fusionar o desplegar producción si E2E, seguridad, legal, rollback y autorizaciones están comprobados.
 
 Entregar enlaces reales de PR, preview y respaldo, diferenciando ejecución efectiva de pendientes. Evitar modificar datos reales para ensayos.
+
+## DECISIÓN EMPRESARIAL FINAL SOBRE BONOS (prevalece sobre cualquier redacción anterior)
+- Solo **bonos por referidos efectivamente ganados, verificados y aprobados** pueden pasar a **saldo REAL verificado en PEN**, una única vez, con respaldo contable, autorización de negocio, antifraude y reversibilidad. Una vez convertido puede gastarse en **los cuatro** negocios, incluido STREAM BULL'S. No efectuar conversiones reales sin implementar y probar el asiento contable transaccional.
+- Los **bonos promocionales de bienvenida y bonos ADMIN** son EXCLUSIVAMENTE para **activar COBRA YA, MI COCHERA o MI ALQUILER**. PROHIBIDO usarlos en STREAM BULL'S, productos, transferencias entre usuarios, retiros o convertirlos en saldo real.
+- Una pantalla de billetera unificada presenta saldo REAL verificado conjunto y crédito promocional separado. El backend existente **aún conserva cuatro subbilleteras reales**, por lo que una única billetera contable es **trabajo futuro**, no afirmar que ya está implementada.
+- Garantizar estas condiciones en RPC/servidor con autorización, idempotencia, registros de origen y controles de doble gasto; crear migraciones solo tras auditoría, staging y pruebas reales, sin tocar saldos de producción.

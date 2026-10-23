@@ -82,5 +82,37 @@
     ],
     "referral_codes": "mostrar solamente codigos reales asignados por backend",
     "wallet_display": "4 saldos REALES verificados, total visual en PEN; no bonos ni saldos de prueba"
+  },
+  "financial_business_rule_confirmed_on": "2026-10-23",
+  "financial_business_rule": {
+    "real_balance": "Solo recargas realmente verificadas y recompensas por referidos GANADAS/APROBADAS, respaldadas por libro contable; apto para los cuatro servicios",
+    "referral_reward": {
+      "becomes_real_after": "validación, elegibilidad, financiación y acreditación contable única",
+      "services": [
+        "STREAM_BULLS",
+        "COBRA_YA",
+        "MI_COCHERA",
+        "MI_ALQUILER"
+      ],
+      "automatic_credit_enabled": false
+    },
+    "welcome_and_admin_activation_bonus": {
+      "purpose": "solo activaciones de plataforma, sin compras/retiros/transferencias",
+      "services_allowed": [
+        "COBRA_YA",
+        "MI_COCHERA",
+        "MI_ALQUILER"
+      ],
+      "services_forbidden": [
+        "STREAM_BULLS"
+      ],
+      "convertible_to_real": false,
+      "server_side_restriction_verified": false
+    },
+    "wallet_plan": {
+      "current": "4 subbilleteras reales; total visual unificado",
+      "future": "un libro real central y libro promocional aparte, únicamente tras migración conciliada",
+      "back_end_unification_implemented": false
+    }
   }
 }

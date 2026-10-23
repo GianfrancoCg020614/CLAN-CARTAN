@@ -71,6 +71,8 @@ jobs:
         run: |
           node --check scripts/v164-portal-4-negocios.js
           node scripts/check-v164-portal.mjs
+      - name: Comprobar separación de bonos de referidos y activación
+        run: node scripts/check-v163-5-bonus-policy.mjs
       - name: Verificar integración consolidada V163.5
         run: |
           node --check scripts/v161-1-mi-alquiler.js
