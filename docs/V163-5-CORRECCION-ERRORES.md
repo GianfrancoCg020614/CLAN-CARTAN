@@ -13,3 +13,6 @@ Modificados exclusivamente módulos JS de MI ALQUILER y pipeline CI. No se cambi
 - Después de registrar, ampliar o finalizar contratos se invalidan las vistas de Finanzas y Avisos antes de su próxima lectura; los cobros fijos y vencimientos no deben mostrar instantáneas de contratos previos.
 - Los módulos descartan respuestas antiguas si se produjo una invalidación mientras la consulta estaba en vuelo. El siguiente refresco obtiene información reciente del servidor.
 - La CI incorpora aserciones de regresión para invalidación desde contratos y control de consultas en vuelo.
+
+## Corrección de textos de la vista previa
+Se actualizaron los rótulos antiguos V161.4 en tarjeta, encabezado y pie de MI ALQUILER para mostrar V163.5 como **vista previa en pruebas**, no producción. Los formularios de contrato y la sección de finanzas ya no anuncian servicios futuros que están implementados en V162.1. La etiqueta nunca sustituye la validación de 24 E2E.

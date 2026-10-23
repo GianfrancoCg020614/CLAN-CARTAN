@@ -2,7 +2,7 @@
   "project": "CLAN CARTAN / MI ALQUILER",
   "version": "V163.5",
   "fecha": "2026-10-22",
-  "status": "CI_APROBADO_PREVIEW_DISPONIBLE_NO_PUBLICADO",
+  "status": "ERRORES_SINCRONIZACION_Y_TEXTOS_CORREGIDOS_CI_OK_PREVIEW_SIN_PUBLICAR",
   "starting_branch": "feature/v163-1-mi-alquiler-logo-oficial",
   "integration_branch": "feature/v163-5-integracion-segura",
   "base_branch": "integracion/mi-alquiler-v162-1-billeteras",
@@ -45,6 +45,13 @@
     "main": "respaldo/clan-cartan-main-v161-20261022",
     "v162_1": "respaldo/mi-alquiler-v162-1-20261022"
   },
-  "last_verified_ci_commit": "ec7bc8beb18d5a2f1683807b852b69aa54835c26",
-  "last_verified_preview": "https://8d01bab6.clan-cartan.pages.dev"
+  "last_verified_ci_commit": "cfc78f4ff7545fec331231e577036ec5dc65d94d",
+  "last_verified_preview": "https://fdaeec3a.clan-cartan.pages.dev",
+  "corrected_code_commit": "cfc78f4ff7545fec331231e577036ec5dc65d94d",
+  "corrections": [
+    "Cargas asíncronas esperables y deduplicadas en MI ALQUILER",
+    "Avisos y finanzas invalidados después de operaciones",
+    "Respuestas de consultas obsoletas descartadas",
+    "Interfaz V163.5 informa que es una vista previa y corrige textos de etapas anteriores"
+  ]
 }
