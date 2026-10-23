@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta name="robots" content="noindex,nofollow">
+<title>CLAN CARTAN — Parte 1/7 · Prueba segura</title>
+<link rel="stylesheet" href="../styles/parte1-demo.css?v=1">
+<script defer src="../scripts/parte1-registro.js?v=1"></script>
+<script defer src="../scripts/parte1-demo.js?v=1"></script>
+</head>
+<body>
+<main>
+<header><div class="brand">CLAN CARTAN <small>ECOSISTEMA DE CUATRO NEGOCIOS</small></div><a class="link" href="https://www.clancartan.com/">← Página oficial (sin cambios)</a></header>
+<div class="eyebrow">VERSIÓN DE PRUEBAS · PARTE 1 DE 7</div>
+<h1>Una cuenta. Cuatro negocios.<br>Registro claro y protegido.</h1>
+<p class="intro">Comprueba cómo funciona el nuevo registro, las casillas y la selección de negocio. Este formulario utiliza únicamente datos locales de prueba.</p>
+<div class="layout">
+<article>
+<form id="p1-form" novalidate autocomplete="off">
+<div class="fields">
+<label class="full">Nombre de prueba<input id="p1-name" placeholder="Nombre Apellido" autocomplete="off"></label>
+<label class="full">Correo de prueba<input id="p1-email" type="email" placeholder="ejemplo@prueba.test" autocomplete="off"></label>
+<label>Contraseña de prueba<input id="p1-pass" type="password" placeholder="12 caracteres o más" autocomplete="new-password"></label>
+<label>Confirmar contraseña<input id="p1-confirm" type="password" placeholder="Repetir contraseña" autocomplete="new-password"></label>
+<label>Documento de prueba<input id="p1-document" placeholder="12345678" autocomplete="off"></label>
+<label>Prefijo telefónico<input id="p1-dial" value="+51" autocomplete="off"></label>
+<label class="full">Teléfono de prueba<input id="p1-phone" placeholder="900 000 000" autocomplete="off"></label>
+<label>Región<input id="p1-region" placeholder="Lima" autocomplete="off"></label>
+<label>Provincia<input id="p1-province" placeholder="Lima" autocomplete="off"></label>
+<label>Distrito<input id="p1-district" placeholder="Distrito de prueba" autocomplete="off"></label>
+<label class="full">Servicio que deseas conocer<select id="p1-service">
+<option value="STREAM_BULLS">STREAM BULL'S</option>
+<option value="COBRA_YA">COBRA YA</option>
+<option value="MI_COCHERA">MI COCHERA</option>
+<option value="MI_ALQUILER">MI ALQUILER</option>
+</select></label>
+</div>
+<p id="p1-service-description" class="note"></p>
+<div class="checks">
+<label><input id="p1-terms" type="checkbox"><span>He leído y acepto los <u>Términos de uso</u>.</span></label>
+<label><input id="p1-privacy" type="checkbox"><span>Autorizo el tratamiento de mis datos personales necesarios para crear y administrar mi cuenta conforme a la <u>Política de privacidad</u>.</span></label>
+<label><input id="p1-marketing" type="checkbox"><span>Autorizo comunicaciones publicitarias de CLAN CARTAN por correo y WhatsApp.</span></label>
+</div>
+<p class="note" id="p1-marketing-status"></p>
+<button id="p1-submit" type="submit" disabled>Registrar mi cuenta · Prueba local</button>
+<p id="p1-status" role="status" aria-live="polite"></p>
+</form>
+</article>
+<aside class="guide">
+<h2>¿Qué estamos comprobando?</h2>
+<p>Esta es la vista de pruebas del formulario de CLAN CARTAN. No es un alta de usuario real.</p>
+<div class="box"><strong>Sin conexión a Supabase.</strong> No hay registros, depósitos, modificaciones de usuarios ni mensajes enviados.</div>
+<ol>
+<li>El botón de registro comienza deshabilitado.</li>
+<li>Se habilita al aceptar términos y tratamiento de datos necesarios.</li>
+<li>La casilla de publicidad permanece opcional y no controla el registro.</li>
+<li>Se verifican correo, contraseña, documento, teléfono y ubicación al pulsar Registrar.</li>
+<li>No se guardan los datos escritos, incluso si la validación tiene éxito.</li>
+</ol>
+<p><strong>Seguridad:</strong> utiliza únicamente datos inventados para probar. No introduzcas contraseñas reales.</p>
+<p class="note">La autenticación real, verificación de correo y registro de consentimiento en Supabase se validarán con una base de pruebas independiente antes de activar esta versión.</p>
+</aside>
+</div>
+</main>
+</body>
+</html>
