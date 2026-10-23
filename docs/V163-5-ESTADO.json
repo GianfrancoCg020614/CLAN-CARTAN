@@ -1,0 +1,42 @@
+{
+  "project": "CLAN CARTAN / MI ALQUILER",
+  "version": "V163.5",
+  "fecha": "2026-10-22",
+  "status": "RAMa_INTEGRACION_GITHUB_NO_PUBLICADA",
+  "starting_branch": "feature/v163-1-mi-alquiler-logo-oficial",
+  "integration_branch": "feature/v163-5-integracion-segura",
+  "base_branch": "integracion/mi-alquiler-v162-1-billeteras",
+  "production_branch": "main",
+  "preserved_commit": "529dcf3b6bee0143965e5ca674e0d0eb5540edc5",
+  "production_commit_prior": "1119615c6aed1d9bc5ef6f2ad0af370d3128e78a",
+  "supabase_project_id": "pqalxtrcyrpmwqdlibqd",
+  "audits": {
+    "V163_2_checks": "77/77",
+    "V163_4_checks": "174/174",
+    "e2e_executed": 0,
+    "e2e_total": 24
+  },
+  "controls": {
+    "real_payments_enabled": false,
+    "automatic_whatsapp_send_enabled": false,
+    "turnstile_auth_enabled": false,
+    "production_merge_approved": false
+  },
+  "gates": {
+    "api_peru_provider_token_verified": false,
+    "brevo_real_otp_received": false,
+    "turnstile_frontend_server_e2e": false,
+    "whatsapp_consent_manual_flow_tested": false,
+    "e2e_24_passed_on_isolated_staging": false,
+    "security_advisors_reviewed": false,
+    "rollback_preview_confirmed": false,
+    "production_merge_approved": false
+  },
+  "notes": [
+    "La migración experimental V163 no es compatible con V162.1: no aplicarla.",
+    "El logo V163.1 está presente en tarjeta y encabezado; el PNG original se conserva en el paquete de respaldo externo.",
+    "La dirección API Perú se corrigió solamente en el código GitHub; la función desplegada no se sustituye sin validar token del proveedor.",
+    "No se activó ni configuró CAPTCHA ni SMTP en la instancia viva.",
+    "No ejecutar ninguna E2E financiera contra producción ni acreditar fondos de prueba."
+  ]
+}

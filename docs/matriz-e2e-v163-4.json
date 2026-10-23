@@ -1,0 +1,218 @@
+[
+  {
+    "id": "E2E-01",
+    "area": "Autenticación",
+    "prueba": "Sin sesión abre MI ALQUILER",
+    "esperado": "Debe rechazar la lectura y los RPC",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-02",
+    "area": "RLS",
+    "prueba": "RESELLER A intenta consultar datos del RESELLER B",
+    "esperado": "No debe leer ni modificar registros ajenos",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-03",
+    "area": "Membresía",
+    "prueba": "Operador vencido o suspendido",
+    "esperado": "Bloqueo sin eliminar historial",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-04",
+    "area": "Inmuebles",
+    "prueba": "Crear edificio, habitación y local",
+    "esperado": "Códigos H-001 y L-001 únicos",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-05",
+    "area": "Inquilinos",
+    "prueba": "Crear y actualizar WhatsApp con consentimiento",
+    "esperado": "Documento inmutable y autorización registrada",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-06",
+    "area": "Contratos",
+    "prueba": "Contrato diario y mensual",
+    "esperado": "Renta, fechas y saldos correctos",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-07",
+    "area": "Contratos",
+    "prueba": "Segundo contrato activo de la misma unidad",
+    "esperado": "Operación rechazada",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-08",
+    "area": "Contratos",
+    "prueba": "Extender y finalizar antes del vencimiento",
+    "esperado": "Auditoría y reversos correctos",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-09",
+    "area": "Pagos",
+    "prueba": "Abono parcial repetido con igual request_id",
+    "esperado": "Movimiento único, sin duplicación",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-10",
+    "area": "Pagos",
+    "prueba": "Abono superior a la deuda",
+    "esperado": "Rechazo y saldo no negativo",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-11",
+    "area": "Contabilidad",
+    "prueba": "Cuota fija repetida el mismo mes",
+    "esperado": "Una sola cuota, sin duplicación",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-12",
+    "area": "Medidores",
+    "prueba": "Registro de lecturas y consumo",
+    "esperado": "Consumo calculado y saldo correcto",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-13",
+    "area": "Medidores",
+    "prueba": "Lectura inferior a anterior",
+    "esperado": "Rechazo sin asientos",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-14",
+    "area": "Garantías",
+    "prueba": "Recibir y devolver garantía",
+    "esperado": "Separa depósito de ingresos",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-15",
+    "area": "Garantías",
+    "prueba": "Aplicar garantía contra deuda y excedentes",
+    "esperado": "No permite aplicar por encima de deuda o saldo",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-16",
+    "area": "Gastos",
+    "prueba": "Registrar gasto autorizado, repetir solicitud",
+    "esperado": "Idempotencia y propietario correctos",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-17",
+    "area": "Bonos",
+    "prueba": "ADMIN otorga bono y RESELLER activa membresía",
+    "esperado": "Auditoría, saldo separado de dinero real",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-18",
+    "area": "Billetera real",
+    "prueba": "Transferir entre billeteras del mismo usuario",
+    "esperado": "Débito y crédito atómicos y auditables",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-19",
+    "area": "Billetera real",
+    "prueba": "Transferir saldo insuficiente o de tercero",
+    "esperado": "Rechazo sin movimiento",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-20",
+    "area": "Membresía",
+    "prueba": "Pagar membresía con S/15 reales verificados",
+    "esperado": "Cargo exacto y vigencia de 30 días",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-21",
+    "area": "API Perú",
+    "prueba": "DNI con operador autorizado, cuota y token válidos",
+    "esperado": "Respuesta segura o alta manual sin modificar teléfono",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-22",
+    "area": "Brevo OTP",
+    "prueba": "Registro y correo propio de prueba",
+    "esperado": "OTP dinámico entregado y confirmado",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-23",
+    "area": "Turnstile",
+    "prueba": "Registro, login y recuperación con token",
+    "esperado": "Rechazo de expirado/falso sin bloquear flujo válido",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  },
+  {
+    "id": "E2E-24",
+    "area": "WhatsApp y release",
+    "prueba": "Enlaces con y sin consentimiento; humo cuatro módulos",
+    "esperado": "Solo apertura manual, sin entrega fingida; no regresión",
+    "estado": "No ejecutada",
+    "evidencia": "",
+    "revisor": ""
+  }
+]

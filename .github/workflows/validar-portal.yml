@@ -61,6 +61,14 @@ jobs:
         run: |
           node --check scripts/v161-1-mi-alquiler.js
           node scripts/check-v163-1-mi-alquiler-brand.mjs
+      - name: Verificar integración consolidada V163.5
+        run: |
+          node --check scripts/v161-1-mi-alquiler.js
+          node --check scripts/v161-4-mi-alquiler.js
+          node scripts/check-v163-5-integracion.mjs
+      - name: Bloquear publicación sin E2E V163.5
+        if: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' }}
+        run: node scripts/check-v163-5-prepublicacion.mjs
       - name: Revisar contratos y permisos MI ALQUILER V161.2
         run: |
           node --check scripts/v161-2-mi-alquiler.js
