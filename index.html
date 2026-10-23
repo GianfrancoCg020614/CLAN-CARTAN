@@ -5966,7 +5966,9 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
  document.getElementById('cc86-forgot').addEventListener('click',open);
  document.getElementById('cc86-cancel').addEventListener('click',close);
  form.addEventListener('submit',async e=>{
-  e.preventDefault();button.disabled=true;message.textContent='Procesando solicitud…';
+  e.preventDefault();
+  if(window.CC_P1_IS_PREVIEW){message.textContent='La recuperación de cuentas reales no está habilitada en la vista previa.';return;}
+  button.disabled=true;message.textContent='Procesando solicitud…';
   try{
    let response;
    if(recoveryToken){
