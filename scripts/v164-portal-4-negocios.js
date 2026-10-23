@@ -44,12 +44,13 @@ function consentGate(){
  if(!terms||!privacy||!btn||!toggle)return;
  const update=()=>{
   const register=btn.textContent.includes('Registrar mi cuenta');
-  const blocked=register&&!(terms.checked&&privacy.checked);
+  const blocked=register&&(!(terms.checked&&privacy.checked)||window.CC_PART1_SIGNUP_PENDING===true);
   btn.disabled=blocked;
   btn.setAttribute('aria-disabled',String(blocked));
  };
  terms.addEventListener('change',update);privacy.addEventListener('change',update);
  toggle.addEventListener('click',()=>queueMicrotask(update));
+ window.ccParte1SyncRegisterButton=update;
  const observer=new MutationObserver(update);
  observer.observe(btn,{childList:true,subtree:true});
  update();

@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V161-20261021">
+<meta name="cc-deploy-version" content="V163.5-PARTE1-20261023">
 <meta name="cc-turnstile-sitekey" content="">
 <style>
 
@@ -4772,12 +4772,14 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <p class="cc164-optin-note">Puedes modificar o retirar la autorización publicitaria en tus preferencias de cuenta.</p>
 <p style="font-size:11px;color:#a6b6c9">Tu correo electrónico requerirá confirmación para proteger el acceso.</p>
 </fieldset></div><p id="cc-register-help" class="cc-small" style="display:none">Registra tu correo y contraseña. La contraseña debe tener al menos 12 caracteres. Luego confirma tu correo electrónico si se solicita.</p><section id="cc91-confirm" role="status" aria-live="polite" style="display:none;text-align:left;background:#0c2c30;border:1px solid #2b9b91;border-radius:14px;padding:17px;margin:12px 0"><h3 style="margin:0 0 8px;color:#aeefd0">✉️ Verificación de correo electrónico</h3><p style="margin:0 0 8px">Hemos enviado un código de 8 dígitos a tu correo electrónico:</p><strong id="cc91-email" style="overflow-wrap:anywhere;color:#fff"></strong><div id="cc106otp" style="display:flex;gap:7px;margin:14px 0"><input inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Dígito 1"><input inputmode="numeric" maxlength="1" aria-label="Dígito 2"><input inputmode="numeric" maxlength="1" aria-label="Dígito 3"><input inputmode="numeric" maxlength="1" aria-label="Dígito 4"><input inputmode="numeric" maxlength="1" aria-label="Dígito 5"><input inputmode="numeric" maxlength="1" aria-label="Dígito 6"><input inputmode="numeric" maxlength="1" aria-label="Dígito 7"><input inputmode="numeric" maxlength="1" aria-label="Dígito 8"></div><button id="cc106verify" type="button" style="background:#5a86e5;color:#fff;width:100%;padding:12px;border:0;border-radius:10px;font-weight:700">Verificar cuenta</button><p style="font-size:13px;margin:11px 0 0">Escribe el código de 8 dígitos que recibiste para verificar tu cuenta.</p><p style="font-size:12px;color:#bbccda;margin:8px 0 0">¿No recibiste el código? Revisa Spam o usa Reenviar.</p></section><p id="cc-real-status" class="cc-error" role="status"></p><p class="cc-small">Los permisos se consultan desde la base de datos. No se permite ingresar con contraseñas ajenas o accesos no autorizados. No compartas claves privadas.</p></div></div>
+<script src="scripts/parte1-registro.js?v=171"></script>
 <script>
 /* V52 pilot: server-verified identity + role; UI and all business data remain demonstrative.
    Publishable browser key, not a privileged service-role credential. */
 (()=>{
 'use strict';
 const root='https://pqalxtrcyrpmwqdlibqd.supabase.co';
+window.CC_P1_IS_PREVIEW=window.location.hostname.endsWith('.clan-cartan.pages.dev');
 const key='sb_publishable_nsp19gAqsdRak3JqWpusUg_Qd6mQr0n';
 const otpInputs=Array.from(document.querySelectorAll('#cc106otp input'));
 const otpBox=document.getElementById('cc91-confirm');
@@ -4792,6 +4794,7 @@ otpInputs.forEach((box,index)=>{
  box.addEventListener('paste',e=>{e.preventDefault();const digits=e.clipboardData.getData('text').replace(/\D/g,'').slice(0,otpInputs.length);digits.split('').forEach((v,i)=>{otpInputs[i].value=v});otpInputs[Math.min(digits.length,otpInputs.length-1)].focus();});
 });
 document.getElementById('cc106verify').addEventListener('click',async function(){
+ if(window.CC_P1_IS_PREVIEW){document.getElementById('cc-real-status').textContent='No se validan cuentas reales desde la vista previa.';return;}
  const email=document.getElementById('cc91-email').textContent.trim();
  const token=otpInputs.map(x=>x.value).join('');
  if(!/^\d{8}$/.test(token)){document.getElementById('cc-real-status').textContent='Completa los 8 dígitos recibidos por correo.';return;}
@@ -4813,6 +4816,7 @@ const btn=document.getElementById('cc-real-button');
 let verified=false, sessionToken=null, refreshToken=null, refreshPending=null;
 // V90: permite solicitar un nuevo correo de activación sin revelar información de otras cuentas.
 document.getElementById('cc90-resend').addEventListener('click',async function(){
+ if(window.CC_P1_IS_PREVIEW){status.textContent='No se envían correos reales desde la vista previa.';return;}
  const email=document.getElementById('cc-real-email').value.trim();
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){status.textContent='Escribe tu correo registrado para solicitar la confirmación.';return;}
  this.disabled=true;status.textContent='Solicitando nuevo código de confirmación…';
@@ -4854,7 +4858,11 @@ async function refreshSupabaseSession(){
 window.setInterval(()=>{if(!document.hidden)refreshSupabaseSession();},20*60*1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSupabaseSession();});
 async function signIn(event){
- event.preventDefault();btn.disabled=true;status.textContent='Verificando sesión y autorización…';
+ event.preventDefault();
+ if(window.CC_P1_IS_PREVIEW){
+  status.textContent='Inicio de sesión real deshabilitado en esta vista previa. Usa /pruebas/parte1.html para probar sin datos reales.';return;
+ }
+ btn.disabled=true;status.textContent='Verificando sesión y autorización…';
  try{
   const email=document.getElementById('cc-real-email').value.trim();
   const password=document.getElementById('cc-real-pass').value;
@@ -4897,7 +4905,8 @@ async function signIn(event){
 }
  finally{btn.disabled=false;}
 }
-let registering=false;
+let registering=false,registrationPending=false;
+window.CC_PART1_SIGNUP_PENDING=false;
 const toggle=document.getElementById('cc-register-toggle');
 const help=document.getElementById('cc-register-help');
 // V89: El formulario mantiene el botón de registro AL FINAL de todos los campos.
@@ -4935,10 +4944,27 @@ function setRegisterMode(next){
  status.textContent='';
  document.getElementById('cc91-confirm').style.display='none';
  document.getElementById('cc90-resend').style.display='none';
+ window.ccParte1SyncRegisterButton?.();
 }
 toggle.addEventListener('click',()=>setRegisterMode(!registering));
 async function register(event){
- event.preventDefault();btn.disabled=true;toggle.disabled=true;status.textContent='Registrando cuenta en Supabase…';
+ event.preventDefault();
+ if(registrationPending)return;
+ if(!window.CC_PART1_REGISTRATION){
+  status.textContent='No se cargó la validación del registro. Actualiza la página.';return;
+ }
+ if(!window.CC_PART1_REGISTRATION.legalAccepted(
+   document.getElementById('cc-v81-terms').checked,
+   document.getElementById('cc164-privacy').checked)){
+  status.textContent='Revisa los Términos y la Política de privacidad para continuar.';
+  window.ccParte1SyncRegisterButton?.();return;
+ }
+ if(window.CC_P1_IS_PREVIEW){
+  status.textContent='Registro real deshabilitado en esta vista previa. Prueba el formulario en /pruebas/parte1.html.';
+  return;
+ }
+ registrationPending=true;window.CC_PART1_SIGNUP_PENDING=true;
+ btn.disabled=true;toggle.disabled=true;status.textContent='Registrando cuenta en Supabase…';
  try{
   const email=document.getElementById('cc-real-email').value.trim().toLowerCase();
   const password=document.getElementById('cc-real-pass').value;
@@ -4952,6 +4978,15 @@ async function register(event){
   const region=document.getElementById('cc-v81-region').value.trim();
   const province=document.getElementById('cc-v81-province').value.trim();
   const district=document.getElementById('cc-v81-district').value.trim();
+  const validation=window.CC_PART1_REGISTRATION.validate({
+   email,password,confirmPassword:document.getElementById('cc-v81-confirm').value,
+   fullName:name,documentNumber,dial,phone,region,province,district,
+   preferredService:document.getElementById('cc111-business').value,
+   termsAccepted:document.getElementById('cc-v81-terms').checked,
+   privacyAccepted:document.getElementById('cc164-privacy').checked,
+   marketingAccepted:document.getElementById('cc161-marketing').checked
+  });
+  if(!validation.ok)throw Error(validation.message);
   if(name.length<5 || !name.includes(' '))throw Error('Escribe tu nombre completo.');
   if(!documentNumber || documentNumber.length<4)throw Error('Ingresa tu documento de identidad.');
   if(!/^\+[0-9]{1,4}$/.test(dial)||phone.length<6||phone.length>15)throw Error('Revisa el código internacional y el número de celular.');
@@ -4981,7 +5016,12 @@ async function register(event){
    status.textContent='Registro recibido. Escribe los 8 dígitos enviados a tu correo para confirmar tu cuenta.';
   }
  }catch(e){status.textContent=e.message||'No se pudo crear la cuenta. Revisa tus datos.';}
- finally{btn.disabled=false;toggle.disabled=false;}
+ finally{
+  registrationPending=false;window.CC_PART1_SIGNUP_PENDING=false;
+  btn.disabled=false;toggle.disabled=false;
+  window.ccParte1SyncRegisterButton?.();
+  window.cc123ResetCaptcha?.();
+ }
 }
 // Login: los campos requeridos del registro permanecen ocultos y no deben bloquear el acceso.
 form.noValidate=true;

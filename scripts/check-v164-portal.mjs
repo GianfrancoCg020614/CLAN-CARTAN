@@ -16,7 +16,7 @@ assert.ok(!/id="cc161-marketing" type="checkbox" required/.test(html),'Publicida
 assert.match(html,/Autorizo comunicaciones publicitarias de CLAN CARTAN por correo y WhatsApp/);
 assert.ok(marketing.includes("document.createElement('details')"),'Preferencias deben poder abrirse para revocar marketing');
 assert.ok(html.includes("p_authorized:next")===false||marketing.includes('p_authorized:next'),'Revocación con RPC permanece');
-assert.ok(js.includes("const blocked=register&&!(terms.checked&&privacy.checked)"),'Botón no depende de consentimiento comercial');
+assert.ok(js.includes("const blocked=register&&(!(terms.checked&&privacy.checked)||window.CC_PART1_SIGNUP_PENDING===true)"),'Botón no depende de publicidad y previene solicitudes duplicadas');
 assert.ok(!js.includes('marketing.checked'),'Publicidad debe seguir opcional');
 assert.ok(js.includes("localStorage.setItem(key,value)"),'Tema visual debe persistir');
 assert.ok(js.includes("cc_real_service_wallets?select=service,balance_pen&user_id=eq."),'Saldos solo del usuario');
