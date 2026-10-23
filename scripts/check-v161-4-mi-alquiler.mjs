@@ -11,7 +11,7 @@ for(const s of ['window.ma1614Enhance','data-ma4-dni','ma1612OnOpen'])need(base,
 for(const s of ['https://wa.me/','ma_log_notice','consent_whatsapp','ma_whatsapp_notice_events','operator_not_approved','ma-verify-dni','ma4-search','zipStore','sheetXML','Excel .xlsx'])need(browser,s);
 need(loader,"scripts/v161-4-mi-alquiler.js?v=1614");
 need(loader,"styles/v161-4-mi-alquiler.css?v=1614");
-for(const s of ['cc_dni_auto_permission','cc_claim_dni_quota','https://api.apiperu.pe/dni','https://www.clancartan.com','/auth/v1/user','provider_not_configured','APIPERU_TOKEN','ma_accounts','subscription_until'])need(edge,s);
+for(const s of ['cc_dni_auto_permission','cc_claim_dni_quota','https://api.apiperu.dev/dni','https://www.clancartan.com','/auth/v1/user','provider_not_configured','APIPERU_TOKEN','ma_accounts','subscription_until'])need(edge,s);
 for(const s of ['enable row level security','ma_whatsapp_notice_select','ma_can_use','ma_guard','consent_whatsapp','El WhatsApp cambió','auth.users'])need(sql,s);
 need(safe,'#ma1611layer .ma4-row');
 assert.ok(!/APIPERU_TOKEN|SUPABASE_SERVICE_ROLE_KEY|service_role/.test(browser),'No revelar secretos en navegador');
