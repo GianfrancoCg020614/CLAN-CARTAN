@@ -6038,6 +6038,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
      Este módulo no acredita recargas ni modifica fondos. -->
 <script type="module" id="cc-parte3-wallet-integration">
   import { montarBilleteraClan } from './scripts/parte3-billetera-panel.mjs';
+  import { estadoSesionPortal } from './scripts/parte3-integracion-portal.mjs';
 
   // La autenticación real debe proporcionar un cliente de Supabase
   // del mismo entorno. Nunca insertar service_role en HTML.
@@ -6050,6 +6051,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
     if (!node || mounted.has(node)) return;
     mounted.add(node);
 
+    const sesion = estadoSesionPortal(window.CC_V53_SESSION);
     const client = window.ccClanSupabaseClient;
     if (!client || !client.auth || typeof client.auth.getUser !== 'function') {
       node.textContent = '';
@@ -6057,7 +6059,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
       title.textContent = 'Billetera REAL única · CLAN CARTAN';
       const message = document.createElement('p');
       message.className = 'muted';
-      message.textContent = 'Consulta REAL no disponible: falta conectar la sesión Supabase del entorno de pruebas. Los importes DEMO de abajo no son dinero real.';
+      message.textContent = sesion.autenticado ? 'Sesión original reconocida. Falta activar el lector de billetera REAL para este entorno; ningún saldo DEMO se considera dinero real.' : sesion.motivo;
       node.append(title, message);
       return;
     }
