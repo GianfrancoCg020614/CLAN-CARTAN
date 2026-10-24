@@ -13,7 +13,7 @@
 <meta name="cc-deploy-version" content="V161-20261021">
 <meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="">
-<style>
+<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=0j6cBKkjetdZ6kn7YRppA8yTj5i3JKrRQpCvUKPNvyHavHsddS4q6sAsAxBza_aE4G4IbosslnXfhMCGZnDWP-dC8EEYY5nVssm23TAtnnKH8ChfozCrT4-sEGoirZa8PjagvyEsvKdx45zgAoFPBAbJr0ywAv8feNP6cpspvoxNOgwT5WPhPpGiNuEg9O0NDySKUt1NelmUIjgJE7LdQV8KBZLMWpbAFf2dqVxLB2D-OTgOq7ToDHYtNszCHTFHFW6meZBCaAjh0gQF9zYeO0IdDyPCnBF-0o_y5x2qH_5pA9YhikORKtHakJZIdRpSkk928PEaQKUINZ_t7mhj5T7yzYNlbr-hSZ3hfaSRwEA" charset="UTF-8"></script><style>
 
 :root{
   --bg:#08111f;--bg2:#0b1627;--bg3:#0f1e32;--panel:#0d1829;--card:#122136;--card2:#142640;--line:#1f3754;--line2:#2a4567;
@@ -3374,6 +3374,7 @@ function dashboardView(){
  </div>`
 }
 function walletView(){return `
+<section class="card section" style="margin-bottom:18px"><div id="cc-clan-real-wallet-mount" aria-live="polite"><h3>Billetera REAL única · CLAN CARTAN</h3><p class="muted">Preparando consulta segura…</p></div></section>
 <div class="title-wrap"><div><h2>Billetera</h2><p>Saldo, movimientos y control financiero de demostración.</p></div></div>
 <div class="wallet-grid">
   <div class="card section"><div class="section-title"><div><h3>Saldo actual</h3></div></div><div class="price-main">${money(currentUser().wallet||0)}</div><div style="margin-top:14px"><button class="btn primary" onclick="ui.streamGate=false;ui.panelView='topups';render()">Recargar</button></div></div>
@@ -6032,5 +6033,50 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <script src="scripts/v161-global-currency-flags.js?v=161" defer></script>
 <script src="scripts/v161-marketing-account.js?v=161" defer></script>
 <script src="scripts/v151-portal-polish.js?v=151"></script>
+
+<!-- PARTE 3/7: consulta de saldos unificados, SOLO LECTURA / STAGING.
+     Este módulo no acredita recargas ni modifica fondos. -->
+<script type="module" id="cc-parte3-wallet-integration">
+  import { montarBilleteraClan } from './scripts/parte3-billetera-panel.mjs';
+
+  // La autenticación real debe proporcionar un cliente de Supabase
+  // del mismo entorno. Nunca insertar service_role en HTML.
+  const localRoot = document.getElementById('app');
+  const mounted = new WeakSet();
+  let scheduled = false;
+
+  async function checkWalletPanel() {
+    const node = document.getElementById('cc-clan-real-wallet-mount');
+    if (!node || mounted.has(node)) return;
+    mounted.add(node);
+
+    const client = window.ccClanSupabaseClient;
+    if (!client || !client.auth || typeof client.auth.getUser !== 'function') {
+      node.textContent = '';
+      const title = document.createElement('h3');
+      title.textContent = 'Billetera REAL única · CLAN CARTAN';
+      const message = document.createElement('p');
+      message.className = 'muted';
+      message.textContent = 'Consulta REAL no disponible: falta conectar la sesión Supabase del entorno de pruebas. Los importes DEMO de abajo no son dinero real.';
+      node.append(title, message);
+      return;
+    }
+    try {
+      await montarBilleteraClan({ contenedor: node, supabaseCliente: client });
+    } catch {
+      node.textContent = 'No se pudo inicializar la consulta de billetera. Comprueba tu sesión.';
+    }
+  }
+
+  if (localRoot) {
+    const observer = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      queueMicrotask(() => { scheduled = false; void checkWalletPanel(); });
+    });
+    observer.observe(localRoot, { childList: true, subtree: true });
+    void checkWalletPanel();
+  }
+</script>
 </body>
 </html>
