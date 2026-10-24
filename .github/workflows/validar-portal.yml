@@ -66,6 +66,28 @@ jobs:
         run: node scripts/check-v161-login-resilience.mjs
       - name: Verificar acceso compartido V161 Parte 1
         run: node scripts/check-v161-part1-auth.mjs
+      - name: Rescate V163.5 sobre main sin cambios financieros
+        run: |
+          node --check scripts/v1635-rescate-ui.js
+          node --check scripts/v161-1-mi-alquiler.js
+          node --check scripts/v161-2-mi-alquiler.js
+          node --check scripts/v161-3-mi-alquiler.js
+          node --check scripts/v161-4-mi-alquiler.js
+          node scripts/check-v1635-rescate-main.mjs
+      - name: Comprobar tarjetas reales en Chrome sin iniciar sesión
+        run: |
+          set -e
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/clan-local.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID >/dev/null 2>&1 || true' EXIT
+          sleep 2
+          CHROME=$(command -v google-chrome || command -v chromium || true)
+          if [ -z "$CHROME" ]; then echo "Falta navegador Chrome/Chromium en el runner"; exit 1; fi
+          timeout 40s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=7000 --dump-dom http://127.0.0.1:8765/ > /tmp/clan-dom.html 2>/tmp/clan-chrome.log
+          grep -q 'id="ma1611card"' /tmp/clan-dom.html
+          grep -q 'id="cc164-theme-toggle"' /tmp/clan-dom.html
+          grep -q 'id="cc161-marketing"' /tmp/clan-dom.html
+          grep -q 'scripts/v172-clan-referrals.js?v=172' /tmp/clan-dom.html
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
