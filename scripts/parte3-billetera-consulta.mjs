@@ -13,8 +13,9 @@ export async function cargarBilleteraClan(supabaseCliente) {
     supabaseCliente.from('cc_clan_wallet_operations').select('id,wallet_kind,service,amount_pen,created_at').eq('user_id', auth.user.id).order('created_at',{ascending:false}).limit(50)
   ]);
   for (const r of [real,bonos,operaciones]) if (r.error) throw new Error('No se pudo consultar la billetera');
+  if (!real.data) throw new Error('Billetera REAL aún no aprovisionada para esta cuenta');
   return Object.freeze({
-    saldoReal: real.data?.balance_pen ?? '0.00',
+    saldoReal: real.data.balance_pen,
     bonosActivacion: (bonos.data ?? []).filter(b=>b.service !== 'STREAM_BULLS'),
     movimientos: operaciones.data ?? [],
     actualizado: real.data?.updated_at ?? null
