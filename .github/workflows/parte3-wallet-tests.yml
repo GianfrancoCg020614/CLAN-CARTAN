@@ -4,6 +4,7 @@ on:
     paths:
       - 'scripts/parte3-billetera-*.mjs'
       - 'scripts/catalogo-comisiones*.mjs'
+      - 'scripts/clan-roles-comerciales*.mjs'
       - '.github/workflows/parte3-wallet-tests.yml'
   push:
     branches:
@@ -21,4 +22,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test scripts/parte3-billetera-seguridad.test.mjs scripts/catalogo-comisiones.test.mjs
+      - run: node --test scripts/parte3-billetera-seguridad.test.mjs scripts/catalogo-comisiones.test.mjs scripts/clan-roles-comerciales.test.mjs
