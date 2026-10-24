@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>COBRA YA · Laboratorio CLAN CARTAN</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,Arial,sans-serif}*{box-sizing:border-box}
+body{margin:0;background:#0c1222;color:#e9eefb;min-height:100vh}
+main{max-width:850px;margin:5vh auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:30px}
+.logo{font-weight:900;letter-spacing:.08em;color:#c6dcff}
+.lab{border:1px solid #7b9ddf;background:#20365c;padding:5px 10px;border-radius:20px;font-weight:800;font-size:12px}
+h1{font-size:clamp(28px,6vw,48px);letter-spacing:-.04em;margin:5px 0}h2{font-size:20px;margin:5px 0}
+.sub{color:#b4c4df;font-size:15px;line-height:1.65}
+.panel{border:1px solid #2d3a55;background:#141e30;border-radius:18px;padding:26px;margin:17px 0}
+label{display:block;font-size:14px;color:#c3cfe4;font-weight:700;margin:14px 0 8px}
+input{width:100%;border:1px solid #4a5e7c;border-radius:10px;background:#0c1423;color:#fff;padding:14px;font-size:16px}
+button{background:#5d8efa;color:#061631;border:0;border-radius:10px;padding:13px 18px;font-weight:800;cursor:pointer;font-size:15px}
+button:disabled{background:#596578;color:#d7ddea;cursor:not-allowed}
+button.secondary{background:#273c58;color:#f0f6ff}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.balance{font-size:25px;font-weight:850;margin:4px 0 16px}
+.small{font-size:13px;color:#acbed9}.alert{padding:12px;border:1px solid #536b8d;border-radius:10px;color:#e1eafe;background:#192840}
+#notice{margin:14px 0;white-space:pre-wrap}footer{color:#aabed7;text-align:center;font-size:12px;padding:15px 0}
+[hidden]{display:none!important}
+</style>
+</head><body><main>
+<header><span class="logo">CLAN CARTAN</span><span class="lab">STAGING · PRUEBAS</span></header>
+<h1>COBRA YA</h1>
+<p class="sub">Laboratorio seguro de activación de suscripción por 30 días. Este entorno está separado de la página oficial: no utiliza cobros ni saldos reales de producción.</p>
+<section class="panel" id="loginPanel">
+<h2>Entrar con una cuenta de STAGING</h2><p class="small">Las cuentas de producción no se copian a este laboratorio. Necesitas una cuenta de pruebas autorizada.</p>
+<form id="loginForm"><label for="email">Correo de pruebas</label><input id="email" type="email" autocomplete="username" required>
+<label for="password">Contraseña de la cuenta de pruebas</label><input id="password" type="password" autocomplete="current-password" required minlength="6">
+<p><button id="loginButton" type="submit">Entrar a pruebas</button></p></form></section>
+<section id="checkoutPanel" hidden>
+<div class="row"><p id="signedIn" class="small"></p><button id="logout" type="button" class="secondary">Salir</button></div>
+<div class="panel"><div class="row"><div><h2>Saldo REAL único</h2><p id="realAmount" class="balance">Consultando…</p></div><button class="secondary" type="button" id="refresh">Actualizar saldos</button></div><p class="small">Requiere fondos de prueba validados en STAGING.</p></div>
+<div class="panel"><h2>Activación COBRA YA</h2><p class="sub">Precio de pruebas: S/ 15 · Vigencia: 30 días.</p><div class="alert" id="accessStatus">Consultando vigencia…</div>
+<div style="margin-top:20px"><p class="small">Bono exclusivo COBRA YA</p><p id="bonusAmount" class="balance">Consultando…</p></div>
+<div class="row"><button type="button" id="payReal" disabled>Activar con S/ 15 REAL</button><button type="button" class="secondary" id="payBonus" disabled>Activar con S/ 15 de bono</button></div>
+<p class="small">Los bonos de activación no generan comisión de referido; las compras REAL pueden generarla conforme a las reglas de CLAN CARTAN.</p>
+</div></section>
+<p class="alert" role="status" aria-live="polite" id="notice">Conectando con Supabase STAGING…</p>
+<footer>No introducir cuentas o claves de producción. Nunca envíes dinero real para este laboratorio.</footer>
+</main><script type="module" src="../scripts/parte3-cobra-staging-ui.mjs"></script></body></html>
