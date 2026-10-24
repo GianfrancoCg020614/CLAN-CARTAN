@@ -36,17 +36,16 @@ Deno.serve(async(req:Request)=>{
   data=JSON.parse(raw);
   if(!data||typeof data!=='object'||Array.isArray(data))throw Error('bad');
  }catch{return json(400,{error:'invalid_json'});}
- const {client_id,request_id,principal,interest_percent,installments,first_due}=data;
+ const {client_id,request_id,principal,interest_percent,installments,term_unit,term_value}=data;
  if(typeof client_id!=='string'||!anyUuid.test(client_id)
  ||typeof request_id!=='string'||!uuid.test(request_id)
- ||typeof principal!=='number'||!Number.isFinite(principal)||principal<10||principal>10000||!Number.isInteger(Math.round(principal*100)*1)||Math.abs(principal*100-Math.round(principal*100))>1e-7
+ ||typeof principal!=='number'||!Number.isFinite(principal)||principal<10||principal>10000||Math.abs(principal*100-Math.round(principal*100))>1e-7
  ||typeof interest_percent!=='number'||!Number.isFinite(interest_percent)||interest_percent<0||interest_percent>100||Math.abs(interest_percent*100-Math.round(interest_percent*100))>1e-7
- ||!Number.isInteger(installments)||Number(installments)<1||Number(installments)>12
- ||typeof first_due!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(first_due))
-   return json(400,{error:'invalid_demo_loan'});
- const date=new Date(first_due+'T00:00:00Z');
- if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==first_due)
-  return json(400,{error:'invalid_date'});
+ ||!Number.isInteger(installments)||installments<1||installments>12
+ ||!Number.isInteger(term_value)
+ ||!((term_unit==='MONTHS'&&term_value>=1&&term_value<=4)
+   ||(term_unit==='DAYS'&&term_value>=1&&term_value<=365))
+ )return json(400,{error:'invalid_demo_loan_term'});
  const auth=await fetch(base+'/auth/v1/user',{
   headers:{'apikey':key,'Authorization':bearer,'Cache-Control':'no-store'}
  });
@@ -55,17 +54,21 @@ Deno.serve(async(req:Request)=>{
  if(verified?.role!=='authenticated'||typeof verified.id!=='string'||!anyUuid.test(verified.id))
   return json(401,{error:'invalid_user'});
  // User ID must NEVER be accepted from browser. The database checks client ownership + active paid access.
- const created=await fetch(base+'/rest/v1/rpc/cc_clan_cobra_create_demo_loan',{
+ const created=await fetch(base+'/rest/v1/rpc/cc_clan_cobra_create_demo_loan_with_term',{
   method:'POST',headers:{'apikey':key,'Authorization':'Bearer '+key,'Content-Type':'application/json'},
   body:JSON.stringify({
    p_user_id:verified.id,p_client_id:client_id,p_request_id:request_id,
    p_principal:principal,p_interest_percent:interest_percent,
-   p_installments:installments,p_first_due:first_due
+   p_installments:installments,p_term_unit:term_unit,p_term_value:term_value
   })
  });
  if(!created.ok)return json(409,{error:'demo_loan_not_created',message:'Revisa tu suscripcion vigente, el cliente y los datos de prueba.'});
- const loanId=await created.json();
- if(typeof loanId!=='string'||!anyUuid.test(loanId))
-   return json(502,{error:'invalid_loan_result'});
- return json(200,{ok:true,loan_id:loanId,request_id,installments});
+ const info=await created.json();
+ const loanId=info?.loan_id;
+ const finalDue=info?.final_due;
+ if(typeof loanId!=='string'||!anyUuid.test(loanId)
+  ||typeof finalDue!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(finalDue))
+  return json(502,{error:'invalid_loan_result'});
+ return json(200,{ok:true,loan_id:loanId,request_id,installments,
+  term_unit,term_value,final_due:finalDue});
 });
