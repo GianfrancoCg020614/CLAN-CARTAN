@@ -1,5 +1,6 @@
 // COBRA YA STAGING ONLY: client-side demo loan form, never real payments.
 import {STAGING_SUPABASE_URL} from './parte3-cobra-checkout-client.mjs';
+import {setupHistoricalDemo} from './parte3-cobra-staging-historical.mjs';
 
 export function initializeDemoLoans({supabase,currentUser,accessAllowed}){
  const $=id=>document.getElementById(id);
@@ -7,11 +8,13 @@ export function initializeDemoLoans({supabase,currentUser,accessAllowed}){
  let busy=false,pendingRequest=null;
  const note=value=>{$('loanDemoNotice').textContent=value;};
  const money=n=>new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).format(Number(n));
+ const historic=setupHistoricalDemo({supabase,currentUser,accessAllowed,clientSelect,refresh,otherBusy:()=>busy});
  function enable(){
   $('createLoanDemo').disabled=busy||!accessAllowed()||!clientSelect.value;
+  historic.enable();
  }
  function clear(){
-  pendingRequest=null;clientSelect.replaceChildren();results.replaceChildren();
+  pendingRequest=null;clientSelect.replaceChildren();results.replaceChildren();historic.clear();
   note('El directorio de préstamos requiere una suscripción vigente.');enable();
  }
  async function refresh(){
@@ -20,7 +23,7 @@ export function initializeDemoLoans({supabase,currentUser,accessAllowed}){
   note('Cargando clientes y préstamos ficticios…');
   const [clients,loans]=await Promise.all([
    supabase.from('cy_clients').select('id,client_code,full_name').eq('owner_id',uid).eq('alias','DEMO').order('created_at',{ascending:false}).limit(50),
-   supabase.from('cy_loans').select('id,principal,interest_rate,term_installments,total_due,created_at').eq('owner_id',uid).not('demo_request_id','is',null).order('created_at',{ascending:false}).limit(20)
+   supabase.from('cy_loans').select('id,principal,interest_rate,term_installments,total_due,created_at,demo_origin,issued_on').eq('owner_id',uid).not('demo_request_id','is',null).order('created_at',{ascending:false}).limit(20)
   ]);
   if(uid!==currentUser()||!accessAllowed())return;
   if(clients.error||loans.error){
@@ -42,7 +45,7 @@ export function initializeDemoLoans({supabase,currentUser,accessAllowed}){
   else{
    const ids=items.map(l=>l.id);
    const installments=await supabase.from('cy_installments')
-    .select('loan_id,installment_number,due_on,amount,status')
+    .select('loan_id,installment_number,due_on,amount,paid_total,status')
     .eq('owner_id',uid).in('loan_id',ids).order('installment_number',{ascending:true}).limit(240);
    if(uid!==currentUser()||!accessAllowed())return;
    if(installments.error){note('No se pudo cargar el cronograma.');return;}
@@ -50,12 +53,12 @@ export function initializeDemoLoans({supabase,currentUser,accessAllowed}){
     const section=document.createElement('section');
     section.style.cssText='margin-top:14px;border-top:1px solid #344660;padding-top:12px';
     const title=document.createElement('strong');
-    title.textContent='Préstamo ficticio · '+money(loan.principal)+' capital · '+money(loan.total_due)+' total · '+loan.term_installments+' cuotas';
+    title.textContent=(loan.demo_origin==='HISTORICAL_DEMO'?'Préstamo ANTERIOR ficticio ('+loan.issued_on+')':'Préstamo nuevo ficticio')+' · '+money(loan.principal)+' capital · '+money(loan.total_due)+' total · '+loan.term_installments+' cuotas';
     section.append(title);
     const myRows=(installments.data||[]).filter(i=>i.loan_id===loan.id);
     for(const row of myRows){
      const line=document.createElement('p');line.className='small';
-     line.textContent='Cuota '+row.installment_number+' · '+row.due_on+' · '+money(row.amount)+' · '+row.status;
+     line.textContent='Cuota '+row.installment_number+' · '+row.due_on+' · '+money(row.amount)+' · Pagado: '+money(row.paid_total)+' · '+row.status;
      section.appendChild(line);
     }
     results.appendChild(section);
