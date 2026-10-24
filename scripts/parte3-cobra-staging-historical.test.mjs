@@ -10,7 +10,7 @@ test('acepta fechas históricas y estados pagado, parcial y pendiente',()=>{
  assert.equal(row.issued_on,'2025-01-10');
 });
 test('no modifica el vencimiento original ni calcula una fecha nueva',()=>{
- const row=readHistoricalDemo({...base,rawSchedule:'2023-03-14,120,50'});
+ const row=readHistoricalDemo({...base,issued_on:'2023-01-10',rawSchedule:'2023-03-14,120,50'});
  assert.equal(row.schedule[0].due_on,'2023-03-14');
 });
 test('rechaza cuotas pagadas por más del monto y cronogramas desordenados',()=>{
