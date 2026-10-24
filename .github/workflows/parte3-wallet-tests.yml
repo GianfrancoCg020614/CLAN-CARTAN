@@ -1,0 +1,23 @@
+name: Parte 3 - seguridad de billetera
+on:
+  pull_request:
+    paths:
+      - 'scripts/parte3-billetera-*.mjs'
+      - '.github/workflows/parte3-wallet-tests.yml'
+  push:
+    branches:
+      - 'feature/parte3-billetera-unica-bonos-separados'
+    paths:
+      - 'scripts/parte3-billetera-*.mjs'
+      - '.github/workflows/parte3-wallet-tests.yml'
+jobs:
+  wallet-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test scripts/parte3-billetera-seguridad.test.mjs
