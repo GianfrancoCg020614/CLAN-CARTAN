@@ -42,6 +42,10 @@ Deno.serve(async(req)=>{
  const expected=hex(await crypto.subtle.sign("HMAC",cryptoKey,new TextEncoder().encode(timestamp+"."+raw)));
  if(!timingSafe(expected,signature.toLowerCase()))return json(401,{error:"invalid_signature"});
  const {activation_key,user_id,amount_pen,fulfillment_reference}=body;
+ const funding=body.funding??"REAL";
+ if(funding!=="REAL"&&funding!=="ACTIVATION_BONUS")return json(400,{error:"invalid_funding"});
+ if(funding==="ACTIVATION_BONUS"&&service==="STREAM_BULLS")return json(400,{error:"bonus_not_allowed"});
+ if(service==="COBRA_YA"&&amount_pen!==15)return json(400,{error:"cobra_price_mismatch"});
  if(typeof activation_key!=="string"||!ref.test(activation_key)||
  typeof user_id!=="string"||!uuid.test(user_id)||
  typeof fulfillment_reference!=="string"||!ref.test(fulfillment_reference)||
@@ -53,14 +57,24 @@ Deno.serve(async(req)=>{
  const saved=await fetch(endpoint+"/rest/v1/cc_clan_service_fulfillment_receipts",{
  method:"POST",headers:{...headers,"Prefer":"resolution=ignore-duplicates,return=minimal"},body:JSON.stringify(receipt)});
  if(!saved.ok)return json(502,{error:"fulfillment_record_failed"});
- const activated=await fetch(endpoint+"/rest/v1/rpc/cc_clan_activate_with_real_wallet",{
- method:"POST",headers,body:JSON.stringify({
+ const isCobra=service==="COBRA_YA";
+ const path=isCobra?"cc_clan_cobra_activate_verified":funding==="REAL"?"cc_clan_activate_with_real_wallet":"cc_clan_activate_with_bonus";
+ const args=isCobra?{
+ p_user_id:user_id,p_funding:funding,p_activation_key:activation_key,p_receipt_key:fulfillment_reference
+ }:funding==="REAL"?{
  p_referred_user_id:user_id,p_service:service,p_amount_pen:amount_pen,
  p_activation_key:activation_key,p_receipt_key:fulfillment_reference
- })});
+ }:{p_user_id:user_id,p_service:service,p_amount_pen:amount_pen,
+ p_activation_key:activation_key,p_receipt_key:fulfillment_reference};
+ const activated=await fetch(endpoint+"/rest/v1/rpc/"+path,{
+ method:"POST",headers,body:JSON.stringify(args)});
  if(!activated.ok)return json(409,{error:"activation_not_completed",retryable:true});
  const state=await activated.json();
- if(state!=="ACTIVATED_REAL_AND_REFERRAL_SETTLED"&&state!=="ALREADY_ACTIVATED")
- return json(502,{error:"unexpected_activation_result"});
- return json(200,{ok:true,activation_key,status:state});
+ if(isCobra){
+  if(typeof state!=="string"||!Number.isFinite(Date.parse(state)))return json(502,{error:"unexpected_access_result"});
+  return json(200,{ok:true,activation_key,status:"ACCESS_ACTIVE",funding,access_until:state});
+ }
+ const expected=funding==="REAL"?["ACTIVATED_REAL_AND_REFERRAL_SETTLED","ALREADY_ACTIVATED"]:["ACTIVATED_WITH_BONUS_NO_REFERRAL","ALREADY_ACTIVATED_WITH_BONUS"];
+ if(!expected.includes(state))return json(502,{error:"unexpected_activation_result"});
+ return json(200,{ok:true,activation_key,status:state,funding});
 });
