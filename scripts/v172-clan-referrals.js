@@ -35,8 +35,8 @@ async function load(){
  const panel=document.createElement('section');
  panel.id='cc172-referrals';panel.className='cc172-card';panel.setAttribute('aria-label','Mis referidos CLAN');
  const head=document.createElement('div');head.className='cc172-head';
- head.append(cell('span','MIS REFERIDOS CLAN','cc172-kicker'),cell('h3','Un código para tus cuatro negocios'));
- panel.append(head,cell('p','El mismo código sirve para STREAM BULL’S, COBRA YA, MI COCHERA y MI ALQUILER.','cc172-muted'));
+ head.append(cell('span','MI REGISTRO CLAN Y REFERIDOS','cc172-kicker'),cell('h3','Tu código CLAN identifica tu registro'));
+ panel.append(head,cell('p','Tu código CLAN es único y sirve también para invitar a las cuatro plataformas. No determina si eres AFILIADO, RESELLER, SUPER RESELLER o ADMIN.','cc172-muted'));
  const loading=cell('p','Consultando tu código único y atribuciones reales…','cc172-muted');
  loading.setAttribute('role','status');panel.append(loading);root.append(panel);
  try{
@@ -49,7 +49,7 @@ async function load(){
   loading.remove();
   const controls=document.createElement('div');controls.className='cc172-code-controls';
   const codeInput=document.createElement('input');codeInput.type='text';codeInput.readOnly=true;
-  codeInput.value=code;codeInput.className='cc172-code';codeInput.setAttribute('aria-label','Tu único código de referido');
+  codeInput.value=code;codeInput.className='cc172-code';codeInput.setAttribute('aria-label','Tu código de registro CLAN (también sirve para referidos)');
   const actions=document.createElement('div');actions.className='cc172-actions';
   actions.append(
    button('Copiar código','',function(){void copy(code,this);}),
