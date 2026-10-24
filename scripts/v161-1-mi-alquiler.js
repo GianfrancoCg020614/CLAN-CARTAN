@@ -27,8 +27,8 @@
     card.innerHTML = '<div class="ma1611-card-icon"><img src="assets/mi-alquiler-logo.svg" alt="Logo oficial de MI ALQUILER CLAN CARTAN" width="76" height="76" loading="lazy" decoding="async"></div>' +
       '<div class="ma1611-card-copy"><small>CLAN CARTAN · CUARTA PLATAFORMA</small>' +
       '<h2>MI ALQUILER</h2><p>Habitaciones y locales · alquiler diario y mensual</p>' +
-      '<span class="ma1611-chip">V163.5 · Vista previa en pruebas</span></div>' +
-      '<button id="ma1611open" type="button">Ingresar a Mi Alquiler →</button>';
+      '<span class="ma1611-chip">V163.5 · Integración progresiva</span></div>' +
+      '<button id="ma1611open" type="button">Explorar MI ALQUILER →</button>';
     card.querySelector('button').addEventListener('click', open);
     return card;
   }
