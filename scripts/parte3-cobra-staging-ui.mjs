@@ -7,7 +7,7 @@ const supabase=createClient(STAGING_SUPABASE_URL,PUBLISHABLE_KEY,{
 });
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).format(Number(n));
-let busy=false,currentUserId=null,requestId=null;
+let busy=false,currentUserId=null,requestId=null,pendingFunding=null;
 let hasAccess=false,hasReal=false,hasBonus=false;
 const notice=text=>{$('notice').textContent=text;};
 const disableBtns=()=>{
@@ -16,9 +16,13 @@ const disableBtns=()=>{
  $('refresh').disabled=busy;
 };
 async function refresh(){
+ const expectedUserId=currentUserId;
  const {data:{user},error}=await supabase.auth.getUser();
- if(error||!user){await updateSession();return;}
- currentUserId=user.id;
+ if(error||!user||user.id!==expectedUserId){
+  hasAccess=true;hasReal=false;hasBonus=false;disableBtns();
+  notice('Sesión de STAGING no verificada. Cierra sesión y vuelve a entrar.');
+  return;
+ }
  $('signedIn').textContent='Cuenta STAGING: '+(user.email||'usuario autenticado');
  const [wallet,bonuses,active]=await Promise.all([
   supabase.from('cc_clan_real_wallets').select('balance_pen').eq('user_id',user.id).maybeSingle(),
@@ -50,7 +54,7 @@ async function updateSession(){
  $('loginPanel').hidden=logged;
  $('checkoutPanel').hidden=!logged;
  if(logged){currentUserId=data.session.user.id;await refresh();}
- else{currentUserId=null;hasAccess=false;hasBonus=false;hasReal=false;}
+ else{currentUserId=null;hasAccess=false;hasBonus=false;hasReal=false;requestId=null;pendingFunding=null;notice('Ingresa con tu cuenta de STAGING para comenzar.');}
 }
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();
@@ -77,14 +81,14 @@ async function activate(funding){
  const label=funding==='REAL'?'saldo REAL':'bono de activación';
  if(!confirm('¿Activar COBRA YA por 30 días usando S/ 15 de '+label+' en STAGING?'))return;
  busy=true;disableBtns();notice('Solicitando activación segura de COBRA YA…');
- if(!requestId)requestId=crypto.randomUUID();
+ if(!requestId||pendingFunding!==funding){requestId=crypto.randomUUID();pendingFunding=funding;}
  try{
   const result=await activarCobraEnStaging({
    supabaseCliente:supabase,funding,requestId
   });
-  requestId=null;
-  notice('Activación confirmada en STAGING. Vigencia: '+new Date(result.access_until).toLocaleString('es-PE'));
+  requestId=null;pendingFunding=null;
   await refresh();
+  notice('Activación confirmada en STAGING. Vigencia: '+new Date(result.access_until).toLocaleString('es-PE'));
  }catch(err){
   // Conservar requestId por idempotencia: un reintento no debe cobrar dos veces.
   notice(err.message+' Si lo reintentas sin recargar, se utiliza la misma referencia.');
