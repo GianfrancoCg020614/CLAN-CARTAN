@@ -1,6 +1,7 @@
 // COBRA YA STAGING ONLY: client-side demo loan form, never real payments.
 import {STAGING_SUPABASE_URL} from './parte3-cobra-checkout-client.mjs';
 import {setupHistoricalDemo} from './parte3-cobra-staging-historical.mjs';
+import {leerPlazoCobra,fechaHoyLima} from './parte3-cobra-plazos.mjs';
 
 export function initializeDemoLoans({supabase,currentUser,accessAllowed}){
  const $=id=>document.getElementById(id);
@@ -23,7 +24,7 @@ export function initializeDemoLoans({supabase,currentUser,accessAllowed}){
   note('Cargando clientes y préstamos ficticios…');
   const [clients,loans]=await Promise.all([
    supabase.from('cy_clients').select('id,client_code,full_name').eq('owner_id',uid).eq('alias','DEMO').order('created_at',{ascending:false}).limit(50),
-   supabase.from('cy_loans').select('id,principal,interest_rate,term_installments,total_due,created_at,demo_origin,issued_on').eq('owner_id',uid).not('demo_request_id','is',null).order('created_at',{ascending:false}).limit(20)
+   supabase.from('cy_loans').select('id,principal,interest_rate,term_installments,total_due,created_at,demo_origin,issued_on,demo_term_unit,demo_term_value,demo_final_due').eq('owner_id',uid).not('demo_request_id','is',null).order('created_at',{ascending:false}).limit(20)
   ]);
   if(uid!==currentUser()||!accessAllowed())return;
   if(clients.error||loans.error){
@@ -66,22 +67,39 @@ export function initializeDemoLoans({supabase,currentUser,accessAllowed}){
   }
   note('Datos ficticios actualizados. Los saldos de la billetera no se modificaron.');
  }
+ function calcularPlanFormulario(){
+  return leerPlazoCobra({
+   opcion:$('loanTermPreset').value,
+   dias:$('loanCustomDays').value,
+   cuotas:$('loanInstallments').value,
+   fechaInicio:fechaHoyLima()
+  });
+ }
+ function actualizarResumenPlazo(){
+  const personalizados=$('loanTermPreset').value==='days';
+  $('loanDaysWrap').hidden=!personalizados;
+  $('loanCustomDays').required=personalizados;
+  const status=$('loanTermSummary');
+  try{
+   const plan=calcularPlanFormulario();
+   const label=plan.term_unit==='MONTHS'
+    ?plan.term_value+' mes'+(plan.term_value!==1?'es':'')
+    :plan.term_value+' día'+(plan.term_value!==1?'s':'');
+   status.textContent='Plazo: '+label+'. Vencimiento final: '+plan.vencimientoFinal+
+    '. '+plan.installments+' cuota'+(plan.installments!==1?'s':'')+
+    ' ('+plan.vencimientos.join(', ')+').';
+  }catch(error){status.textContent=error.message;}
+ }
  function validate(){
   const principal=Number($('loanPrincipal').value);
   const interest=Number($('loanInterest').value);
-  const installments=Number($('loanInstallments').value);
-  const due=$('loanFirstDue').value;
-  const now=new Date();
-  const utcToday=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()));
-  const date=new Date(due+'T00:00:00Z');
   if(!Number.isFinite(principal)||principal<10||principal>10000||Math.abs(principal*100-Math.round(principal*100))>1e-7
-    ||!Number.isFinite(interest)||interest<0||interest>100||Math.abs(interest*100-Math.round(interest*100))>1e-7
-    ||!Number.isInteger(installments)||installments<1||installments>12
-    ||!Number.isFinite(date.getTime())||date<=utcToday||date.getTime()>utcToday.getTime()+365*86400000){
-    throw Error('Verifica capital, interés, cuotas y primer vencimiento (futuro y hasta 365 días).');
-  }
+    ||!Number.isFinite(interest)||interest<0||interest>100||Math.abs(interest*100-Math.round(interest*100))>1e-7)
+   throw Error('Verifica el capital e interés (entre 0 y 100 %).');
+  const plan=calcularPlanFormulario();
   if(!clientSelect.value)throw Error('Primero registra un cliente ficticio.');
-  return {client_id:clientSelect.value,principal,interest_percent:interest,installments,first_due:due};
+  return {client_id:clientSelect.value,principal,interest_percent:interest,
+   installments:plan.installments,term_unit:plan.term_unit,term_value:plan.term_value};
  }
  async function submit(event){
   event.preventDefault();
@@ -109,13 +127,17 @@ export function initializeDemoLoans({supabase,currentUser,accessAllowed}){
     throw Error('Respuesta de préstamo inválida.');
    pendingRequest=null;
    await refresh();
-   note('Préstamo ficticio creado. Se generaron '+result.installments+' cuotas y no se descontó saldo.');
+   note('Préstamo ficticio creado. '+result.installments+' cuota(s). Vencimiento final: '+
+    result.final_due+'. No se descontó saldo de la billetera.');
   }catch(e){
    note(e.message+' Si reintentas sin cambiar datos, se utiliza la misma referencia para evitar duplicados.');
   }finally{busy=false;enable();}
  }
- const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+30);
- $('loanFirstDue').value=new Date(Date.UTC(tomorrow.getFullYear(),tomorrow.getMonth(),tomorrow.getDate())).toISOString().slice(0,10);
+ for(const id of ['loanTermPreset','loanCustomDays','loanInstallments']){
+  $(id).addEventListener('change',actualizarResumenPlazo);
+  $(id).addEventListener('input',actualizarResumenPlazo);
+ }
+ actualizarResumenPlazo();
  clientSelect.addEventListener('change',enable);
  form.addEventListener('submit',submit);
  return Object.freeze({refresh,clear});
