@@ -11,9 +11,6 @@ for(const needed of [
  'Una cuenta para cuatro negocios',
  'STREAM BULL', 'COBRA YA', 'MI COCHERA', 'MI ALQUILER',
  'scripts/v161-1-mi-alquiler.js?v=1636',
- 'scripts/v161-2-mi-alquiler.js?v=1636',
- 'scripts/v161-3-mi-alquiler.js?v=1636',
- 'scripts/v161-4-mi-alquiler.js?v=1636',
  'scripts/v1635-rescate-ui.js?v=1636',
  'styles/v164-portal-4-negocios.css?v=1636',
  'scripts/v172-clan-referrals.js?v=172',
@@ -22,6 +19,9 @@ for(const needed of [
  'id="cc164-privacy"', 'id="cc161-marketing"',
  'scripts/v158-mi-cochera.js?v=158'
 ])assert.ok(html.includes(needed),'Falta en main integrado: '+needed);
+for(const unsafe of ['scripts/v161-2-mi-alquiler.js?v=1636','scripts/v161-3-mi-alquiler.js?v=1636','scripts/v161-4-mi-alquiler.js?v=1636','scripts/v162-1-mi-alquiler-wallets.js']){
+ assert.ok(!html.includes(unsafe),'No activar aún transacciones MI ALQUILER sin prueba E2E: '+unsafe);
+}
 assert.ok(!html.includes('Tres plataformas, una sola cuenta.'),'Texto anterior sin actualizar');
 assert.ok(!html.includes('transfiere de una billetera a otra fácilmente'),'No anunciar billetera antigua como unica');
 assert.ok(alquiler.includes("third.insertAdjacentElement('afterend', card)"));
