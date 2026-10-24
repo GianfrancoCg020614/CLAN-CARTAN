@@ -28,5 +28,5 @@ test('error de Supabase no se presenta como saldo valido',async()=>{
  await assert.rejects(()=>cargarBilleteraClan(client({error:{message:'denied'}})),/No se pudo consultar/);
 });
 test('sesion inexistente se rechaza',async()=>{
- await assert.rejects(()=>cargarBilleteraClan({auth:{getUser:async()=>({data:{user:null}})},from(){}}),/Debes iniciar sesion/);
+ await assert.rejects(()=>cargarBilleteraClan({auth:{getUser:async()=>({data:{user:null}})},from(){}}),/Debes iniciar sesión/);
 });
