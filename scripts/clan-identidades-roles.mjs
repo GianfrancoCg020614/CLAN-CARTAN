@@ -1,13 +1,16 @@
-/* CLAN CARTAN - alias de cuentas, NO autorizaciones.
- * Nunca usar alias ni correo como fuente de permisos.
- * Los roles efectivos se conceden desde la identidad Auth verificada,
- * con decisión explícita de ADMIN y registro de auditoría del servidor.
+/* CLAN CARTAN — Códigos de registro CLAN y roles comerciales independientes.
+ * CLAN1, CLAN2, ... identifican registros, NO autorizan roles ni entornos.
+ * La asignación es del servidor, basada en Auth y registro persistente.
  */
-export const CUENTAS = Object.freeze({
- CLAN1: Object.freeze({proposito:'ADMIN',entorno:'PRODUCTION'}),
- CLAN2: Object.freeze({proposito:'SUPER_RESELLER_PENDIENTE_APROBACION_ADMIN',entorno:'PRODUCTION'}),
- CLAN3: Object.freeze({proposito:'PRUEBAS',entorno:'STAGING'})
-});
+export function esCodigoRegistroClan(codigo) {
+ return typeof codigo === 'string' && /^CLAN[1-9][0-9]{0,14}$/.test(codigo);
+}
+export function mostrarIdentidadClan({codigo,rol}) {
+ if(!esCodigoRegistroClan(codigo)) throw new Error('Código CLAN inválido');
+ const roles=new Set(['ADMIN','AFILIADO','RESELLER','SUPER_RESELLER']);
+ if(!roles.has(rol))throw new Error('Rol comercial inválido');
+ return Object.freeze({codigoRegistro:codigo,rolComercial:rol});
+}
 export function puedeConcederSuperReseller({actorEsAdminVerificado,aprobacionExpresa,destinoConfirmado,entorno}) {
  return actorEsAdminVerificado===true &&
    aprobacionExpresa===true &&
