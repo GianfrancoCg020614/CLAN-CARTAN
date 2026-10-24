@@ -106,7 +106,7 @@ $('loginForm').addEventListener('submit',async e=>{
   $('password').value='';
   if(error)throw Error('No fue posible iniciar sesión en STAGING.');
   await updateSession();
- }catch(err){notice(err.message);}finally{busy=false;$('loginButton').disabled=false;}
+ }catch(err){notice(err.message);}finally{busy=false;$('loginButton').disabled=false;disableBtns();}
 });
 $('logout').addEventListener('click',async()=>{
  if(busy)return;
