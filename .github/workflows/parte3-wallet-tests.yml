@@ -28,4 +28,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test scripts/parte3-billetera-seguridad.test.mjs scripts/catalogo-comisiones.test.mjs scripts/clan-roles-comerciales.test.mjs scripts/parte4-bono-referidos.test.mjs scripts/parte34-adaptadores-legado.test.mjs scripts/clan-identidades-roles.test.mjs scripts/parte3-cobra-checkout-client.test.mjs
+      - run: node --test scripts/parte3-billetera-seguridad.test.mjs scripts/catalogo-comisiones.test.mjs scripts/clan-roles-comerciales.test.mjs scripts/parte4-bono-referidos.test.mjs scripts/parte34-adaptadores-legado.test.mjs scripts/clan-identidades-roles.test.mjs scripts/parte3-cobra-checkout-client.test.mjs scripts/parte3-cobra-staging-historical.test.mjs
