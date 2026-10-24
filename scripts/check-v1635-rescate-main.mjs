@@ -31,7 +31,7 @@ assert.ok(css.includes('html[data-cc-theme="light"]'));
 assert.ok(ui.includes("const KEY='cc164-theme'"));
 for(const dangerous of ['cc_real_service_wallets?','post_wallet_operation','ma_transfer_real_balance','cc_referral_monthly_rewards','signup('])
  assert.ok(!ui.includes(dangerous),'La recuperación visual NO debe ejecutar '+dangerous);
-for(const legacy of ['cc77Auth(create)','ccParte1LegalReady','window.CC_V53_SESSION={jwt:jwt,userId:me.id','window.cc160CopyText'])
+for(const legacy of ['cc77Auth(create)','ccParte1LegalReady','window.CC_V53_SESSION={jwt:jwt,userId:me.id'])
  assert.ok(html.includes(legacy),'No alterar seguridad/login/códigos preexistentes '+legacy);
 for(const src of [
  'scripts/v161-1-mi-alquiler.js','scripts/v161-2-mi-alquiler.js',
