@@ -1,5 +1,6 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import {activarCobraEnStaging, STAGING_SUPABASE_URL} from './parte3-cobra-checkout-client.mjs';
+import {initializeDemoLoans} from './parte3-cobra-staging-loans.mjs';
 
 const PUBLISHABLE_KEY='sb_publishable_ZkjYbLS7ecPJiFnFihmAaQ_eGIDLHHq';
 const supabase=createClient(STAGING_SUPABASE_URL,PUBLISHABLE_KEY,{
@@ -10,6 +11,7 @@ const money=n=>new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).
 let busy=false,currentUserId=null,requestId=null,pendingFunding=null;
 let hasAccess=false,hasReal=false,hasBonus=false;
 const notice=text=>{$('notice').textContent=text;};
+const loans=initializeDemoLoans({supabase,currentUser:()=>currentUserId,accessAllowed:()=>hasAccess});
 async function listarClientesFicticios(userId){
  if(!userId||currentUserId!==userId||!hasAccess)return;
  const root=$('demoClientList');
@@ -41,6 +43,7 @@ async function agregarClienteFicticio(){
     .insert({owner_id:user.id,full_name:demoName,alias:'DEMO'});
   if(error)throw Error('No fue posible agregar el cliente de prueba');
   await listarClientesFicticios(userId);
+  await loans.refresh();
   notice('Cliente ficticio registrado en STAGING. El saldo no se modificó.');
  }catch(e){notice(e.message||'No fue posible registrar el cliente');}
  finally{busy=false;disableBtns();}
@@ -56,7 +59,7 @@ async function refresh(){
  const expectedUserId=currentUserId;
  const {data:{user},error}=await supabase.auth.getUser();
  if(error||!user||user.id!==expectedUserId){
-  hasAccess=true;hasReal=false;hasBonus=false;$('clientDirectory').hidden=true;disableBtns();
+  hasAccess=true;hasReal=false;hasBonus=false;$('clientDirectory').hidden=true;$('loanDemoSection').hidden=true;loans.clear();disableBtns();
   notice('Sesión de STAGING no verificada. Cierra sesión y vuelve a entrar.');
   return;
  }
@@ -68,7 +71,7 @@ async function refresh(){
  ]);
  if(user.id!==currentUserId)return;
  if(wallet.error||bonuses.error||active.error){
-  hasAccess=true;hasReal=false;hasBonus=false;disableBtns();
+  hasAccess=true;hasReal=false;hasBonus=false;$('loanDemoSection').hidden=true;loans.clear();disableBtns();
   $('accessStatus').textContent='No fue posible verificar saldos o acceso; cobros bloqueados.';
   notice('Error de consulta a STAGING. No se autoriza ninguna activación.');
   return;
@@ -83,8 +86,10 @@ async function refresh(){
  hasBonus=bonus!==null&&bonus>=15;
  $('accessStatus').textContent=expires?'Acceso vigente hasta: '+new Date(expires).toLocaleString('es-PE'):'Sin suscripción COBRA YA vigente en STAGING';
  $('clientDirectory').hidden=!hasAccess;
+ $('loanDemoSection').hidden=!hasAccess;
  disableBtns();
- if(hasAccess)await listarClientesFicticios(user.id);
+ if(hasAccess){await listarClientesFicticios(user.id);await loans.refresh();}
+ else loans.clear();
  notice('Saldos y vigencia verificados en STAGING.');
 }
 async function updateSession(){
@@ -93,7 +98,7 @@ async function updateSession(){
  $('loginPanel').hidden=logged;
  $('checkoutPanel').hidden=!logged;
  if(logged){currentUserId=data.session.user.id;await refresh();}
- else{currentUserId=null;hasAccess=false;hasBonus=false;hasReal=false;requestId=null;pendingFunding=null;$('clientDirectory').hidden=true;notice('Ingresa con tu cuenta de STAGING para comenzar.');}
+ else{currentUserId=null;hasAccess=false;hasBonus=false;hasReal=false;requestId=null;pendingFunding=null;$('clientDirectory').hidden=true;$('loanDemoSection').hidden=true;loans.clear();notice('Ingresa con tu cuenta de STAGING para comenzar.');}
 }
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();
