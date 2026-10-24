@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>COBRA YA · Laboratorio CLAN CARTAN</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,Arial,sans-serif}*{box-sizing:border-box}
+body{margin:0;background:#0c1222;color:#e9eefb;min-height:100vh}
+main{max-width:850px;margin:5vh auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:30px}
+.logo{font-weight:900;letter-spacing:.08em;color:#c6dcff}
+.lab{border:1px solid #7b9ddf;background:#20365c;padding:5px 10px;border-radius:20px;font-weight:800;font-size:12px}
+h1{font-size:clamp(28px,6vw,48px);letter-spacing:-.04em;margin:5px 0}h2{font-size:20px;margin:5px 0}
+.sub{color:#b4c4df;font-size:15px;line-height:1.65}
+.panel{border:1px solid #2d3a55;background:#141e30;border-radius:18px;padding:26px;margin:17px 0}
+label{display:block;font-size:14px;color:#c3cfe4;font-weight:700;margin:14px 0 8px}
+input{width:100%;border:1px solid #4a5e7c;border-radius:10px;background:#0c1423;color:#fff;padding:14px;font-size:16px}
+button{background:#5d8efa;color:#061631;border:0;border-radius:10px;padding:13px 18px;font-weight:800;cursor:pointer;font-size:15px}
+button.secondary{background:#273c58;color:#f0f6ff}
+button:disabled,button.secondary:disabled{background:#596578;color:#d7ddea;cursor:not-allowed;opacity:.7}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.balance{font-size:25px;font-weight:850;margin:4px 0 16px}
+.small{font-size:13px;color:#acbed9}.alert{padding:12px;border:1px solid #536b8d;border-radius:10px;color:#e1eafe;background:#192840}
+#notice{margin:14px 0;white-space:pre-wrap}footer{color:#aabed7;text-align:center;font-size:12px;padding:15px 0}
+[hidden]{display:none!important}
+</style>
+</head><body><main>
+<header><span class="logo">CLAN CARTAN</span><span class="lab">STAGING · PRUEBAS</span></header>
+<h1>COBRA YA</h1>
+<p class="sub">Laboratorio seguro de activación de suscripción por 30 días. Este entorno está separado de la página oficial: no utiliza cobros ni saldos reales de producción.</p>
+<section class="panel" id="loginPanel">
+<h2>Entrar con una cuenta de STAGING</h2><p class="small">Las cuentas de producción no se copian a este laboratorio. Necesitas una cuenta de pruebas autorizada.</p>
+<form id="loginForm"><label for="email">Correo de pruebas</label><input id="email" type="email" autocomplete="username" required>
+<label for="password">Contraseña de la cuenta de pruebas</label><input id="password" type="password" autocomplete="current-password" required minlength="6">
+<p><button id="loginButton" type="submit">Entrar a pruebas</button></p></form></section>
+<section id="checkoutPanel" hidden>
+<div class="row"><p id="signedIn" class="small"></p><button id="logout" type="button" class="secondary">Salir</button></div>
+<div class="panel"><div class="row"><div><h2>Saldo REAL único</h2><p id="realAmount" class="balance">Consultando…</p></div><button class="secondary" type="button" id="refresh">Actualizar saldos</button></div><p class="small">Requiere fondos de prueba validados en STAGING.</p></div>
+<div class="panel"><h2>Activación COBRA YA</h2><p class="sub">Precio de pruebas: S/ 15 · Vigencia: 30 días.</p><div class="alert" id="accessStatus">Consultando vigencia…</div>
+<div style="margin-top:20px"><p class="small">Bono exclusivo COBRA YA</p><p id="bonusAmount" class="balance">Consultando…</p></div>
+<div class="row"><button type="button" id="payReal" disabled>Activar con S/ 15 REAL</button><button type="button" class="secondary" id="payBonus" disabled>Activar con S/ 15 de bono</button></div>
+<p class="small">Los bonos de activación no generan comisión de referido; las compras REAL pueden generarla conforme a las reglas de CLAN CARTAN.</p>
+</div>
+<section class="panel" id="clientDirectory" hidden>
+  <div class="row"><div><h2>Clientes COBRA YA</h2>
+  <p class="small">Solo registros ficticios para ensayar el acceso de clientes. No ingreses datos personales reales.</p>
+  </div><button id="demoAddClient" class="secondary" type="button" disabled>Agregar cliente de prueba</button></div>
+  <div id="demoClientList" role="status" aria-live="polite" style="margin-top:16px">Cargando clientes de prueba…</div>
+  <p class="small" id="clientDirectoryNotice">La consulta y creación de clientes requieren una suscripción COBRA YA vigente en STAGING.</p>
+</section>
+<section class="panel" id="loanDemoSection" hidden>
+ <h2>Préstamos y cronogramas de prueba</h2>
+ <p class="small">Solo simulaciones: no prestes ni cobres dinero real desde este laboratorio. Los préstamos de demostración no descuentan saldo de la billetera.</p>
+ <form id="loanDemoForm">
+  <label for="loanDemoClient">Cliente ficticio</label>
+  <select id="loanDemoClient" required style="width:100%;padding:12px;border-radius:10px;background:#0c1423;color:white;border:1px solid #4a5e7c"></select>
+  <div class="row">
+   <div style="flex:1;min-width:125px"><label for="loanPrincipal">Capital de prueba (S/)</label><input id="loanPrincipal" type="number" value="100" min="10" max="10000" step="0.01" required></div>
+   <div style="flex:1;min-width:125px"><label for="loanInterest">Interés total (%)</label><input id="loanInterest" type="number" value="10" min="0" max="100" step="0.01" required></div>
+  </div>
+  <div class="row">
+   <div style="flex:1;min-width:150px">
+    <label for="loanTermPreset">Plazo del préstamo</label>
+    <select id="loanTermPreset" required style="width:100%;padding:14px;border-radius:10px;background:#0c1423;color:#fff;border:1px solid #4a5e7c">
+     <option value="1" selected>1 mes (por defecto)</option>
+     <option value="2">2 meses</option>
+     <option value="3">3 meses</option>
+     <option value="4">4 meses</option>
+     <option value="days">Días personalizados</option>
+    </select>
+   </div>
+   <div id="loanDaysWrap" style="flex:1;min-width:150px" hidden>
+    <label for="loanCustomDays">Duración en días</label>
+    <input id="loanCustomDays" type="number" min="1" max="365" step="1" value="30">
+   </div>
+  </div>
+  <div class="row">
+   <div style="flex:1;min-width:150px">
+    <label for="loanInstallments">Número de cuotas</label>
+    <input id="loanInstallments" type="number" value="1" min="1" max="12" step="1" required>
+   </div>
+   <div style="flex:1;min-width:150px" class="alert" id="loanTermSummary" aria-live="polite">
+    Se calculará el vencimiento según el plazo elegido.
+   </div>
+  </div>
+  <p class="small">Plazo y cuotas son independientes. Por defecto es un préstamo a 1 mes que se paga en 1 sola cuota. Con varias cuotas se distribuyen los vencimientos dentro del plazo.</p>
+  <p><button type="submit" id="createLoanDemo" disabled>Crear préstamo ficticio y cronograma</button></p>
+ </form>
+ <details id="historicalDemoDetails" style="margin-top:24px;border-top:1px solid #344660;padding-top:16px">
+  <summary style="cursor:pointer;font-weight:750;font-size:17px">Registrar préstamo anterior (histórico de prueba)</summary>
+  <p class="small">Acepta préstamos otorgados en años anteriores, con cuotas pagadas, parciales, vencidas o pendientes. Usa solamente clientes ficticios y valores de demostración.</p>
+  <form id="historicalDemoForm">
+   <label for="historicalIssue">Fecha original de otorgamiento (simulada)</label>
+   <input type="date" id="historicalIssue" required>
+   <label for="historicalPrincipal">Capital original (S/)</label>
+   <input type="number" id="historicalPrincipal" value="100" min="10" max="10000" step="0.01" required>
+   <label for="historicalSchedule">Cronograma original: fecha, monto de cuota, monto ya pagado</label>
+   <textarea id="historicalSchedule" rows="6" required style="width:100%;background:#0c1423;color:#fff;border:1px solid #4a5e7c;border-radius:10px;padding:14px;font:inherit;line-height:1.5" spellcheck="false">2025-02-10,40.00,40.00
+2025-03-10,40.00,20.00
+2025-04-10,40.00,0.00</textarea>
+   <p class="small">Una línea por cuota: AAAA-MM-DD, cuota total, pagado. Permite fechas anteriores y abonos parciales; el total de cuotas debe cubrir el capital.</p>
+   <button id="createHistoricalDemo" type="submit" disabled>Guardar préstamo histórico ficticio</button>
+  </form>
+  <p id="historicalDemoNotice" role="status" class="small"></p>
+ </details>
+ <div id="loanDemoNotice" class="small" role="status" aria-live="polite"></div>
+ <div id="loanDemoResults"></div>
+</section>
+</section>
+<p class="alert" role="status" aria-live="polite" id="notice">Conectando con Supabase STAGING…</p>
+<footer>No introducir cuentas o claves de producción. Nunca envíes dinero real para este laboratorio.</footer>
+</main><script type="module" src="../scripts/parte3-cobra-staging-ui.mjs"></script></body></html>
