@@ -67,7 +67,7 @@ Deno.serve(async(req:Request)=>{
  const loanId=info?.loan_id;
  const finalDue=info?.final_due;
  if(typeof loanId!=='string'||!anyUuid.test(loanId)
-  ||typeof finalDue!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(finalDue))
+  ||typeof finalDue!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(finalDue))
   return json(502,{error:'invalid_loan_result'});
  return json(200,{ok:true,loan_id:loanId,request_id,installments,
   term_unit,term_value,final_due:finalDue});
