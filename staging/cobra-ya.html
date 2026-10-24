@@ -40,7 +40,15 @@ button:disabled,button.secondary:disabled{background:#596578;color:#d7ddea;curso
 <div style="margin-top:20px"><p class="small">Bono exclusivo COBRA YA</p><p id="bonusAmount" class="balance">Consultando…</p></div>
 <div class="row"><button type="button" id="payReal" disabled>Activar con S/ 15 REAL</button><button type="button" class="secondary" id="payBonus" disabled>Activar con S/ 15 de bono</button></div>
 <p class="small">Los bonos de activación no generan comisión de referido; las compras REAL pueden generarla conforme a las reglas de CLAN CARTAN.</p>
-</div></section>
+</div>
+<section class="panel" id="clientDirectory" hidden>
+  <div class="row"><div><h2>Clientes COBRA YA</h2>
+  <p class="small">Solo registros ficticios para ensayar el acceso de clientes. No ingreses datos personales reales.</p>
+  </div><button id="demoAddClient" class="secondary" type="button" disabled>Agregar cliente de prueba</button></div>
+  <div id="demoClientList" role="status" aria-live="polite" style="margin-top:16px">Cargando clientes de prueba…</div>
+  <p class="small" id="clientDirectoryNotice">La consulta y creación de clientes requieren una suscripción COBRA YA vigente en STAGING.</p>
+</section>
+</section>
 <p class="alert" role="status" aria-live="polite" id="notice">Conectando con Supabase STAGING…</p>
 <footer>No introducir cuentas o claves de producción. Nunca envíes dinero real para este laboratorio.</footer>
 </main><script type="module" src="../scripts/parte3-cobra-staging-ui.mjs"></script></body></html>
