@@ -74,6 +74,10 @@ jobs:
           node --check scripts/v161-3-mi-alquiler.js
           node --check scripts/v161-4-mi-alquiler.js
           node scripts/check-v1635-rescate-main.mjs
+      - name: Verificar consolidación REAL de solo lectura V163.5
+        run: |
+          node --check scripts/v1635-wallet-resumen.js
+          node --test scripts/test-v1635-wallet-readonly.mjs
       - name: Comprobar tarjetas reales en Chrome sin iniciar sesión
         run: |
           set -e

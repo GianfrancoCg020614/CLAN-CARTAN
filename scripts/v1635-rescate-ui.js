@@ -55,3 +55,16 @@ function init(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
 })();
+
+/* Extensión separada: consulta de saldo real, nunca operaciones financieras.
+ * Mantener el rescate de diseño independiente de esta lectura. */
+(function () {
+  'use strict';
+  const id = 'cc1635-wallet-script';
+  if (document.getElementById(id)) return;
+  const script = document.createElement('script');
+  script.id = id;
+  script.src = 'scripts/v1635-wallet-resumen.js?v=1637';
+  script.async = false;
+  document.head.append(script);
+})();
