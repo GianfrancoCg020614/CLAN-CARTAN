@@ -48,6 +48,25 @@ button:disabled,button.secondary:disabled{background:#596578;color:#d7ddea;curso
   <div id="demoClientList" role="status" aria-live="polite" style="margin-top:16px">Cargando clientes de prueba…</div>
   <p class="small" id="clientDirectoryNotice">La consulta y creación de clientes requieren una suscripción COBRA YA vigente en STAGING.</p>
 </section>
+<section class="panel" id="loanDemoSection" hidden>
+ <h2>Préstamos y cronogramas de prueba</h2>
+ <p class="small">Solo simulaciones: no prestes ni cobres dinero real desde este laboratorio. Los préstamos de demostración no descuentan saldo de la billetera.</p>
+ <form id="loanDemoForm">
+  <label for="loanDemoClient">Cliente ficticio</label>
+  <select id="loanDemoClient" required style="width:100%;padding:12px;border-radius:10px;background:#0c1423;color:white;border:1px solid #4a5e7c"></select>
+  <div class="row">
+   <div style="flex:1;min-width:125px"><label for="loanPrincipal">Capital de prueba (S/)</label><input id="loanPrincipal" type="number" value="100" min="10" max="10000" step="0.01" required></div>
+   <div style="flex:1;min-width:125px"><label for="loanInterest">Interés total (%)</label><input id="loanInterest" type="number" value="10" min="0" max="100" step="0.01" required></div>
+  </div>
+  <div class="row">
+   <div style="flex:1;min-width:125px"><label for="loanInstallments">Número de cuotas mensuales</label><input id="loanInstallments" type="number" value="3" min="1" max="12" step="1" required></div>
+   <div style="flex:1;min-width:125px"><label for="loanFirstDue">Primer vencimiento</label><input id="loanFirstDue" type="date" required></div>
+  </div>
+  <p><button type="submit" id="createLoanDemo" disabled>Crear préstamo ficticio y cronograma</button></p>
+ </form>
+ <div id="loanDemoNotice" class="small" role="status" aria-live="polite"></div>
+ <div id="loanDemoResults"></div>
+</section>
 </section>
 <p class="alert" role="status" aria-live="polite" id="notice">Conectando con Supabase STAGING…</p>
 <footer>No introducir cuentas o claves de producción. Nunca envíes dinero real para este laboratorio.</footer>
