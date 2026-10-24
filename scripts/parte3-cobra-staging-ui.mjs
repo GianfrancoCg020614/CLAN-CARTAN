@@ -10,16 +10,53 @@ const money=n=>new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).
 let busy=false,currentUserId=null,requestId=null,pendingFunding=null;
 let hasAccess=false,hasReal=false,hasBonus=false;
 const notice=text=>{$('notice').textContent=text;};
+async function listarClientesFicticios(userId){
+ if(!userId||currentUserId!==userId||!hasAccess)return;
+ const root=$('demoClientList');
+ root.textContent='Consultando clientes ficticios…';
+ const {data,error}=await supabase.from('cy_clients')
+   .select('id,client_code,full_name,created_at')
+   .eq('owner_id',userId)
+   .order('created_at',{ascending:false}).limit(20);
+ if(currentUserId!==userId||!hasAccess)return;
+ if(error){root.textContent='No se pudo cargar el directorio de pruebas.';return;}
+ root.replaceChildren();
+ if(!data?.length){root.textContent='Todavía no hay clientes de prueba registrados.';return;}
+ for(const client of data){
+  const item=document.createElement('p');
+  item.textContent=(client.client_code||'CY-DEMO')+' · '+client.full_name;
+  root.appendChild(item);
+ }
+}
+async function agregarClienteFicticio(){
+ if(busy||!hasAccess||!currentUserId)return;
+ busy=true;disableBtns();
+ const userId=currentUserId;
+ $('demoAddClient').disabled=true;
+ try{
+  const {data:{user},error:authError}=await supabase.auth.getUser();
+  if(authError||user?.id!==userId)throw Error('Sesión de pruebas no verificada');
+  const demoName='Cliente ficticio '+new Date().toISOString().slice(0,19).replace('T',' ');
+  const {error}=await supabase.from('cy_clients')
+    .insert({owner_id:user.id,full_name:demoName,alias:'DEMO'});
+  if(error)throw Error('No fue posible agregar el cliente de prueba');
+  await listarClientesFicticios(userId);
+  notice('Cliente ficticio registrado en STAGING. El saldo no se modificó.');
+ }catch(e){notice(e.message||'No fue posible registrar el cliente');}
+ finally{busy=false;disableBtns();}
+}
+$('demoAddClient').addEventListener('click',()=>void agregarClienteFicticio());
 const disableBtns=()=>{
  $('payReal').disabled=busy||hasAccess||!hasReal;
  $('payBonus').disabled=busy||hasAccess||!hasBonus;
  $('refresh').disabled=busy;
+ $('demoAddClient').disabled=busy||!hasAccess;
 };
 async function refresh(){
  const expectedUserId=currentUserId;
  const {data:{user},error}=await supabase.auth.getUser();
  if(error||!user||user.id!==expectedUserId){
-  hasAccess=true;hasReal=false;hasBonus=false;disableBtns();
+  hasAccess=true;hasReal=false;hasBonus=false;$('clientDirectory').hidden=true;disableBtns();
   notice('Sesión de STAGING no verificada. Cierra sesión y vuelve a entrar.');
   return;
  }
@@ -45,7 +82,9 @@ async function refresh(){
  hasReal=amount!==null&&amount>=15;
  hasBonus=bonus!==null&&bonus>=15;
  $('accessStatus').textContent=expires?'Acceso vigente hasta: '+new Date(expires).toLocaleString('es-PE'):'Sin suscripción COBRA YA vigente en STAGING';
+ $('clientDirectory').hidden=!hasAccess;
  disableBtns();
+ if(hasAccess)await listarClientesFicticios(user.id);
  notice('Saldos y vigencia verificados en STAGING.');
 }
 async function updateSession(){
@@ -54,7 +93,7 @@ async function updateSession(){
  $('loginPanel').hidden=logged;
  $('checkoutPanel').hidden=!logged;
  if(logged){currentUserId=data.session.user.id;await refresh();}
- else{currentUserId=null;hasAccess=false;hasBonus=false;hasReal=false;requestId=null;pendingFunding=null;notice('Ingresa con tu cuenta de STAGING para comenzar.');}
+ else{currentUserId=null;hasAccess=false;hasBonus=false;hasReal=false;requestId=null;pendingFunding=null;$('clientDirectory').hidden=true;notice('Ingresa con tu cuenta de STAGING para comenzar.');}
 }
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();
