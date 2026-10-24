@@ -66,6 +66,14 @@ jobs:
         run: node scripts/check-v161-login-resilience.mjs
       - name: Verificar acceso compartido V161 Parte 1
         run: node scripts/check-v161-part1-auth.mjs
+      - name: Rescate V163.5 sobre main sin cambios financieros
+        run: |
+          node --check scripts/v1635-rescate-ui.js
+          node --check scripts/v161-1-mi-alquiler.js
+          node --check scripts/v161-2-mi-alquiler.js
+          node --check scripts/v161-3-mi-alquiler.js
+          node --check scripts/v161-4-mi-alquiler.js
+          node scripts/check-v1635-rescate-main.mjs
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
