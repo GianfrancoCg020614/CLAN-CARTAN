@@ -59,9 +59,31 @@ button:disabled,button.secondary:disabled{background:#596578;color:#d7ddea;curso
    <div style="flex:1;min-width:125px"><label for="loanInterest">Interés total (%)</label><input id="loanInterest" type="number" value="10" min="0" max="100" step="0.01" required></div>
   </div>
   <div class="row">
-   <div style="flex:1;min-width:125px"><label for="loanInstallments">Número de cuotas mensuales</label><input id="loanInstallments" type="number" value="3" min="1" max="12" step="1" required></div>
-   <div style="flex:1;min-width:125px"><label for="loanFirstDue">Primer vencimiento</label><input id="loanFirstDue" type="date" required></div>
+   <div style="flex:1;min-width:150px">
+    <label for="loanTermPreset">Plazo del préstamo</label>
+    <select id="loanTermPreset" required style="width:100%;padding:14px;border-radius:10px;background:#0c1423;color:#fff;border:1px solid #4a5e7c">
+     <option value="1" selected>1 mes (por defecto)</option>
+     <option value="2">2 meses</option>
+     <option value="3">3 meses</option>
+     <option value="4">4 meses</option>
+     <option value="days">Días personalizados</option>
+    </select>
+   </div>
+   <div id="loanDaysWrap" style="flex:1;min-width:150px" hidden>
+    <label for="loanCustomDays">Duración en días</label>
+    <input id="loanCustomDays" type="number" min="1" max="365" step="1" value="30">
+   </div>
   </div>
+  <div class="row">
+   <div style="flex:1;min-width:150px">
+    <label for="loanInstallments">Número de cuotas</label>
+    <input id="loanInstallments" type="number" value="1" min="1" max="12" step="1" required>
+   </div>
+   <div style="flex:1;min-width:150px" class="alert" id="loanTermSummary" aria-live="polite">
+    Se calculará el vencimiento según el plazo elegido.
+   </div>
+  </div>
+  <p class="small">Plazo y cuotas son independientes. Por defecto es un préstamo a 1 mes que se paga en 1 sola cuota. Con varias cuotas se distribuyen los vencimientos dentro del plazo.</p>
   <p><button type="submit" id="createLoanDemo" disabled>Crear préstamo ficticio y cronograma</button></p>
  </form>
  <details id="historicalDemoDetails" style="margin-top:24px;border-top:1px solid #344660;padding-top:16px">
