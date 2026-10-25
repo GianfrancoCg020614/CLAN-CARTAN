@@ -94,7 +94,7 @@ const checks=[
  [js.includes("api('rpc/cc_portal_publish_stream_product_v2','POST'"),'Formulario publica ambas tarifas en el mismo producto'],
  [js.includes("api('rpc/cc_portal_stream_price_for_me','POST'"),'UI consulta tarifa verificada antes de pagar'],
  [js.includes("api('rpc/cc_portal_update_stream_prices','POST'"),'Editar dos precios en un producto sin duplicarlo'],
- [catalog.includes("price_tier==='DISTRIBUTOR'")],'Catálogo distingue tarifa pública y distribuidor'],
+ [catalog.includes("price_tier==='DISTRIBUTOR'"),'Catálogo distingue tarifa pública y distribuidor'],
  [catalog.includes("headers.Authorization='Bearer '+jwt"),'Catálogo envía sesión auténtica para consultar tarifa'],
  [catalog.includes('cc_portal_public_catalog_v3'),'Catálogo consulta la RPC segura V3'],
  [loader.includes('scripts/v169-catalogo-unico.js?v=1721'),'Caché actualizado para RPC de tarifas'],
