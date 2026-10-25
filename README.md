@@ -1,6 +1,9 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
-**CONTINUIDAD ACTUAL V145 (19-OCT-2026): [Bono restringido, contabilidad ADMIN y despliegue](docs/CONTINUIDAD-ACTUAL-V145-2026-10-19.md).** Portal actualizado, scripts de activación y auditoría integrados, operaciones TEST nuevas bloqueadas, migración comercial versionada. **Los pagos Lemon/DALE y Binance aún exigen autorización del proveedor y verificación; no se habilitaron cobros reales externos ni se eliminaron registros anteriores.**
+**ESTADO VIGENTE · V173 (25-OCT-2026):** [Verificación de publicación, funcionalidades y pendientes](docs/CONTINUIDAD-ACTUAL-V173-2026-10-25.md). Producción confirmada en Cloudflare Pages y GitHub Actions con commit `4bbdf37fd0225c4a78b8790bd14180d9dcd54849`. El catálogo real aún no contiene productos ni flyers; **no afirmar que las compras reales y los métodos de pago ya fueron probados**. Las versiones V145 y anteriores de este README son antecedentes históricos, no el estado vigente.
+
+
+**CONTINUIDAD HISTÓRICA V145 (19-OCT-2026): [Bono restringido, contabilidad ADMIN y despliegue](docs/CONTINUIDAD-ACTUAL-V145-2026-10-19.md).** Portal actualizado, scripts de activación y auditoría integrados, operaciones TEST nuevas bloqueadas, migración comercial versionada. **Los pagos Lemon/DALE y Binance aún exigen autorización del proveedor y verificación; no se habilitaron cobros reales externos ni se eliminaron registros anteriores.**
 
 **CONTINUIDAD ACTUAL V143 (19-OCT-2026): [Bonos de activación restringidos y panel ADMIN](docs/CONTINUIDAD-ACTUAL-V143-2026-10-19.md).** Bonos de bienvenida separados del saldo real, activación COBRA YA con bono S/15/30 días, panel ADMIN de asignación y resumen operativo de contabilidad. **Sin validación integral ni confirmación del despliegue Cloudflare**; cobros externos mantienen sus bloqueos. Registros históricos conservados hasta orden expresa del titular.
 
