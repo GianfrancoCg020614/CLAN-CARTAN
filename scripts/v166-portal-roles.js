@@ -901,9 +901,17 @@ async function load(){
 function sync(){
  const s=session();
  if(!s?.jwt||!s.userId){if(app||user)reset();return;}
- if(s.userId===user&&s.jwt===token){
-  if(!verified&&!busy&&window.cc80?.api)void load();
-  return;
+ if(s.userId===user){
+  if(s.jwt===token){
+   if(!verified&&!busy&&window.cc80?.api)void load();
+   return;
+  }
+  // La sesión de Supabase rota el JWT periódicamente. Preservar pestaña,
+  // perfil y estado del panel cuando se trata del MISMO titular.
+  // Invalidar solo solicitudes antiguas; ninguna compra queda autorizada
+  // hasta volver a verificar sus permisos y saldo.
+  token=s.jwt;serial++;busy=false;verified=false;
+  render();void load();return;
  }
  const sameUser=s.userId===user,previouslyHidden=app?.hidden===true;
  reset();user=s.userId;token=s.jwt;shell();app.hidden=!!(sameUser&&previouslyHidden);
@@ -916,6 +924,13 @@ function init(){
  document.addEventListener('click',e=>{if(e.target.closest?.('#cc54logout'))reset();},true);
  window.addEventListener('focus',()=>{sync();if(user&&!busy)void load();});
  window.cc166OpenPanel=()=>{sync();if(app){app.hidden=false;render();}};
+ window.cc166OpenStreamMembership=()=>{
+  sync();
+  if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
+  app.hidden=false;
+  view='business:STREAM_BULLS';
+  render();
+ };
  window.cc166RefreshPanel=()=>load();
  window.cc166PurchaseProductFromCatalog=(id,btn,price)=>purchaseFromPublicCatalog(id,btn,price);
  window.cc166OpenProfile=()=>{
