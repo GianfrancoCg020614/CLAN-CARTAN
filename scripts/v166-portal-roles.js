@@ -9,7 +9,8 @@ const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'COBRA YA',MI_COCHE
 const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],['MI_ALQUILER','⌂']];
 const sidebar=[['home','◫','Dashboard'],['businesses','▦','Negocios'],['wallet','▤','Billetera'],['movements','≡','Movimientos'],['orders','◱','Pedidos'],['affiliate','♧','Mis afiliados'],['external','⇄','Control externo'],['support','◌','Soporte'],['profile','♙','Mi perfil']];
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
-let data={admin:false,super:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],requests:[]};
+let data={admin:false,super:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null};
+let lastReceipt=null,purchasePending=false,membershipPending=false;
 const price=n=>Number.isFinite(Number(n))?'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const make=(tag,cls,txt)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=String(txt);return x;};
 const button=(txt,fn,cls)=>{const x=make('button',cls||'',txt);x.type='button';x.addEventListener('click',fn);return x;};
@@ -18,7 +19,7 @@ const session=()=>window.CC_V53_SESSION;
 const active=(id,jwt,seq)=>user===id&&token===jwt&&serial===seq&&session()?.userId===id&&session()?.jwt===jwt;
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
- data={admin:false,super:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],requests:[]};
+ data={admin:false,super:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null};lastReceipt=null;purchasePending=false;membershipPending=false;
  app?.remove();app=null;el('cc166-open-button')?.remove();
 }
 function shell(){
@@ -47,11 +48,16 @@ function exitTo(fn){
  try{fn();}catch(e){app.hidden=false;notice('No se pudo abrir el módulo actual.');}
 }
 function gotoBusiness(code){
- if(!access(code).ok){notice('Acceso no verificado para '+serviceName(code)+'.');return;}
+ // Cambia a la pestaña del negocio, sin abrir otro dashboard ni duplicar controles.
+ nav('business:'+code);
+}
+function openOriginalBusiness(code){
+ if(!access(code).ok){notice('Primero activa tu membresía para usar '+serviceName(code)+'.');return;}
  if(code==='MI_COCHERA')return exitTo(()=>window.mc158Open?.());
  if(code==='MI_ALQUILER')return exitTo(()=>window.ma1611MiAlquiler?.open());
- const card=el('cc77home')?.querySelector('.cc77cards .cc77card:nth-child('+(code==='STREAM_BULLS'?1:2)+')');
- exitTo(()=>{const b=card?.querySelector('button');if(b)b.click();else document.querySelector('#cc77back')?.click();});
+ if(code==='COBRA_YA')return exitTo(()=>window.cc79Cobra?.());
+ // El catálogo y las publicaciones de STREAM se gestionan en ESTE MISMO PANEL.
+ nav('business:STREAM_BULLS');
 }
 function card(title,desc){
  const box=make('article','cc166-card');box.append(make('h2','',title));
@@ -75,25 +81,45 @@ function mountLauncher(){
  }
  launcher.hidden=!user;
 }
+function userRole(){
+ if(data.admin)return 'ADMIN';
+ if(data.super)return 'SÚPER RESELLER';
+ if(data.reseller)return 'RESELLER';
+ return 'AFILIADO';
+}
 function renderNav(){
  const menu=el('cc166-nav');menu.replaceChildren();
- const items=sidebar.concat(data.super||data.admin?[['publish','♛','Publicaciones']]:[]).concat(data.admin?[['admin','⚙','Administración']]:[]);
- for(const [id,icon,label] of items){const b=button('',()=>nav(id),'cc166-navitem'+(view===id?' selected':''));b.append(make('span','',icon),make('span','',label));menu.append(b);}
+ const base=[['home','◫','Inicio'],['shop','▣','Comprar'],['wallet','▤','Billetera'],['orders','◱','Mis compras']];
+ const extra=[['businesses','▦','Negocios'],['movements','≡','Movimientos'],['affiliate','♧','Referidos'],['external','⇄','Control externo']];
+ const items=base.concat(data.reseller||data.super||data.admin?extra:[])
+  .concat(data.super||data.admin?[['publish','♛','Publicar'],['sales','◈','Mis ventas']]:[])
+  .concat(data.admin?[['admin','⚙','Administración']]:[])
+  .concat([['profile','♙','Mi perfil']]);
+ for(const [id,icon,labelText] of items){
+  const selected=view===id||(id==='businesses'&&view.startsWith('business:'));
+  const b=button('',()=>nav(id),'cc166-navitem'+(selected?' selected':''));
+  b.append(make('span','',icon),make('span','',labelText));menu.append(b);
+ }
  const aside=el('cc166-aside-foot');aside.replaceChildren();
- aside.append(button('← Portal original',()=>{app.hidden=true;},'cc166-back'));
- const role=el('cc166-role');role.textContent=(data.admin?'ADMIN':data.super?'SÚPER RESELLER':'RESELLER')+' · '+(verified?'Datos consultados con sesión autenticada':'Consultando permisos…');
+ aside.append(button('← Volver al portal',()=>{app.hidden=true;},'cc166-back'));
+ const role=el('cc166-role');
+ role.textContent=userRole()+' · '+(verified?'Permisos y saldos verificados':'Comprobando tu cuenta…');
+ const heading=app.querySelector('.cc166-top h1');
+ if(heading)heading.textContent='CLAN CARTAN · '+userRole();
  const top=el('cc166-top-actions');top.replaceChildren();
  top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
  top.append(button('✕',()=>{app.hidden=true;},'cc166-x'));
 }
-function businessCards(page){
- const row=make('div','cc166-businesses');
- for(const [code,icon] of services){
-  const a=access(code),t=make('article','cc166-business');
-  t.append(make('span','cc166-business-icon',icon));
-  const name=make('div','cc166-business-name');name.append(make('strong','',serviceName(code)),make('small',a.ok?'● Acceso activo':a.reason));t.append(name);
-  const b=button('Entrar',()=>gotoBusiness(code),'cc166-enter');b.disabled=!a.ok;t.append(b);row.append(t);
- }page.append(row);
+function businessTabs(page){
+ const tabs=make('nav','cc167-tabs');tabs.setAttribute('aria-label','Negocios CLAN CARTAN');
+ for(const [code] of services){
+  const accessInfo=access(code),selected=view==='business:'+code;
+  const tab=button('',()=>nav('business:'+code),'cc167-tab'+(selected?' selected':'')+(accessInfo.ok?'':' locked'));
+  tab.append(make('strong','',serviceName(code)));
+  tab.append(make('small','',accessInfo.ok?'● Membresía activa':'○ No habilitado · Activar'));
+  tabs.append(tab);
+ }
+ page.append(tabs);
 }
 function movementList(page,max){
  const box=make('div','cc166-list');const moves=data.moves.slice(0,max);
