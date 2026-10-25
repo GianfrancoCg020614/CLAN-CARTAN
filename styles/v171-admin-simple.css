@@ -174,3 +174,20 @@
 #cc166-panel .cc171-request-line small{
  font-size:11px;color:#9abcca;
 }
+
+/* V174 · Registro CLAN: número de cuenta visible, único y estable. */
+#cc166-panel .cc174-registry-id{
+ display:inline-flex;align-items:center;align-self:flex-start;
+ max-width:100%;padding:3px 9px;margin-bottom:5px;
+ border:1px solid #2e6175;border-radius:999px;
+ background:#102d3b;color:#7fdfef;font-size:10px;letter-spacing:.07em;font-weight:800;
+}
+#cc166-panel .cc174-rename{max-width:290px}
+#cc166-panel .cc174-rename .cc171-edit{grid-template-columns:minmax(0,1fr)}
+#cc166-panel .cc174-rename input{max-width:100%}
+#cc166-panel .cc174-overview-stats{margin:14px 0 22px}
+#cc166-panel .cc174-overview-hero{padding-bottom:22px}
+#cc166-panel .cc171-person-id{min-width:0}
+#cc166-panel .cc171-identity{min-width:0}
+#cc166-panel .cc171-identity strong,
+#cc166-panel .cc171-identity small{overflow-wrap:anywhere}
