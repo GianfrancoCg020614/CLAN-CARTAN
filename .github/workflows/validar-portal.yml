@@ -88,6 +88,8 @@ jobs:
           grep -q 'id="cc164-theme-toggle"' /tmp/clan-dom.html
           grep -q 'id="cc161-marketing"' /tmp/clan-dom.html
           grep -q 'scripts/v172-clan-referrals.js?v=172' /tmp/clan-dom.html
+          grep -q 'id="cc166-panel-script"' /tmp/clan-dom.html
+          grep -q 'id="cc166-panel-style"' /tmp/clan-dom.html
       - name: Panel único de tres roles y membresías · V166
         run: |
           node --check scripts/v151-portal-polish.js
