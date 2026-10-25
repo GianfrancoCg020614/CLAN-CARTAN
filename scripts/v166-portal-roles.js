@@ -691,6 +691,12 @@ function init(){
  window.cc166OpenPanel=()=>{sync();if(app){app.hidden=false;render();}};
  window.cc166RefreshPanel=()=>void load();
  window.cc166PurchaseProductFromCatalog=(id,btn,price)=>purchaseFromPublicCatalog(id,btn,price);
+ window.cc166OpenProfile=()=>{
+  sync();
+  if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
+  app.hidden=false;view='profile';render();
+ };
+
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
