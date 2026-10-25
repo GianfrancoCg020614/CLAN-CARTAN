@@ -234,7 +234,8 @@
     const section=document.querySelector('#productos .v23-catalog-section');
     if(!section||!section.getClientRects().length)return;
     const now=Date.now();
-    if(now-lastVisibleRefresh<2500)return;
+    // JWT distinto implica cambio de sesión: el precio se recalcula sin espera.
+    if(now-lastVisibleRefresh<2500 && jwtNow()===activeJwt)return;
     lastVisibleRefresh=now;
     void refresh();
   }
