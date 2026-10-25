@@ -272,3 +272,188 @@ export function externalAddonActivationQuote({
     automaticRecurringCharge: false
   });
 }
+
+
+/** Control PRIVADO de cuentas de servicios digitales (SÚPER RESELLER y,
+ * con add-on vigente, RESELLER externo). Modelo reutilizable en Netflix,
+ * HBO, Prime, YouTube, Spotify, ChatGPT y categorías nuevas.
+ *
+ * Estado de slot NO es el estado de pago del cliente.
+ * FREE: asignable; ASSIGNED: ocupado; RESERVED: apartado;
+ * DISABLED: eliminado lógicamente, no disponible, auditable;
+ * DISABLED_PENDING_RELEASE: ocupado y marcado para eliminarse tras
+ * terminar el servicio del cliente, sin interrumpir su contrato.
+ */
+export const ACCOUNT_SLOT_STATES = Object.freeze([
+  'FREE', 'ASSIGNED', 'RESERVED', 'DISABLED', 'DISABLED_PENDING_RELEASE'
+]);
+export const CONNECTION_DEVICE_TYPES = Object.freeze([
+  'CELULAR', 'LAPTOP', 'TV', 'TABLET', 'COMPUTADORA', 'OTRO'
+]);
+export const PROFILE_PAYMENT_STATES = Object.freeze(['PAGADO', 'DEBE', 'PARCIAL']);
+
+function validSlot(slot) {
+  if (!slot || typeof slot !== 'object' || !slot.id ||
+      !ACCOUNT_SLOT_STATES.includes(slot.status)) {
+    throw new TypeError('Slot inválido');
+  }
+  return slot;
+}
+function uniqueSlots(slots) {
+  if (!Array.isArray(slots)) throw new TypeError('Slots deben ser un arreglo');
+  const ids = new Set();
+  for (const item of slots) {
+    const slot = validSlot(item), key = String(slot.id);
+    if (ids.has(key)) throw new Error('Identificador de slot duplicado');
+    ids.add(key);
+  }
+  return slots;
+}
+export function accountSlotSummary(slots) {
+  const items = uniqueSlots(slots);
+  const count = state => items.filter(s => s.status === state).length;
+  const free = count('FREE'), assigned = count('ASSIGNED'),
+    reserved = count('RESERVED'), disabled = count('DISABLED'),
+    pendingDisable = count('DISABLED_PENDING_RELEASE');
+  const capacity = free + assigned + reserved + pendingDisable;
+  return Object.freeze({
+    totalRegistered: items.length,
+    activeCapacity: capacity,
+    free, occupied: assigned + pendingDisable, reserved,
+    disabled, pendingDisable,
+    availableForAssignment: free,
+    // Si todos se deshabilitaron la cuenta NO debe parecer llena por clientes.
+    label: free > 0 ? 'DISPONIBLE'
+      : capacity === 0 ? 'SIN_CUPOS_ACTIVOS' : 'SIN_ESPACIOS_LIBRES'
+  });
+}
+/** Alta de un nuevo perfil/slot de capacidad, no de un cliente.
+ * Identificador estable generado fuera (DB UUID recomendado).
+ */
+export function addAccountSlot(slots, id) {
+  uniqueSlots(slots);
+  if (!id || slots.some(s => String(s.id) === String(id))) {
+    throw new RangeError('Identificador de slot requerido y único');
+  }
+  return Object.freeze([...slots, Object.freeze({id, status: 'FREE'})]);
+}
+/** Eliminación LÓGICA: no borrar ID ni historial.
+ * Si ocupado, no desalojar automáticamente al cliente.
+ */
+export function disableAccountSlot(slots, slotId) {
+  uniqueSlots(slots);
+  let matched = false;
+  const updated = slots.map(s => {
+    if (String(s.id) !== String(slotId)) return s;
+    matched = true;
+    if (s.status === 'DISABLED' || s.status === 'DISABLED_PENDING_RELEASE') return s;
+    if (s.status === 'RESERVED') throw new Error('Cancelar reserva antes de eliminar el cupo');
+    return Object.freeze({
+      ...s,
+      status: s.status === 'ASSIGNED' ? 'DISABLED_PENDING_RELEASE' : 'DISABLED'
+    });
+  });
+  if (!matched) throw new RangeError('No existe el slot');
+  return Object.freeze(updated);
+}
+export function allocateAccountSlot(slots, slotId) {
+  uniqueSlots(slots);
+  let found = false;
+  const updated = slots.map(s => {
+    if (String(s.id) !== String(slotId)) return s;
+    found = true;
+    if (s.status !== 'FREE') throw new Error('Slot no disponible para asignar');
+    return Object.freeze({...s, status: 'ASSIGNED'});
+  });
+  if (!found) throw new RangeError('Slot no encontrado');
+  return Object.freeze(updated);
+}
+export function releaseAccountSlot(slots, slotId) {
+  uniqueSlots(slots);
+  let found = false;
+  const updated = slots.map(s => {
+    if (String(s.id) !== String(slotId)) return s;
+    found = true;
+    if (!['ASSIGNED', 'DISABLED_PENDING_RELEASE'].includes(s.status)) {
+      throw new Error('No hay asignación actual que liberar');
+    }
+    return Object.freeze({...s, status:
+      s.status === 'DISABLED_PENDING_RELEASE' ? 'DISABLED' : 'FREE'});
+  });
+  if (!found) throw new RangeError('Slot no encontrado');
+  return Object.freeze(updated);
+}
+export function restoreAccountSlot(slots, slotId) {
+  uniqueSlots(slots);
+  let found = false;
+  const updated = slots.map(s => {
+    if (String(s.id) !== String(slotId)) return s;
+    found = true;
+    if (s.status !== 'DISABLED') throw new Error('Restaurar requiere slot desactivado sin cliente');
+    return Object.freeze({...s, status: 'FREE'});
+  });
+  if (!found) throw new RangeError('Slot no encontrado');
+  return Object.freeze(updated);
+}
+
+/** Fecha/hora de conexión registrable por evento sin deducirla de login:
+ * distingue CELULAR, LAPTOP, TV, TABLET, COMPUTADORA y OTRO.
+ * Las fechas se escriben con zona horaria; el servidor guarda timestamptz.
+ */
+export function connectionEvent({
+  deviceType, connectedAt, deviceName = '', note = ''
+}) {
+  if (!CONNECTION_DEVICE_TYPES.includes(deviceType)) throw new RangeError('Tipo de equipo inválido');
+  if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d)?(?:Z|[+-]\d\d:\d\d)$/.test(connectedAt) ||
+      !Number.isFinite(Date.parse(connectedAt))) throw new RangeError('Fecha y hora de conexión inválidas');
+  const stamp = new Date(connectedAt).toISOString();
+  if (Number.isNaN(Date.parse(stamp))) throw new RangeError('Conexión no válida');
+  if (String(deviceName).length > 120 || String(note).length > 1000) throw new RangeError('Detalle demasiado largo');
+  return Object.freeze({
+    deviceType, connectedAt: stamp, deviceName: String(deviceName).trim(),
+    note: String(note).trim()
+  });
+}
+
+/** Contador a minuto real: una hora restante = 60 min, nunca redondea
+ * días de 24h para esconder el tiempo exacto del cliente.
+ * endExclusiveISO debe representar el instante real posterior al final
+ * contractual (día N 23:59:59.999; límite del día siguiente a las 00:00).
+ */
+export function profileTimeCounter(startISO, endExclusiveISO, nowISO) {
+  const parse = value => {
+    if (typeof value !== 'string' ||
+        !/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d)?(?:Z|[+-]\d\d:\d\d)$/.test(value)) {
+      throw new TypeError('Instante ISO con zona horaria obligatorio');
+    }
+    const ms = Date.parse(value);
+    if (!Number.isFinite(ms)) throw new RangeError('Instante inválido');
+    return ms;
+  };
+  const start = parse(startISO), end = parse(endExclusiveISO), now = parse(nowISO);
+  if (end <= start) throw new RangeError('Fin debe ser posterior al inicio');
+  const remainingMinutes = Math.max(0, Math.ceil((end - now) / 60_000));
+  const consumedMinutes = Math.min(
+    Math.ceil((end - start) / 60_000),
+    Math.max(0, Math.floor((now - start) / 60_000))
+  );
+  return Object.freeze({
+    status: now < start ? 'PENDIENTE' : now >= end ? 'VENCIDO' : 'VIGENTE',
+    remainingMinutes, remainingDays: Math.floor(remainingMinutes / 1440),
+    remainingHours: Math.floor((remainingMinutes % 1440) / 60),
+    remainingExtraMinutes: remainingMinutes % 60,
+    consumedMinutes,
+    expired: now >= end
+  });
+}
+/** Estado de cobro sin modificar la ocupación del slot.
+ * PAGADO o DEBE es una clasificación manual, no un cargo real.
+ */
+export function profilePaymentLabel(state) {
+  if (!PROFILE_PAYMENT_STATES.includes(state)) throw new RangeError('Pago inválido');
+  return Object.freeze({
+    state, color: state === 'PAGADO' ? 'green' : state === 'DEBE' ? 'red' : 'amber',
+    // Un cliente DEBE puede continuar ocupando slot aunque no haya pagado.
+    freesSlot: false
+  });
+}
