@@ -473,10 +473,19 @@ function other(page){
 function render(){
  if(!app||!user)return;
  mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
+ // Cuatro pestañas globales, nunca cuatro paneles generales ni datos repetidos.
+ businessTabs(page);
+ if(view.startsWith('business:')){businessPage(page,view.slice('business:'.length));return;}
  switch(view){
- case 'home':overview(page);break;case 'wallet':wallet(page);break;
- case 'businesses':memberships(page);break;case 'movements':movements(page);break;
- case 'publish':publish(page);break;case 'admin':admin(page);break;
+ case 'home':overview(page);break;
+ case 'shop':shop(page);break;
+ case 'wallet':wallet(page);break;
+ case 'businesses':memberships(page);break;
+ case 'movements':movements(page);break;
+ case 'orders':orders(page);break;
+ case 'publish':publish(page);break;
+ case 'sales':sales(page);break;
+ case 'admin':admin(page);break;
  default:other(page);
  }
 }
@@ -484,34 +493,51 @@ async function read(path){try{const r=await api(path);return Array.isArray(r)?r:
 async function readMoves(){try{const r=await api('rpc/cc_my_real_wallet_movements','POST',{p_service:null,p_limit:120});return Array.isArray(r)?r:[];}catch(_){return[];}}
 async function load(){
  if(!user||busy||!window.cc80?.api)return;
- busy=true;const id=user,jwt=token,n=++serial;
- const idp=enc(id);
+ busy=true;const id=user,jwt=token,n=++serial;const idp=enc(id);
  try{
-  const [admins,members,subs,businesses,real,bonus,ma,mc,cy,moves,superRoles,products]=await Promise.all([
-  read('cc_admins?select=user_id&user_id=eq.'+idp+'&limit=1'),
-  read('cc_memberships?select=id,role,status,business_id&user_id=eq.'+idp),
-  read('cc_subscriptions?select=membership_id,status,end_at&order=end_at.desc&limit=150'),
-  read('cc_businesses?select=id,code,display_name'),
-  read('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+idp),
-  read('cc_cobra_welcome_bonus_wallets?select=balance_pen&user_id=eq.'+idp+'&limit=1'),
-  read('ma_accounts?select=subscription_until,suspended,bonus_pen&user_id=eq.'+idp+'&limit=1'),
-  read('mc_accounts?select=subscription_until,suspended,bonus_pen&user_id=eq.'+idp+'&limit=1'),
-  read('cc_cobra_real_access_periods?select=status,period_end&user_id=eq.'+idp+'&order=period_end.desc&limit=20'),
-  readMoves(),
-  read('cc_portal_super_resellers?select=enabled,user_id,admin_percent&user_id=eq.'+idp+'&limit=1'),
-  read('cc_portal_stream_products?select=id,seller_id,service,title,price_pen,stock,status&order=created_at.desc&limit=60')
+  const [admins,members,subs,businesses,real,bonus,ma,mc,cy,moves,superRoles,products,shopOrders,plans]=await Promise.all([
+   read('cc_admins?select=user_id&user_id=eq.'+idp+'&limit=1'),
+   read('cc_memberships?select=id,role,status,business_id&user_id=eq.'+idp),
+   read('cc_subscriptions?select=membership_id,status,start_at,end_at&order=end_at.desc&limit=150'),
+   read('cc_businesses?select=id,code,display_name'),
+   read('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+idp),
+   read('cc_cobra_welcome_bonus_wallets?select=balance_pen&user_id=eq.'+idp+'&limit=1'),
+   read('ma_accounts?select=subscription_until,suspended,bonus_pen&user_id=eq.'+idp+'&limit=1'),
+   read('mc_accounts?select=subscription_until,suspended,bonus_pen&user_id=eq.'+idp+'&limit=1'),
+   read('cc_cobra_real_access_periods?select=status,period_end&user_id=eq.'+idp+'&order=period_end.desc&limit=20'),
+   readMoves(),
+   read('cc_portal_super_resellers?select=enabled,user_id,admin_percent&user_id=eq.'+idp+'&limit=1'),
+   read('cc_portal_stream_products?select=id,seller_id,service,title,description,duration_days,price_pen,stock,status&order=created_at.desc&limit=100'),
+   read('cc_portal_stream_orders?select=id,checkout_key,buyer_id,seller_id,title,price_pen,admin_fee_pen,seller_payable_pen,seller_whatsapp,status,created_at&order=created_at.desc&limit=100'),
+   read('cc_plans?select=business_id,code,price_pen,is_active&code=eq.STREAM_365&is_active=eq.true')
   ]);
   if(!active(id,jwt,n))return;
+  const hasSub=m=>subs.some(sub=>sub.membership_id===m.id&&sub.status==='ACTIVE'&&
+   Date.parse(sub.start_at||0)<=Date.now()&&Date.parse(sub.end_at)>Date.now());
   const streamId=businesses.find(x=>x.code==='STREAM_BULLS')?.id;
-  const streamActive=members.some(m=>m.business_id===streamId&&m.status==='ACTIVE'&&m.role==='SUPER_RESELLER'&&
-    subs.some(s=>s.membership_id===m.id&&s.status==='ACTIVE'&&Date.parse(s.end_at)>Date.now()));
-  data={admin:admins.some(x=>x.user_id===id),super:!!superRoles[0]?.enabled&&streamActive,
-   members,subs,businesses,real,mc:mc[0]||null,ma:ma[0]||null,cy,moves,products,requests:data.requests,
-   bonuses:[{label:'Bono COBRA YA',amount:Number(bonus[0]?.balance_pen||0)},
-   {label:'Bono MI COCHERA',amount:Number(mc[0]?.bonus_pen||0)},
-   {label:'Bono MI ALQUILER',amount:Number(ma[0]?.bonus_pen||0)}].filter(x=>Number.isFinite(x.amount)&&x.amount>0)};
+  const activeStream=members.some(m=>m.business_id===streamId&&m.status==='ACTIVE'&&
+    m.role==='SUPER_RESELLER'&&hasSub(m));
+  const currentRoleReseller=members.some(m=>m.status==='ACTIVE'&&
+     (m.role==='RESELLER'||m.role==='SUPER_RESELLER')&&hasSub(m))||
+    (mc[0]?.subscription_until&&!mc[0]?.suspended&&Date.parse(mc[0].subscription_until)>Date.now())||
+    (ma[0]?.subscription_until&&!ma[0]?.suspended&&Date.parse(ma[0].subscription_until)>Date.now())||
+    cy.some(x=>x.status==='ACTIVE'&&Date.parse(x.period_end)>Date.now());
+  data={
+   admin:admins.some(x=>x.user_id===id),
+   super:!!superRoles[0]?.enabled&&activeStream,
+   reseller:!!currentRoleReseller,
+   members,subs,businesses,real,
+   mc:mc[0]||null,ma:ma[0]||null,cy,moves,products,orders:shopOrders,
+   requests:data.requests,
+   plan:plans.find(p=>p.business_id===streamId)||null,
+   bonuses:[
+    {label:'Bono COBRA YA',amount:Number(bonus[0]?.balance_pen||0)},
+    {label:'Bono MI COCHERA',amount:Number(mc[0]?.bonus_pen||0)},
+    {label:'Bono MI ALQUILER',amount:Number(ma[0]?.bonus_pen||0)}
+   ].filter(x=>Number.isFinite(x.amount)&&x.amount>0)
+  };
   verified=true;render();
- }catch(e){if(active(id,jwt,n))notice('Algunos datos no están disponibles; revisa el servidor.');}
+ }catch(e){if(active(id,jwt,n))notice('La consulta de datos no fue completada; vuelve a actualizar.');}
  finally{if(user===id&&token===jwt)busy=false;}
 }
 function sync(){
