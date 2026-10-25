@@ -73,7 +73,14 @@ function openCatalog(){
  if(typeof window.cc77Store==='function'){app.hidden=true;window.cc77Store();return;}
  notice('El catálogo público está temporalmente inaccesible.');
 }
-function nav(to){if(to==='shop'){openCatalog();return;}view=to;render();}
+function nav(to){
+ if(to==='shop'){openCatalog();return;}
+ // Al pulsar una sección principal, mostrar su vista inicial.
+ // Las pestañas internas cambian el estado sin reiniciar la navegación.
+ if(to==='admin')adminTab='accounts';
+ if(to==='wallet')walletTab='summary';
+ view=to;render();
+}
 function notice(msg){const page=el('cc166-content');if(!page)return;const p=make('p','cc166-notice',msg);p.setAttribute('role','status');page.prepend(p);}
 function mountLauncher(){
  const actions=el('cc77home')?.querySelector('.cc77top .cc77actions');
