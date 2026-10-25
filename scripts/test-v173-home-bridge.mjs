@@ -27,9 +27,9 @@ assert.ok(html.includes('id="cc93-affiliate" hidden'),'Marcador de compatibilida
 assert.ok(html.includes('scripts/v151-portal-polish.js?v=1731'),'El portal conserva versión antigua en caché');
 assert.ok(loader.includes('scripts/v166-portal-roles.js?v=1731')&&
  loader.includes('scripts/v169-catalogo-unico.js?v=1731'),'Scripts no versionados');
-assert.ok(panel.includes('window.cc166OpenStreamMembership=()=>{
-  sync();'.replace('\n','\n')),
-  'No existe destino único de membresía');
+assert.ok(panel.includes('window.cc166OpenStreamMembership=()=>{')&&
+ panel.includes("view='business:STREAM_BULLS'"),
+ 'No existe destino único de membresía');
 let real=0,auth=0,panelOpen=0,alerts=0;
 const win={CC_V53_SESSION:{jwt:'synthetic'},cc166OpenStreamMembership:()=>{real++;}};
 const ctx={window:win,cc77Auth:()=>{auth++},alert:()=>{alerts++}};
