@@ -7,7 +7,6 @@ const el=id=>document.getElementById(id);
 const api=(p,m,b)=>window.cc80.api(p,m,b);
 const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'COBRA YA',MI_COCHERA:'MI COCHERA',MI_ALQUILER:'MI ALQUILER'})[k]||k;
 const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],['MI_ALQUILER','⌂']];
-const sidebar=[['home','◫','Dashboard'],['businesses','▦','Negocios'],['wallet','▤','Billetera'],['movements','≡','Movimientos'],['orders','◱','Pedidos'],['affiliate','♧','Mis afiliados'],['external','⇄','Control externo'],['support','◌','Soporte'],['profile','♙','Mi perfil']];
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let data={admin:false,super:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null};
 let lastReceipt=null,purchasePending=false,membershipPending=false;
@@ -37,7 +36,7 @@ function access(code){
  const ids=new Set(data.businesses.filter(b=>b.code===code).map(b=>b.id));
  for(const m of data.members){
   if(!ids.has(m.business_id)||m.status!=='ACTIVE')continue;
-  if(data.subs.some(s=>s.membership_id===m.id&&s.status==='ACTIVE'&&Date.parse(s.end_at)>Date.now()))
+  if(data.subs.some(s=>s.membership_id===m.id&&s.status==='ACTIVE'&&Date.parse(s.start_at)<=Date.now()&&Date.parse(s.end_at)>Date.now()))
    return {ok:true,reason:'Vigente'};
  }
  return {ok:false,reason:'Membresía pendiente o vencida'};
@@ -46,18 +45,6 @@ function exitTo(fn){
  if(typeof fn!=='function')return;
  app.hidden=true;
  try{fn();}catch(e){app.hidden=false;notice('No se pudo abrir el módulo actual.');}
-}
-function gotoBusiness(code){
- // Cambia a la pestaña del negocio, sin abrir otro dashboard ni duplicar controles.
- nav('business:'+code);
-}
-function openOriginalBusiness(code){
- if(!access(code).ok){notice('Primero activa tu membresía para usar '+serviceName(code)+'.');return;}
- if(code==='MI_COCHERA')return exitTo(()=>window.mc158Open?.());
- if(code==='MI_ALQUILER')return exitTo(()=>window.ma1611MiAlquiler?.open());
- if(code==='COBRA_YA')return exitTo(()=>window.cc79Cobra?.());
- // El catálogo y las publicaciones de STREAM se gestionan en ESTE MISMO PANEL.
- nav('business:STREAM_BULLS');
 }
 function card(title,desc){
  const box=make('article','cc166-card');box.append(make('h2','',title));
@@ -523,26 +510,26 @@ function render(){
  default:other(page);
  }
 }
-async function read(path){try{const r=await api(path);return Array.isArray(r)?r:[];}catch(_){return[];}}
+async function read(path,required=false){try{const r=await api(path);if(!Array.isArray(r))throw Error('Respuesta inválida');return r;}catch(e){if(required)throw e;return[];}}
 async function readMoves(){try{const r=await api('rpc/cc_my_real_wallet_movements','POST',{p_service:null,p_limit:120});return Array.isArray(r)?r:[];}catch(_){return[];}}
 async function load(){
  if(!user||busy||!window.cc80?.api)return;
  busy=true;const id=user,jwt=token,n=++serial;const idp=enc(id);
  try{
   const [admins,members,subs,businesses,real,bonus,ma,mc,cy,moves,superRoles,products,shopOrders,plans]=await Promise.all([
-   read('cc_admins?select=user_id&user_id=eq.'+idp+'&limit=1'),
-   read('cc_memberships?select=id,role,status,business_id&user_id=eq.'+idp),
-   read('cc_subscriptions?select=membership_id,status,start_at,end_at&order=end_at.desc&limit=150'),
-   read('cc_businesses?select=id,code,display_name'),
-   read('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+idp),
+   read('cc_admins?select=user_id&user_id=eq.'+idp+'&limit=1',true),
+   read('cc_memberships?select=id,role,status,business_id&user_id=eq.'+idp,true),
+   read('cc_subscriptions?select=membership_id,status,start_at,end_at&order=end_at.desc&limit=150',true),
+   read('cc_businesses?select=id,code,display_name',true),
+   read('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+idp,true),
    read('cc_cobra_welcome_bonus_wallets?select=balance_pen&user_id=eq.'+idp+'&limit=1'),
    read('ma_accounts?select=subscription_until,suspended,bonus_pen&user_id=eq.'+idp+'&limit=1'),
    read('mc_accounts?select=subscription_until,suspended,bonus_pen&user_id=eq.'+idp+'&limit=1'),
    read('cc_cobra_real_access_periods?select=status,period_end&user_id=eq.'+idp+'&order=period_end.desc&limit=20'),
    readMoves(),
    read('cc_portal_super_resellers?select=enabled,user_id,admin_percent&user_id=eq.'+idp+'&limit=1'),
-   read('cc_portal_stream_products?select=id,seller_id,service,title,description,duration_days,price_pen,stock,status&order=created_at.desc&limit=100'),
-   read('cc_portal_stream_orders?select=id,checkout_key,buyer_id,seller_id,title,price_pen,admin_fee_pen,seller_payable_pen,seller_whatsapp,status,created_at&order=created_at.desc&limit=100'),
+   read('cc_portal_stream_products?select=id,seller_id,service,title,description,duration_days,price_pen,stock,status&order=created_at.desc&limit=100',true),
+   read('cc_portal_stream_orders?select=id,checkout_key,buyer_id,seller_id,title,price_pen,admin_fee_pen,seller_payable_pen,seller_whatsapp,status,created_at&order=created_at.desc&limit=100',true),
    read('cc_plans?select=business_id,code,price_pen,is_active&code=eq.STREAM_365&is_active=eq.true')
   ]);
   if(!active(id,jwt,n))return;
@@ -571,7 +558,7 @@ async function load(){
    ].filter(x=>Number.isFinite(x.amount)&&x.amount>0)
   };
   verified=true;render();
- }catch(e){if(active(id,jwt,n))notice('La consulta de datos no fue completada; vuelve a actualizar.');}
+ }catch(e){if(active(id,jwt,n)){verified=false;render();notice('No fue posible verificar los datos reales. Compras y activaciones permanecerán bloqueadas hasta actualizar.');}}
  finally{if(user===id&&token===jwt)busy=false;}
 }
 function sync(){
