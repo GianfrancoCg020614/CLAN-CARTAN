@@ -11,16 +11,16 @@ const css=fs.readFileSync('styles/v166-portal-roles.css','utf8');
 const home='<div id="cc77home"><div class="cc77top"><div class="cc77actions"></div></div><div class="cc77cards"><article class="cc77card"><button>STREAM</button></article><article class="cc77card"><button>COBRA</button></article></div></div>';
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'cc166-'));
 try{
- for(const mode of ['affiliate','reseller','super','admin']){
+ for(const mode of ['affiliate','reseller','super','admin','pending-super','pending-reseller']){
   const setup=[
    'window.CC_V53_SESSION={jwt:"TEST-ONLY-JWT",userId:"fake-user"};',
    'window.cc80={open(){},api:async function(path,method,body){',
    'if(path.indexOf("cc_admins?")===0)return '+(mode==='admin'?'[{user_id:"fake-user"}]':'[]')+';',
-   'if(path.indexOf("cc_memberships?")===0)return '+(mode==='super'||mode==='reseller'?'[{id:"stream-member",business_id:"stream-business",role:"'+(mode==='super'?'SUPER_RESELLER':'RESELLER')+'",status:"ACTIVE"}]':'[]')+';',
+   'if(path.indexOf("cc_memberships?")===0)return '+(['super','reseller','pending-super','pending-reseller'].includes(mode)?'[{id:"stream-member",business_id:"stream-business",role:"'+(mode.includes('super')?'SUPER_RESELLER':'RESELLER')+'",status:"'+(mode.startsWith('pending')?'PENDING':'ACTIVE')+'"}]':'[]')+';',
    'if(path.indexOf("cc_subscriptions?")===0)return '+(mode==='super'||mode==='reseller'?'[{membership_id:"stream-member",status:"ACTIVE",start_at:"2026-01-01",end_at:"2099-12-31"}]':'[]')+';',
    'if(path.indexOf("cc_businesses?")===0)return [{id:"stream-business",code:"STREAM_BULLS"}];',
    'if(path.indexOf("cc_real_service_wallets?")===0)return [{service:"COBRA_YA",balance_pen:12.50}];',
-   'if(path.indexOf("cc_portal_super_resellers?")===0)return '+(mode==='super'?'[{user_id:"fake-user",enabled:true,admin_percent:20}]':'[]')+';',
+   'if(path.indexOf("cc_portal_super_resellers?")===0)return '+(['super','pending-super'].includes(mode)?'[{user_id:"fake-user",enabled:true,admin_percent:20}]':'[]')+';',
    'if(path.indexOf("cc_portal_stream_products?")===0)return [{id:"fake-product",seller_id:"seller-other",title:"Netflix mensual",service:"Netflix",price_pen:12.5,description:"Netflix 30 días",duration_days:30,stock:4,status:"ACTIVE"}];',
    'if(path.indexOf("rpc/cc_my_real_wallet_movements")===0)return [{service:"COBRA_YA",amount_pen:-3.50,movement_type:"PURCHASE",description:"Activación STREAM BULLS",occurred_at:"2026-10-25T12:00:00Z"}];',
    'if(path.indexOf("cc_plans?")===0)return [{code:"STREAM_365",business_id:"stream-business",price_pen:25,is_active:true}];',
@@ -42,8 +42,11 @@ try{
    'const menuAdmin=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Administración"));',
    'const menuPublish=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Publicar"));',
    'const controlsOK=!!window.cc166OpenPanel&&!!window.cc166RefreshPanel;',
-   'const checks={rendered,zIndex,launcherInstalled,closes,reopens,oldHome,actualBalance,businessCount,controlsOK,roleValid:',
-   mode==='admin'?'role.includes("ADMIN"),adminValid:menuAdmin,superValid:menuPublish':mode==='super'?'role.includes("SÚPER"),adminValid:!menuAdmin,superValid:menuPublish':mode==='reseller'?'role.includes("RESELLER"),adminValid:!menuAdmin,superValid:!menuPublish':'role.includes("AFILIADO"),adminValid:!menuAdmin,superValid:!menuPublish',
+   'const movementMenuCount=[...document.querySelectorAll(".cc166-navitem")].filter(b=>b.textContent.includes("Movimientos")).length===1;',
+   'const minimalAffiliateMenu=!["Administración","Publicar","Mis ventas","Referidos","Control externo"].some(x=>[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes(x)));',
+   'const pendingNoAdvanced=!["Publicar","Administración"].some(x=>[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes(x)));',
+   'const checks={rendered,zIndex,launcherInstalled,closes,reopens,oldHome,actualBalance,businessCount,controlsOK,movementMenuCount,limitedRoleMenus:mode==="affiliate"?minimalAffiliateMenu:mode.startsWith("pending")?pendingNoAdvanced:true,roleValid:',
+   mode==='admin'?'role.includes("ADMIN"),adminValid:menuAdmin,superValid:menuPublish':mode==='super'?'role.includes("SÚPER"),adminValid:!menuAdmin,superValid:menuPublish':mode==='reseller'?'role.includes("RESELLER"),adminValid:!menuAdmin,superValid:!menuPublish':mode==='pending-super'?'role.includes("SÚPER RESELLER")&&role.includes("MEMBRESÍA PENDIENTE"),adminValid:!menuAdmin,superValid:!menuPublish':mode==='pending-reseller'?'role.includes("RESELLER")&&role.includes("MEMBRESÍA PENDIENTE"),adminValid:!menuAdmin,superValid:!menuPublish':'role.includes("AFILIADO"),adminValid:!menuAdmin,superValid:!menuPublish',
    ',mobileWidth:document.documentElement.scrollWidth<=innerWidth+3};',
    'const n=document.createElement("output");n.id="cc166-smoke";',
    'n.dataset.status=Object.values(checks).every(Boolean)?"pass":"fail";n.textContent=JSON.stringify(checks);document.body.append(n);',
