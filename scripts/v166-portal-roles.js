@@ -395,29 +395,63 @@ function publish(page){
    ['Netflix','YouTube','Disney+','Prime Video','HBO','Paramount+','Google One','Spotify','Crunchyroll','CapCut','Canva','ChatGPT Plus','Otro'].forEach(n=>{const o=make('option','',n);o.value=n;input.append(o);});}
   else if(type==='textarea'){input=document.createElement('textarea');input.rows=2;input.maxLength=1000;}
   else{input=document.createElement('input');input.type=type;if(type==='number'){input.min=key==='days'?'1':'0';input.step=key==='days'||key==='stock'?'1':'0.01';}}
-  input.name=key;if(key!=='description')input.required=true;if(key==='days')input.value='30';label.append(input);form.append(label);
+  input.name=key;if(key!=='description')input.required=true;if(key==='whatsapp')input.placeholder='51912345678';if(key==='days')input.value='30';label.append(input);form.append(label);
  }
  const save=make('button','cc166-primary','Publicar servicio');save.type='submit';form.append(save);
  form.addEventListener('submit',e=>{e.preventDefault();void publishSave(new FormData(form),save);});
  box.append(form);page.append(box);
- const list=card('Publicaciones registradas','Una publicación NO significa que el checkout esté habilitado.');
+ const list=card('Mis servicios publicados','Compra habilitada con saldo REAL; cada venta crea pedido y queda pendiente de entrega.');
  const products=data.products.filter(p=>data.admin||p.seller_id===user);
  if(!products.length)list.append(make('p','cc166-empty','Aún no hay publicaciones.'));
- for(const p of products){const row=make('div','cc166-product');row.append(make('strong','',p.title),
- make('span','',p.service+' · '+price(p.price_pen)+' · Stock '+p.stock+' · '+p.status));list.append(row);}
+ for(const p of products){
+  const row=make('div','cc166-product cc167-stock-row');
+  row.append(make('strong','',p.title));
+  row.append(make('span','',p.service+' · '+price(p.price_pen)+' · Stock '+p.stock+' · '+p.status));
+  const actions=make('div','cc167-actions');
+  actions.append(button('Actualizar stock',()=>void editProduct(p,'stock'),'cc166-secondary'));
+  actions.append(button(p.status==='ACTIVE'?'Pausar':'Reactivar',()=>void editProduct(p,'status'),'cc166-secondary'));
+  actions.append(button('WhatsApp',()=>void editProduct(p,'whatsapp'),'cc166-secondary'));
+  row.append(actions);list.append(row);
+ }
  page.append(list);
+}
+async function editProduct(p,kind){
+ const args={p_product_id:p.id,p_stock:null,p_status:null,p_whatsapp:null};
+ if(kind==='stock'){
+  const answer=window.prompt('Stock disponible para '+p.title+' (0 a 100000):',String(p.stock));
+  if(answer===null)return;
+  const n=Number(answer);
+  if(!Number.isInteger(n)||n<0||n>100000){notice('Ingresa un stock entero válido.');return;}
+  args.p_stock=n;
+ }else if(kind==='status'){
+  const next=p.status==='ACTIVE'?'PAUSED':'ACTIVE';
+  if(!window.confirm('¿Cambiar '+p.title+' a '+(next==='ACTIVE'?'Activo':'Pausado')+'?'))return;
+  args.p_status=next;
+ }else{
+  const answer=window.prompt('WhatsApp internacional del vendedor (ej. 51912345678):');
+  if(answer===null)return;
+  const phone=answer.replace(/[^0-9]/g,'');
+  if(!/^[1-9][0-9]{7,14}$/.test(phone)){notice('El WhatsApp debe tener código de país y entre 8 y 15 dígitos.');return;}
+  args.p_whatsapp=phone;
+ }
+ const uid=user,jwt=token;
+ try{
+  await api('rpc/cc_portal_update_stream_product','POST',args);
+  if(session()?.userId!==uid||session()?.jwt!==jwt)return;
+  await load();view='publish';render();notice('Producto actualizado correctamente.');
+ }catch(e){if(session()?.userId===uid)notice('No se actualizó: '+String(e?.message||e));}
 }
 async function publishSave(fd,b){
  if(!user||!verified)return;
  const s=session(),uid=user,jwt=token;
  const value=k=>String(fd.get(k)||'').trim(),days=Number(value('days')),stock=Number(value('stock')),p=Number(value('price')),c=Number(value('cost'));
- if(!(p>0&&c>=0&&c<=p&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=0)){notice('Verifica precio, costo, stock y duración.');return;}
+ if(!(p>0&&c>=0&&c<=p&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1)){notice('Verifica precio, costo, stock y duración.');return;}
  b.disabled=true;
  try{await api('rpc/cc_portal_publish_stream_product','POST',{
  p_service:value('service'),p_title:value('title'),p_duration_days:days,p_price_pen:p,
  p_cost_pen:c,p_stock:stock,p_whatsapp:value('whatsapp'),p_description:value('description')});
  if(session()?.userId!==uid||session()?.jwt!==jwt)return;
- await load();nav('publish');notice('Servicio registrado. El cobro comercial continúa sujeto a checkout autorizado.');
+ await load();nav('publish');notice('Servicio publicado en el catálogo. Las compras se descuentan del saldo REAL y se registran en Mis ventas.');
  }catch(e){if(session()?.userId===uid)notice('No se pudo publicar: '+String(e.message||e));}
  finally{b.disabled=false;}
 }
