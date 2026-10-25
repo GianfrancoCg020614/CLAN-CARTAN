@@ -6,6 +6,8 @@
 (function () {
   'use strict';
   const ROOT='https://pqalxtrcyrpmwqdlibqd.supabase.co';
+  const UUID='[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+  const FLYER_RE=new RegExp('^'+UUID+'/'+UUID+'/'+UUID+'\\.(jpg|jpeg|png|webp)$');
   // Publishable key que ya utiliza index.html: NO es una service_role key.
   const KEY='sb_publishable_nsp19gAqsdRak3JqWpusUg_Qd6mQr0n';
   let rows=[],loading=false,loaded=false,error='',revision=0,scheduled=false,inFlight=null,showcase=null;
@@ -42,9 +44,31 @@
   function buildCard(product){
     const card=text('article','product lux v23-product-card cc169-offer');
     const cover=text('div','product-visual cc169-offer-cover');
-    cover.append(text('span','cc169-cover-brand',"STREAM BULL'S"));
-    cover.append(text('strong','cc169-cover-title',product.service));
-    cover.append(text('span','cc169-cover-status','Publicación activa'));
+    const flyerPath=String(product.flyer_path||'');
+    const flyerUrl=FLYER_RE.test(flyerPath)?
+      ROOT+'/storage/v1/object/public/cc-stream-flyers/'+flyerPath:'';
+    if(flyerUrl){
+      cover.classList.add('cc170-cover-with-image');
+      const preview=button('Ver flyer ampliado',()=>{
+        window.cc170Flyers?.openPreview(flyerUrl,product.title,product.description);
+      },'cc170-catalog-cover-button');
+      preview.title='Ver flyer de '+product.title;
+      const image=text('img','cc170-public-flyer');
+      image.src=flyerUrl;image.alt='Flyer publicitario de '+product.title;
+      image.loading='lazy';image.decoding='async';
+      image.onerror=()=>{
+        cover.classList.remove('cc170-cover-with-image');
+        cover.replaceChildren(text('span','cc169-cover-brand',"STREAM BULL'S"),
+          text('strong','cc169-cover-title',product.service),
+          text('span','cc169-cover-status','Publicación activa'));
+      };
+      preview.prepend(image);
+      cover.append(preview);
+    }else{
+      cover.append(text('span','cc169-cover-brand',"STREAM BULL'S"));
+      cover.append(text('strong','cc169-cover-title',product.service));
+      cover.append(text('span','cc169-cover-status','Publicación activa'));
+    }
     const body=text('div','product-body');
     const meta=text('div','product-topmeta');
     meta.append(text('span','v23-product-category',isStreaming(product.service)?'Streaming':'Recursos'));
@@ -70,6 +94,7 @@
       if(el.getAttribute('role')==='button')el.setAttribute('role','img');
     });
     clone.querySelectorAll('button').forEach(b=>{b.disabled=true;b.textContent='Muestra informativa';});
+    clone.querySelectorAll('a[href]').forEach(a=>{a.removeAttribute('href');a.removeAttribute('target');a.setAttribute('aria-disabled','true');});
     clone.querySelectorAll('.v23-card-price strong,.detail-price,.availability-badge').forEach(el=>{
       el.textContent='Sin publicación verificada';
     });
@@ -140,7 +165,7 @@
     const timeout=setTimeout(()=>controller.abort(),16000);
     inFlight=(async()=>{
       try{
-        const response=await fetch(ROOT+'/rest/v1/rpc/cc_portal_public_catalog',{
+        const response=await fetch(ROOT+'/rest/v1/rpc/cc_portal_public_catalog_v2',{
           method:'POST',
           headers:{apikey:KEY,'Content-Type':'application/json'},
           body:'{}',signal:controller.signal
@@ -153,7 +178,7 @@
       }catch(_){
         rows=[];loaded=false;error='No se pudo verificar el catálogo.';
       }finally{
-        clearTimeout(timeout);loading=false;inFlight=null;revision++;schedule();
+        clearTimeout(timeout);loading=false;inFlight=null;revision++;render();
       }
     })();
     return inFlight;
@@ -171,6 +196,7 @@
     });
     window.cc169OpenCatalog=openCatalog;
     window.cc169RefreshCatalog=refresh;
+    render();
     void refresh();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});

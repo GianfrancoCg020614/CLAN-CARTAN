@@ -99,11 +99,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  if(!document.getElementById('cc166-panel-style')){
   const css=document.createElement('link');css.id='cc166-panel-style';
-  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=1691';document.head.append(css);
+  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=1701';document.head.append(css);
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=1691';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=1701';script.async=false;document.head.append(script);
  }
 })();
 
@@ -120,7 +120,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc169-public-catalog-script')){
   const script=document.createElement('script');script.id='cc169-public-catalog-script';
-  script.src='scripts/v169-catalogo-unico.js?v=1691';
+  script.src='scripts/v169-catalogo-unico.js?v=1701';
+  script.async=false;document.head.append(script);
+ }
+})();
+
+
+/* V170: solo flyers de STREAM BULL'S, el mismo panel y catálogo V169. */
+(function(){
+ 'use strict';
+ if(!document.getElementById('cc170-stream-flyers-style')){
+  const css=document.createElement('link');css.id='cc170-stream-flyers-style';
+  css.rel='stylesheet';css.href='styles/v170-flyers-stream.css?v=1701';
+  document.head.append(css);
+ }
+ if(!document.getElementById('cc170-stream-flyers-script')){
+  const script=document.createElement('script');script.id='cc170-stream-flyers-script';
+  script.src='scripts/v170-flyers-stream.js?v=1701';
   script.async=false;document.head.append(script);
  }
 })();

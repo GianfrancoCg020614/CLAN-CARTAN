@@ -31,6 +31,9 @@ const setup=[
  'return [];}};'
 ].join('\n');
 const check=[
+ 'const signal=document.createElement("output");signal.id="cc167-debug";signal.textContent="initialized";document.body.append(signal);',
+ 'window.onerror=(...args)=>{signal.textContent="ERROR "+args.slice(0,3).join(" / ")};',
+ 'window.onunhandledrejection=e=>{signal.textContent="REJECTION "+String(e.reason)};',
  'setTimeout(async()=>{try{',
  'const $=q=>document.querySelector(q), $$=q=>document.querySelectorAll(q);',
  'const role=($("#cc166-role")?.textContent||"").includes("AFILIADO");',
@@ -39,6 +42,7 @@ const check=[
  'const top=Number(getComputedStyle($("#cc166-panel")).zIndex)>2147483638;',
  'const navBuy=[...$$(".cc166-navitem")].find(b=>b.textContent.includes("Comprar"));navBuy?.click();',
  'setTimeout(()=>{',
+ 'signal.textContent="catalog rendered="+document.querySelectorAll(".cc169-offer").length;',
  'const usedOriginal=window.__catalogOpen>=1&&$("#cc166-panel")?.hidden===true;',
  'const singleCatalog=$$(".cc169-offer").length===1&&$$(".cc167-product").length===0;',
  'const button=$(".cc169-offer button");button?.click();',
@@ -77,7 +81,7 @@ try{
   {encoding:'utf8',timeout:25000,maxBuffer:12*1024*1024});
  assert.equal(run.status,0,'Chrome falló: '+String(run.stderr).slice(-500));
  const mark=run.stdout.match(/<output id="cc167-smoke" data-status="(pass|fail)">([^<]*)<\/output>/);
- assert.ok(mark,'No se ejecutó checkout sintético');
+ assert.ok(mark,'No se ejecutó checkout sintético. Estado: '+(run.stdout.match(/<output id="cc167-debug"[^>]*>[^<]*/)?.[0]||'ausente')+' / HTML: '+run.stdout.slice(-1700));
  assert.equal(mark[1],'pass','Fallo en compra desde catálogo único: '+mark[2]);
  console.log('PASS checkout V169 · AFILIADO compra desde catálogo público, recibo y WhatsApp.');
 }finally{fs.rmSync(dir,{force:true,recursive:true});}

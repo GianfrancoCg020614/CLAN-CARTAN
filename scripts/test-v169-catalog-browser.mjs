@@ -17,6 +17,7 @@ try{
   ]);
   const setup=[
    'window.__payments=[];window.__login=0;window.__profileOpen=0;',
+   'window.__errors=[];window.onerror=(msg,src,line)=>window.__errors.push(String(msg)+" @"+line);',
    'window.cc166OpenProfile=()=>{window.__profileOpen++};',
    'window.fetch=async()=>({ok:true,json:async()=>'+offers+'});',
    'window.cc77Auth=()=>{window.__login++};window.cc77Store=()=>{};',
@@ -52,8 +53,9 @@ try{
    'const nameCorrect='+JSON.stringify(mode==='authenticated')+'?profileLink?.textContent==="Mi perfil":profileLink?.textContent==="Mi cuenta";',
    'if('+JSON.stringify(mode==='authenticated')+')profileLink?.click();',
    'const profileShortcut='+JSON.stringify(mode==='authenticated')+'?window.__profileOpen===1:window.__profileOpen===0;',
-   'const checks={correctOffers,noDemo,buyingCorrect,safeSample,nameCorrect,profileShortcut,noScroll:document.documentElement.scrollWidth<=innerWidth+5};',
-   'const n=document.createElement("output");n.id="catalog-smoke";n.dataset.status=Object.values(checks).every(Boolean)?"pass":"fail";n.textContent=JSON.stringify(checks);document.body.append(n);',
+   'const debug={errors:window.__errors,init:typeof window.cc169OpenCatalog,source:document.querySelector(".v23-catalog-section")?.dataset.cc169State,body:document.querySelector(".v23-catalog-section")?.textContent?.slice(0,230)};',
+   'const checks={correctOffers,noDemo,buyingCorrect,safeSample,nameCorrect,profileShortcut,noScroll:document.documentElement.scrollWidth<=innerWidth+5,debug};',
+   'const n=document.createElement("output");n.id="catalog-smoke";n.dataset.status=Object.values(checks).filter(x=>typeof x==="boolean").every(Boolean)?"pass":"fail";n.textContent=JSON.stringify(checks);document.body.append(n);',
    '}catch(e){const n=document.createElement("output");n.id="catalog-smoke";n.dataset.status="fail";n.textContent=String(e);document.body.append(n)}},650);</script>',
    '</body></html>'
   ].join('\n');
