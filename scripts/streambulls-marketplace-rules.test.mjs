@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   activationWindow, serviceActivationWindow, canAutoPublish,
+  limaCalendarDate, contractedServiceWindow, contractedServiceStatus,
+  DEFAULT_CONTRACTED_SERVICE_DAYS,
   ACCOUNT_SLOT_STATES, CONNECTION_DEVICE_TYPES, accountSlotSummary,
   addAccountSlot, disableAccountSlot, allocateAccountSlot,
   releaseAccountSlot, restoreAccountSlot, connectionEvent,
@@ -19,7 +21,7 @@ test('STREAM BULLS: S/25 suscripción anual, inicio día 1, día 365 a las 23:59
   assert.equal(STREAM_BULLS_ANNUAL_PEN_CENTS, 2500);
   assert.deepEqual(serviceActivationWindow('STREAM_BULLS', '2026-10-24'), {
     startDate: '2026-10-24', endDate: '2027-10-23',
-    displayEndsAt: '2027-10-23 23:59',
+    displayEndsAt: '2027-10-23 23:59:59',
     expiresAtExclusiveLima: '2027-10-24 00:00',
     durationDays: 365, timezone: 'America/Lima'
   });
@@ -29,7 +31,7 @@ test('otros tres negocios: día de activación = día 1 y día 30 a las 23:59', 
   for (const service of ['COBRA_YA', 'MI_COCHERA', 'MI_ALQUILER']) {
     const w = serviceActivationWindow(service, '2026-10-02');
     assert.equal(w.endDate, '2026-10-31');
-    assert.equal(w.displayEndsAt, '2026-10-31 23:59');
+    assert.equal(w.displayEndsAt, '2026-10-31 23:59:59');
     assert.equal(w.expiresAtExclusiveLima, '2026-11-01 00:00');
   }
 });
@@ -175,7 +177,7 @@ test('pestaña externa independiente cuesta S/10 por 30 días, día del pago = d
   const r = externalAddonRenewalWindow('2026-10-24');
   assert.equal(r.startDate, '2026-10-24');
   assert.equal(r.endDate, '2026-11-22');
-  assert.equal(r.displayEndsAt, '2026-11-22 23:59');
+  assert.equal(r.displayEndsAt, '2026-11-22 23:59:59');
   assert.equal(r.expiresAtExclusiveLima, '2026-11-23 00:00');
   assert.equal(r.durationDays, 30);
 });
@@ -365,4 +367,81 @@ test('PAGADO en verde, DEBE en rojo, sin modificar la ocupación del perfil', ()
   assert.equal(due.freesSlot,false);
   assert.equal(profilePaymentLabel('PARCIAL').color,'amber');
   assert.throws(() => profilePaymentLabel('NO_SÉ'));
+});
+
+
+test('contratos digitales: predeterminado 30 días, personalizable 1/7/15/45/60/90', () => {
+  assert.equal(DEFAULT_CONTRACTED_SERVICE_DAYS, 30);
+  assert.equal(contractedServiceWindow('2026-10-02T23:50:00-05:00').endDate, '2026-10-31');
+  for (const [days, expected] of [
+    [1,'2026-10-02'],[7,'2026-10-08'],[15,'2026-10-16'],
+    [45,'2026-11-15'],[60,'2026-11-30'],[90,'2026-12-30']
+  ]) {
+    const w = contractedServiceWindow('2026-10-02T15:00:00-05:00',days);
+    assert.equal(w.durationDays, days);
+    assert.equal(w.endDate, expected);
+    assert.equal(w.displayEndsAt, expected+' 23:59:59');
+    assert.equal(w.cutoffSecondLima, expected+' 23:59:59');
+    assert.equal(w.startDayCountsAsOne, true);
+  }
+  assert.throws(() => contractedServiceWindow('2026-10-02', 0));
+  assert.throws(() => contractedServiceWindow('2026-10-02', -7));
+  assert.throws(() => contractedServiceWindow('2026-10-02', 1.5));
+});
+
+test('activar a las 00:00 o a las 23:59 del mismo día genera exactamente la misma fecha de término', () => {
+  const early = contractedServiceWindow('2026-10-02T00:00:00-05:00');
+  const late = contractedServiceWindow('2026-10-02T23:59:00-05:00');
+  assert.equal(early.startDate, late.startDate);
+  assert.equal(early.endDate, late.endDate);
+  assert.equal(early.expiresAtExclusiveLima, '2026-11-01 00:00');
+});
+
+test('zona horaria Perú aunque recibamos un timestamp UTC que cae el día anterior', () => {
+  const w = contractedServiceWindow('2026-10-03T02:00:00Z'); // en Lima: 02/oct 21:00
+  assert.equal(w.startDate, '2026-10-02');
+  assert.equal(w.endDate, '2026-10-31');
+  assert.equal(limaCalendarDate('2026-11-01T04:59:59Z'),'2026-10-31');
+  assert.equal(limaCalendarDate('2026-11-01T05:00:00Z'),'2026-11-01');
+});
+
+test('a las 23:59:59 del último día está VIGENTE, 00:00:00 siguiente VENCIDO', () => {
+  const w = contractedServiceWindow('2026-10-02T18:27:01-05:00');
+  assert.equal(contractedServiceStatus(w,'2026-10-31T23:59:59-05:00'),'VIGENTE');
+  assert.equal(contractedServiceStatus(w,'2026-11-01T00:00:00-05:00'),'VENCIDO');
+  assert.equal(contractedServiceStatus(w,'2026-10-02T18:26:59-05:00'),'PENDIENTE');
+  assert.equal(contractedServiceStatus(w,'2026-10-02T18:27:01-05:00'),'VIGENTE');
+});
+
+test('un día contratado vence la misma noche aunque se active a las 23:59', () => {
+  const w = contractedServiceWindow('2026-10-24T23:59:15-05:00',1);
+  assert.equal(w.endDate,'2026-10-24');
+  assert.equal(contractedServiceStatus(w,'2026-10-24T23:59:59-05:00'),'VIGENTE');
+  assert.equal(contractedServiceStatus(w,'2026-10-25T00:00:00-05:00'),'VENCIDO');
+});
+
+test('al renovar el perfil con una nueva activación deja de estar vencido', () => {
+  const old = contractedServiceWindow('2026-10-02T15:00:00-05:00');
+  assert.equal(contractedServiceStatus(old,'2026-11-01T08:00:00-05:00'),'VENCIDO');
+  const renewed = contractedServiceWindow('2026-11-01T08:00:00-05:00',30);
+  assert.equal(contractedServiceStatus(renewed,'2026-11-01T08:00:00-05:00'),'VIGENTE');
+  assert.equal(renewed.endDate,'2026-11-30');
+});
+
+test('la duración variable de perfil NO modifica membresía fija STREAM BULLS de 365 días', () => {
+  const membership = serviceActivationWindow('STREAM_BULLS','2026-10-24');
+  const p1 = contractedServiceWindow('2026-10-24T23:05:00-05:00',90);
+  const p2 = contractedServiceWindow('2026-10-24T23:05:00-05:00',30);
+  assert.equal(membership.durationDays, 365);
+  assert.equal(p1.durationDays,90);
+  assert.equal(p2.durationDays,30);
+  assert.equal(p1.startDate,p2.startDate);
+  assert.notEqual(p1.endDate,p2.endDate);
+});
+
+test('fechas sin hora son fechas calendario elegidas directamente en Perú', () => {
+  const w = contractedServiceWindow('2026-10-02');
+  assert.equal(w.startDate,'2026-10-02');
+  assert.throws(() => contractedServiceWindow('2026-02-30'));
+  assert.throws(() => contractedServiceWindow('2026-10-02T19:00:00')); // sin zona
 });
