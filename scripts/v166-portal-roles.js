@@ -29,7 +29,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CUATRO NEGOCIOS · UNA CUENTA</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>V174 · CLAN CARTAN · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -657,7 +657,9 @@ function adminAccountRow(person){
  const info=make('div','cc171-identity');
  info.append(make('span','cc174-registry-id',person.registry_code||'Sin número'));
  info.append(make('strong','',person.registry_alias||person.display_name||person.email));
- info.append(make('small','',person.email));
+ let registered='—';
+ if(person.registered_at){try{registered=new Date(person.registered_at).toLocaleDateString('es-PE',{timeZone:'America/Lima'});}catch(_){}}
+ info.append(make('small','',person.email+' · Registro '+registered));
  identity.append(icon,info);wrap.append(identity);
  const type=make('div','cc171-person-role');
  type.append(make('strong','cc171-role-label',roleLabel(person.role_assigned)));
