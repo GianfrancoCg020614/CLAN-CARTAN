@@ -77,9 +77,24 @@
     clone.querySelectorAll('.v23-product-seller').forEach(el=>{el.textContent='Diseño de referencia';});
     return clone;
   }
+  function unifyProfileLink(){
+    const link=document.querySelector('#app .cc117-header .cc117-actions-top .cc117-register');
+    if(!link||!window.CC_V53_SESSION?.jwt||link.dataset.cc169Profile==='true')return;
+    // La cabecera de ESTE mismo catálogo abre la ficha personal global.
+    link.removeAttribute('onclick');
+    link.textContent='Mi perfil';
+    link.dataset.cc169Profile='true';
+    link.addEventListener('click',()=>{
+      if(typeof window.cc166OpenProfile==='function')window.cc166OpenProfile();
+      else window.cc77Home?.();
+    });
+  }
   function render(){
+    unifyProfileLink();
     const section=document.querySelector('#productos .v23-catalog-section');
     if(!section)return;
+    const oldBanner=el('cc77demobanner');
+    if(oldBanner)oldBanner.style.display='none'; // Estado de venta ya figura en el catálogo.
     const chosen=(typeof ui!=='undefined'?ui.storeCategory:'Todos');
     const term=el('cc117-search')?.value??(typeof ui!=='undefined'?ui.storeSearch:'');
     const state=revision+'|'+chosen+'|'+term+'|'+!!window.CC_V53_SESSION?.jwt;
