@@ -222,6 +222,162 @@ function movements(page){
  buttons.append(button('Abrir filtros y exportaciones',()=>exitTo(()=>window.cc132OpenMovements?.()),'cc166-primary'));
  page.append(buttons);movementList(page,120);
 }
+
+function orderMessage(order){
+ return 'Hola, solicito coordinar la entrega de mi compra en CLAN CARTAN.'+
+ '\nPedido: '+order.order_id+
+ '\nProducto: '+order.title+
+ '\nImporte pagado: '+price(order.price_pen)+
+ '\nEl pago ya fue descontado de mi billetera real.';
+}
+function notifySeller(order){
+ const phone=String(order?.seller_whatsapp||'').replace(/[^0-9]/g,'');
+ if(!/^[1-9][0-9]{7,14}$/.test(phone)){notice('Este pedido no tiene WhatsApp válido. Contacta al administrador.');return;}
+ const link='https://wa.me/'+phone+'?text='+encodeURIComponent(orderMessage(order));
+ const opened=window.open(link,'_blank','noopener,noreferrer');
+ if(!opened){
+  const a=make('a','cc166-primary','Abrir WhatsApp del vendedor');
+  a.href=link;a.target='_blank';a.rel='noopener noreferrer';
+  el('cc166-content')?.prepend(a);
+ }
+}
+function receipt(page){
+ if(!lastReceipt||lastReceipt.buyer_id!==user)return;
+ const box=make('section','cc167-receipt');
+ box.append(make('h3','','Compra confirmada · '+price(lastReceipt.price_pen)));
+ box.append(make('p','','Pedido '+lastReceipt.order_id+' · '+lastReceipt.title));
+ box.append(make('p','','Pago descontado y registrado. Pulsa Notificar vendedor y envía el mensaje desde WhatsApp.'));
+ box.append(button('Notificar al vendedor · WhatsApp',()=>notifySeller(lastReceipt),'cc166-primary'));
+ box.append(button('Ver mis compras',()=>nav('orders'),'cc166-secondary'));
+ page.append(box);
+}
+function shop(page){
+ title(page,'Comprar servicios · precios públicos','Cualquier usuario con cuenta puede comprar con saldo REAL, sin membresía de gestión.');
+ receipt(page);
+ const action=make('section','cc167-mini');
+ const real=data.real.reduce((a,b)=>a+Number(b.balance_pen||0),0);
+ const n=make('div','');n.append(make('small','','Saldo real disponible'),make('strong','',verified?price(real):'Consultando…'));
+ action.append(n,button('Recargar billetera',openRecharge,'cc166-primary'));page.append(action);
+ const items=data.products.filter(p=>p.status==='ACTIVE'&&Number(p.stock)>0);
+ if(!items.length){
+  const box=card('Catálogo de STREAM BULL’S','En este momento no hay publicaciones con stock confirmado.');
+  box.append(make('p','cc166-note','Los productos aparecen automáticamente cuando ADMIN o un SÚPER RESELLER con membresía vigente los publica.'));
+  page.append(box);return;
+ }
+ const grid=make('div','cc167-market');
+ for(const p of items){
+  const item=make('article','cc167-product');
+  item.append(make('small','cc167-platform',p.service));
+  item.append(make('h3','',p.title));
+  item.append(make('p','',String(p.description||'Servicio digital publicado por un vendedor autorizado.').slice(0,220)));
+  item.append(make('small','','Duración: '+(p.duration_days||'—')+' días · Stock: '+p.stock));
+  item.append(make('strong','cc167-price',price(p.price_pen)));
+  const own=p.seller_id===user;
+  const buy=button(own?'Tu publicación':'Comprar',()=>void buyProduct(p,buy),'cc166-primary');
+  buy.disabled=!verified||purchasePending||own;item.append(buy);grid.append(item);
+ }page.append(grid);
+}
+function storedKey(kind,id){
+ const name='cc167:'+kind+':'+user+':'+id;
+ let key=null;
+ try{key=sessionStorage.getItem(name);}catch(_){}
+ if(!key){
+  if(!window.crypto?.randomUUID)throw Error('El navegador requiere conexión segura para confirmar compras.');
+  key=window.crypto.randomUUID();
+  try{sessionStorage.setItem(name,key);}catch(_){}
+ }
+ return {name,key};
+}
+function forgetKey(name){try{sessionStorage.removeItem(name);}catch(_){}}
+async function buyProduct(product,b){
+ if(!verified||purchasePending)return;
+ const amount=Number(product.price_pen);
+ if(!Number.isFinite(amount)||amount<=0)return;
+ if(!window.confirm('¿Confirmas la compra de '+product.title+' por '+price(amount)+'? Se descontará de tu saldo REAL y el pedido quedará registrado.'))return;
+ const uid=user,jwt=token;
+ let keyInfo;
+ try{keyInfo=storedKey('purchase',product.id);}catch(e){notice(e.message);return;}
+ purchasePending=true;b.disabled=true;b.textContent='Confirmando pago…';
+ try{
+  const response=await api('rpc/cc_portal_purchase_stream_product','POST',{
+   p_product_id:product.id,p_checkout_key:keyInfo.key,p_expected_price_pen:amount
+  });
+  if(session()?.userId!==uid||session()?.jwt!==jwt)return;
+  if(!response?.order_id||!response?.seller_whatsapp)throw Error('No se recibió confirmación de orden.');
+  forgetKey(keyInfo.name);
+  lastReceipt={...response,buyer_id:uid};
+  await load();
+  view='shop';render();
+  receiptFocus();
+ }catch(e){if(session()?.userId===uid&&session()?.jwt===jwt)notice('Compra no confirmada: '+String(e?.message||e)+'. No repitas con otra referencia hasta comprobar Mis compras.');}
+ finally{purchasePending=false;b.disabled=false;}
+}
+function receiptFocus(){el('cc166-content')?.querySelector('.cc167-receipt')?.scrollIntoView({behavior:'smooth',block:'start'});}
+async function buyStreamMembership(amount){
+ if(!verified||membershipPending)return;
+ if(!window.confirm('¿Activar o renovar STREAM BULL’S por '+price(amount)+' / 365 días? Se descontará una sola vez de tu saldo real.'))return;
+ const uid=user,jwt=token;let key;
+ try{key=storedKey('membership','stream');}catch(e){notice(e.message);return;}
+ membershipPending=true;
+ try{
+  const res=await api('rpc/cc_portal_buy_stream_membership','POST',{
+   p_checkout_key:key.key,p_expected_amount_pen:amount
+  });
+  if(session()?.userId!==uid||session()?.jwt!==jwt)return;
+  if(!res?.membership_id)throw Error('No fue posible verificar la suscripción');
+  forgetKey(key.name);
+  await load();view='business:STREAM_BULLS';render();
+  notice('Membresía STREAM BULL’S verificada hasta '+new Date(res.ends_at).toLocaleDateString('es-PE',{timeZone:'America/Lima'})+'.');
+ }catch(e){if(session()?.userId===uid)notice('No se activó la membresía: '+String(e.message||e));}
+ finally{membershipPending=false;}
+}
+function orders(page){
+ title(page,'Mis compras','Cada pedido pagado conserva producto, importe, proveedor, estado y enlace de notificación.');
+ const entries=data.orders.filter(o=>o.buyer_id===user);
+ if(!entries.length){page.append(make('p','cc166-empty','Todavía no tienes compras registradas en el marketplace.'));return;}
+ for(const o of entries){
+  const row=make('article','cc167-order-row');
+  const summary=make('div','');
+  summary.append(make('strong','',o.title));
+  summary.append(make('small','','Pedido: '+o.id+' · '+String(o.status).replaceAll('_',' ')));
+  row.append(summary,make('strong','',price(o.price_pen)));
+  row.append(button('Notificar vendedor',()=>notifySeller({...o,order_id:o.id}),'cc166-secondary'));
+  page.append(row);
+ }
+}
+async function markDelivered(order){
+ if(!window.confirm('¿Confirmas que entregaste el producto al comprador? Esta acción no transfiere ni libera dinero.'))return;
+ try{
+  const ok=await api('rpc/cc_portal_mark_stream_order_delivered','POST',{p_order_id:order.id});
+  if(ok){await load();view='sales';render();notice('Entrega marcada como completada.');}
+  else notice('El pedido ya había sido atendido o no tienes permiso.');
+ }catch(e){notice('No se pudo cambiar el estado: '+String(e.message||e));}
+}
+function sales(page){
+ if(!data.admin&&!data.super){nav('home');return;}
+ title(page,'Ventas y entregas','Cada compra se guarda con comisión ADMIN y pago pendiente al vendedor; sin liquidaciones automáticas.');
+ const rows=data.orders.filter(o=>data.admin||o.seller_id===user);
+ const totals=rows.reduce((s,r)=>({sale:s.sale+Number(r.price_pen||0),
+  owed:s.owed+(r.status==='REFUNDED'?0:Number(r.seller_payable_pen||0)),
+  admin:s.admin+(r.status==='REFUNDED'?0:Number(r.admin_fee_pen||0))}),{sale:0,owed:0,admin:0});
+ const stats=make('div','cc166-stats');
+ stats.append(metric('Ventas registradas',price(totals.sale),'aqua'));
+ stats.append(metric('Pendiente de liquidación',price(totals.owed),'blue'));
+ stats.append(metric('Comisión ADMIN sobre ganancia',price(totals.admin),'gold'));
+ page.append(stats);
+ if(!rows.length){page.append(make('p','cc166-empty','Sin ventas registradas todavía.'));return;}
+ for(const o of rows){
+  const line=make('article','cc167-order-row');
+  const info=make('div','');
+  info.append(make('strong','',o.title));
+  info.append(make('small','','Pedido '+o.id+' · '+String(o.status).replaceAll('_',' ')));
+  line.append(info,make('strong','',price(o.price_pen)));
+  const b=button(o.status==='FULFILLED'?'Entregado':'Marcar entregado',()=>void markDelivered(o),'cc166-secondary');
+  b.disabled=o.status!=='PAID_AWAITING_DELIVERY';
+  line.append(b);page.append(line);
+ }
+}
+
 function publish(page){
  if(!data.admin&&!data.super)return overview(page);
  title(page,'Publicar servicios · STREAM BULL’S','Publicaciones registradas por el servidor con autor y stock.');
