@@ -86,3 +86,90 @@ html[data-cc-theme="light"] #ma1611layer h2,html[data-cc-theme="light"] #ma1611l
 html[data-cc-theme="light"] #ma1611layer .ma1611-head p,html[data-cc-theme="light"] #ma1611layer .ma1611-summary p{color:#506a7c}
 html[data-cc-theme="light"] #ma1611layer button:not(.active){background:#eaf3f7;color:#25485a;border-color:#b8ced8}
 @media(prefers-reduced-motion:reduce){#cc77home .cc77card,#cc77home .ma1611-card{transition:none!important}#cc77home .cc77card:hover,#cc77home .ma1611-card:hover{transform:none!important}}
+
+/* Paso 1 · Interfaz limpia: menos bloques simultáneos, mismo control funcional. */
+#cc80wallet section[data-cc165-folded="true"] {
+  max-width:100%;box-sizing:border-box;margin:10px 0!important;padding:0!important;
+  background:#101e2e!important;border:1px solid #385469!important;border-radius:13px!important;
+  box-shadow:none!important;min-width:0;
+}
+#cc80wallet .cc165-fold {color:#e7f2ff;min-width:0}
+#cc80wallet .cc165-fold > summary {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:49px;padding:12px 15px;cursor:pointer;list-style:none;
+  font-size:13px;font-weight:760;line-height:1.45;color:#e0f1f8;
+}
+#cc80wallet .cc165-fold > summary::-webkit-details-marker,
+#cc80wallet .cc165-pay-methods > summary::-webkit-details-marker {display:none}
+#cc80wallet .cc165-fold > summary::after,
+#cc80wallet .cc165-pay-methods > summary::after {
+  content:"⌄";font-size:18px;line-height:1;flex:none;transition:transform .16s ease;
+}
+#cc80wallet .cc165-fold[open] > summary::after,
+#cc80wallet .cc165-pay-methods[open] > summary::after {transform:rotate(180deg)}
+#cc80wallet .cc165-fold[open] > summary {border-bottom:1px solid #334d61}
+#cc80wallet .cc165-fold-body {padding:13px 15px;min-width:0;overflow-wrap:anywhere}
+#cc80wallet .cc165-fold-body > :first-child {margin-top:0}
+#cc80wallet .cc165-fold-body > :last-child {margin-bottom:0}
+#cc80wallet #cc147manualQr {
+  box-sizing:border-box;max-width:100%;margin:13px 0!important;
+  padding:19px 16px;border:1px solid #468d90;border-radius:16px;
+  background:linear-gradient(155deg,#14333b,#102333 85%);
+}
+#cc80wallet #cc147manualQr > h3 {font-size:20px;margin:0 0 5px}
+#cc80wallet #cc147manualQr > p {font-size:12px;line-height:1.55;margin:8px 0;color:#d1e0e7}
+#cc80wallet #cc147manualQr label {min-width:0;text-align:left}
+#cc80wallet #cc147manualQr input,#cc80wallet #cc147manualQr select {
+  width:100%;max-width:100%;box-sizing:border-box;min-height:43px;
+}
+#cc80wallet .cc165-pay-methods {
+  width:100%;max-width:100%;margin:14px 0 10px;
+  border:1px solid #28b2a6;background:#0a2b37;border-radius:12px;box-sizing:border-box;
+}
+#cc80wallet .cc165-pay-methods > summary {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:48px;padding:12px 15px;cursor:pointer;list-style:none;
+  color:#d7fff9;font-size:14px;font-weight:850;text-align:left;
+}
+#cc80wallet .cc165-pay-methods-body {padding:12px 11px;border-top:1px solid #275f69}
+#cc80wallet #cc148alreadyPaid {max-width:100%;white-space:normal}
+#cc80wallet .cc165-fold summary:focus-visible,
+#cc80wallet .cc165-pay-methods summary:focus-visible,
+#mc158layer .mc165-more summary:focus-visible {
+  outline:3px solid #6de9dc;outline-offset:2px;border-radius:10px;
+}
+#mc158layer .mc158actions {display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+#mc158layer .mc158actions > button,
+#mc158layer .mc158actions > .mc165-more {flex:1 1 calc(50% - 8px);min-width:0}
+#mc158layer .mc158actions > button {background:#d4aa55;color:#1b180f;font-weight:850}
+#mc158layer .mc165-more {border:1px solid #8b764f;border-radius:10px;background:#202c39}
+#mc158layer .mc165-more > summary {
+  display:grid;place-items:center;min-height:43px;padding:9px;
+  list-style:none;cursor:pointer;color:#ffdc98;font-size:12px;font-weight:750;
+}
+#mc158layer .mc165-more > summary::-webkit-details-marker {display:none}
+#mc158layer .mc165-more[open] {flex-basis:100%}
+#mc158layer .mc165-more-grid {
+  padding:8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+  border-top:1px solid #465363;
+}
+#mc158layer .mc165-more-grid button {font-size:12px;min-width:0;white-space:normal}
+#cc148modal,#cc148modal > div {box-sizing:border-box;max-width:100%}
+@media(max-width:640px) {
+  #cc80wallet {box-sizing:border-box;width:calc(100vw - 16px)!important;padding:14px!important}
+  #cc80wallet .cc165-fold > summary {padding:12px;font-size:12px}
+  #cc80wallet .cc165-fold-body {padding:12px}
+  #cc80wallet #cc147manualQr {padding:15px 12px}
+  #cc80wallet #cc147manualQr .cc147-qr-grid {display:flex;flex-direction:column;align-items:stretch}
+  #cc80wallet #cc147manualQr .cc147-qr-grid figure {flex:none!important;max-width:100%!important}
+  #cc80wallet #cc147manualQr .cc147-qr-grid img {max-width:100%;height:auto}
+  #cc80wallet .cc132-head,#cc80wallet .cc132-exports {gap:7px}
+  #cc80wallet .cc131-footer button {min-width:0}
+}
+@media(max-width:370px) {
+  #mc158layer .mc165-more-grid {grid-template-columns:1fr}
+  #mc158layer .mc158actions > button,#mc158layer .mc158actions > .mc165-more {flex-basis:100%}
+}
+@media(prefers-reduced-motion:reduce) {
+  #cc80wallet .cc165-fold > summary::after,#cc80wallet .cc165-pay-methods > summary::after {transition:none}
+}
