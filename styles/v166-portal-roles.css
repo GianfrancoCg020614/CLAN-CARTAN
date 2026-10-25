@@ -2,7 +2,7 @@
 #cc166-panel,#cc166-panel *{box-sizing:border-box}
 #cc166-panel[hidden]{display:none!important}
 #cc166-panel{
- position:fixed;inset:0;z-index:850000;display:grid;grid-template-columns:220px minmax(0,1fr);
+ position:fixed;inset:0;z-index:2147483646;display:grid;grid-template-columns:220px minmax(0,1fr);
  background:#07121f;color:#e8f6ff;font:14px/1.48 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
  overflow:hidden
 }
@@ -150,3 +150,50 @@
 #cc77home #cc166-open-button[hidden]{display:none!important}
 #cc77home #cc166-open-button:focus-visible{outline:3px solid #52dbe5;outline-offset:2px}
 @media(max-width:560px){#cc77home #cc166-open-button{flex:1 1 auto;max-width:100%;font-size:11px}}
+
+/* V167 · El panel real prevalece sobre la portada fija original. */
+#cc166-panel .cc167-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:8px;margin:0 0 22px}
+#cc166-panel .cc167-tab{background:#0d2335;color:#d6edf7;border:1px solid #31526c;
+ border-radius:12px;padding:10px 12px;display:grid;text-align:left;gap:3px;
+ min-height:67px}
+#cc166-panel .cc167-tab strong{font-size:12px}
+#cc166-panel .cc167-tab small{color:#8db1c4;font-size:10px}
+#cc166-panel .cc167-tab.selected{border-color:#0dd3e4;background:linear-gradient(115deg,#0c4151,#0c2438);box-shadow:0 0 0 1px #1be4e63d}
+#cc166-panel .cc167-tab.locked{border-style:dashed}
+#cc166-panel .cc167-market{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+#cc166-panel .cc167-product{background:#0e2537;border:1px solid #284b65;border-radius:13px;
+ padding:15px;display:flex;flex-direction:column;gap:9px;min-width:0}
+#cc166-panel .cc167-product h3{margin:0;color:#f0fcff;font-size:16px}
+#cc166-panel .cc167-product .cc167-platform{color:#49d6dd;font-size:11px;font-weight:750}
+#cc166-panel .cc167-product p{margin:0;color:#aac4d3;font-size:12px;line-height:1.55;flex:1}
+#cc166-panel .cc167-product .cc167-price{font-size:20px;font-weight:850;color:#ecfcff}
+#cc166-panel .cc167-product button{width:100%;margin-top:4px}
+#cc166-panel .cc167-receipt{background:linear-gradient(110deg,#083c39,#112c3d);
+ border:1px solid #1dbb9d;border-radius:14px;padding:14px;margin-bottom:17px}
+#cc166-panel .cc167-receipt h3{font-size:16px;margin:0 0 6px;color:#c2ffef}
+#cc166-panel .cc167-receipt p{font-size:12px;line-height:1.6;margin:8px 0;color:#d6f8f1}
+#cc166-panel .cc167-receipt button{margin-top:8px}
+#cc166-panel .cc167-mini{margin:8px 0 14px;background:#0f2839;border:1px solid #294e64;
+ padding:15px;border-radius:11px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#cc166-panel .cc167-mini strong{font-size:23px;color:#dbfbff}
+#cc166-panel details.cc167-advanced{background:#0b1d2e;border:1px solid #294359;
+ border-radius:11px;padding:11px 14px;margin:10px 0}
+#cc166-panel details.cc167-advanced summary{cursor:pointer;color:#b6d8e9;font-weight:700;font-size:12px}
+#cc166-panel .cc167-order-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;
+ align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #314a5c}
+#cc166-panel .cc167-order-row strong{font-size:13px;color:#f0faff}
+#cc166-panel .cc167-order-row small{color:#a1bbce;font-size:11px}
+#cc166-panel .cc167-order-row button{font-size:11px}
+#cc166-panel .cc167-hero{background:linear-gradient(105deg,#0a4153,#13213a);
+ padding:18px 20px;border:1px solid #1c8e9f;border-radius:15px;margin:12px 0 20px}
+#cc166-panel .cc167-hero h2{font-size:19px;margin:0 0 6px}
+#cc166-panel .cc167-hero p{font-size:12px;color:#b8dde7;line-height:1.6;margin:6px 0 13px}
+#cc166-panel .cc167-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:880px){#cc166-panel .cc167-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){
+ #cc166-panel .cc167-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #cc166-panel .cc167-tab{padding:9px;min-height:60px}
+ #cc166-panel .cc167-order-row{grid-template-columns:1fr;gap:5px}
+ #cc166-panel .cc167-order-row button{width:100%}
+}
