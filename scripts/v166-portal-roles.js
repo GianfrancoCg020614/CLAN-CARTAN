@@ -8,7 +8,7 @@ const api=(p,m,b)=>window.cc80.api(p,m,b);
 const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'COBRA YA',MI_COCHERA:'MI COCHERA',MI_ALQUILER:'MI ALQUILER'})[k]||k;
 const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],['MI_ALQUILER','⌂']];
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
-let data={admin:false,super:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null};
+let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null};
 let lastReceipt=null,purchasePending=false,membershipPending=false;
 const price=n=>Number.isFinite(Number(n))?'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const make=(tag,cls,txt)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=String(txt);return x;};
@@ -18,7 +18,7 @@ const session=()=>window.CC_V53_SESSION;
 const active=(id,jwt,seq)=>user===id&&token===jwt&&serial===seq&&session()?.userId===id&&session()?.jwt===jwt;
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
- data={admin:false,super:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null};lastReceipt=null;purchasePending=false;membershipPending=false;
+ data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null};lastReceipt=null;purchasePending=false;membershipPending=false;
  app?.remove();app=null;el('cc166-open-button')?.remove();
 }
 function shell(){
@@ -72,12 +72,17 @@ function userRole(){
  if(data.admin)return 'ADMIN';
  if(data.super)return 'SÚPER RESELLER';
  if(data.reseller)return 'RESELLER';
+ // Permiso preasignado ≠ membresía activa: el servidor mantiene el bloqueo.
+ if(data.superPermission&&data.members.some(m=>m.role==='SUPER_RESELLER'))
+  return 'SÚPER RESELLER · MEMBRESÍA PENDIENTE';
+ if(data.members.some(m=>m.role==='RESELLER'))
+  return 'RESELLER · MEMBRESÍA PENDIENTE';
  return 'AFILIADO';
 }
 function renderNav(){
  const menu=el('cc166-nav');menu.replaceChildren();
- const base=[['home','◫','Inicio'],['shop','▣','Comprar'],['wallet','▤','Billetera'],['orders','◱','Mis compras']];
- const extra=[['businesses','▦','Negocios'],['movements','≡','Movimientos'],['affiliate','♧','Referidos'],['external','⇄','Control externo']];
+ const base=[['home','◫','Inicio'],['shop','▣','Comprar'],['wallet','▤','Billetera'],['movements','≡','Movimientos'],['orders','◱','Mis compras']];
+ const extra=[['businesses','▦','Negocios'],['affiliate','♧','Referidos'],['external','⇄','Control externo']];
  const items=base.concat(data.reseller||data.super||data.admin?extra:[])
   .concat(data.super||data.admin?[['publish','♛','Publicar'],['sales','◈','Mis ventas']]:[])
   .concat(data.admin?[['admin','⚙','Administración']]:[])
@@ -114,9 +119,12 @@ function movementList(page,max){
  for(const m of moves){
   const row=make('div','cc166-movement'),a=make('div','');
   let dt='—';if(m.occurred_at){try{dt=new Date(m.occurred_at).toLocaleDateString('es-PE',{timeZone:'America/Lima'});}catch(_){}}
-  a.append(make('small','',dt+' · '+serviceName(m.service)+' · '+(m.movement_type||'Movimiento')));
+  const pending=m.affects_balance===false;
+  a.append(make('small','',dt+' · '+serviceName(m.service)+' · '+(m.movement_type||'Movimiento')+
+    (pending?' · SOLICITUD NO ACREDITADA':' · '+(m.status||'REGISTRADO'))));
   a.append(make('span','',String(m.description||m.reference||'Movimiento registrado').slice(0,130)));
-  row.append(a,make('strong',Number(m.amount_pen)<0?'minus':'plus',price(m.amount_pen)));box.append(row);
+  row.append(a,make('strong',pending?'pending':Number(m.amount_pen)<0?'minus':'plus',
+   (pending?'Sin afectar saldo · ':'')+price(m.amount_pen)));box.append(row);
  }page.append(box);
 }
 function overview(page){
@@ -204,10 +212,13 @@ function businessPage(page,code){
 }
 
 function movements(page){
- title(page,'Movimientos reales','Compras, recargas, renovaciones y activaciones con su descripción y referencia.');
- const buttons=make('div','cc166-actions');
- buttons.append(button('Abrir filtros y exportaciones',()=>exitTo(()=>window.cc132OpenMovements?.()),'cc166-primary'));
- page.append(buttons);movementList(page,120);
+ title(page,'Movimientos de mi billetera','Historial personal de recargas, compras y activaciones, con sus importes y conceptos.');
+ if(data.admin||data.reseller||data.super){
+  const buttons=make('div','cc166-actions');
+  buttons.append(button('Filtros y exportaciones',()=>exitTo(()=>window.cc132OpenMovements?.()),'cc166-secondary'));
+  page.append(buttons);
+ }
+ movementList(page,120);
 }
 
 function orderMessage(order){
@@ -547,6 +558,7 @@ async function load(){
   data={
    admin:admins.some(x=>x.user_id===id),
    super:!!superRoles[0]?.enabled&&activeStream,
+   superPermission:!!superRoles[0]?.enabled,
    reseller:!!currentRoleReseller,
    members,subs,businesses,real,
    mc:mc[0]||null,ma:ma[0]||null,cy,moves,products,orders:shopOrders,
