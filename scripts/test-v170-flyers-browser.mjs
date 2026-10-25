@@ -18,17 +18,17 @@ const setup=[
  'window.cc80={api:async(path,method,args)=>{if(path==="rpc/cc_portal_set_stream_product_flyer"){window.__links.push(args);return {updated:true,product_id:args.p_product_id,flyer_path:args.p_flyer_path};}return [];}};'
 ].join('\n');
 const spec=[
- 'const out=document.createElement("output");out.id="flyer-smoke";'
+ 'const out=document.createElement("output");out.id="flyer-smoke";',
  'const step=document.createElement("output");step.id="flyer-step";step.textContent="initialized";document.body.append(step);',
  'window.onerror=(...args)=>{step.textContent="ONERROR "+args.slice(0,3).join(" / ")};',
- 'window.onunhandledrejection=e=>{step.textContent="REJECTION "+String(e.reason)};',,
+ 'window.onunhandledrejection=e=>{step.textContent="REJECTION "+String(e.reason)};',
  'function finish(checks){out.dataset.status=Object.values(checks).every(Boolean)?"pass":"fail";out.textContent=JSON.stringify(checks);document.body.append(out);}',
  'setTimeout(async()=>{try{',
  'const forms=document.querySelectorAll("#cc170-new-flyer");',
  'const present=forms.length===1;',
  'const file=new File([new Uint8Array([137,80,78,71,13,10,26,10,1,2,3,4,5,6,7,8])],"flyer.png",{type:"image/png"});',
- 'const accepted=(await window.cc170Flyers.inspectFile(file))==="png";'
- 'step.textContent="inspected";',,
+ 'const accepted=(await window.cc170Flyers.inspectFile(file))==="png";',
+ 'step.textContent="inspected";',
  'let maliciousRejected=false;try{await window.cc170Flyers.inspectFile(new File(["<svg/>"],"evil.png",{type:"image/png"}));}catch(e){maliciousRejected=true;}',
  'let executableRejected=false;try{await window.cc170Flyers.inspectFile(new File(["alert(1)"],"evil.svg",{type:"image/svg+xml"}));}catch(e){executableRejected=true;}',
  'const reader=new DataTransfer();reader.items.add(file);forms[0].files=reader.files;forms[0].dispatchEvent(new Event("change",{bubbles:true}));',
