@@ -24,7 +24,7 @@ try{
    'if(path.indexOf("cc_portal_stream_products?")===0)return [{id:"fake-product",seller_id:"seller-other",title:"Netflix mensual",service:"Netflix",price_pen:12.5,description:"Netflix 30 días",duration_days:30,stock:4,status:"ACTIVE"}];',
    'if(path.indexOf("rpc/cc_my_real_wallet_movements")===0)return [{service:"COBRA_YA",amount_pen:-3.50,movement_type:"PURCHASE",description:"Activación STREAM BULLS",occurred_at:"2026-10-25T12:00:00Z"}];',
    'if(path.indexOf("cc_plans?")===0)return [{code:"STREAM_365",business_id:"stream-business",price_pen:25,is_active:true}];',
-   'if(path.indexOf("cc_portal_stream_orders?")===0)return [];',
+   'if(path==="rpc/cc_portal_my_stream_orders")return [];',
    'return [];}};'
   ].join('\n');
   const check=[
