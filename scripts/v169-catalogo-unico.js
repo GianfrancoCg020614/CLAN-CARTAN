@@ -8,7 +8,7 @@
   const ROOT='https://pqalxtrcyrpmwqdlibqd.supabase.co';
   // Publishable key que ya utiliza index.html: NO es una service_role key.
   const KEY='sb_publishable_nsp19gAqsdRak3JqWpusUg_Qd6mQr0n';
-  let rows=[],loading=false,loaded=false,error='',revision=0,scheduled=false,inFlight=null;
+  let rows=[],loading=false,loaded=false,error='',revision=0,scheduled=false,inFlight=null,showcase=null;
   const el=id=>document.getElementById(id);
   const money=n=>'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
   const text=(tag,cls,content)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(content!==undefined)x.textContent=String(content);return x;};
@@ -62,6 +62,21 @@
     card.append(cover,body,actions);
     return card;
   }
+  function readOnlySamples(grid){
+    if(!grid)return null;
+    const clone=grid.cloneNode(true);clone.classList.add('cc169-showcase');
+    clone.querySelectorAll('[onclick],[onkeydown]').forEach(el=>{
+      el.removeAttribute('onclick');el.removeAttribute('onkeydown');el.removeAttribute('tabindex');
+      if(el.getAttribute('role')==='button')el.setAttribute('role','img');
+    });
+    clone.querySelectorAll('button').forEach(b=>{b.disabled=true;b.textContent='Muestra informativa';});
+    clone.querySelectorAll('.v23-card-price strong,.detail-price,.availability-badge').forEach(el=>{
+      el.textContent='Sin publicación verificada';
+    });
+    clone.querySelectorAll('.product-ribbon').forEach(el=>{el.textContent='Ejemplo';});
+    clone.querySelectorAll('.v23-product-seller').forEach(el=>{el.textContent='Diseño de referencia';});
+    return clone;
+  }
   function render(){
     const section=document.querySelector('#productos .v23-catalog-section');
     if(!section)return;
@@ -70,6 +85,9 @@
     const state=revision+'|'+chosen+'|'+term+'|'+!!window.CC_V53_SESSION?.jwt;
     if(section.dataset.cc169State===state)return;
     section.dataset.cc169State=state;
+    // Guardar solo imágenes de referencia: jamás permitir comprar a través de la demo.
+    const seedGrid=section.querySelector('.v23-product-grid:not(.cc169-verified-grid)');
+    if(seedGrid)showcase=readOnlySamples(seedGrid);
     // El contenido de demostración NO es inventario: reemplazarlo, nunca combinarlo.
     section.querySelectorAll('.v23-product-grid,.v23-empty,.cc169-result').forEach(n=>n.remove());
     const matches=rows.filter(x=>categoryMatches(x)&&searchMatches(x));
@@ -81,7 +99,10 @@
       holder.append(text('p','cc169-status',error+' No se pueden confirmar compras hasta recuperar el catálogo.'));
       holder.append(button('Volver a consultar',()=>{void refresh()},'btn'));
     } else if(!matches.length){
-      holder.append(text('p','cc169-status',rows.length?'No encontramos servicios para esta búsqueda.':'Aún no hay publicaciones activas verificadas. Cuando un vendedor autorizado publique un servicio, aparecerá aquí.'));
+      holder.append(text('p','cc169-status',rows.length?
+        'No encontramos servicios publicados para esta búsqueda.':
+        'Aún no hay publicaciones activas verificadas. Estas imágenes son SOLO ejemplos; no tienen precio ni compra habilitados.'));
+      if(!rows.length&&showcase)holder.append(showcase.cloneNode(true));
     } else {
       const grid=text('div','products v6-grid v23-product-grid cc169-verified-grid');
       grid.dataset.cc169Source='verified';matches.forEach(p=>grid.append(buildCard(p)));holder.append(grid);
