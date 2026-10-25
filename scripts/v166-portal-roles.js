@@ -19,7 +19,7 @@ const active=(id,jwt,seq)=>user===id&&token===jwt&&serial===seq&&session()?.user
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
  data={admin:false,super:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],requests:[]};
- app?.remove();app=null;
+ app?.remove();app=null;el('cc166-open-button')?.remove();
 }
 function shell(){
  if(app?.isConnected)return app;
@@ -65,6 +65,16 @@ function title(page,heading,sub){
 }
 function nav(to){view=to;render();}
 function notice(msg){const page=el('cc166-content');if(!page)return;const p=make('p','cc166-notice',msg);p.setAttribute('role','status');page.prepend(p);}
+function mountLauncher(){
+ const actions=el('cc77home')?.querySelector('.cc77top .cc77actions');
+ if(!actions)return;
+ let launcher=el('cc166-open-button');
+ if(!launcher){
+  launcher=button('◈ Panel de control',()=>{sync();if(app){app.hidden=false;render();}},'cc166-home-launch');
+  launcher.id='cc166-open-button';actions.prepend(launcher);
+ }
+ launcher.hidden=!user;
+}
 function renderNav(){
  const menu=el('cc166-nav');menu.replaceChildren();
  const items=sidebar.concat(data.super||data.admin?[['publish','♛','Publicaciones']]:[]).concat(data.admin?[['admin','⚙','Administración']]:[]);
@@ -239,7 +249,7 @@ function other(page){
 }
 function render(){
  if(!app||!user)return;
- renderNav();const page=el('cc166-content');page.replaceChildren();
+ mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
  switch(view){
  case 'home':overview(page);break;case 'wallet':wallet(page);break;
  case 'businesses':memberships(page);break;case 'movements':movements(page);break;
@@ -284,8 +294,12 @@ async function load(){
 function sync(){
  const s=session();
  if(!s?.jwt||!s.userId){if(app||user)reset();return;}
- if(s.userId===user&&s.jwt===token)return;
- reset();user=s.userId;token=s.jwt;shell();app.hidden=false;
+ if(s.userId===user&&s.jwt===token){
+  if(!verified&&!busy&&window.cc80?.api)void load();
+  return;
+ }
+ const sameUser=s.userId===user,previouslyHidden=app?.hidden===true;
+ reset();user=s.userId;token=s.jwt;shell();app.hidden=!!(sameUser&&previouslyHidden);
  render();void load();
 }
 function init(){
