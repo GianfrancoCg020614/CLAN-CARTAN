@@ -187,3 +187,88 @@ export function matchesSmartSearch(query, searchableFields) {
     ? searchableFields.join(' ') : searchableFields);
   return terms.every(term => content.includes(term));
 }
+
+
+/** División comercial:
+ * - SUPER_RESELLER: ventas y clientes del catálogo propio dentro del portal.
+ * - RESELLER: compra en catálogo y revende por su cuenta FUERA del portal.
+ * - Control externo privado de RESELLER requiere un complemento independiente.
+ * Estos indicadores son presentación. Los permisos reales son de Supabase/RLS.
+ */
+export function streamBullsRoleCapabilities(role) {
+  return Object.freeze({
+    canPurchaseInMarketplace: ['AFFILIATE', 'RESELLER', 'SUPER_RESELLER'].includes(role),
+    canPublishMarketplaceProducts: role === 'SUPER_RESELLER',
+    canTrackOwnMarketplaceBuyers: role === 'SUPER_RESELLER',
+    canResellPrivatelyOutsidePortal: role === 'RESELLER',
+    canOfferPrivateExternalAccountAddon: role === 'RESELLER'
+  });
+}
+
+/** Política de la pestaña separada RESELLER: S/10 por 30 días.
+ * Día de autorización confirmada = día 1 y fin día 30 a las 23:59 Lima.
+ * Renovar antes de expirar suma 30 días sin quitar los vigentes.
+ * Backend calcula hoy con America/Lima, nunca confía en fecha del navegador.
+ */
+export function externalAddonRenewalWindow(today, currentAddonEndOn = null) {
+  const todayChecked = addCalendarDays(today, 0);
+  const oldEnd = currentAddonEndOn ? addCalendarDays(currentAddonEndOn, 0) : null;
+  const start = oldEnd && oldEnd >= todayChecked
+    ? addCalendarDays(oldEnd, 1) : todayChecked;
+  return activationWindow(start, OTHER_BUSINESS_DAYS);
+}
+
+/** Si está vencido, se muestra SOLO CTA de reactivación, SIN datos privados.
+ * Servidor DEBE denegar lectura/escritura/exportación de perfiles al estar vencido.
+ * Ni siquiera exponemos el recuento de clientes como "preview" bloqueado.
+ */
+export function externalAddonAccessState({
+  role, addonStartsOn, addonEndsOn, today, suspended = false
+}) {
+  let active = false;
+  if (role === 'RESELLER' && !suspended && addonStartsOn && addonEndsOn && today) {
+    const start = addCalendarDays(addonStartsOn, 0);
+    const end = addCalendarDays(addonEndsOn, 0);
+    const now = addCalendarDays(today, 0);
+    active = start <= now && now <= end;
+  }
+  return Object.freeze({
+    active, showPrivateExternalRecords: active,
+    showActivationCard: role === 'RESELLER',
+    canReadExternalRecords: active,
+    canWriteExternalRecords: active,
+    canExportExternalRecords: active,
+    // La eliminación de datos JAMÁS se ejecuta por vencimiento de membresía.
+    shouldDeleteStoredRecords: false
+  });
+}
+
+/** PREVALIDACIÓN, NO un cargo efectivo. En backend, un RPC transaccional:
+ * 1) comprueba sesión/rol, consentimiento explícito por intento y saldo REAL,
+ * 2) utiliza un request_id único para impedir doble cargo al reintentar,
+ * 3) debita S/10 y guarda/extiende vigencia atómicamente;
+ * 4) si falla no realiza cargo ni cambia el permiso.
+ * Nunca usar saldo de bonos para este add-on.
+ */
+export function externalAddonActivationQuote({
+  role, mainMembershipActive, walletRealBalanceCents,
+  consentedForThisPurchase, today, currentAddonEndOn = null,
+  suspended = false
+}) {
+  const amountCents = EXTERNAL_ACCOUNT_ADDON_PEN_CENTS;
+  if (role !== 'RESELLER' || !mainMembershipActive || suspended) {
+    return Object.freeze({ permitted: false, reason: 'NOT_ELIGIBLE', amountCents });
+  }
+  integer(walletRealBalanceCents, 'Saldo REAL');
+  if (consentedForThisPurchase !== true) {
+    return Object.freeze({ permitted: false, reason: 'CONFIRMATION_REQUIRED', amountCents });
+  }
+  if (walletRealBalanceCents < amountCents) {
+    return Object.freeze({ permitted: false, reason: 'INSUFFICIENT_REAL_BALANCE', amountCents });
+  }
+  return Object.freeze({
+    permitted: true, reason: 'READY_FOR_SECURE_SERVER_CHARGE',
+    amountCents, entitlementPeriod: externalAddonRenewalWindow(today, currentAddonEndOn),
+    automaticRecurringCharge: false
+  });
+}
