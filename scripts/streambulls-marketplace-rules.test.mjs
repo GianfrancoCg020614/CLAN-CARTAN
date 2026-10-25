@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   activationWindow, serviceActivationWindow, canAutoPublish,
+  streamBullsRoleCapabilities, externalAddonRenewalWindow,
+  externalAddonAccessState, externalAddonActivationQuote,
   allowedSelfRegistrationRoles, parsePenCents, calculateSaleSettlement,
   reserveAvailableStock, whatsappSellerLink, summarizeSellerEarnings,
   normalizeSmartSearch, matchesSmartSearch,
@@ -145,4 +147,105 @@ test('categorías extensibles y módulo externo optativo de S/10', () => {
   assert.equal(EXTERNAL_ACCOUNT_ADDON_PEN_CENTS,1000);
   for(const x of ['NETFLIX','HBO_MAX','YOUTUBE','CHATGPT','PARAMOUNT_PLUS','PRIME_VIDEO','CANVA','CRUNCHYROLL','OTROS'])
     assert.ok(SERVICE_CATEGORIES.includes(x));
+});
+
+
+test('RESELLER compra en la web y revende FUERA sin permisos de catálogo ni compradores propios del portal', () => {
+  const r = streamBullsRoleCapabilities('RESELLER');
+  assert.equal(r.canPurchaseInMarketplace, true);
+  assert.equal(r.canPublishMarketplaceProducts, false);
+  assert.equal(r.canTrackOwnMarketplaceBuyers, false);
+  assert.equal(r.canResellPrivatelyOutsidePortal, true);
+  assert.equal(r.canOfferPrivateExternalAccountAddon, true);
+  const s = streamBullsRoleCapabilities('SUPER_RESELLER');
+  assert.equal(s.canPublishMarketplaceProducts, true);
+  assert.equal(s.canTrackOwnMarketplaceBuyers, true);
+  assert.equal(s.canOfferPrivateExternalAccountAddon, false);
+  const affiliate = streamBullsRoleCapabilities('AFFILIATE');
+  assert.equal(affiliate.canPurchaseInMarketplace, true);
+  assert.equal(affiliate.canPublishMarketplaceProducts, false);
+  assert.equal(affiliate.canOfferPrivateExternalAccountAddon, false);
+});
+
+test('pestaña externa independiente cuesta S/10 por 30 días, día del pago = día 1', () => {
+  const r = externalAddonRenewalWindow('2026-10-24');
+  assert.equal(r.startDate, '2026-10-24');
+  assert.equal(r.endDate, '2026-11-22');
+  assert.equal(r.displayEndsAt, '2026-11-22 23:59');
+  assert.equal(r.expiresAtExclusiveLima, '2026-11-23 00:00');
+  assert.equal(r.durationDays, 30);
+});
+
+test('al vencer la pestaña, ocultar registros sin borrar ninguna cuenta o cliente', () => {
+  const before = externalAddonAccessState({ role:'RESELLER', addonStartsOn:'2026-10-24',
+    addonEndsOn:'2026-11-22', today:'2026-11-22' });
+  assert.equal(before.active, true);
+  assert.equal(before.canReadExternalRecords, true);
+  assert.equal(before.canWriteExternalRecords, true);
+  const expired = externalAddonAccessState({role:'RESELLER', addonStartsOn:'2026-10-24',
+    addonEndsOn:'2026-11-22', today:'2026-11-23'});
+  assert.equal(expired.active, false);
+  assert.equal(expired.showPrivateExternalRecords, false);
+  assert.equal(expired.canReadExternalRecords, false);
+  assert.equal(expired.canWriteExternalRecords, false);
+  assert.equal(expired.canExportExternalRecords, false);
+  assert.equal(expired.showActivationCard, true);
+  assert.equal(expired.shouldDeleteStoredRecords, false);
+});
+
+test('pestaña de cuentas externas NO es visible para AFILIADO o SÚPER RESELLER', () => {
+  for (const role of ['AFFILIATE','SUPER_RESELLER','ADMIN']) {
+    const state = externalAddonAccessState({role, addonStartsOn:'2026-10-24',
+      addonEndsOn:'2026-11-22', today:'2026-10-25'});
+    assert.equal(state.active,false);
+    assert.equal(state.showActivationCard,false);
+    assert.equal(state.shouldDeleteStoredRecords,false);
+  }
+});
+
+test('cobro S/10 requiere autorización explícita y fondos REALES suficientes', () => {
+  const base={role:'RESELLER',mainMembershipActive:true,walletRealBalanceCents:1000,
+    today:'2026-11-23'};
+  const noConsent = externalAddonActivationQuote({...base,consentedForThisPurchase:false});
+  assert.equal(noConsent.permitted,false);
+  assert.equal(noConsent.reason,'CONFIRMATION_REQUIRED');
+  const noFunds = externalAddonActivationQuote({...base,walletRealBalanceCents:999,
+    consentedForThisPurchase:true});
+  assert.equal(noFunds.permitted,false);
+  assert.equal(noFunds.reason,'INSUFFICIENT_REAL_BALANCE');
+  const confirmed = externalAddonActivationQuote({...base,consentedForThisPurchase:true});
+  assert.equal(confirmed.permitted,true);
+  assert.equal(confirmed.amountCents,1000);
+  assert.equal(confirmed.automaticRecurringCharge,false);
+  assert.equal(confirmed.entitlementPeriod.startDate,'2026-11-23');
+  assert.equal(confirmed.entitlementPeriod.endDate,'2026-12-22');
+});
+
+test('complemento RESELLER no requiere revisión ADMIN pero nunca lo activa otro rol', () => {
+  for (const role of ['AFFILIATE','SUPER_RESELLER','ADMIN']) {
+    assert.equal(externalAddonActivationQuote({role,mainMembershipActive:true,
+      walletRealBalanceCents:9000,consentedForThisPurchase:true,today:'2026-10-24'}).permitted,false);
+  }
+  assert.equal(externalAddonActivationQuote({role:'RESELLER',mainMembershipActive:false,
+    walletRealBalanceCents:9000,consentedForThisPurchase:true,today:'2026-10-24'}).permitted,false);
+});
+
+test('renovación anticipada del add-on conserva días restantes y añade 30 nuevos', () => {
+  const q = externalAddonActivationQuote({role:'RESELLER',mainMembershipActive:true,
+    walletRealBalanceCents:3000,consentedForThisPurchase:true,today:'2026-11-20',
+    currentAddonEndOn:'2026-11-22'});
+  assert.equal(q.permitted,true);
+  assert.equal(q.entitlementPeriod.startDate,'2026-11-23');
+  assert.equal(q.entitlementPeriod.endDate,'2026-12-22');
+  assert.throws(() => externalAddonRenewalWindow('2026-11-20','2026-02-30'));
+});
+
+test('rol suspendido no ve datos ni tiene derecho de comprar complemento', () => {
+  const state = externalAddonAccessState({role:'RESELLER',addonStartsOn:'2026-10-24',
+    addonEndsOn:'2026-11-22',today:'2026-10-25',suspended:true});
+  assert.equal(state.active,false);
+  assert.equal(state.shouldDeleteStoredRecords,false);
+  const quote = externalAddonActivationQuote({role:'RESELLER',mainMembershipActive:true,
+    walletRealBalanceCents:1000,consentedForThisPurchase:true,today:'2026-10-25',suspended:true});
+  assert.equal(quote.permitted,false);
 });
