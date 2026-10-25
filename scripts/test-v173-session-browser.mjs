@@ -29,6 +29,8 @@ const probe=[
  'setTimeout(()=>{try{',
  'const x=id=>document.getElementById(id),panel=x("cc166-panel");',
  'const initialCount=document.querySelectorAll("#cc166-panel").length;',
+ 'const dashboardTabs=document.querySelectorAll("#cc166-content .cc167-tab").length===0;',
+ '[...document.querySelectorAll(".cc166-navitem")].find(b=>b.textContent.includes("Mis negocios"))?.click();',
  'const tab=document.querySelectorAll("#cc166-content .cc167-tab")[1];tab?.click();',
  'const oldBusiness=x("cc166-content")?.textContent.includes("COBRA YA");',
  'const previousJwt=window.CC_V53_SESSION.jwt;',
@@ -45,7 +47,7 @@ const probe=[
  'const guestRequestsLogin=window.__login===1;',
  'const noMoneyOperations=window.__requests.every(req=>!req.includes("cc_portal_buy_stream_membership")&&!req.includes("cc_portal_purchase_stream_product")&&!req.includes("cc_portal_admin_start_stream_trial"));',
  'const noOverflow=document.documentElement.scrollWidth<=innerWidth+5;',
- 'const checks={oldBusiness,stayedBusiness,newSessionUsed,stillOnePanel,correctMembership,noTrial,guestRequestsLogin,noMoneyOperations,noOverflow};',
+ 'const checks={dashboardTabs,oldBusiness,stayedBusiness,newSessionUsed,stillOnePanel,correctMembership,noTrial,guestRequestsLogin,noMoneyOperations,noOverflow};',
  'const out=document.createElement("output");out.id="cc173-smoke";out.dataset.status=Object.values(checks).every(Boolean)?"pass":"fail";out.textContent=JSON.stringify(checks);document.body.append(out);',
  '}catch(e){failure(e)}',
  '},450);',
@@ -70,5 +72,5 @@ try{
  const result=run.stdout.match(/<output id="cc173-smoke" data-status="(pass|fail)">([^<]*)<\/output>/);
  assert.ok(result,'Sin resultado de sesión V173: '+run.stdout.slice(-470));
  assert.equal(result[1],'pass','V173: '+result[2]);
- console.log('PASS V173 · mismo panel tras renovación JWT, 4 pestañas, plan real y acceso invitado.');
+ console.log('PASS V174 · mismo panel tras renovación JWT, negocios sin redundancia y acceso invitado.');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
