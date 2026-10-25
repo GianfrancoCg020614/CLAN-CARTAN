@@ -99,11 +99,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  if(!document.getElementById('cc166-panel-style')){
   const css=document.createElement('link');css.id='cc166-panel-style';
-  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=1701';document.head.append(css);
+  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=1711';document.head.append(css);
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=1701';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=1711';script.async=false;document.head.append(script);
  }
 })();
 
@@ -139,4 +139,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   script.src='scripts/v170-flyers-stream.js?v=1701';
   script.async=false;document.head.append(script);
  }
+})();
+
+
+/* V171 · Administración simple de usuarios en el MISMO panel CLAN CARTAN. */
+(function(){
+ 'use strict';
+ if(document.getElementById('cc171-admin-simple-css'))return;
+ const css=document.createElement('link');
+ css.id='cc171-admin-simple-css';css.rel='stylesheet';
+ css.href='styles/v171-admin-simple.css?v=1711';
+ document.head.append(css);
 })();
