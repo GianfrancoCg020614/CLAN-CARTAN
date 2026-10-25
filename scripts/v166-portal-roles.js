@@ -56,7 +56,12 @@ function metric(title,num,tone){
 function title(page,heading,sub){
  const h=make('div','cc166-section-title');h.append(make('h2','',heading));if(sub)h.append(make('p','',sub));page.append(h);
 }
-function nav(to){view=to;render();}
+function openCatalog(){
+ if(typeof window.cc169OpenCatalog==='function'){window.cc169OpenCatalog();return;}
+ if(typeof window.cc77Store==='function'){app.hidden=true;window.cc77Store();return;}
+ notice('El catálogo público está temporalmente inaccesible.');
+}
+function nav(to){if(to==='shop'){openCatalog();return;}view=to;render();}
 function notice(msg){const page=el('cc166-content');if(!page)return;const p=make('p','cc166-notice',msg);p.setAttribute('role','status');page.prepend(p);}
 function mountLauncher(){
  const actions=el('cc77home')?.querySelector('.cc77top .cc77actions');
@@ -250,30 +255,12 @@ function receipt(page){
  page.append(box);
 }
 function shop(page){
- title(page,'Comprar servicios · precios públicos','Cualquier usuario con cuenta puede comprar con saldo REAL, sin membresía de gestión.');
+ title(page,'Comprobante de compra','Aquí verás exclusivamente el resultado de tu compra; el catálogo público es único.');
  receipt(page);
- const action=make('section','cc167-mini');
- const real=data.real.reduce((a,b)=>a+Number(b.balance_pen||0),0);
- const n=make('div','');n.append(make('small','','Saldo real disponible'),make('strong','',verified?price(real):'Consultando…'));
- action.append(n,button('Recargar billetera',openRecharge,'cc166-primary'));page.append(action);
- const items=data.products.filter(p=>p.status==='ACTIVE'&&Number(p.stock)>0);
- if(!items.length){
-  const box=card('Catálogo de STREAM BULL’S','En este momento no hay publicaciones con stock confirmado.');
-  box.append(make('p','cc166-note','Los productos aparecen automáticamente cuando ADMIN o un SÚPER RESELLER con membresía vigente los publica.'));
-  page.append(box);return;
- }
- const grid=make('div','cc167-market');
- for(const p of items){
-  const item=make('article','cc167-product');
-  item.append(make('small','cc167-platform',p.service));
-  item.append(make('h3','',p.title));
-  item.append(make('p','',String(p.description||'Servicio digital publicado por un vendedor autorizado.').slice(0,220)));
-  item.append(make('small','','Duración: '+(p.duration_days||'—')+' días · Stock: '+p.stock));
-  item.append(make('strong','cc167-price',price(p.price_pen)));
-  const own=p.seller_id===user;
-  const buy=button(own?'Tu publicación':'Comprar',()=>void buyProduct(p,buy),'cc166-primary');
-  buy.disabled=!verified||purchasePending||own;item.append(buy);grid.append(item);
- }page.append(grid);
+ const actions=make('div','cc166-actions');
+ actions.append(button('Volver al catálogo público',openCatalog,'cc166-primary'));
+ actions.append(button('Mis compras',()=>nav('orders'),'cc166-secondary'));
+ page.append(actions);
 }
 function storedKey(kind,id){
  const name='cc167:'+kind+':'+user+':'+id;
@@ -305,11 +292,40 @@ async function buyProduct(product,b){
   forgetKey(keyInfo.name);
   lastReceipt={...response,buyer_id:uid};
   await load();
-  view='shop';render();
+  app.hidden=false;view='shop';render();
   receiptFocus();
- }catch(e){if(session()?.userId===uid&&session()?.jwt===jwt)notice('Compra no confirmada: '+String(e?.message||e)+'. No repitas con otra referencia hasta comprobar Mis compras.');}
+ }catch(e){if(session()?.userId===uid&&session()?.jwt===jwt){app.hidden=false;view='shop';render();notice('Compra no confirmada: '+String(e?.message||e)+'. Revisa Mis compras antes de intentarlo nuevamente.');}}
  finally{purchasePending=false;b.disabled=false;}
 }
+async function purchaseFromPublicCatalog(productId,buttonEl,displayedPrice){
+ sync();
+ if(!session()?.jwt||!user){
+  if(typeof window.cc77Auth==='function')window.cc77Auth(false);
+  else window.alert('Debes iniciar sesión con tu cuenta CLAN CARTAN.');
+  return;
+ }
+ if(!verified||!window.cc80?.api){
+  window.alert('No es posible confirmar tu saldo. Abre el panel y actualiza los datos antes de comprar.');
+  return;
+ }
+ if(purchasePending)return;
+ try{
+  const rows=await read('cc_portal_stream_products?select=id,seller_id,service,title,price_pen,stock,status&id=eq.'+
+   encodeURIComponent(productId)+'&limit=1',true);
+  const item=rows[0];
+  if(!item||item.status!=='ACTIVE'||Number(item.stock)<1){
+   window.alert('Este producto ya no está disponible. Actualiza el catálogo.');return;
+  }
+  if(Number(item.price_pen)!==Number(displayedPrice)){
+   window.alert('El precio fue actualizado. Actualiza el catálogo antes de confirmar.');return;
+  }
+  // Misma RPC transaccional e idempotente ya usada por el panel V167; no doble checkout.
+  await buyProduct(item,buttonEl||button('Comprar',()=>{},'cc166-primary'));
+ }catch(e){
+  window.alert('No se pudo verificar el producto. No se hizo ningún cargo: '+String(e.message||e));
+ }
+}
+
 function receiptFocus(){el('cc166-content')?.querySelector('.cc167-receipt')?.scrollIntoView({behavior:'smooth',block:'start'});}
 async function buyStreamMembership(amount){
  if(!verified||membershipPending)return;
@@ -593,6 +609,7 @@ function init(){
  window.addEventListener('focus',()=>{sync();if(user&&!busy)void load();});
  window.cc166OpenPanel=()=>{sync();if(app){app.hidden=false;render();}};
  window.cc166RefreshPanel=()=>void load();
+ window.cc166PurchaseProductFromCatalog=(id,btn,price)=>purchaseFromPublicCatalog(id,btn,price);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
