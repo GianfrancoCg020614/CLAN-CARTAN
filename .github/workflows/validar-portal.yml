@@ -93,6 +93,7 @@ jobs:
           grep -q 'id="cc164-theme-toggle"' /tmp/clan-dom.html
           grep -q 'id="cc161-marketing"' /tmp/clan-dom.html
           grep -q 'scripts/v172-clan-referrals.js?v=172' /tmp/clan-dom.html
+          node scripts/test-v1635-interfaz-limpia-browser.mjs
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
