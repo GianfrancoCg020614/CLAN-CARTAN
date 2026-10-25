@@ -36,7 +36,7 @@ try{
    '<script>'+setup+'</script><script>'+js+'</script>',
    '<script>setTimeout(()=>{try{',
    'const offers=document.querySelectorAll(".cc169-offer");',
-   'const noDemo=!document.getElementById("demo-offer");',
+   'const noDemo=!document.getElementById("demo-offer")||!!document.getElementById("demo-offer")?.closest(".cc169-showcase");',
    mode==='no-offers'
      ?'const sample=document.querySelector(".cc169-showcase");const safeSample=!!sample&&[...sample.querySelectorAll("button")].every(b=>b.disabled)&&!sample.textContent.includes("S/ 12.00");'
      :'const safeSample=!document.querySelector(".cc169-showcase");',
