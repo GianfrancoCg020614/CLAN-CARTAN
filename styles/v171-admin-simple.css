@@ -162,3 +162,15 @@
   padding:7px 9px;font-size:11px;
  }
 }
+
+#cc166-panel .cc171-requests{display:grid;gap:6px}
+#cc166-panel .cc171-request-line{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:10px;padding:10px 2px;border-bottom:1px solid #2b475a;
+}
+#cc166-panel .cc171-request-line strong{
+ font-size:12px;color:#dff9ff;overflow-wrap:anywhere;
+}
+#cc166-panel .cc171-request-line small{
+ font-size:11px;color:#9abcca;
+}
