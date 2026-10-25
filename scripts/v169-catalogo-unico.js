@@ -7,7 +7,7 @@
   'use strict';
   const ROOT='https://pqalxtrcyrpmwqdlibqd.supabase.co';
   const UUID='[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
-  const FLYER_RE=new RegExp('^'+UUID+'/'+UUID+'/'+UUID+'\\.(jpg|jpeg|png|webp)
+  const FLYER_RE=new RegExp('^'+UUID+'/'+UUID+'/'+UUID+'\\.(jpg|jpeg|png|webp)$');
   // Publishable key que ya utiliza index.html: NO es una service_role key.
   const KEY='sb_publishable_nsp19gAqsdRak3JqWpusUg_Qd6mQr0n';
   let rows=[],loading=false,loaded=false,error='',revision=0,scheduled=false,inFlight=null,showcase=null;
