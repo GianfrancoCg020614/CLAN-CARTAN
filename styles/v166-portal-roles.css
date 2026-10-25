@@ -222,3 +222,6 @@
  #cc166-panel .cc167-stock-row{grid-template-columns:1fr}
  #cc166-panel .cc167-stock-row .cc167-actions button{flex:1 1 auto}
 }
+
+/* V168 · solicitudes no acreditadas nunca deben parecer saldo disponible. */
+#cc166-panel .cc166-movement strong.pending{color:#e7b873;white-space:normal;text-align:right;font-size:11px;line-height:1.4}
