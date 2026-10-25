@@ -16,7 +16,7 @@ const setup=[
  'if(path==="rpc/cc_portal_purchase_stream_product"){window.__calls.push({path,body});',
  'window.__purchases=[{id:"order-verified",buyer_id:"buyer-fake",seller_id:"seller-fake",title:"Netflix 30 días",price_pen:9.5,seller_whatsapp:"51912345678",status:"PAID_AWAITING_DELIVERY"}];',
  'return {order_id:"order-verified",status:"PAID_AWAITING_DELIVERY",price_pen:9.5,title:"Netflix 30 días",seller_whatsapp:"51912345678"};}',
- 'if(path.startsWith("cc_portal_stream_orders?"))return window.__purchases;',
+ 'if(path==="rpc/cc_portal_my_stream_orders")return window.__purchases;',
  'if(path.startsWith("cc_portal_stream_products?"))return [{id:"product-fake",seller_id:"seller-fake",service:"Netflix",title:"Netflix 30 días",description:"Acceso 30 días",duration_days:30,stock:3,price_pen:9.5,status:"ACTIVE"}];',
  'if(path.startsWith("cc_real_service_wallets?"))return [{service:"STREAM_BULLS",balance_pen:60}];',
  'if(path.startsWith("cc_businesses?"))return [{code:"STREAM_BULLS",id:"stream-business"}];',
