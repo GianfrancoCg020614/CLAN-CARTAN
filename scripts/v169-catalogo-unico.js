@@ -37,7 +37,7 @@
       window.alert('El módulo de compras seguras todavía no está disponible. No se realizó ningún cargo.');
       return;
     }
-    window.cc166PurchaseProductFromCatalog(product.id,btn);
+    window.cc166PurchaseProductFromCatalog(product.id,btn,product.price_pen);
   }
   function buildCard(product){
     const card=text('article','product lux v23-product-card cc169-offer');
