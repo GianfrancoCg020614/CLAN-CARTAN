@@ -42,7 +42,7 @@
     throw Error('El archivo no corresponde a una imagen válida de ese formato.');
   return extension;
  }
- function openPreview(url,alt){
+ function openPreview(url,alt,description=''){
   if(!url||!url.startsWith('https://pqalxtrcyrpmwqdlibqd.supabase.co/storage/v1/object/public/'+BUCKET+'/'))return;
   const dialog=dom('dialog','cc170-dialog');
   dialog.setAttribute('aria-label','Flyer ampliado: '+alt);
@@ -50,6 +50,7 @@
   img.loading='eager';
   const close=btn('✕ Cerrar imagen',()=>dialog.close(),'cc166-secondary cc170-close');
   dialog.append(close,img);
+  if(description)dialog.append(dom('p','cc170-preview-description',String(description).slice(0,1000)));
   dialog.addEventListener('close',()=>dialog.remove(),{once:true});
   dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
   document.body.append(dialog);
