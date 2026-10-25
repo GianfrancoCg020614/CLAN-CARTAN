@@ -52,3 +52,16 @@
 @media(max-width:355px){
  #app #productos .cc169-verified-grid{grid-template-columns:1fr}
 }
+
+
+/* V172 · Dos tarifas en un solo catálogo. La RPC decide la categoría real. */
+#app #productos .cc172-public-reference{
+ display:block;margin-top:7px;font:600 10px/1.45 system-ui,sans-serif;
+ color:#8cb8ca;text-decoration:none;
+}
+#cc166-panel #cc166-publish-form input[name=distributor]{
+ border-color:#3d9eae;background:#0a2b3a;
+}
+#cc166-panel #cc166-publish-form input[name=distributor]:focus-visible{
+ outline:2px solid #50d9d5;outline-offset:2px;
+}
