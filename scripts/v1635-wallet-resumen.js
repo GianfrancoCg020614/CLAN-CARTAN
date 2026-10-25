@@ -73,6 +73,12 @@
     inFlight = true;
     const total = by('cc164-total'), button = by('cc164-wallet-reload');
     if (button) button.disabled = true;
+    // Evitar que saldos de la sesión anterior queden visibles mientras se consulta otra.
+    panel.classList.remove('cc164-wallet-loaded');
+    const breakdown = by('cc164-wallet-breakdown');
+    if (breakdown) breakdown.replaceChildren();
+    const previousBalances = by('cc116-account-balances');
+    if (previousBalances) previousBalances.hidden = false;
     if (total) total.textContent = 'Consultando…';
     try {
       const endpoint = 'cc_real_service_wallets?select=service,balance_pen&user_id=eq.' +
