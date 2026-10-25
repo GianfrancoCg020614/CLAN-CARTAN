@@ -69,6 +69,7 @@ jobs:
       - name: Rescate V163.5 sobre main sin cambios financieros
         run: |
           node --check scripts/v1635-rescate-ui.js
+          node --check scripts/v1635-interfaz-limpia.js
           node --check scripts/v161-1-mi-alquiler.js
           node --check scripts/v161-2-mi-alquiler.js
           node --check scripts/v161-3-mi-alquiler.js
