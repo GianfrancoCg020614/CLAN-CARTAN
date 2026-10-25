@@ -197,3 +197,28 @@
  #cc166-panel .cc167-order-row{grid-template-columns:1fr;gap:5px}
  #cc166-panel .cc167-order-row button{width:100%}
 }
+
+
+/* V167: un punto de acceso por cuenta; conservar módulos legacy sin botones duplicados. */
+#cc77home:has(#cc166-open-button:not([hidden])) #cc92-admin-button,
+#cc77home:has(#cc166-open-button:not([hidden])) #cc116-account-balances {
+ display:none!important;
+}
+#cc166-panel .cc167-balance{
+ display:block;font-size:clamp(28px,4.2vw,44px);line-height:1.18;
+ letter-spacing:-.035em;color:#dbfffa;margin:8px 0 10px;
+}
+#cc166-panel .cc167-stock-row{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;
+ align-items:center;gap:8px;
+}
+#cc166-panel .cc167-stock-row .cc167-actions{
+ grid-column:1/-1;justify-content:flex-start;
+}
+#cc166-panel .cc167-stock-row .cc167-actions button{
+ min-height:34px;padding:7px 10px;font-size:11px;
+}
+@media(max-width:560px){
+ #cc166-panel .cc167-stock-row{grid-template-columns:1fr}
+ #cc166-panel .cc167-stock-row .cc167-actions button{flex:1 1 auto}
+}
