@@ -415,6 +415,7 @@ function publish(page){
  }
  const save=make('button','cc166-primary','Publicar servicio');save.type='submit';form.append(save);
  form.addEventListener('submit',e=>{e.preventDefault();void publishSave(new FormData(form),save);});
+ window.cc170Flyers?.attachForm(form);
  box.append(form);page.append(box);
  const list=card('Mis servicios publicados','Compra habilitada con saldo REAL; cada venta crea pedido y queda pendiente de entrega.');
  const products=data.products.filter(p=>data.admin||p.seller_id===user);
@@ -427,7 +428,9 @@ function publish(page){
   actions.append(button('Actualizar stock',()=>void editProduct(p,'stock'),'cc166-secondary'));
   actions.append(button(p.status==='ACTIVE'?'Pausar':'Reactivar',()=>void editProduct(p,'status'),'cc166-secondary'));
   actions.append(button('WhatsApp',()=>void editProduct(p,'whatsapp'),'cc166-secondary'));
-  row.append(actions);list.append(row);
+  row.append(actions);
+  window.cc170Flyers?.decorateRow(row,p);
+  list.append(row);
  }
  page.append(list);
 }
@@ -461,15 +464,40 @@ async function publishSave(fd,b){
  if(!user||!verified)return;
  const s=session(),uid=user,jwt=token;
  const value=k=>String(fd.get(k)||'').trim(),days=Number(value('days')),stock=Number(value('stock')),p=Number(value('price')),c=Number(value('cost'));
- if(!(p>0&&c>=0&&c<=p&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1)){notice('Verifica precio, costo, stock y duración.');return;}
- b.disabled=true;
- try{await api('rpc/cc_portal_publish_stream_product','POST',{
- p_service:value('service'),p_title:value('title'),p_duration_days:days,p_price_pen:p,
- p_cost_pen:c,p_stock:stock,p_whatsapp:value('whatsapp'),p_description:value('description')});
- if(session()?.userId!==uid||session()?.jwt!==jwt)return;
- await load();nav('publish');notice('Servicio publicado en el catálogo. Las compras se descuentan del saldo REAL y se registran en Mis ventas.');
+ if(!(p>0&&c>=0&&c<=p&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1)){
+  notice('Verifica precio, costo, stock y duración.');return;
+ }
+ const flyer=fd.get('flyer');
+ const hasFlyer=flyer instanceof Blob&&flyer.size>0;
+ if(hasFlyer){
+  try{
+   if(!window.cc170Flyers?.inspectFile)throw Error('No se ha cargado el módulo de imágenes. Actualiza la página.');
+   await window.cc170Flyers.inspectFile(flyer);
+  }catch(e){notice('Flyer inválido: '+String(e.message||e));return;}
+ }
+ b.disabled=true;b.textContent='Publicando…';
+ try{
+  // Conservar la RPC V167 y el MISMO id comercial: no crear un producto por cada imagen.
+  const productId=await api('rpc/cc_portal_publish_stream_product','POST',{
+   p_service:value('service'),p_title:value('title'),p_duration_days:days,p_price_pen:p,
+   p_cost_pen:c,p_stock:stock,p_whatsapp:value('whatsapp'),p_description:value('description')
+  });
+  if(!productId||typeof productId!=='string')throw Error('El servidor no confirmó el producto.');
+  if(session()?.userId!==uid||session()?.jwt!==jwt)return;
+  let flyerError='';
+  if(hasFlyer){
+   try{
+    b.textContent='Subiendo flyer…';
+    await window.cc170Flyers.upload({id:productId,seller_id:uid},flyer);
+   }catch(e){flyerError=String(e?.message||e);}
+  }
+  if(session()?.userId!==uid||session()?.jwt!==jwt)return;
+  await load();nav('publish');
+  if(flyerError)notice('Servicio publicado. El flyer quedó pendiente: '+flyerError+'. Puedes añadirlo desde Mis servicios, sin publicar de nuevo.');
+  else notice(hasFlyer?'Servicio y flyer publicados en el catálogo público.':'Servicio publicado. Puedes agregarle un flyer cuando quieras.');
+  window.cc169RefreshCatalog?.();
  }catch(e){if(session()?.userId===uid)notice('No se pudo publicar: '+String(e.message||e));}
- finally{b.disabled=false;}
+ finally{b.disabled=false;if(b.isConnected)b.textContent='Publicar servicio';}
 }
 function admin(page){
  if(!data.admin)return overview(page);
@@ -633,7 +661,7 @@ async function load(){
    read('cc_cobra_real_access_periods?select=status,period_end&user_id=eq.'+idp+'&order=period_end.desc&limit=20'),
    readMoves(),
    read('cc_portal_super_resellers?select=enabled,user_id,admin_percent&user_id=eq.'+idp+'&limit=1'),
-   read('cc_portal_stream_products?select=id,seller_id,service,title,description,duration_days,price_pen,stock,status&order=created_at.desc&limit=100',true),
+   read('cc_portal_stream_products?select=id,seller_id,service,title,description,duration_days,price_pen,stock,status,flyer_path&order=created_at.desc&limit=100',true),
    readOrders(),
    read('cc_plans?select=business_id,code,price_pen,is_active&code=eq.STREAM_365&is_active=eq.true'),
    read('cc_user_details?select=full_name,phone_e164,region,province,district&user_id=eq.'+idp+'&limit=1')
@@ -689,7 +717,7 @@ function init(){
  document.addEventListener('click',e=>{if(e.target.closest?.('#cc54logout'))reset();},true);
  window.addEventListener('focus',()=>{sync();if(user&&!busy)void load();});
  window.cc166OpenPanel=()=>{sync();if(app){app.hidden=false;render();}};
- window.cc166RefreshPanel=()=>void load();
+ window.cc166RefreshPanel=()=>load();
  window.cc166PurchaseProductFromCatalog=(id,btn,price)=>purchaseFromPublicCatalog(id,btn,price);
  window.cc166OpenProfile=()=>{
   sync();
