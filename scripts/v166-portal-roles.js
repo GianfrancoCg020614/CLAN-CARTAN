@@ -95,7 +95,8 @@ function renderNav(){
  if(data.admin)items.push(['admin','⚙','Usuarios']);
  if(data.admin||data.super)items.push(['publish','♛','Publicaciones'],['sales','◈','Ventas']);
  items.push(['shop','▣','Catálogo'],['orders','◱','Mis compras'],['wallet','▤','Billetera']);
- if(data.admin||data.super||data.reseller||data.superPermission)items.push(['businesses','▦','Mis negocios']);
+ if(data.admin||data.super||data.reseller||data.superPermission||data.members.some(m=>m.role==='RESELLER'||m.role==='SUPER_RESELLER'))
+  items.push(['businesses','▦','Mis negocios']);
  items.push(['profile','♙','Mi perfil']);
  for(const [id,icon,labelText] of items){
   const selected=view===id||(id==='businesses'&&view.startsWith('business:'));
@@ -143,12 +144,14 @@ function overview(page){
  const published=data.products.filter(p=>p.seller_id===user);
  const sold=data.orders.filter(o=>o.seller_id===user);
  const currentBusiness=services.filter(b=>access(b[0]).ok).length;
- const kind=data.admin?'admin':data.super?'super':data.superPermission?'super-pending':data.reseller?'reseller':'affiliate';
+ const resellerPending=!data.admin&&!data.super&&!data.reseller&&data.members.some(m=>m.role==='RESELLER');
+ const kind=data.admin?'admin':data.super?'super':data.superPermission?'super-pending':data.reseller?'reseller':resellerPending?'reseller-pending':'affiliate';
  const headings={
   admin:['Centro de administración','Usuarios, publicaciones y ventas sin salir de un panel.'],
   super:['Mi negocio STREAM BULL’S','Publica servicios, atiende pedidos y revisa tus movimientos.'],
   'super-pending':['Súper reseller · membresía pendiente','La asignación está registrada. La venta exige una membresía verificada.'],
   reseller:['Mi espacio reseller','Compra y consulta tus servicios desde una sola cuenta.'],
+  'reseller-pending':['Reseller · membresía pendiente','Tienes el rol asignado. Los precios de distribuidor requieren una membresía activa.'],
   affiliate:['Bienvenido a CLAN CARTAN','Explora el catálogo público y consulta tus compras.']
  }[kind];
  title(page,headings[0],headings[1]);
@@ -161,7 +164,7 @@ function overview(page){
  }else if(data.super){
   actions.append(button('Publicar servicio',()=>nav('publish'),'cc166-primary'));
   actions.append(button('Ventas y entregas',()=>nav('sales'),'cc166-secondary'));
- }else if(data.superPermission&&!data.super){
+ }else if((data.superPermission&&!data.super)||resellerPending){
   actions.append(button('Consultar membresía',()=>nav('business:STREAM_BULLS'),'cc166-primary'));
  }else{
   actions.append(button('Explorar catálogo',()=>nav('shop'),'cc166-primary'));
@@ -192,6 +195,11 @@ function overview(page){
   const pending=card('Súper reseller · activación pendiente',
    'Publicar y gestionar ventas requiere una membresía activa de STREAM BULL’S.');
   pending.append(button('Ver membresía',()=>nav('business:STREAM_BULLS'),'cc166-secondary'));
+  page.append(pending);
+ }else if(resellerPending){
+  const pending=card('Reseller · activación pendiente',
+   'El rol ya está registrado. El precio de distribuidor se habilita al confirmar tu suscripción.');
+  pending.append(button('Consultar mi acceso',()=>nav('business:STREAM_BULLS'),'cc166-secondary'));
   page.append(pending);
  }
 }
