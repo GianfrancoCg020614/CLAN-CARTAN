@@ -30,17 +30,24 @@
   if(!file.size||file.size>MAX_BYTES)throw Error('El flyer debe pesar menos de 5 MB.');
   return MIME_EXT[file.type];
  }
+ const validatedFiles=new WeakMap();
  async function inspectFile(file){
   const extension=validFile(file);
-  const bytes=new Uint8Array(await file.slice(0,16).arrayBuffer());
-  const isPng=bytes.length>=8&&[137,80,78,71,13,10,26,10].every((n,i)=>bytes[i]===n);
-  const isJpg=bytes[0]===255&&bytes[1]===216&&bytes[2]===255;
-  const isWebp=bytes.length>=12&&
-    [82,73,70,70].every((n,i)=>bytes[i]===n)&&
-    [87,69,66,80].every((n,i)=>bytes[8+i]===n);
-  if(extension==='png'&&!isPng||extension==='jpg'&&!isJpg||extension==='webp'&&!isWebp)
-    throw Error('El archivo no corresponde a una imagen válida de ese formato.');
-  return extension;
+  if(validatedFiles.has(file))return validatedFiles.get(file);
+  const verify=(async()=>{
+   const bytes=new Uint8Array(await file.slice(0,16).arrayBuffer());
+   const isPng=bytes.length>=8&&[137,80,78,71,13,10,26,10].every((n,i)=>bytes[i]===n);
+   const isJpg=bytes[0]===255&&bytes[1]===216&&bytes[2]===255;
+   const isWebp=bytes.length>=12&&
+     [82,73,70,70].every((n,i)=>bytes[i]===n)&&
+     [87,69,66,80].every((n,i)=>bytes[8+i]===n);
+   if(extension==='png'&&!isPng||extension==='jpg'&&!isJpg||extension==='webp'&&!isWebp)
+     throw Error('El archivo no corresponde a una imagen válida de ese formato.');
+   return extension;
+  })();
+  validatedFiles.set(file,verify);
+  try{return await verify;}
+  catch(e){validatedFiles.delete(file);throw e;}
  }
  function openPreview(url,alt,description=''){
   if(!url||!url.startsWith('https://pqalxtrcyrpmwqdlibqd.supabase.co/storage/v1/object/public/'+BUCKET+'/'))return;
