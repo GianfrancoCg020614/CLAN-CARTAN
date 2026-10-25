@@ -5,6 +5,7 @@ const html=read('index.html');
 const ui=read('scripts/v1635-rescate-ui.js');
 const alquiler=read('scripts/v161-1-mi-alquiler.js');
 const css=read('styles/v164-portal-4-negocios.css');
+const clean=read('scripts/v1635-interfaz-limpia.js');
 // Una sola web oficial; rescate aditivo y sin sobreescribir Auth/moneda/referidos.
 for(const needed of [
  'Cuatro negocios, una sola cuenta',
@@ -38,4 +39,12 @@ for(const src of [
  'scripts/v161-1-mi-alquiler.js','scripts/v161-2-mi-alquiler.js',
  'scripts/v161-3-mi-alquiler.js','scripts/v161-4-mi-alquiler.js'
 ])assert.ok(read(src).length>5000,'MI ALQUILER incompleto '+src);
+
+assert.ok(ui.includes('scripts/v1635-interfaz-limpia.js?v=1651'),'No se carga la interfaz limpia');
+for(const expected of ['cc147manualQr','cc148alreadyPaid','cc151operations','cc132movements','cc136admin','cc146admin','mc158actions','Más opciones','while (section.firstChild) body.appendChild(section.firstChild)'])
+ assert.ok(clean.includes(expected),'Falta conservar control visible/oculto en interfaz limpia: '+expected);
+for(const forbidden of ['rpc/cc_admin_', 'rpc/cc_notify_', 'delete(', 'cc_real_service_wallets?', 'localStorage.setItem('])
+ assert.ok(!clean.includes(forbidden),'La interfaz limpia no debe ejecutar operaciones financieras ni guardar datos: '+forbidden);
+for(const expected of ['cc165-fold','cc165-pay-methods','mc165-more','@media(max-width:640px)'])
+ assert.ok(css.includes(expected),'Falta estilo adaptable de interfaz limpia: '+expected);
 console.log('PASS rescate V163.5 sobre main: cuatro servicios, MI ALQUILER, tema visual y Auth/referrals intactos.');
