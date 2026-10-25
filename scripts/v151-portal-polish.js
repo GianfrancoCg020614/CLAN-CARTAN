@@ -99,11 +99,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  if(!document.getElementById('cc166-panel-style')){
   const css=document.createElement('link');css.id='cc166-panel-style';
-  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=1721';document.head.append(css);
+  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=174';document.head.append(css);
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=1731';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=174';script.async=false;document.head.append(script);
  }
 })();
 
@@ -148,6 +148,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  if(document.getElementById('cc171-admin-simple-css'))return;
  const css=document.createElement('link');
  css.id='cc171-admin-simple-css';css.rel='stylesheet';
- css.href='styles/v171-admin-simple.css?v=1711';
+ css.href='styles/v171-admin-simple.css?v=174';
  document.head.append(css);
 })();
