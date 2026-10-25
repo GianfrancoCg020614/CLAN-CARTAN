@@ -109,6 +109,7 @@ jobs:
           node --check scripts/v170-flyers-stream.js
           node scripts/test-v170-flyers-browser.mjs
           node scripts/test-v171-admin-browser.mjs
+          node scripts/test-v175-admin-tabs-browser.mjs
           node scripts/test-v172-prices-browser.mjs
           node scripts/test-v172-publish-browser.mjs
           node scripts/test-v173-home-bridge.mjs
