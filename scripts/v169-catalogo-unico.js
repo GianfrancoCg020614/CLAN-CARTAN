@@ -11,6 +11,8 @@
   // Publishable key que ya utiliza index.html: NO es una service_role key.
   const KEY='sb_publishable_nsp19gAqsdRak3JqWpusUg_Qd6mQr0n';
   let rows=[],loading=false,loaded=false,error='',revision=0,scheduled=false,inFlight=null,showcase=null;
+  let activeJwt=String(window.CC_V53_SESSION?.jwt||'');
+  const jwtNow=()=>String(window.CC_V53_SESSION?.jwt||'');
   const el=id=>document.getElementById(id);
   const money=n=>'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
   const text=(tag,cls,content)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(content!==undefined)x.textContent=String(content);return x;};
@@ -78,7 +80,13 @@
     body.append(text('p','product-preview',product.description||'Servicio digital. Revisa las condiciones antes de confirmar.'));
     body.append(text('small','cc169-duration','Duración: '+product.duration_days+' días'));
     const priceBox=text('div','v23-card-price');
-    const amount=text('div','');amount.append(text('small','','Precio público'),text('strong','',money(product.price_pen)));
+    const tier=product.price_tier==='DISTRIBUTOR';
+    const amount=text('div','');
+    amount.append(text('small','',tier?'Precio distribuidor':'Precio público'));
+    amount.append(text('strong','',money(product.price_pen)));
+    if(tier&&Number(product.public_price_pen)>Number(product.price_pen)){
+      amount.append(text('small','cc172-public-reference','Precio al público: '+money(product.public_price_pen)));
+    }
     priceBox.append(amount);body.append(priceBox);
     const actions=text('div','product-actions cc117-one-action');
     actions.append(button(window.CC_V53_SESSION?.jwt?'Comprar con billetera':'Ingresar para comprar',
@@ -115,6 +123,11 @@
     });
   }
   function render(){
+    // Nunca conservar tarifas de distribuidor en pantalla después de cerrar sesión.
+    if(activeJwt!==jwtNow()){
+      activeJwt=jwtNow();rows=[];loaded=false;error='';revision++;
+      void refresh();
+    }
     unifyProfileLink();
     const section=document.querySelector('#productos .v23-catalog-section');
     if(!section)return;
@@ -160,25 +173,36 @@
   }
   async function refresh(){
     if(inFlight)return inFlight;
+    const jwt=jwtNow();
+    activeJwt=jwt;
     loading=true;error='';revision++;schedule();
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),16000);
     inFlight=(async()=>{
       try{
-        const response=await fetch(ROOT+'/rest/v1/rpc/cc_portal_public_catalog_v2',{
-          method:'POST',
-          headers:{apikey:KEY,'Content-Type':'application/json'},
-          body:'{}',signal:controller.signal
+        // La sesión real se envía solo cuando existe. El servidor decide la tarifa.
+        // Con sesión ausente la RPC retorna exclusivamente el precio público.
+        const headers={apikey:KEY,'Content-Type':'application/json'};
+        if(jwt)headers.Authorization='Bearer '+jwt;
+        const response=await fetch(ROOT+'/rest/v1/rpc/cc_portal_public_catalog_v3',{
+          method:'POST',headers,body:'{}',signal:controller.signal
         });
         if(!response.ok)throw Error('La lista real no está disponible.');
         const result=await response.json();
         if(!Array.isArray(result))throw Error('Respuesta de productos inválida');
+        if(jwt!==jwtNow())return;
         rows=result.filter(p=>p.id&&p.title&&Number(p.price_pen)>0&&Number(p.stock)>0);
         loaded=true;error='';
       }catch(_){
-        rows=[];loaded=false;error='No se pudo verificar el catálogo.';
+        if(jwt===jwtNow()){
+          rows=[];loaded=false;error='No se pudo verificar el catálogo.';
+        }
       }finally{
-        clearTimeout(timeout);loading=false;inFlight=null;revision++;render();
+        clearTimeout(timeout);loading=false;inFlight=null;revision++;
+        if(jwt!==jwtNow()){
+          rows=[];loaded=false;error='';activeJwt=jwtNow();
+          render();void refresh();
+        }else render();
       }
     })();
     return inFlight;
