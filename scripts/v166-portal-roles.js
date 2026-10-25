@@ -133,48 +133,89 @@ function movementList(page,max){
  }page.append(box);
 }
 function overview(page){
- title(page,'Selecciona tu negocio','Una pantalla principal sencilla, con controles completos en cada módulo.');
- businessCards(page);
- const stats=make('div','cc166-stats'),total=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0),bonus=data.bonuses.reduce((n,b)=>n+Number(b.amount||0),0);
- stats.append(metric('Saldo real consolidado',verified?price(total):'—','aqua'),
- metric('Bonos · no disponibles como efectivo',verified?price(bonus):'—','purple'),
- metric('Movimientos registrados',String(data.moves.length),'blue'),
- metric('Accesos vigentes',services.filter(b=>access(b[0]).ok).length+' / 4','gold'));page.append(stats);
- const cols=make('div','cc166-columns');
- const wallet=card('Billetera y movimientos','Saldos reales separados de promociones y operaciones pendientes.');
- const buttons=make('div','cc166-actions');
- buttons.append(button('Recargar',()=>openRecharge(),'cc166-primary'),button('Movimientos',()=>nav('movements'),'cc166-secondary'));wallet.append(buttons);
- wallet.append(make('p','cc166-note','Vista consolidada: las subbilleteras existentes todavía se mantienen por servicio hasta la migración contable.'));
- movementList(wallet,5);cols.append(wallet);
- const side=make('div','cc166-right');
- const ext=card('Control externo','Complemento privado de cuentas y vencimientos.');
- ext.append(make('p','cc166-note','S/ 10 por 30 días. Activación con débito seguro aún pendiente; no se harán cargos desde esta vista.'));
- ext.append(button('Ver información',()=>nav('external'),'cc166-secondary'));side.append(ext);
- if(data.admin){const c=card('Herramientas ADMIN','Accesos, recargas verificadas y auditoría.');
- c.append(button('Gestionar',()=>nav('admin'),'cc166-primary'));side.append(c);}
- if(data.super){const c=card('SÚPER RESELLER','Publica y consulta servicios del catálogo STREAM BULL’S.');
- c.append(button('Mis publicaciones',()=>nav('publish'),'cc166-primary'));side.append(c);}
- cols.append(side);page.append(cols);
+ title(page,userRole()==='AFILIADO'?'Bienvenido · Compra tus servicios':'Tu actividad general','Una plataforma, cuatro negocios y un solo panel según tu membresía.');
+ const real=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
+ const hero=make('section','cc167-hero');
+ hero.append(make('h2','',userRole()==='AFILIADO'?'Tu billetera y catálogo':'Resumen de CLAN CARTAN'));
+ hero.append(make('p','',userRole()==='AFILIADO'?
+  'Recarga tu saldo real y compra servicios digitales a precios públicos. Después de pagar podrás notificar al vendedor por WhatsApp.':
+  'Selecciona arriba el negocio que deseas administrar. Solo se habilitan los controles correspondientes a tu rol y membresía.'));
+ const buttons=make('div','cc167-actions');
+ buttons.append(button('Comprar servicios',()=>nav('shop'),'cc166-primary'));
+ buttons.append(button('Recargar saldo',openRecharge,'cc166-secondary'));hero.append(buttons);page.append(hero);
+ const stats=make('div','cc166-stats');
+ stats.append(metric('Saldo real disponible',verified?price(real):'—','aqua'));
+ stats.append(metric('Mis compras',String(data.orders.filter(o=>o.buyer_id===user).length),'blue'));
+ if(data.admin||data.super||data.reseller){
+  stats.append(metric('Negocios activos',services.filter(b=>access(b[0]).ok).length+' / 4','gold'));
+  stats.append(metric('Movimientos consultados',String(data.moves.length),'purple'));
+ }
+ page.append(stats);
+ if(data.admin||data.super||data.reseller){
+  const next=card('Mi actividad','El negocio se abre desde las pestañas superiores; la contabilidad se consulta desde Billetera.');
+  const buttons2=make('div','cc166-actions');
+  buttons2.append(button('Ver mis negocios',()=>nav('businesses'),'cc166-primary'));
+  if(data.super||data.admin)buttons2.append(button('Publicar servicio',()=>nav('publish'),'cc166-secondary'));
+  next.append(buttons2);page.append(next);
+ }
+ const wallet=card('Últimos movimientos','Cada cargo indica el producto, activación, recarga o renovación.');
+ movementList(wallet,5);page.append(wallet);
 }
+
 function openRecharge(){exitTo(()=>{if(typeof window.cc116OpenRecharge==='function')window.cc116OpenRecharge();else window.cc80?.open();});}
 function wallet(page){
- title(page,'Billetera única · vista consolidada','Solo saldos reales verificados. Los bonos y descuentos permanecen registrados aparte.');
- const grid=make('div','cc166-stats');
- for(const [code] of services)grid.append(metric(serviceName(code),price(data.real.find(x=>x.service===code)?.balance_pen||0),'aqua'));
- page.append(grid);
- page.append(metric('Total real en subbilleteras',price(data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0)),'blue'));
- const p=card('Bonos promocionales','No son dinero real; no se transfieren como efectivo.');
- if(!data.bonuses.length)p.append(make('p','cc166-note','No hay bonos verificados disponibles.'));
- for(const b of data.bonuses)p.append(metric(b.label,price(b.amount),'purple'));page.append(p);
- const actions=make('div','cc166-actions');
- actions.append(button('Recargar',openRecharge,'cc166-primary'),button('Movimientos e historial',()=>nav('movements'),'cc166-secondary'),
- button('Transferencias existentes',()=>exitTo(()=>window.cc127OpenTransfer?.('COBRA_YA')),'cc166-secondary'));page.append(actions);
- page.append(make('p','cc166-note','La unificación contable real está pendiente. Ningún movimiento se modifica al consultar este panel.'));
+ title(page,'Billetera digital única','Un saldo total real para compras y membresías, con trazabilidad de cada servicio.');
+ const real=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
+ const box=make('section','cc167-hero');
+ box.append(make('h2','','Saldo REAL disponible'));
+ box.append(make('strong','cc167-balance',verified?price(real):'Consultando…'));
+ box.append(make('p','','Una compra puede descontar varias subbilleteras en una sola operación atómica, sin usar bonos.'));
+ const actions=make('div','cc167-actions');
+ actions.append(button('Recargar',openRecharge,'cc166-primary'),
+ button('Ver movimientos',()=>nav('movements'),'cc166-secondary'));box.append(actions);page.append(box);
+ const promo=card('Bonos promocionales','Separados del saldo real y no considerados como efectivo disponible.');
+ const total=data.bonuses.reduce((a,b)=>a+Number(b.amount||0),0);
+ promo.append(metric('Total bonos verificados',verified?price(total):'—','purple'));
+ const detail=make('details','cc167-advanced'),summary=make('summary','','Ver detalle de bonos');detail.append(summary);
+ if(!data.bonuses.length)detail.append(make('p','cc166-note','Sin bonos activos verificados.'));
+ for(const b of data.bonuses)detail.append(make('p','cc166-note',b.label+' · '+price(b.amount)));
+ promo.append(detail);page.append(promo);
+ const accounts=make('details','cc167-advanced');accounts.append(make('summary','','Detalle técnico de saldos por negocio'));
+ for(const [code] of services)accounts.append(make('p','cc166-note',serviceName(code)+' · '+price(data.real.find(r=>r.service===code)?.balance_pen||0)));
+ page.append(accounts);
+ const recent=card('Movimientos e historial','Cada descuento o ingreso tiene su concepto y referencia.');
+ movementList(recent,12);page.append(recent);
 }
 function memberships(page){
- title(page,'Negocios y membresías','Los accesos requieren vigencia confirmada en el servidor.');
- businessCards(page);
+ title(page,'Accesos y suscripciones','Las mismas pestañas aparecen arriba. La administración del negocio exige membresía vigente.');
+ page.append(make('p','cc166-note','Selecciona un negocio arriba para revisar su acceso, plan y funciones. No existen cuatro paneles generales diferentes.'));
 }
+function businessPage(page,code){
+ const info=access(code);title(page,serviceName(code),info.ok?'Membresía verificada · Controles habilitados':'Tu acceso a este negocio está bloqueado hasta activar o renovar la membresía.');
+ if(code==='STREAM_BULLS'){
+  const shell=card('STREAM BULL’S · Servicios digitales',info.ok?'Tu suscripción de gestión está activa.':'Puedes comprar productos sin membresía. Para gestionar cuentas necesitas activar el plan.');
+  const actions=make('div','cc166-actions');
+  actions.append(button('Comprar servicios',()=>nav('shop'),'cc166-primary'));
+  if(info.ok){
+   if(data.super||data.admin)actions.append(button('Mis publicaciones',()=>nav('publish'),'cc166-secondary'));
+   else actions.append(button('Mi catálogo',()=>nav('shop'),'cc166-secondary'));
+  }else{
+   const cost=Number(data.plan?.price_pen||25);
+   shell.append(metric('Membresía anual · 365 días',price(cost),'gold'));
+   actions.append(button('Activar por '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary'));
+  }
+  shell.append(actions);page.append(shell);
+ }else{
+  const shell=card(info.ok?'Membresía activa':'Acceso no habilitado',
+  info.ok?'Entra a las herramientas existentes de este negocio.':'Activa o renueva el plan desde el flujo protegido del negocio; no se aplicará ningún débito sin confirmación.');
+  shell.append(make('p','cc166-note',info.ok?'Tus operaciones y clientes permanecen bajo tu cuenta CLAN CARTAN.':'El acceso administrativo se habilita solamente cuando el servidor confirma la membresía.'));
+  const next=button(info.ok?'Entrar al negocio':'Consultar activación de membresía',()=>{
+    const original={COBRA_YA:()=>window.cc79Cobra?.(),MI_COCHERA:()=>window.mc158Open?.(),MI_ALQUILER:()=>window.ma1611MiAlquiler?.open()}[code];
+    exitTo(original);
+  },'cc166-primary');shell.append(next);page.append(shell);
+ }
+}
+
 function movements(page){
  title(page,'Movimientos reales','Compras, recargas, renovaciones y activaciones con su descripción y referencia.');
  const buttons=make('div','cc166-actions');
