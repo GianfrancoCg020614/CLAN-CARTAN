@@ -72,6 +72,11 @@
   function simplify() {
     const wallet = by('cc80wallet');
     if (wallet) {
+      // Las solicitudes deben ser accesibles sin abrir la recarga automática.
+      // Algunos scripts históricos las insertan dentro de ese panel.
+      const operations = by('cc151operations');
+      const automatic = by('cc122section');
+      if (operations && automatic?.contains(operations)) automatic.after(operations);
       simplifyManualRecharge();
       [
         ['cc122section', 'Recarga automática · pendiente de habilitación'],
