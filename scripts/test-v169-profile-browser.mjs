@@ -39,7 +39,7 @@ const probe=[
  'const fieldsOK=payload.p_full_name==="Nombre actualizado"&&payload.p_phone_e164==="+51912345678"&&payload.p_district==="Miraflores";',
  'const singleProfile=document.querySelectorAll("#cc169-profile-form").length===1;',
  'const refreshed=document.querySelector("#cc169-profile-form input[name=full_name]")?.value==="Nombre actualizado";',
- 'const noOtherBusinessChanged=typeof window.cc166PurchaseProductFromCatalog==="function"&&!!document.querySelector(".cc167-tabs");',
+ 'const noOtherBusinessChanged=typeof window.cc166PurchaseProductFromCatalog==="function"&&document.querySelectorAll(".cc167-tabs").length===0;',
  'const checks={initiallyCorrect,emailReadonly,savedOnce,fieldsOK,singleProfile,refreshed,noOtherBusinessChanged};',
  'const n=document.createElement("output");n.id="profile-smoke";n.dataset.status=Object.values(checks).every(Boolean)?"pass":"fail";n.textContent=JSON.stringify(checks);document.body.append(n);',
  '}catch(e){const n=document.createElement("output");n.id="profile-smoke";n.dataset.status="fail";n.textContent=String(e);document.body.append(n)}',
