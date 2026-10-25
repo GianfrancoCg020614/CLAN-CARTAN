@@ -8,7 +8,7 @@ const chrome=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-br
 assert.ok(chrome,'Es obligatorio Chrome / Chromium para verificar V166');
 const js=fs.readFileSync('scripts/v166-portal-roles.js','utf8');
 const css=fs.readFileSync('styles/v166-portal-roles.css','utf8');
-const home='<div id="cc77home"><div class="cc77cards"><article class="cc77card"><button>STREAM</button></article><article class="cc77card"><button>COBRA</button></article></div></div>';
+const home='<div id="cc77home"><div class="cc77top"><div class="cc77actions"></div></div><div class="cc77cards"><article class="cc77card"><button>STREAM</button></article><article class="cc77card"><button>COBRA</button></article></div></div>';
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'cc166-'));
 try{
  for(const mode of ['reseller','super','admin']){
@@ -28,6 +28,9 @@ try{
   const check=[
    'setTimeout(()=>{const x=id=>document.getElementById(id),panel=x("cc166-panel");',
    'const rendered=!!panel&&!panel.hidden;',
+   'const launcher=x("cc166-open-button");const launcherInstalled=!!launcher;',
+   'panel?.querySelector(".cc166-x")?.click();const closes=panel?.hidden===true;',
+   'launcher?.click();const reopens=panel?.hidden===false;',
    'const role=x("cc166-role")?.textContent||"";',
    'const oldHome=!!x("cc77home");',
    'const actualBalance=x("cc166-content")?.textContent.includes("S/ 12.50");',
@@ -35,7 +38,7 @@ try{
    'const menuAdmin=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Administración"));',
    'const menuPublish=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Publicaciones"));',
    'const controlsOK=!!window.cc166OpenPanel&&!!window.cc166RefreshPanel;',
-   'const checks={rendered,oldHome,actualBalance,businessCount,controlsOK,roleValid:',
+   'const checks={rendered,launcherInstalled,closes,reopens,oldHome,actualBalance,businessCount,controlsOK,roleValid:',
    mode==='admin'?'role.includes("ADMIN"),adminValid:menuAdmin,superValid:menuPublish':mode==='super'?'role.includes("SÚPER"),adminValid:!menuAdmin,superValid:menuPublish':'role.includes("RESELLER"),adminValid:!menuAdmin,superValid:!menuPublish',
    ',mobileWidth:document.documentElement.scrollWidth<=innerWidth+3};',
    'const n=document.createElement("output");n.id="cc166-smoke";',
