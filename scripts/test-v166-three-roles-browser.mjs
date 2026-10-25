@@ -42,7 +42,7 @@ try{
    'const oldHome=!!x("cc77home");',
    'const actualBalance=x("cc166-content")?.textContent.includes("S/ 12.50");',
    'const businessCount=tabCount;',
-   'const menuAdmin=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Administración"));',
+   'const menuAdmin=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Usuarios y roles"));',
    'const menuPublish=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Publicar"));',
    'const controlsOK=!!window.cc166OpenPanel&&!!window.cc166RefreshPanel;',
    'const movementMenuCount=[...document.querySelectorAll(".cc166-navitem")].filter(b=>b.textContent.includes("Movimientos")).length===1;',

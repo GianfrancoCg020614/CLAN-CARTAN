@@ -14,6 +14,7 @@ const catalog=read('scripts/v169-catalogo-unico.js');
 const profileMigration=read('supabase/migrations/20261025_cc_portal_catalog_profile_v169.sql');
 const flyer=read('scripts/v170-flyers-stream.js');
 const flyerSql=read('supabase/migrations/20261025_cc_stream_flyers_v170.sql');
+const trialSql=read('supabase/migrations/20261025_cc_portal_admin_simple_trials_v171.sql');
 const checks=[
  [main.includes('checkout_key uuid not null unique'),'Idempotencia de órdenes'],
  [main.includes('for update'),'Bloqueo de stock/billetera antes de cargo'],
@@ -42,8 +43,8 @@ const checks=[
  [js.includes("role.includes")===false,'No confiar en rol a partir de texto'],
  [js.includes("case 'shop':shop(page)")&&js.includes("case 'admin':admin(page)"),'Un panel con rutas por rol'],
  [js.includes('businessTabs(page)'),'Una barra de cuatro pestañas'],
- [loader.includes('v166-portal-roles.js?v=1701'),'El cargador usa versión de panel actualizada'],
- [index.includes('scripts/v151-portal-polish.js?v=1701'),'El HTML no carga el panel previo en caché'],
+ [loader.includes('v166-portal-roles.js?v=1711'),'El cargador usa versión de panel actualizada'],
+ [index.includes('scripts/v151-portal-polish.js?v=1711'),'El HTML no carga el panel previo en caché'],
  [catalog.includes('rpc/cc_portal_public_catalog'),'Catálogo público lee únicamente publicaciones reales'],
  [catalog.includes('cc166PurchaseProductFromCatalog'),'Catálogo reutiliza el checkout verificado existente'],
  [catalog.includes("querySelectorAll('.v23-product-grid,.v23-empty,.cc169-result')"),'No quedan tarjetas de compra duplicadas'],
@@ -64,7 +65,20 @@ const checks=[
  [js.includes('window.cc170Flyers?.decorateRow(row,p)'),'La publicación existente conserva listado y añade miniatura'],
  [catalog.includes('cc_portal_public_catalog_v2'),'Catálogo público obtiene la ruta del flyer sin costos privados'],
  [catalog.includes('cc170-public-flyer'),'Catálogo muestra flyer o portada por plataforma'],
- [loader.includes('scripts/v170-flyers-stream.js?v=1701'),'La UI del flyer se carga por el portal actual']
+ [loader.includes('scripts/v170-flyers-stream.js?v=1701'),'La UI del flyer se carga por el portal actual'],
+ [js.includes("title(page,'Usuarios y accesos'"),'ADMIN abre pantalla simple de usuarios'],
+ [!js.includes("actions.append(button('Administración original'"),'Acceso al administrador legado dejó de ser acción principal'],
+ [js.includes("advanced.append(make('summary','','Herramientas avanzadas"),'Administración extensa queda plegada'],
+ [js.includes("rpc/cc_portal_admin_accounts"),'Usuarios se consultan por RPC exclusiva de ADMIN'],
+ [js.includes("rpc/cc_portal_admin_start_stream_trial"),'Prueba solo tras acción de ADMIN'],
+ [trialSql.includes("price_pen,is_active"),'Prueba usa plan de cero soles independiente de membresía pagada'],
+ [trialSql.includes("trial_duration check"),'Duración máxima 7 días verificada en base de datos'],
+ [trialSql.includes('cc_portal_trial_once unique(user_id,business_id)'), 'Cada cuenta recibe a lo sumo una prueba'],
+ [trialSql.includes("Acceso exclusivo de ADMIN"),'RPC verifica rol ADMIN en el servidor'],
+ [trialSql.includes("if exists(select 1 from public.cc_admins where user_id=target)"),'Usuarios ADMIN no pueden degradarse en esta pantalla'],
+ [trialSql.includes("p_role not in ('AFFILIATE','RESELLER','SUPER_RESELLER')"),'Solo roles conocidos'],
+ [trialSql.includes("cc_portal_admin_end_stream_trial"),'Prueba puede revocarse de forma auditada'],
+ [loader.includes('styles/v171-admin-simple.css?v=1711'),'El panel carga su estilo sin alterar otros negocios']
 ];
 for(const [condition,message] of checks){assert.ok(condition,message);}
 console.log('PASS · '+checks.length+' comprobaciones financieras, de privacidad y navegación sin pagos reales.');

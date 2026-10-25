@@ -1,0 +1,176 @@
+/* CLAN CARTAN V171 · Administración simple por cuenta.
+ * Exclusivo del panel ADMIN. No altera controles de otros negocios ni roles.
+ */
+#cc166-panel .cc171-top-summary{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+ margin:0 0 16px;
+}
+#cc166-panel .cc171-top-summary .cc166-metric{margin:0}
+#cc166-panel .cc171-filter{
+ display:flex;align-items:center;gap:10px;margin:0 0 13px;
+}
+#cc166-panel .cc171-filter input[type=search]{
+ flex:1 1 270px;min-width:0;max-width:480px;
+ background:#071d2f;border:1px solid #396079;
+ color:#e6fcff;border-radius:10px;padding:11px 13px;
+ font:13px/1.4 system-ui,sans-serif;outline:none;
+}
+#cc166-panel .cc171-filter input[type=search]:focus-visible{
+ border-color:#36cde1;box-shadow:0 0 0 2px #21acc733;
+}
+#cc166-panel .cc171-filter .cc166-secondary{
+ flex:0 0 auto;
+}
+#cc166-panel .cc171-users{display:grid;gap:10px}
+#cc166-panel .cc171-person{
+ display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.3fr) minmax(130px,.9fr);
+ align-items:center;gap:12px;border:1px solid #304e62;
+ background:linear-gradient(125deg,#102637,#0b1b2d);
+ padding:12px 14px;border-radius:12px;min-width:0;
+}
+#cc166-panel .cc171-person[hidden]{display:none!important}
+#cc166-panel .cc171-person-id{
+ display:flex;align-items:center;gap:11px;min-width:0;
+}
+#cc166-panel .cc171-avatar{
+ display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;
+ border:1px solid #218da0;border-radius:12px;
+ background:linear-gradient(135deg,#0a4c5f,#172e52);
+ color:#c5faff;font:800 17px/1 system-ui,sans-serif;
+}
+#cc166-panel .cc171-identity{
+ display:grid;gap:4px;min-width:0;
+}
+#cc166-panel .cc171-identity strong{
+ color:#eefaff;font-size:12px;font-weight:750;overflow-wrap:anywhere;
+}
+#cc166-panel .cc171-identity small{
+ color:#95bdd0;font-size:11px;overflow-wrap:anywhere;
+}
+#cc166-panel .cc171-person-role{
+ display:grid;gap:4px;min-width:0;
+}
+#cc166-panel .cc171-role-label{
+ font-size:11px;color:#e0f3ff;font-weight:800;
+ letter-spacing:.03em;
+}
+#cc166-panel .cc171-person-role small{
+ display:block;font-size:11px;line-height:1.45;
+ overflow-wrap:anywhere;
+}
+#cc166-panel .cc171-status-active{color:#65e8bd}
+#cc166-panel .cc171-status-pending{color:#d8b77c}
+#cc166-panel .cc171-admin-protected{
+ font-size:11px;color:#9dbbcb;text-align:right;
+}
+#cc166-panel .cc171-person-actions{
+ display:flex;align-items:center;justify-content:flex-end;
+ gap:8px;flex-wrap:wrap;min-width:0;
+}
+#cc166-panel .cc171-small{
+ min-height:36px;padding:8px 10px;
+ font-size:11px;line-height:1.3;
+}
+#cc166-panel .cc171-state{
+ font-size:11px;color:#8fb5c8;
+}
+#cc166-panel details.cc171-inline-details{
+ min-width:0;position:relative;
+}
+#cc166-panel .cc171-inline-details summary{
+ display:list-item;cursor:pointer;white-space:nowrap;
+ color:#aee8e9;font-size:11px;font-weight:750;padding:8px 3px;
+}
+#cc166-panel .cc171-inline-details[open]{
+ width:min(100%,380px);flex-basis:100%;
+}
+#cc166-panel .cc171-edit{
+ display:grid;grid-template-columns:minmax(0,1.2fr) 73px;
+ gap:7px;align-items:center;margin-top:10px;
+}
+#cc166-panel .cc171-edit select,
+#cc166-panel .cc171-edit input{
+ display:block;width:100%;min-width:0;
+ background:#061727;border:1px solid #40667b;
+ border-radius:8px;padding:8px;color:#e9faff;
+ font:12px/1.3 system-ui,sans-serif;
+}
+#cc166-panel .cc171-edit button{grid-column:1/-1}
+#cc166-panel .cc171-field-hint{
+ display:block;color:#8cb0c0;
+ font-size:10px;line-height:1.4;margin-top:7px;
+}
+#cc166-panel .cc171-help{
+ margin:4px 2px 18px;color:#a3c2cc;
+ font:12px/1.6 system-ui,sans-serif;
+}
+#cc166-panel details.cc171-advanced{
+ margin-top:20px;padding:13px 17px;
+ border:1px solid #2a465b;
+ background:#0a1a2b;
+ border-radius:12px;
+}
+#cc166-panel details.cc171-advanced summary{
+ cursor:pointer;color:#a7c0cd;
+ font-size:12px;font-weight:700;
+ list-style:revert;
+}
+#cc166-panel .cc171-advanced .cc166-actions{
+ margin:16px 0 0;
+}
+#cc166-panel .cc171-advanced button{
+ font-size:11px;min-height:36px;
+}
+@media(max-width:1080px){
+ #cc166-panel .cc171-person{
+  grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);
+ }
+ #cc166-panel .cc171-person-actions{
+  grid-column:1/-1;justify-content:flex-start;
+ }
+ #cc166-panel .cc171-admin-protected{
+  text-align:left;
+ }
+}
+@media(max-width:610px){
+ #cc166-panel .cc171-top-summary{
+  grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+ }
+ #cc166-panel .cc171-top-summary .cc166-metric{
+  min-height:83px;padding:10px 8px;
+ }
+ #cc166-panel .cc171-top-summary .cc166-metric strong{
+  font-size:19px;
+ }
+ #cc166-panel .cc171-top-summary .cc166-metric small{
+  font-size:10px;
+ }
+ #cc166-panel .cc171-person{
+  grid-template-columns:1fr;gap:9px;padding:12px;
+ }
+ #cc166-panel .cc171-person-actions{grid-column:1}
+ #cc166-panel .cc171-person-role{
+  padding-left:50px;
+ }
+ #cc166-panel .cc171-filter{
+  gap:6px;
+ }
+ #cc166-panel .cc171-filter input[type=search]{
+  flex:1 1 130px;font-size:12px;
+ }
+ #cc166-panel .cc171-filter .cc166-secondary{
+  padding:7px 9px;font-size:11px;
+ }
+}
+
+#cc166-panel .cc171-requests{display:grid;gap:6px}
+#cc166-panel .cc171-request-line{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:10px;padding:10px 2px;border-bottom:1px solid #2b475a;
+}
+#cc166-panel .cc171-request-line strong{
+ font-size:12px;color:#dff9ff;overflow-wrap:anywhere;
+}
+#cc166-panel .cc171-request-line small{
+ font-size:11px;color:#9abcca;
+}

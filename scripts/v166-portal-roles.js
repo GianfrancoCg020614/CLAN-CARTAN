@@ -9,6 +9,7 @@ const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'COBRA YA',MI_COCHE
 const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],['MI_ALQUILER','⌂']];
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
+let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
 let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null};
 let lastReceipt=null,purchasePending=false,membershipPending=false;
 const price=n=>Number.isFinite(Number(n))?'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
@@ -22,6 +23,7 @@ function reset(){
  data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null};lastReceipt=null;purchasePending=false;membershipPending=false;
  app?.remove();app=null;el('cc166-open-button')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
+ adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
 }
 function shell(){
  if(app?.isConnected)return app;
@@ -92,7 +94,7 @@ function renderNav(){
  const extra=[['businesses','▦','Negocios'],['affiliate','♧','Referidos'],['external','⇄','Control externo']];
  const items=base.concat(data.reseller||data.super||data.admin?extra:[])
   .concat(data.super||data.admin?[['publish','♛','Publicar'],['sales','◈','Mis ventas']]:[])
-  .concat(data.admin?[['admin','⚙','Administración']]:[])
+  .concat(data.admin?[['admin','⚙','Usuarios y roles']]:[])
   .concat([['profile','♙','Mi perfil']]);
  for(const [id,icon,labelText] of items){
   const selected=view===id||(id==='businesses'&&view.startsWith('business:'));
@@ -499,42 +501,233 @@ async function publishSave(fd,b){
  }catch(e){if(session()?.userId===uid)notice('No se pudo publicar: '+String(e.message||e));}
  finally{b.disabled=false;if(b.isConnected)b.textContent='Publicar servicio';}
 }
+function trialDate(value){
+ if(!value)return '—';
+ try{return new Date(value).toLocaleDateString('es-PE',
+   {timeZone:'America/Lima',year:'numeric',month:'short',day:'numeric'});}
+ catch(_){return '—';}
+}
+function roleLabel(role){
+ return ({ADMIN:'ADMIN',AFFILIATE:'AFILIADO',RESELLER:'RESELLER',
+  SUPER_RESELLER:'SÚPER RESELLER'})[role]||'AFILIADO';
+}
+function accessLabel(item){
+ if(item.is_admin)return 'Acceso administrativo';
+ if(item.trial_active)return 'Prueba activa hasta '+trialDate(item.trial_until);
+ if(item.access_until&&Date.parse(item.access_until)>Date.now())
+  return 'Membresía activa hasta '+trialDate(item.access_until);
+ if(item.trial_until)return 'Prueba utilizada · Sin acceso vigente';
+ return 'Pendiente de membresía';
+}
+async function loadAdminAccounts(force=false){
+ if(!data.admin||!user||!session()?.jwt)return;
+ if(adminAccountsState==='loading'||(adminAccountsState==='ready'&&!force))return;
+ adminAccountsState='loading';adminAccountsError='';
+ const uid=user,jwt=token;
+ try{
+  const result=await api('rpc/cc_portal_admin_accounts','POST',{});
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(!Array.isArray(result))throw Error('Respuesta de usuarios inválida');
+  adminAccounts=result;
+  adminAccountsState='ready';
+ }catch(e){
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  adminAccountsState='error';
+  adminAccountsError=String(e?.message||e);
+ }finally{
+  if(user===uid&&session()?.jwt===jwt&&view==='admin')render();
+ }
+}
+async function adminChangeRole(person,role,percent,btn){
+ if(adminActionBusy||!data.admin||person.is_admin)return;
+ if(!['AFFILIATE','RESELLER','SUPER_RESELLER'].includes(role))return;
+ if(person.access_until&&Date.parse(person.access_until)>Date.now()){
+  notice('Para modificar este rol, primero termina su acceso vigente o revisa su membresía.');
+  return;
+ }
+ if(!confirm('¿Asignar '+roleLabel(role)+' a '+person.email+
+   '? No se activará la membresía ni se cobrará dinero.'))return;
+ adminActionBusy=true;btn.disabled=true;
+ try{
+  const out=await api('rpc/cc_portal_admin_assign_stream_role','POST',{
+   p_email:person.email,p_role:role,p_admin_percent:percent
+  });
+  if(!out?.assigned)throw Error('No se confirmó el cambio');
+  await loadAdminAccounts(true);
+  if(view==='admin')notice('Rol actualizado: '+person.email+' → '+roleLabel(role)+
+   '. La membresía sigue pendiente hasta su activación.');
+ }catch(e){notice('No se cambió el rol: '+String(e?.message||e));}
+ finally{adminActionBusy=false;btn.disabled=false;}
+}
+async function adminTrial(person,stop,btn){
+ if(adminActionBusy||!data.admin||person.is_admin)return;
+ const operation=stop?'finalizar':'activar';
+ const explanation=stop?
+  '¿Finalizar ahora la prueba de '+person.email+'? Se cerrará su acceso de prueba sin tocar la billetera.':
+  '¿Activar una prueba GRATUITA de 7 días para '+person.email+
+  '? No se cobrará dinero. El usuario tendrá permisos operativos durante la prueba; una publicación real puede aparecer en el catálogo y recibir compras reales.';
+ if(!confirm(explanation))return;
+ adminActionBusy=true;btn.disabled=true;
+ const uid=user,jwt=token;
+ try{
+  const out=await api(stop?
+   'rpc/cc_portal_admin_end_stream_trial':'rpc/cc_portal_admin_start_stream_trial',
+   'POST',stop?{p_email:person.email}:{p_email:person.email,p_days:7});
+  if(user!==uid||session()?.jwt!==jwt)return;
+  if(stop?!out?.ended:!out?.activated)throw Error('La operación no se confirmó');
+  await loadAdminAccounts(true);
+  if(view==='admin')notice(stop?
+   'Prueba finalizada sin cargos.':
+   'Prueba activada para '+person.email+' hasta '+trialDate(out.ends_at)+
+   '. Ya puede cerrar sesión e ingresar para probar su panel.');
+ }catch(e){
+  if(user===uid&&session()?.jwt===jwt)
+   notice('No se pudo '+operation+' la prueba: '+String(e?.message||e));
+ }finally{adminActionBusy=false;btn.disabled=false;}
+}
+function adminAccountRow(person){
+ const wrap=make('article','cc171-person');
+ const identity=make('div','cc171-person-id');
+ const icon=make('span','cc171-avatar',
+  String(person.display_name||person.email||'?').trim().charAt(0).toUpperCase());
+ const info=make('div','cc171-identity');
+ info.append(make('strong','',person.display_name||person.email));
+ if(person.display_name)info.append(make('small','',person.email));
+ identity.append(icon,info);wrap.append(identity);
+ const type=make('div','cc171-person-role');
+ type.append(make('strong','cc171-role-label',roleLabel(person.role_assigned)));
+ const status=make('small',person.trial_active?'cc171-status-active':
+   person.access_until&&Date.parse(person.access_until)>Date.now()?
+   'cc171-status-active':'cc171-status-pending',accessLabel(person));
+ type.append(status);wrap.append(type);
+ if(person.is_admin){
+  wrap.append(make('span','cc171-admin-protected','Cuenta protegida'));
+  return wrap;
+ }
+ const area=make('div','cc171-person-actions');
+ const active=person.access_until&&Date.parse(person.access_until)>Date.now();
+ if(person.trial_active){
+  area.append(button('Finalizar prueba',function(){void adminTrial(person,true,this)},
+   'cc166-secondary cc171-small'));
+ }else if(!active&&person.role_assigned!=='AFFILIATE'&&!person.trial_until){
+  area.append(button('Probar 7 días · S/ 0',function(){void adminTrial(person,false,this)},
+   'cc166-primary cc171-small'));
+ }else if(active){
+  area.append(make('span','cc171-state','Acceso habilitado'));
+ }else if(person.trial_until){
+  area.append(make('span','cc171-state','Prueba utilizada'));
+ }
+ const details=make('details','cc171-inline-details');
+ const summary=make('summary','','Cambiar rol');
+ details.append(summary);
+ const controls=make('div','cc171-edit');
+ const select=document.createElement('select');
+ select.setAttribute('aria-label','Rol para '+person.email);
+ for(const [role,name] of [['AFFILIATE','Afiliado'],['RESELLER','Reseller'],
+     ['SUPER_RESELLER','Súper reseller']]){
+  const option=make('option','',name);option.value=role;
+  option.selected=person.role_assigned===role;select.append(option);
+ }
+ const percent=document.createElement('input');
+ percent.type='number';percent.min='0';percent.max='100';percent.step='0.01';
+ percent.value='20';percent.setAttribute('aria-label','Comisión ADMIN porcentual sobre ganancia');
+ const save=button('Guardar rol',function(){
+  void adminChangeRole(person,select.value,Number(percent.value),this);
+ },'cc166-secondary cc171-small');
+ save.disabled=!!active;
+ controls.append(select,percent,save);
+ details.append(make('small','cc171-field-hint',
+  'Porcentaje de comisión ADMIN sobre la ganancia (solo SÚPER RESELLER).'));
+ details.append(controls);
+ if(active)details.append(make('small','cc171-field-hint',
+  'No se cambia el rol mientras exista una membresía activa.'));
+ area.append(details);
+ wrap.append(area);
+ return wrap;
+}
 function admin(page){
  if(!data.admin)return overview(page);
- title(page,'Administración general','Funciones exclusivamente para ADMIN verificadas por el servidor.');
- const actions=make('div','cc166-actions');
- actions.append(button('Administración original',()=>exitTo(()=>el('cc92-admin-button')?.click()),'cc166-primary'),
- button('Recargas por verificar',()=>exitTo(()=>{window.cc80?.open();el('cc136admin')?.querySelector('summary')?.click();}),'cc166-secondary'),
- button('Auditoría financiera',()=>exitTo(()=>{window.cc80?.open();el('cc143report')?.querySelector('summary')?.click();}),'cc166-secondary'));page.append(actions);
- const grant=card('Permisos SÚPER RESELLER','ADMIN puede asignar o revocar el rol. La membresía activa se requiere por separado.');
- const form=make('form','cc166-form');form.id='cc166-role-form';
- const label1=make('label','','Correo del usuario');const email=document.createElement('input');email.name='email';email.type='email';email.required=true;label1.append(email);form.append(label1);
- const label2=make('label','','Comisión ADMIN sobre ganancia (%)');const pct=document.createElement('input');pct.name='percent';pct.type='number';pct.step='0.01';pct.min='0';pct.max='100';pct.value='20';label2.append(pct);form.append(label2);
- const assign=make('button','cc166-primary','Habilitar SÚPER RESELLER');assign.type='submit';form.append(assign);
- const revoke=button('Revocar permiso',()=>{if(confirm('¿Revocar permiso SÚPER RESELLER?'))void grantRole(false);},'cc166-secondary');form.append(revoke);
- async function grantRole(enabled){
-  if(!email.validity.valid){email.reportValidity();return;}
-  assign.disabled=true;revoke.disabled=true;
-  try{await api('rpc/cc_portal_admin_set_super_reseller','POST',{p_email:email.value.trim(),p_enabled:enabled,p_admin_percent:Number(pct.value)});
-   notice(enabled?'Permiso registrado. La membresía se valida por separado.':'Permiso revocado.');
-  }catch(e){notice('No se modificó el permiso: '+String(e.message||e));}
-  finally{assign.disabled=false;revoke.disabled=false;}
+ title(page,'Usuarios y accesos','Administra tus cuentas directamente desde este panel, sin abrir pantallas complejas.');
+ if(adminAccountsState==='idle')void loadAdminAccounts();
+ const summary=make('div','cc171-top-summary');
+ if(adminAccountsState==='ready'){
+  const active=adminAccounts.filter(a=>a.trial_active||
+   a.access_until&&Date.parse(a.access_until)>Date.now()).length;
+  const pending=adminAccounts.filter(a=>!a.is_admin&&!a.trial_active&&
+    !(a.access_until&&Date.parse(a.access_until)>Date.now())).length;
+  summary.append(metric('Usuarios registrados',String(adminAccounts.length),'blue'),
+    metric('Accesos vigentes',String(active),'aqua'),
+    metric('Pendientes',String(pending),'gold'));
+ }else{
+  summary.append(metric('Usuarios','Consultando…','blue'));
  }
- form.addEventListener('submit',e=>{e.preventDefault();void grantRole(true);});
- grant.append(form);page.append(grant);
- const req=card('Solicitudes actuales','Se consultan las solicitudes reales existentes.');
- req.append(button('Actualizar solicitudes',()=>void getRequests(),'cc166-secondary'));
- if(data.requests.length===0)req.append(make('p','cc166-empty','Sin solicitudes cargadas.'));
- for(const item of data.requests.slice(0,25)){
-  const p=make('div','cc166-product');p.append(make('strong','',item.applicant_email||'Solicitante'),make('span','',item.membership_status||'Pendiente'));req.append(p);
- }page.append(req);
+ page.append(summary);
+ const box=card('Cuentas y permisos','Elige la cuenta y administra su rol o una prueba temporal sin cobro.');
+ if(adminAccountsState==='loading'){
+  box.append(make('p','cc166-note','Consultando usuarios y membresías…'));
+ }else if(adminAccountsState==='error'){
+  box.append(make('p','cc166-notice','No se pudieron verificar los usuarios: '+adminAccountsError));
+  box.append(button('Reintentar',()=>void loadAdminAccounts(true),'cc166-secondary'));
+ }else if(adminAccountsState==='ready'){
+  const heading=make('div','cc171-filter');
+  const input=document.createElement('input');
+  input.type='search';input.placeholder='Buscar usuario o correo…';
+  input.setAttribute('aria-label','Buscar cuenta');
+  heading.append(input,button('↻ Actualizar',()=>void loadAdminAccounts(true),'cc166-secondary'));
+  box.append(heading);
+  const rows=make('div','cc171-users');
+  if(!adminAccounts.length)rows.append(make('p','cc166-empty','No hay cuentas disponibles.'));
+  for(const person of adminAccounts){
+   const row=adminAccountRow(person);
+   row.dataset.search=(person.email+' '+(person.display_name||'')).toLowerCase();
+   rows.append(row);
+  }
+  input.addEventListener('input',()=>{
+   const term=input.value.trim().toLowerCase();
+   rows.querySelectorAll('.cc171-person').forEach(row=>{
+    row.hidden=!row.dataset.search.includes(term);
+   });
+  });
+  box.append(rows);
+ }
+ page.append(box);
+ const help=make('p','cc171-help');
+ help.textContent='La prueba dura hasta 7 días, se concede una sola vez y queda registrada. No acredita dinero ni genera un pago. Para usar los accesos, el usuario debe cerrar sesión y volver a ingresar.';
+ page.append(help);
+ const advanced=make('details','cc171-advanced');
+ advanced.append(make('summary','','Herramientas avanzadas · abrir solo cuando las necesites'));
+ const actions=make('div','cc166-actions');
+ const oldRequests=make('div','cc171-requests');
+ async function consultRequests(){
+  if(!data.admin)return;
+  oldRequests.replaceChildren(make('p','cc166-note','Consultando solicitudes…'));
+  try{
+   const rows=await api('rpc/cc_admin_reseller_requests','POST',{});
+   if(!Array.isArray(rows))throw Error('Respuesta no válida');
+   data.requests=rows;
+   oldRequests.replaceChildren();
+   if(!rows.length)oldRequests.append(make('p','cc166-note','No hay solicitudes pendientes.'));
+   for(const item of rows.slice(0,50)){
+    const line=make('div','cc171-request-line');
+    line.append(make('strong','',item.applicant_email||'Solicitante'));
+    line.append(make('small','',item.membership_status||'Estado pendiente'));
+    oldRequests.append(line);
+   }
+  }catch(e){
+   oldRequests.replaceChildren(make('p','cc166-notice',
+    'No se pudieron consultar las solicitudes: '+String(e?.message||e)));
+  }
+ }
+ actions.append(
+  button('Ver solicitudes',()=>void consultRequests(),'cc166-secondary'),
+  button('Revisar recargas',()=>exitTo(()=>{window.cc80?.open();el('cc136admin')?.querySelector('summary')?.click();}),'cc166-secondary'),
+  button('Auditoría de movimientos',()=>exitTo(()=>{window.cc80?.open();el('cc143report')?.querySelector('summary')?.click();}),'cc166-secondary'),
+  button('Administración anterior',()=>exitTo(()=>el('cc92-admin-button')?.click()),'cc166-secondary')
+ );
+ advanced.append(actions,oldRequests);
+ page.append(advanced);
 }
-async function getRequests(){
- if(!data.admin||!user)return;
- try{const r=await api('rpc/cc_admin_reseller_requests','POST',{});
- if(Array.isArray(r)){data.requests=r;render();}}
- catch(e){notice('No se pudo consultar las solicitudes: '+String(e.message||e));}
-}
+
 function profile(page){
  title(page,'Mi perfil · datos personales','Un registro central para tus cuatro negocios. Los datos se pueden actualizar desde aquí.');
  const form=make('form','cc166-form cc169-profile-form');
@@ -693,7 +886,9 @@ async function load(){
     {label:'Bono MI ALQUILER',amount:Number(ma[0]?.bonus_pen||0)}
    ].filter(x=>Number.isFinite(x.amount)&&x.amount>0)
   };
+  const firstVerified=!verified;
   verified=true;
+  if(firstVerified&&data.admin&&view==='home')view='admin';
   if(data.profile?.full_name&&session()?.userId===id){session().displayName=data.profile.full_name;window.cc95RenderUser?.();}
   render();
  }catch(e){if(active(id,jwt,n)){verified=false;render();notice('No fue posible verificar los datos reales. Compras y activaciones permanecerán bloqueadas hasta actualizar.');}}

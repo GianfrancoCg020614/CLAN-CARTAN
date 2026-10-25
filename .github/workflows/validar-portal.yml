@@ -94,6 +94,7 @@ jobs:
           grep -q 'id="cc169-public-catalog-style"' /tmp/clan-dom.html
           grep -q 'id="cc170-stream-flyers-script"' /tmp/clan-dom.html
           grep -q 'id="cc170-stream-flyers-style"' /tmp/clan-dom.html
+          grep -q 'id="cc171-admin-simple-css"' /tmp/clan-dom.html
       - name: Panel único de tres roles y membresías · V166
         run: |
           node --check scripts/v151-portal-polish.js
@@ -107,7 +108,8 @@ jobs:
           node scripts/test-v169-profile-browser.mjs
           node --check scripts/v170-flyers-stream.js
           node scripts/test-v170-flyers-browser.mjs
-          node -e "const fs=require('fs');if(!fs.readFileSync('scripts/v151-portal-polish.js','utf8').includes('v166-portal-roles.js?v=1701'))process.exit(1)"
+          node scripts/test-v171-admin-browser.mjs
+          node -e "const fs=require('fs');if(!fs.readFileSync('scripts/v151-portal-polish.js','utf8').includes('v166-portal-roles.js?v=1711'))process.exit(1)"
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
