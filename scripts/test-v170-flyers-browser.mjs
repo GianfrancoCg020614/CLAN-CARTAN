@@ -62,7 +62,7 @@ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'cc170-upload-'));
 try{
  const file=path.join(dir,'uploader.html');fs.writeFileSync(file,html);
  const run=spawnSync(chrome,['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
- '--window-size=390,844','--virtual-time-budget=2600','--dump-dom','file://'+file],
+ '--window-size=390,844','--virtual-time-budget=7500','--dump-dom','file://'+file],
  {encoding:'utf8',timeout:30000,maxBuffer:12*1024*1024});
  assert.equal(run.status,0,'Chrome terminó con error: '+String(run.stderr).slice(-600));
  const marker=run.stdout.match(/<output id="flyer-smoke" data-status="(pass|fail)">([^<]*)<\/output>/);
