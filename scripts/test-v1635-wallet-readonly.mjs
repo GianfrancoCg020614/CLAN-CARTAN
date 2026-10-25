@@ -13,7 +13,7 @@ function browser() {
     constructor(tag = 'div') {
       this.tag = tag; this.children = []; this.hidden = false;
       this.textContent = ''; this.events = {};
-      this.classList = { add() {} };
+      this.classList = { add() {}, remove() {} };
     }
     set id(v) { this._id = v; elements.set(v, this); }
     get id() { return this._id; }
@@ -139,4 +139,25 @@ test('rechaza duplicados y descarta respuestas de una sesión anterior', async (
   release([{ service: 'STREAM_BULLS', balance_pen: 9000 }]);
   await b.tick();
   assert.equal(b.elements.get('cc164-total').textContent, 'S/ 6.00');
+});
+
+
+test('al cambiar de sesión borra inmediatamente el saldo y desglose previos', async () => {
+  const b = browser();
+  b.window.cc80.api = async () => [{ service: 'COBRA_YA', balance_pen: '50.00' }];
+  b.window.CC_V53_SESSION = { jwt: 'first', userId: 'u-first' };
+  b.mutation();
+  await b.tick();
+  assert.equal(b.elements.get('cc164-total').textContent, 'S/ 50.00');
+  assert.equal(b.elements.get('cc164-wallet-breakdown').children.length, 4);
+  let finish;
+  b.window.cc80.api = () => new Promise(resolve => { finish = resolve; });
+  b.window.CC_V53_SESSION = { jwt: 'second', userId: 'u-second' };
+  b.mutation();
+  assert.equal(b.elements.get('cc164-total').textContent, 'Consultando…');
+  assert.equal(b.elements.get('cc164-wallet-breakdown').children.length, 0);
+  assert.equal(b.previous.hidden, false);
+  finish([{ service: 'COBRA_YA', balance_pen: '2.00' }]);
+  await b.tick();
+  assert.equal(b.elements.get('cc164-total').textContent, 'S/ 2.00');
 });
