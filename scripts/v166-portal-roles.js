@@ -90,12 +90,13 @@ function userRole(){
 }
 function renderNav(){
  const menu=el('cc166-nav');menu.replaceChildren();
- const base=[['home','◫','Inicio'],['shop','▣','Comprar'],['wallet','▤','Billetera'],['movements','≡','Movimientos'],['orders','◱','Mis compras']];
- const extra=[['businesses','▦','Negocios'],['affiliate','♧','Referidos'],['external','⇄','Control externo']];
- const items=base.concat(data.reseller||data.super||data.admin?extra:[])
-  .concat(data.super||data.admin?[['publish','♛','Publicar'],['sales','◈','Mis ventas']]:[])
-  .concat(data.admin?[['admin','⚙','Usuarios y roles']]:[])
-  .concat([['profile','♙','Mi perfil']]);
+ // Navegación deliberadamente corta: el acceso lo decide el servidor.
+ const items=[['home','◫','Inicio']];
+ if(data.admin)items.push(['admin','⚙','Usuarios']);
+ if(data.admin||data.super)items.push(['publish','♛','Publicaciones'],['sales','◈','Ventas']);
+ items.push(['shop','▣','Catálogo'],['orders','◱','Mis compras'],['wallet','▤','Billetera']);
+ if(data.admin||data.super||data.reseller||data.superPermission)items.push(['businesses','▦','Mis negocios']);
+ items.push(['profile','♙','Mi perfil']);
  for(const [id,icon,labelText] of items){
   const selected=view===id||(id==='businesses'&&view.startsWith('business:'));
   const b=button('',()=>nav(id),'cc166-navitem'+(selected?' selected':''));
@@ -582,7 +583,7 @@ async function loadAdminAccounts(force=false){
  adminAccountsState='loading';adminAccountsError='';
  const uid=user,jwt=token;
  try{
-  const result=await api('rpc/cc_portal_admin_accounts','POST',{});
+  const result=await api('rpc/cc_portal_admin_accounts_v2','POST',{});
   if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
   if(!Array.isArray(result))throw Error('Respuesta de usuarios inválida');
   adminAccounts=result;
@@ -616,25 +617,55 @@ async function adminChangeRole(person,role,percent,btn){
  }catch(e){notice('No se cambió el rol: '+String(e?.message||e));}
  finally{adminActionBusy=false;btn.disabled=false;}
 }
+async function adminRenameAlias(person,next,btn){
+ if(!data.admin||adminActionBusy)return;
+ const alias=String(next||'').trim();
+ if(alias.length<2||alias.length>80){notice('El nombre de registro debe tener de 2 a 80 caracteres.');return;}
+ if(!Number.isInteger(Number(person.registry_no))){notice('Número CLAN no verificado.');return;}
+ if(alias===person.registry_alias)return;
+ if(!confirm('¿Renombrar '+person.registry_code+' a '+alias+'? No se modificará su correo ni acceso.'))return;
+ adminActionBusy=true;btn.disabled=true;
+ try{
+  const ok=await api('rpc/cc_portal_admin_set_registry_alias','POST',{
+   p_registry_no:Number(person.registry_no),p_alias:alias
+  });
+  if(ok!==true)throw Error('No se confirmó el cambio');
+  await loadAdminAccounts(true);
+  if(view==='admin')notice('Nombre actualizado; el número '+person.registry_code+' se conserva.');
+ }catch(e){notice('No se guardó el nombre: '+String(e?.message||e));}
+ finally{adminActionBusy=false;btn.disabled=false;}
+}
 function adminAccountRow(person){
  const wrap=make('article','cc171-person');
  const identity=make('div','cc171-person-id');
  const icon=make('span','cc171-avatar',
-  String(person.display_name||person.email||'?').trim().charAt(0).toUpperCase());
+  String(person.registry_alias||person.display_name||person.email||'?').trim().charAt(0).toUpperCase());
  const info=make('div','cc171-identity');
- info.append(make('strong','',person.display_name||person.email));
- if(person.display_name)info.append(make('small','',person.email));
+ info.append(make('span','cc174-registry-id',person.registry_code||'Sin número'));
+ info.append(make('strong','',person.registry_alias||person.display_name||person.email));
+ info.append(make('small','',person.email));
  identity.append(icon,info);wrap.append(identity);
  const type=make('div','cc171-person-role');
  type.append(make('strong','cc171-role-label',roleLabel(person.role_assigned)));
  const status=make('small',person.access_until&&Date.parse(person.access_until)>Date.now()?
    'cc171-status-active':'cc171-status-pending',accessLabel(person));
  type.append(status);wrap.append(type);
+ const area=make('div','cc171-person-actions');
+ const aliasDetails=make('details','cc171-inline-details cc174-rename');
+ aliasDetails.append(make('summary','','Editar nombre de registro'));
+ const aliasControls=make('div','cc171-edit');
+ const aliasInput=document.createElement('input');
+ aliasInput.type='text';aliasInput.maxLength=80;
+ aliasInput.value=person.registry_alias||person.display_name||'';
+ aliasInput.setAttribute('aria-label','Nombre de '+(person.registry_code||person.email));
+ const saveAlias=button('Guardar nombre',()=>void adminRenameAlias(person,aliasInput.value,saveAlias),'cc166-secondary cc171-small');
+ aliasControls.append(aliasInput,saveAlias);aliasDetails.append(aliasControls);
+ area.append(aliasDetails);
  if(person.is_admin){
-  wrap.append(make('span','cc171-admin-protected','Cuenta protegida'));
+  area.append(make('span','cc171-admin-protected','Rol ADMIN protegido'));
+  wrap.append(area);
   return wrap;
  }
- const area=make('div','cc171-person-actions');
  const active=person.access_until&&Date.parse(person.access_until)>Date.now();
  if(active){
   area.append(make('span','cc171-state','Membresía vigente'));
@@ -671,7 +702,7 @@ function adminAccountRow(person){
 }
 function admin(page){
  if(!data.admin)return overview(page);
- title(page,'Usuarios y accesos','Administra tus cuentas directamente desde este panel, sin abrir pantallas complejas.');
+ title(page,'Registro de usuarios','Números CLAN permanentes y roles confirmados, con membresías verificadas.');
  if(adminAccountsState==='idle')void loadAdminAccounts();
  const summary=make('div','cc171-top-summary');
  if(adminAccountsState==='ready'){
@@ -686,7 +717,7 @@ function admin(page){
   summary.append(metric('Usuarios','Consultando…','blue'));
  }
  page.append(summary);
- const box=card('Cuentas y permisos','Consulta las cuentas y asigna roles. Las membresías se activan mediante su plan vigente.');
+ const box=card('Cuentas registradas','El número CLAN no cambia al buscar, filtrar o editar un nombre.');
  if(adminAccountsState==='loading'){
   box.append(make('p','cc166-note','Consultando usuarios y membresías…'));
  }else if(adminAccountsState==='error'){
@@ -703,7 +734,7 @@ function admin(page){
   if(!adminAccounts.length)rows.append(make('p','cc166-empty','No hay cuentas disponibles.'));
   for(const person of adminAccounts){
    const row=adminAccountRow(person);
-   row.dataset.search=(person.email+' '+(person.display_name||'')).toLowerCase();
+   row.dataset.search=(person.email+' '+(person.display_name||'')+' '+(person.registry_code||'')+' '+(person.registry_alias||'')).toLowerCase();
    rows.append(row);
   }
   input.addEventListener('input',()=>{
@@ -841,8 +872,8 @@ function other(page){
 function render(){
  if(!app||!user)return;
  mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
- // Cuatro pestañas globales, nunca cuatro paneles generales ni datos repetidos.
- businessTabs(page);
+ // Cuatro negocios, un selector: visible únicamente al gestionar negocios.
+ if(view==='businesses'||view.startsWith('business:'))businessTabs(page);
  if(view.startsWith('business:')){businessPage(page,view.slice('business:'.length));return;}
  switch(view){
  case 'home':overview(page);break;
