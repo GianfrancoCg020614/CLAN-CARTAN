@@ -98,10 +98,11 @@ jobs:
         run: |
           node --check scripts/v151-portal-polish.js
           node --check scripts/v166-portal-roles.js
+          node --check scripts/v169-catalogo-unico.js
+          node --check scripts/v170-flyers-stream.js
           node scripts/test-v166-three-roles-browser.mjs
           node scripts/test-v167-checkout-browser.mjs
           node scripts/test-v167-financial-integrity.mjs
-          node --check scripts/v169-catalogo-unico.js
           node scripts/test-v169-catalog-browser.mjs
           node scripts/test-v169-profile-browser.mjs
           node --check scripts/v170-flyers-stream.js
