@@ -50,7 +50,8 @@ function init(){
  const cards=home?.querySelector('.cc77cards');
  if(!cards)return;
  const observer=new MutationObserver(()=>rentalCard());
- observer.observe(cards,{childList:true});
+ // También detectar tarjetas insertadas dentro de contenedores anidados.
+ observer.observe(cards,{childList:true,subtree:true});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
