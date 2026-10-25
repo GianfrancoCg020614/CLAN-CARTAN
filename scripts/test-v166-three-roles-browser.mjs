@@ -40,7 +40,7 @@ try{
    'const actualBalance=x("cc166-content")?.textContent.includes("S/ 12.50");',
    'const businessCount=tabCount;',
    'const menuAdmin=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Administración"));',
-   'const menuPublish=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Publicaciones"));',
+   'const menuPublish=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Publicar"));',
    'const controlsOK=!!window.cc166OpenPanel&&!!window.cc166RefreshPanel;',
    'const checks={rendered,zIndex,launcherInstalled,closes,reopens,oldHome,actualBalance,businessCount,controlsOK,roleValid:',
    mode==='admin'?'role.includes("ADMIN"),adminValid:menuAdmin,superValid:menuPublish':mode==='super'?'role.includes("SÚPER"),adminValid:!menuAdmin,superValid:menuPublish':mode==='reseller'?'role.includes("RESELLER"),adminValid:!menuAdmin,superValid:!menuPublish':'role.includes("AFILIADO"),adminValid:!menuAdmin,superValid:!menuPublish',
