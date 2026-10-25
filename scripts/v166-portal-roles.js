@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V173.1 · Panel único para ADMIN / RESELLER / SUPER_RESELLER.
+/* CLAN CARTAN · V175 · Operaciones ADMIN organizadas por sección.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -10,6 +10,10 @@ const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],[
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
+let adminTab='accounts',walletTab='summary';
+let requestRows=[],requestState='idle',requestError='';
+let rechargeRows=[],rechargeState='idle',rechargeError='';
+let auditData=null,auditRows=[],auditState='idle',auditError='';
 let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};
 let lastReceipt=null,purchasePending=false,membershipPending=false;
 const price=n=>Number.isFinite(Number(n))?'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
@@ -24,12 +28,16 @@ function reset(){
  app?.remove();app=null;el('cc166-open-button')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
+ adminTab='accounts';walletTab='summary';
+ requestRows=[];requestState='idle';requestError='';
+ rechargeRows=[];rechargeState='idle';rechargeError='';
+ auditData=null;auditRows=[];auditState='idle';auditError='';
 }
 function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>V174 · CLAN CARTAN · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>V175 · CLAN CARTAN · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -204,8 +212,141 @@ function overview(page){
  }
 }
 function openRecharge(){exitTo(()=>{if(typeof window.cc116OpenRecharge==='function')window.cc116OpenRecharge();else window.cc80?.open();});}
+
+function adminSectionTabs(items,current,choose){
+ const nav=make('nav','cc175-tabs');nav.setAttribute('aria-label','Secciones de administración');
+ for(const [id,label] of items){
+  const selected=current===id;
+  const b=button(label,()=>choose(id),'cc175-tab'+(selected?' selected':''));
+  b.setAttribute('aria-pressed',String(selected));nav.append(b);
+ }
+ return nav;
+}
+function safeDate(value){
+ if(!value)return '—';
+ try{return new Date(value).toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'short',year:'numeric'});}
+ catch(_){return '—';}
+}
+function adminWalletTabs(page){
+ page.append(adminSectionTabs([['summary','Saldo y movimientos'],['recharges','Recargas'],['audit','Auditoría']],walletTab,id=>{walletTab=id;render();}));
+}
+async function loadAdminRecharges(force=false){
+ if(!data.admin||!user||!session()?.jwt)return;
+ if(rechargeState==='loading'||(rechargeState==='ready'&&!force))return;
+ rechargeState='loading';rechargeError='';
+ const uid=user,jwt=token;
+ try{
+  const rows=await api('rpc/cc_admin_manual_recharge_queue','POST',{});
+  if(!active(uid,jwt,serial))return;
+  if(!Array.isArray(rows))throw Error('Formato de recargas no válido');
+  rechargeRows=rows;rechargeState='ready';
+ }catch(e){if(user===uid&&token===jwt){rechargeState='error';rechargeError=String(e?.message||e);}}
+ finally{if(user===uid&&token===jwt&&view==='wallet'&&walletTab==='recharges')render();}
+}
+function openAdminRechargeReview(){
+ if(!data.admin)return;
+ // Reutilizar el flujo ya protegido de verificación bancaria y conciliación.
+ // No acreditar saldo únicamente desde esta vista informativa.
+ exitTo(()=>{
+  if(typeof window.cc80?.open!=='function')throw Error('Módulo de billetera no disponible');
+  window.cc80.open();
+  const queue=el('cc136admin');
+  if(!queue)throw Error('No se encontró el control de recargas verificadas');
+  el('cc136adminRefresh')?.click();
+  queue.scrollIntoView({behavior:'smooth',block:'start'});
+ });
+}
+function adminRecharges(page){
+ const box=card('Recargas por verificar','Solo los depósitos comprobados por ADMIN pueden acreditarse. Una solicitud no equivale a dinero recibido.');
+ const actions=make('div','cc166-actions');
+ actions.append(button('Actualizar pendientes',()=>void loadAdminRecharges(true),'cc166-secondary'));
+ actions.append(button('Verificar depósitos',openAdminRechargeReview,'cc166-primary'));
+ box.append(actions);
+ if(rechargeState==='idle')void loadAdminRecharges();
+ if(rechargeState==='idle'||rechargeState==='loading')box.append(make('p','cc166-note','Consultando solicitudes de recarga…'));
+ else if(rechargeState==='error')box.append(make('p','cc166-notice','Recargas no disponibles: '+rechargeError));
+ else if(!rechargeRows.length)box.append(make('p','cc166-empty','No hay recargas pendientes de revisión.'));
+ else{
+  box.append(make('p','cc166-note',rechargeRows.length+' recarga(s) pendientes. La aprobación requiere verificar el ingreso bancario real.'));
+  const list=make('div','cc175-records');
+  for(const r of rechargeRows.slice(0,80)){
+   const line=make('article','cc175-record');
+   const info=make('div','');
+   info.append(make('strong','',String(r.payer_name||'Cliente')));
+   info.append(make('small','',serviceName(r.service)+' · '+safeDate(r.created_at)));
+   info.append(make('small','','Solicitud '+String(r.request_id||'—')));
+   line.append(info,make('strong','',price(r.amount_pen)));list.append(line);
+  }
+  box.append(list);
+ }
+ page.append(box);
+}
+async function loadAdminAudit(force=false){
+ if(!data.admin||!user||!session()?.jwt)return;
+ if(auditState==='loading'||(auditState==='ready'&&!force))return;
+ auditState='loading';auditError='';
+ const uid=user,jwt=token;
+ try{
+  const [summary,rows]=await Promise.all([
+   api('rpc/cc_admin_financial_summary','POST',{}),
+   api('rpc/cc_admin_wallet_financial_audit','POST',{p_before_id:null,p_limit:30})
+  ]);
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(!summary||typeof summary!=='object'||Array.isArray(summary)||!Array.isArray(rows))throw Error('Contabilidad no disponible');
+  auditData=summary;auditRows=rows;auditState='ready';
+ }catch(e){if(user===uid&&token===jwt){auditState='error';auditError=String(e?.message||e);}}
+ finally{if(user===uid&&token===jwt&&view==='wallet'&&walletTab==='audit')render();}
+}
+function adminAudit(page){
+ if(auditState==='idle')void loadAdminAudit();
+ const box=card('Auditoría financiera','Ingresos verificados, bonos y saldos auditados. Este informe no sustituye la conciliación bancaria.');
+ const actions=make('div','cc166-actions');
+ actions.append(button('Actualizar auditoría',()=>void loadAdminAudit(true),'cc166-secondary'));box.append(actions);
+ if(auditState==='idle'||auditState==='loading')box.append(make('p','cc166-note','Consultando operaciones verificadas…'));
+ else if(auditState==='error')box.append(make('p','cc166-notice','No se pudo obtener la auditoría: '+auditError));
+ else{
+  const stats=make('div','cc166-stats cc175-financial-stats');
+  for(const [label,key] of [
+    ['Recargas recibidas','cash_received_pen'],
+    ['Consumo pagado','paid_service_consumption_pen'],
+    ['Saldo real pendiente','real_wallet_liability_pen']
+  ])stats.append(metric(label,price(auditData?.[key]??0),'aqua'));
+  box.append(stats);
+  const details=make('details','cc175-financial-details');
+  details.append(make('summary','','Ver desglose de bonos y reembolsos'));
+  for(const [label,key] of [
+   ['Bonos gratuitos otorgados','free_bonus_granted_pen'],
+   ['Bonos disponibles','free_bonus_available_pen'],
+   ['Bonos consumidos','free_bonus_consumed_pen'],
+   ['Reembolsos de servicios','refunded_service_pen']
+  ])details.append(make('p','cc166-note',label+': '+price(auditData?.[key]??0)));
+  box.append(details);
+  const history=make('h3','cc175-list-heading','Últimos movimientos auditados');box.append(history);
+  if(!auditRows.length)box.append(make('p','cc166-empty','Sin movimientos registrados en la auditoría.'));
+  else{
+   const list=make('div','cc175-records');
+   for(const item of auditRows){
+    const line=make('article','cc175-record'),left=make('div','');
+    left.append(make('strong','',String(item.concept||item.event_type||'Movimiento')));
+    left.append(make('small','',safeDate(item.recorded_at)+' · '+serviceName(item.service)+' · '+String(item.status||'')));
+    left.append(make('small','','Referencia: '+String(item.reference||'—')));
+    const right=make('div','cc175-record-amount');
+    right.append(make('strong','',price(item.amount_pen)));
+    right.append(make('small','','Saldo '+price(item.balance_before)+' → '+price(item.balance_after)));
+    line.append(left,right);list.append(line);
+   }
+   box.append(list);
+  }
+ }
+ page.append(box);
+}
 function wallet(page){
- title(page,'Billetera digital única','Un saldo total real para compras y membresías, con trazabilidad de cada servicio.');
+ title(page,'Billetera digital única','Saldo real, recargas y movimientos verificados desde una sola sección.');
+ if(data.admin){
+  adminWalletTabs(page);
+  if(walletTab==='recharges'){adminRecharges(page);return;}
+  if(walletTab==='audit'){adminAudit(page);return;}
+ }
  const real=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
  const box=make('section','cc167-hero');
  box.append(make('h2','','Saldo REAL disponible'));
