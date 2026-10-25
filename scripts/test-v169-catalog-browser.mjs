@@ -16,7 +16,8 @@ try{
    {id:'verified-id-2',title:'Canva Pro 30 días',service:'Canva',description:'Edición',price_pen:11,stock:2,duration_days:30}
   ]);
   const setup=[
-   'window.__payments=[];window.__login=0;',
+   'window.__payments=[];window.__login=0;window.__profileOpen=0;',
+   'window.cc166OpenProfile=()=>{window.__profileOpen++};',
    'window.fetch=async()=>({ok:true,json:async()=>'+offers+'});',
    'window.cc77Auth=()=>{window.__login++};window.cc77Store=()=>{};',
    'window.cc166PurchaseProductFromCatalog=(id,button,price)=>{window.__payments.push({id,price})};',
@@ -25,7 +26,7 @@ try{
   const fixture=[
    '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1">',
    '<style>body{background:#08131c;color:white;margin:0;}'+css+'</style></head><body>',
-   '<div id="app"><section id="productos"><div class="v23-catalog-section">',
+   '<div id="app"><header class="cc117-header"><nav class="cc117-actions-top"><button class="cc117-register" onclick="window.__login+=30">Mi cuenta</button></nav></header><section id="productos"><div class="v23-catalog-section">',
    '<div class="section-head"><h3>Explora <span class="v23-count">5 ejemplos</span></h3></div>',
    '<div class="v23-product-grid"><article id="demo-offer" class="product">',
    '<div class="product-visual" onclick="window.__payments.push({id:\'DEMO\'})">Demo visual</div>',
@@ -47,7 +48,11 @@ try{
    'if(action)action.click();',
    'const buyingCorrect='+JSON.stringify(mode==='authenticated')+'?window.__payments.length===1&&window.__payments[0].id==="verified-id-1"&&window.__payments[0].price===9.5:',
    JSON.stringify(mode==='visitor')+'?window.__payments.length===0&&window.__login===1:window.__payments.length===0;',
-   'const checks={correctOffers,noDemo,buyingCorrect,safeSample,noScroll:document.documentElement.scrollWidth<=innerWidth+5};',
+   'const profileLink=document.querySelector(".cc117-register");',
+   'const nameCorrect='+JSON.stringify(mode==='authenticated')+'?profileLink?.textContent==="Mi perfil":profileLink?.textContent==="Mi cuenta";',
+   'if('+JSON.stringify(mode==='authenticated')+')profileLink?.click();',
+   'const profileShortcut='+JSON.stringify(mode==='authenticated')+'?window.__profileOpen===1:window.__profileOpen===0;',
+   'const checks={correctOffers,noDemo,buyingCorrect,safeSample,nameCorrect,profileShortcut,noScroll:document.documentElement.scrollWidth<=innerWidth+5};',
    'const n=document.createElement("output");n.id="catalog-smoke";n.dataset.status=Object.values(checks).every(Boolean)?"pass":"fail";n.textContent=JSON.stringify(checks);document.body.append(n);',
    '}catch(e){const n=document.createElement("output");n.id="catalog-smoke";n.dataset.status="fail";n.textContent=String(e);document.body.append(n)}},650);</script>',
    '</body></html>'
