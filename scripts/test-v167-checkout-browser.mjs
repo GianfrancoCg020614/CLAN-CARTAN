@@ -39,7 +39,7 @@ const check=[
  'const $=q=>document.querySelector(q), $$=q=>document.querySelectorAll(q);',
  'const role=($("#cc166-role")?.textContent||"").includes("AFILIADO");',
  'const noPublish=![...$$(".cc166-navitem")].some(b=>b.textContent.includes("Publicar"));',
- 'const noDuplicateTabs=$(".cc167-tab").length===0;',
+ 'const noDuplicateTabs=document.querySelectorAll(".cc167-tab").length===0;',
  'const top=Number(getComputedStyle($("#cc166-panel")).zIndex)>2147483638;',
  'const navBuy=[...$$(".cc166-navitem")].find(b=>b.textContent.includes("Catálogo"));navBuy?.click();',
  'setTimeout(()=>{',
