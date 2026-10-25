@@ -453,8 +453,8 @@ async function editPrices(product,details){
  if(distributorInput===null)return;
  const pub=Number(publicInput),dist=Number(distributorInput);
  if(!Number.isFinite(pub)||!Number.isFinite(dist)||pub<=0||pub>10000||
-    dist<=0||dist>pub||Math.round(pub*100)!==pub*100||
-    Math.round(dist*100)!==dist*100){
+    dist<=0||dist>pub||Math.abs(pub*100-Math.round(pub*100))>1e-7||
+    Math.abs(dist*100-Math.round(dist*100))>1e-7){
   notice('Precios inválidos. Deben tener máximo 2 decimales y el precio reseller no debe superar el público.');return;
  }
  if(!window.confirm('¿Guardar precios de '+product.title+'? Público '+
@@ -503,7 +503,7 @@ async function publishSave(fd,b){
  if(!user||!verified)return;
  const s=session(),uid=user,jwt=token;
  const value=k=>String(fd.get(k)||'').trim(),days=Number(value('days')),stock=Number(value('stock')),p=Number(value('price')),d=Number(value('distributor')),c=Number(value('cost'));
- if(!(p>0&&d>0&&c>=0&&c<=d&&d<=p&&p<=10000&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1&&Number.isInteger(p*100)&&Number.isInteger(d*100)){
+ if(!(p>0&&d>0&&c>=0&&c<=d&&d<=p&&p<=10000&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1&&Math.abs(p*100-Math.round(p*100))<1e-7&&Math.abs(d*100-Math.round(d*100))<1e-7)){
   notice('Verifica que costo ≤ reseller ≤ público, con 2 decimales como máximo, además de stock y duración.');return;
  }
  const flyer=fd.get('flyer');
