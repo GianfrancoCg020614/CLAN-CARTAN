@@ -103,7 +103,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=1721';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=1731';script.async=false;document.head.append(script);
  }
 })();
 
@@ -120,7 +120,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc169-public-catalog-script')){
   const script=document.createElement('script');script.id='cc169-public-catalog-script';
-  script.src='scripts/v169-catalogo-unico.js?v=1721';
+  script.src='scripts/v169-catalogo-unico.js?v=1731';
   script.async=false;document.head.append(script);
  }
 })();
