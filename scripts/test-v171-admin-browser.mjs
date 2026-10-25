@@ -42,7 +42,7 @@ const probe=[
  'const pendingLabel=page?.textContent.includes("Membresía pendiente o vencida");',
  'const noTrialUi=!page?.textContent.includes("prueba gratuita")&&!page?.textContent.includes("Probar 7 días")&&!page?.textContent.includes("Finalizar prueba");',
  'const advancedHidden=$(".cc171-advanced")?.open===false;',
- 'const luis=[...$(".cc171-person")].find(x=>x.textContent.includes("LUIS CAR"));',
+ 'const luis=[...document.querySelectorAll(".cc171-person")].find(x=>x.textContent.includes("LUIS CAR"));',
  'const detail=luis?.querySelector("details:not(.cc174-rename)");if(detail)detail.open=true;',
  'const select=detail?.querySelector("select");if(select)select.value="SUPER_RESELLER";',
  'detail?.querySelector("button")?.click();',
