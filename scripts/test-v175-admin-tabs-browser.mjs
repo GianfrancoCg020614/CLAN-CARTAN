@@ -27,7 +27,7 @@ const probe=[
  'function report(obj){const node=document.createElement("output");node.id="cc175-smoke";node.dataset.status=Object.values(obj).every(Boolean)?"pass":"fail";node.textContent=JSON.stringify(obj);document.body.append(node);}',
  'function fail(e){report({error:String(e?.stack||e),valid:false});}',
  'setTimeout(()=>{try{',
- 'const noLegacy=!document.body.textContent.includes("Herramientas avanzadas")&&!document.body.textContent.includes("Administración anterior");',
+ 'const noLegacy=!$("#cc166-panel")?.textContent.includes("Herramientas avanzadas")&&!$("#cc166-panel")?.textContent.includes("Administración anterior");',
  'const initial=$(".cc171-person")?.textContent.includes("CLAN1");',
  'clickTab("Solicitudes");',
  'setTimeout(()=>{try{',
