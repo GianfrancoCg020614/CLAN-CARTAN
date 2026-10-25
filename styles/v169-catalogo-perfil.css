@@ -1,7 +1,11 @@
 /* V169 · Un catálogo público visible y datos personales editables.
  * Todo acotado al catálogo público (#productos) o perfil (#cc166-panel).
  */
-#app #productos .v23-product-grid:not(.cc169-verified-grid){display:none!important}
+#app #productos .v23-product-grid:not(.cc169-verified-grid):not(.cc169-showcase){display:none!important}
+#app #productos .cc169-showcase{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,235px),1fr));gap:13px}
+#app #productos .cc169-showcase .product{opacity:.75}
+#app #productos .cc169-showcase button:disabled{opacity:.85!important;cursor:not-allowed;background:#324253;color:#cad5dc}
+#app #productos .cc169-showcase .product-visual{cursor:default}
 #app #productos .cc169-result{min-width:0}
 #app #productos .cc169-verified-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,235px),1fr))}
 #app #productos .cc169-offer{overflow:hidden;min-width:0;display:flex;flex-direction:column;gap:0}
