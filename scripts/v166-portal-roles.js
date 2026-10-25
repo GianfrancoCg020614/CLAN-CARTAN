@@ -697,12 +697,34 @@ function admin(page){
  const advanced=make('details','cc171-advanced');
  advanced.append(make('summary','','Herramientas avanzadas · abrir solo cuando las necesites'));
  const actions=make('div','cc166-actions');
+ const oldRequests=make('div','cc171-requests');
+ async function consultRequests(){
+  if(!data.admin)return;
+  oldRequests.replaceChildren(make('p','cc166-note','Consultando solicitudes…'));
+  try{
+   const rows=await api('rpc/cc_admin_reseller_requests','POST',{});
+   if(!Array.isArray(rows))throw Error('Respuesta no válida');
+   data.requests=rows;
+   oldRequests.replaceChildren();
+   if(!rows.length)oldRequests.append(make('p','cc166-note','No hay solicitudes pendientes.'));
+   for(const item of rows.slice(0,50)){
+    const line=make('div','cc171-request-line');
+    line.append(make('strong','',item.applicant_email||'Solicitante'));
+    line.append(make('small','',item.membership_status||'Estado pendiente'));
+    oldRequests.append(line);
+   }
+  }catch(e){
+   oldRequests.replaceChildren(make('p','cc166-notice',
+    'No se pudieron consultar las solicitudes: '+String(e?.message||e)));
+  }
+ }
  actions.append(
+  button('Ver solicitudes',()=>void consultRequests(),'cc166-secondary'),
   button('Revisar recargas',()=>exitTo(()=>{window.cc80?.open();el('cc136admin')?.querySelector('summary')?.click();}),'cc166-secondary'),
   button('Auditoría de movimientos',()=>exitTo(()=>{window.cc80?.open();el('cc143report')?.querySelector('summary')?.click();}),'cc166-secondary'),
   button('Administración anterior',()=>exitTo(()=>el('cc92-admin-button')?.click()),'cc166-secondary')
  );
- advanced.append(actions);
+ advanced.append(actions,oldRequests);
  page.append(advanced);
 }
 
