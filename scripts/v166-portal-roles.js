@@ -857,9 +857,49 @@ function adminAccountRow(person){
  wrap.append(area);
  return wrap;
 }
+
+async function loadAdminRequests(force=false){
+ if(!data.admin||!user||!session()?.jwt)return;
+ if(requestState==='loading'||(requestState==='ready'&&!force))return;
+ requestState='loading';requestError='';
+ const uid=user,jwt=token;
+ try{
+  const rows=await api('rpc/cc_admin_reseller_requests','POST',{});
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(!Array.isArray(rows))throw Error('Formato de solicitudes no válido');
+  requestRows=rows;requestState='ready';
+ }catch(e){if(user===uid&&token===jwt){requestState='error';requestError=String(e?.message||e);}}
+ finally{if(user===uid&&token===jwt&&view==='admin'&&adminTab==='requests')render();}
+}
+function adminRequests(page){
+ if(requestState==='idle')void loadAdminRequests();
+ const box=card('Solicitudes de membresía','Revisa las solicitudes registradas antes de tomar decisiones sobre los accesos.');
+ const actions=make('div','cc166-actions');
+ actions.append(button('Actualizar solicitudes',()=>void loadAdminRequests(true),'cc166-secondary'));
+ box.append(actions);
+ if(requestState==='idle'||requestState==='loading')
+  box.append(make('p','cc166-note','Consultando solicitudes de reseller…'));
+ else if(requestState==='error')
+  box.append(make('p','cc166-notice','No se pudieron consultar las solicitudes: '+requestError));
+ else if(!requestRows.length)
+  box.append(make('p','cc166-empty','No hay solicitudes de membresía pendientes.'));
+ else{
+  const list=make('div','cc175-records');
+  for(const r of requestRows.slice(0,80)){
+   const line=make('article','cc175-record'),left=make('div','');
+   left.append(make('strong','',String(r.applicant_email||'Solicitante')));
+   left.append(make('small','',String(r.membership_status||'Estado pendiente')));
+   line.append(left);list.append(line);
+  }
+  box.append(list);
+ }
+ page.append(box);
+}
 function admin(page){
  if(!data.admin)return overview(page);
- title(page,'Registro de usuarios','Números CLAN permanentes y roles confirmados, con membresías verificadas.');
+ title(page,'Usuarios y membresías','Gestiona el registro CLAN y revisa las solicitudes en esta sección.');
+ page.append(adminSectionTabs([['accounts','Cuentas registradas'],['requests','Solicitudes']],adminTab,id=>{adminTab=id;render();}));
+ if(adminTab==='requests'){adminRequests(page);return;}
  if(adminAccountsState==='idle')void loadAdminAccounts();
  const summary=make('div','cc171-top-summary');
  if(adminAccountsState==='ready'){
@@ -906,37 +946,7 @@ function admin(page){
  const help=make('p','cc171-help');
  help.textContent='Los AFILIADOS ven precios públicos. Los RESELLERS y SÚPER RESELLERS con membresía vigente obtienen precios de distribuidor en STREAM BULL’S. Asignar un rol no crea una suscripción ni mueve dinero.';
  page.append(help);
- const advanced=make('details','cc171-advanced');
- advanced.append(make('summary','','Herramientas avanzadas · abrir solo cuando las necesites'));
- const actions=make('div','cc166-actions');
- const oldRequests=make('div','cc171-requests');
- async function consultRequests(){
-  if(!data.admin)return;
-  oldRequests.replaceChildren(make('p','cc166-note','Consultando solicitudes…'));
-  try{
-   const rows=await api('rpc/cc_admin_reseller_requests','POST',{});
-   if(!Array.isArray(rows))throw Error('Respuesta no válida');
-   data.requests=rows;
-   oldRequests.replaceChildren();
-   if(!rows.length)oldRequests.append(make('p','cc166-note','No hay solicitudes pendientes.'));
-   for(const item of rows.slice(0,50)){
-    const line=make('div','cc171-request-line');
-    line.append(make('strong','',item.applicant_email||'Solicitante'));
-    line.append(make('small','',item.membership_status||'Estado pendiente'));
-    oldRequests.append(line);
-   }
-  }catch(e){
-   oldRequests.replaceChildren(make('p','cc166-notice',
-    'No se pudieron consultar las solicitudes: '+String(e?.message||e)));
-  }
- }
- actions.append(
-  button('Ver solicitudes',()=>void consultRequests(),'cc166-secondary'),
-  button('Revisar recargas',()=>exitTo(()=>{window.cc80?.open();el('cc136admin')?.querySelector('summary')?.click();}),'cc166-secondary'),
-  button('Auditoría de movimientos',()=>exitTo(()=>{window.cc80?.open();el('cc143report')?.querySelector('summary')?.click();}),'cc166-secondary')
- );
- advanced.append(actions,oldRequests);
- page.append(advanced);
+
 }
 
 function profile(page){
