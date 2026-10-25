@@ -5,6 +5,7 @@
 export const STREAM_BULLS_ANNUAL_PEN_CENTS = 2500;
 export const STREAM_BULLS_ANNUAL_DAYS = 365;
 export const OTHER_BUSINESS_DAYS = 30;
+export const DEFAULT_CONTRACTED_SERVICE_DAYS = 30;
 export const EXTERNAL_ACCOUNT_ADDON_PEN_CENTS = 1000;
 export const DEFAULT_SUPER_RESELLER_COMMISSION_BPS = 2000; // 20 % de margen.
 export const SERVICE_CATEGORIES = Object.freeze([
@@ -42,7 +43,7 @@ export function addCalendarDays(startISO, extraDays) {
   return date.toISOString().slice(0, 10);
 }
 
-/** Día de inicio = 1, cierre día N a las 23:59 hora Perú (America/Lima).
+/** Día de inicio = 1, cierre día N a las 23:59:59 hora Perú (America/Lima).
  * La fecha siguiente a las 00:00 es el límite EXCLUSIVO para el backend.
  */
 export function activationWindow(startISO, durationDays) {
@@ -52,12 +53,67 @@ export function activationWindow(startISO, durationDays) {
   return Object.freeze({
     startDate: startISO,
     endDate,
-    displayEndsAt: endDate + ' 23:59',
+    displayEndsAt: endDate + ' 23:59:59',
     expiresAtExclusiveLima: addCalendarDays(startISO, days) + ' 00:00',
     durationDays: days,
     timezone: 'America/Lima'
   });
 }
+/** Contratos de cuentas/perfiles/servicios digitales. Por defecto duran 30
+ * DÍAS CALENDARIO; cada venta puede fijar su propia cantidad de días.
+ *
+ * La hora de alta NO cambia cuál es el día 1, ni adelanta el vencimiento.
+ * Datos temporales explícitos: en fecha/hora con zona usa la FECHA de Lima,
+ * no la fecha UTC ni la zona local del teléfono.
+ *
+ * La membresía empresarial STREAM BULL'S de 365 días es OTRA vigencia y
+ * nunca se modifica al variar la duración de un perfil o producto vendido.
+ */
+export function limaCalendarDate(instant) {
+  if (typeof instant !== 'string') throw new TypeError('Fecha de inicio no válida');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(instant)) {
+    // Si es sólo fecha se presupone que el usuario eligió la fecha de Perú.
+    return addCalendarDays(instant, 0);
+  }
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/.test(instant)) {
+    throw new TypeError('Se requiere instante ISO con zona horaria');
+  }
+  const parsed = new Date(instant);
+  if (!Number.isFinite(parsed.getTime())) throw new RangeError('Fecha de inicio imposible');
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit'
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(parsed).map(p => [p.type, p.value]));
+  return addCalendarDays(parts.year + '-' + parts.month + '-' + parts.day, 0);
+}
+export function contractedServiceWindow(activatedAt, durationDays = DEFAULT_CONTRACTED_SERVICE_DAYS) {
+  const startDate = limaCalendarDate(activatedAt);
+  return Object.freeze({
+    ...activationWindow(startDate, durationDays),
+    // El último segundo está incluido; el instante inicial del día siguiente no.
+    cutoffSecondLima: addCalendarDays(startDate, durationDays - 1) + ' 23:59:59',
+    startDayCountsAsOne: true,
+    originalActivationAt: activatedAt
+  });
+}
+/** Calcula el estado desde fecha/hora real de la zona de Perú. Una renovación
+ * crea otra ventana; no mantiene vigente artificialmente una vencida.
+ */
+export function contractedServiceStatus(window, now) {
+  if (!window?.endDate || !window?.startDate) throw new TypeError('Ventana inválida');
+  const nowDate = limaCalendarDate(now);
+  // Si las fechas tienen segundos de zona horaria, comprobamos también el
+  // instante real: antes de la activación todavía no debe aparecer activo.
+  if (nowDate < window.startDate ||
+      (typeof window.originalActivationAt === 'string' &&
+       window.originalActivationAt.includes('T') &&
+       typeof now === 'string' && now.includes('T') &&
+       new Date(now).getTime() < new Date(window.originalActivationAt).getTime())) {
+    return 'PENDIENTE';
+  }
+  return nowDate > window.endDate ? 'VENCIDO' : 'VIGENTE';
+}
+
 export function serviceActivationWindow(service, startISO) {
   if (!CORE_SERVICES.includes(service)) throw new RangeError('Negocio desconocido');
   return activationWindow(startISO, service === 'STREAM_BULLS'
