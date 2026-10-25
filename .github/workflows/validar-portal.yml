@@ -74,6 +74,10 @@ jobs:
           node --check scripts/v161-3-mi-alquiler.js
           node --check scripts/v161-4-mi-alquiler.js
           node scripts/check-v1635-rescate-main.mjs
+      - name: STREAM BULLS · reglas comercial / suscripcion anual / contabilidad por vendedor
+        run: |
+          node --check scripts/streambulls-marketplace-rules.mjs
+          node --test scripts/streambulls-marketplace-rules.test.mjs
       - name: Comprobar tarjetas reales en Chrome sin iniciar sesión
         run: |
           set -e
