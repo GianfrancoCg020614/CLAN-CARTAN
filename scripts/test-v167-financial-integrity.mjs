@@ -44,14 +44,14 @@ const checks=[
  [js.includes("role.includes")===false,'No confiar en rol a partir de texto'],
  [js.includes("case 'shop':shop(page)")&&js.includes("case 'admin':admin(page)"),'Un panel con rutas por rol'],
  [js.includes('businessTabs(page)'),'Una barra de cuatro pestañas'],
- [loader.includes('v166-portal-roles.js?v=1721'),'El cargador usa versión de panel actualizada'],
- [index.includes('scripts/v151-portal-polish.js?v=1721'),'El HTML no carga el panel previo en caché'],
+ [loader.includes('v166-portal-roles.js?v=1731'),'El cargador usa versión de panel actualizada'],
+ [index.includes('scripts/v151-portal-polish.js?v=1731'),'El HTML no carga el panel previo en caché'],
  [catalog.includes('rpc/cc_portal_public_catalog'),'Catálogo público lee únicamente publicaciones reales'],
  [catalog.includes('cc166PurchaseProductFromCatalog'),'Catálogo reutiliza el checkout verificado existente'],
  [catalog.includes("querySelectorAll('.v23-product-grid,.v23-empty,.cc169-result')"),'No quedan tarjetas de compra duplicadas'],
  [profileMigration.includes('public.cc_portal_save_my_profile('),'Mi perfil actualiza la ficha central existente'],
  [js.includes("case 'profile':profile(page)"),'Solo una vista de datos personales para los cuatro negocios'],
- [loader.includes('scripts/v169-catalogo-unico.js?v=1721'),'El loader incluye el catálogo único'],
+ [loader.includes('scripts/v169-catalogo-unico.js?v=1731'),'El loader incluye el catálogo único'],
  [flyerSql.includes("bucket_id='cc-stream-flyers'"),'Política limita uploads al bucket de flyers'],
  [flyerSql.includes('5242880'),'Máximo 5 MB a nivel de almacenamiento'],
  [flyerSql.includes("m.role='SUPER_RESELLER'")&&flyerSql.includes("s.end_at>now()"),'Subida y edición requieren permiso y membresía vigente'],
@@ -97,8 +97,18 @@ const checks=[
  [catalog.includes("price_tier==='DISTRIBUTOR'"),'Catálogo distingue tarifa pública y distribuidor'],
  [catalog.includes("headers.Authorization='Bearer '+jwt"),'Catálogo envía sesión auténtica para consultar tarifa'],
  [catalog.includes('cc_portal_public_catalog_v3'),'Catálogo consulta la RPC segura V3'],
- [loader.includes('scripts/v169-catalogo-unico.js?v=1721'),'Caché actualizado para RPC de tarifas'],
- [index.includes('scripts/v151-portal-polish.js?v=1721'),'Portada publica nueva versión del catálogo']
+ [loader.includes('scripts/v169-catalogo-unico.js?v=1731'),'Caché actualizado para RPC de tarifas'],
+ [index.includes('scripts/v151-portal-polish.js?v=1731'),'Portada publica nueva versión del catálogo'],
+ [index.includes("function cc79StreamBenefits(){")&&index.includes("window.cc166OpenStreamMembership()"),'Beneficios abren membresía real'],
+ [!index.includes('rpc/sb_pay_affiliation_test')&&!index.includes('rpc/cc_request_test_topup'),'Afiliación y recarga ficticias retiradas'],
+ [index.includes("if(adminBtn)adminBtn.style.display='none'; // Accesible"),'ADMIN antiguo oculto de navegación principal'],
+ [index.includes('Los visitantes y afiliados ven precios públicos.'),'Publicidad explica precio por rol'],
+ [index.includes('S/ 25 por 365 días'),'Condiciones legales alineadas al plan anual'],
+ [js.includes("if(s.userId===user){")&&js.includes("token=s.jwt;serial++;busy=false;verified=false;"),'Renovación JWT conserva pestaña y recarga permisos'],
+ [js.includes("window.cc166OpenStreamMembership=()=>{"),'Membresía real accesible desde portada'],
+ [catalog.includes('response.status===401||response.status===403'),'Sesión caducada permite catálogo público seguro'],
+ [catalog.includes("p.price_tier!=='PUBLIC'||p.distributor_price_pen!=null"),'Fallback no acepta descuentos anónimos'],
+ [catalog.includes("window.addEventListener('focus',refreshIfVisible)"),'Precios se actualizan al volver al catálogo']
 ];
 for(const [condition,message] of checks){assert.ok(condition,message);}
 console.log('PASS · '+checks.length+' comprobaciones financieras, de privacidad y navegación sin pagos reales.');
