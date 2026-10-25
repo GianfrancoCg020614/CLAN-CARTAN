@@ -138,3 +138,15 @@
  #cc166-panel .cc166-movement span{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){#cc166-panel button{transition:none}}
+
+/* Acceso persistente al panel desde el portal original. */
+#cc77home #cc166-open-button{
+ display:inline-flex;align-items:center;justify-content:center;min-height:41px;
+ padding:9px 13px;margin:2px;border:1px solid #37acbb;border-radius:11px;
+ background:linear-gradient(115deg,#0a6178,#143755);color:#eaffff;
+ font:800 12px system-ui,-apple-system,sans-serif;cursor:pointer;
+ box-shadow:0 3px 15px #05a7c925
+}
+#cc77home #cc166-open-button[hidden]{display:none!important}
+#cc77home #cc166-open-button:focus-visible{outline:3px solid #52dbe5;outline-offset:2px}
+@media(max-width:560px){#cc77home #cc166-open-button{flex:1 1 auto;max-width:100%;font-size:11px}}
