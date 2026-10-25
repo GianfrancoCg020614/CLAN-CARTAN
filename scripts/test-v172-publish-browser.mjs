@@ -43,7 +43,7 @@ const probe=[
  'setTimeout(()=>{try{',
  'const $=q=>document.querySelector(q),$$=q=>document.querySelectorAll(q);',
  'const role=$("#cc166-role")?.textContent.includes("SÚPER RESELLER");',
- 'const nav=[...$$(".cc166-navitem")].find(b=>b.textContent.includes("Publicar"));nav?.click();',
+ 'const nav=[...$$(".cc166-navitem")].find(b=>b.textContent.includes("Publicaciones"));nav?.click();',
  'const form=$("#cc166-publish-form");',
  'const twoFields=!!form?.elements.namedItem("price")&&!!form?.elements.namedItem("distributor");',
  'const values={title:"Netflix 30 días",price:"12.00",distributor:"8.00",cost:"6.00",stock:"5",whatsapp:"51912345678"};',
