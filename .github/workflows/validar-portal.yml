@@ -95,7 +95,9 @@ jobs:
           node --check scripts/v151-portal-polish.js
           node --check scripts/v166-portal-roles.js
           node scripts/test-v166-three-roles-browser.mjs
-          node -e "const fs=require('fs');if(!fs.readFileSync('scripts/v151-portal-polish.js','utf8').includes('v166-portal-roles.js?v=1662'))process.exit(1)"
+          node scripts/test-v167-checkout-browser.mjs
+          node scripts/test-v167-financial-integrity.mjs
+          node -e "const fs=require('fs');if(!fs.readFileSync('scripts/v151-portal-polish.js','utf8').includes('v166-portal-roles.js?v=1671'))process.exit(1)"
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
