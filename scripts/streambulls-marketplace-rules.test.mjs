@@ -2,6 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   activationWindow, serviceActivationWindow, canAutoPublish,
+  ACCOUNT_SLOT_STATES, CONNECTION_DEVICE_TYPES, accountSlotSummary,
+  addAccountSlot, disableAccountSlot, allocateAccountSlot,
+  releaseAccountSlot, restoreAccountSlot, connectionEvent,
+  profileTimeCounter, profilePaymentLabel,
   streamBullsRoleCapabilities, externalAddonRenewalWindow,
   externalAddonAccessState, externalAddonActivationQuote,
   allowedSelfRegistrationRoles, parsePenCents, calculateSaleSettlement,
@@ -248,4 +252,117 @@ test('rol suspendido no ve datos ni tiene derecho de comprar complemento', () =>
   const quote = externalAddonActivationQuote({role:'RESELLER',mainMembershipActive:true,
     walletRealBalanceCents:1000,consentedForThisPurchase:true,today:'2026-10-25',suspended:true});
   assert.equal(quote.permitted,false);
+});
+
+
+test('Netflix, HBO, Prime, YouTube, Spotify, ChatGPT admiten número variable de slots', () => {
+  for (const service of ['NETFLIX','HBO_MAX','PRIME_VIDEO','YOUTUBE','SPOTIFY','CHATGPT','OTRO']) {
+    let slots = [];
+    for (let i = 1; i <= 9; i++) slots = addAccountSlot(slots, service + ':P' + i);
+    assert.equal(accountSlotSummary(slots).free, 9);
+    assert.equal(accountSlotSummary(slots).activeCapacity, 9);
+    assert.equal(accountSlotSummary(slots).label,'DISPONIBLE');
+  }
+  assert.ok(ACCOUNT_SLOT_STATES.includes('DISABLED'));
+});
+
+test('baja lógica de slot libre conserva ID pero NO cuenta como disponible', () => {
+  const slots = [
+    {id:'P1', status:'ASSIGNED'},
+    {id:'P2', status:'FREE'},
+    {id:'P3', status:'FREE'}
+  ];
+  const result = disableAccountSlot(slots,'P2');
+  assert.equal(result.length,3);
+  assert.equal(result[1].id,'P2');
+  assert.equal(result[1].status,'DISABLED');
+  assert.equal(accountSlotSummary(result).availableForAssignment,1);
+  assert.equal(accountSlotSummary(result).disabled,1);
+  assert.equal(slots[1].status,'FREE'); // inmutable
+  assert.throws(() => allocateAccountSlot(result,'P2'),/no disponible/);
+});
+
+test('si elimino el único slot libre, se verá SIN ESPACIOS LIBRES y no libre', () => {
+  const slots = disableAccountSlot([{id:'P1',status:'ASSIGNED'},{id:'P2',status:'FREE'}],'P2');
+  const summary = accountSlotSummary(slots);
+  assert.equal(summary.label,'SIN_ESPACIOS_LIBRES');
+  assert.equal(summary.free,0);
+  assert.equal(summary.occupied,1);
+  assert.equal(summary.disabled,1);
+  assert.equal(summary.activeCapacity,1);
+});
+
+test('todos los slots dados de baja se ven SIN CUPOS ACTIVOS, no ocupado por falsos clientes', () => {
+  const slots = disableAccountSlot([{id:'P1',status:'FREE'}],'P1');
+  assert.deepEqual([accountSlotSummary(slots).label,accountSlotSummary(slots).free],
+    ['SIN_CUPOS_ACTIVOS',0]);
+  assert.equal(accountSlotSummary(slots).totalRegistered,1);
+});
+
+test('eliminar slot ocupado respeta servicio del cliente, queda pendiente hasta liberar', () => {
+  const original = [{id:'P1',status:'ASSIGNED'}];
+  const marked = disableAccountSlot(original,'P1');
+  assert.equal(marked[0].status,'DISABLED_PENDING_RELEASE');
+  assert.equal(accountSlotSummary(marked).free,0);
+  assert.equal(accountSlotSummary(marked).occupied,1);
+  assert.throws(() => allocateAccountSlot(marked,'P1'));
+  const closed = releaseAccountSlot(marked,'P1');
+  assert.equal(closed[0].status,'DISABLED');
+  assert.equal(accountSlotSummary(closed).free,0);
+});
+
+test('desactivar slot reservado obliga a cancelar reserva; ID duplicado no permitido', () => {
+  assert.throws(() => disableAccountSlot([{id:'P1',status:'RESERVED'}],'P1'),/Cancelar reserva/);
+  assert.throws(() => accountSlotSummary([{id:'P1',status:'FREE'},{id:'P1',status:'FREE'}]));
+  assert.throws(() => addAccountSlot([{id:'P1',status:'FREE'}],'P1'));
+  assert.throws(() => disableAccountSlot([{id:'P1',status:'FREE'}],'P2'));
+});
+
+test('slot ocupado puede liberarse y reutilizarse; otro deshabilitado solo restauración explícita', () => {
+  const assigned = allocateAccountSlot([{id:'P1',status:'FREE'}],'P1');
+  assert.equal(accountSlotSummary(assigned).free,0);
+  const freed = releaseAccountSlot(assigned,'P1');
+  assert.equal(accountSlotSummary(freed).free,1);
+  const disabled = disableAccountSlot(freed,'P1');
+  assert.equal(accountSlotSummary(disabled).free,0);
+  assert.equal(accountSlotSummary(restoreAccountSlot(disabled,'P1')).free,1);
+});
+
+test('fecha y hora real de conexión guardada junto con tipo de equipo', () => {
+  const dt = '2026-10-24T20:35:00-05:00';
+  const examples = ['CELULAR','LAPTOP','TV','TABLET','COMPUTADORA','OTRO'];
+  for(const deviceType of examples) {
+    const e = connectionEvent({deviceType,connectedAt:dt,deviceName:'Equipo de prueba'});
+    assert.equal(e.connectedAt,'2026-10-25T01:35:00.000Z');
+    assert.equal(e.deviceType,deviceType);
+    assert.equal(e.deviceName,'Equipo de prueba');
+  }
+  assert.ok(CONNECTION_DEVICE_TYPES.includes('TV'));
+  assert.throws(() => connectionEvent({deviceType:'DRONE',connectedAt:dt}));
+  assert.throws(() => connectionEvent({deviceType:'TV',connectedAt:'2026-10-24'}));
+});
+
+test('contador de un perfil con días y HORAS de vigencia independientes', () => {
+  const c = profileTimeCounter(
+    '2026-10-24T00:00-05:00','2026-11-23T00:00-05:00',
+    '2026-11-20T13:30-05:00');
+  assert.equal(c.status,'VIGENTE');
+  assert.equal(c.remainingDays,2);
+  assert.equal(c.remainingHours,10);
+  assert.equal(c.remainingExtraMinutes,30);
+  assert.equal(c.expired,false);
+  const expired=profileTimeCounter('2026-10-24T00:00-05:00',
+    '2026-11-23T00:00-05:00','2026-11-23T00:00-05:00');
+  assert.equal(expired.remainingMinutes,0);
+  assert.equal(expired.status,'VENCIDO');
+});
+
+test('PAGADO en verde, DEBE en rojo, sin modificar la ocupación del perfil', () => {
+  const paid=profilePaymentLabel('PAGADO'), due=profilePaymentLabel('DEBE');
+  assert.equal(paid.color,'green');
+  assert.equal(due.color,'red');
+  assert.equal(paid.freesSlot,false);
+  assert.equal(due.freesSlot,false);
+  assert.equal(profilePaymentLabel('PARCIAL').color,'amber');
+  assert.throws(() => profilePaymentLabel('NO_SÉ'));
 });
