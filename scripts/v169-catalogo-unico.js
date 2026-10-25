@@ -11,7 +11,8 @@
   // Publishable key que ya utiliza index.html: NO es una service_role key.
   const KEY='sb_publishable_nsp19gAqsdRak3JqWpusUg_Qd6mQr0n';
   let rows=[],loading=false,loaded=false,error='',revision=0,scheduled=false,inFlight=null,showcase=null;
-  let activeJwt=String(window.CC_V53_SESSION?.jwt||'');
+  let activeJwt=String(window.CC_V53_SESSION?.jwt||''),authNotice='';
+  let lastVisibleRefresh=0;
   const jwtNow=()=>String(window.CC_V53_SESSION?.jwt||'');
   const el=id=>document.getElementById(id);
   const money=n=>'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -160,6 +161,7 @@
       const grid=text('div','products v6-grid v23-product-grid cc169-verified-grid');
       grid.dataset.cc169Source='verified';matches.forEach(p=>grid.append(buildCard(p)));holder.append(grid);
     }
+    if(authNotice)holder.append(text('p','cc169-status',authNotice));
     const controls=text('div','cc169-catalog-controls');
     controls.append(text('small','','Productos y precios confirmados por CLAN CARTAN. El pago requiere sesión y saldo real.'));
     controls.append(button('↻ Actualizar catálogo',()=>{void refresh()},'btn cc169-refresh'));
@@ -175,7 +177,7 @@
     if(inFlight)return inFlight;
     const jwt=jwtNow();
     activeJwt=jwt;
-    loading=true;error='';revision++;schedule();
+    loading=true;error='';authNotice='';revision++;schedule();
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),16000);
     inFlight=(async()=>{
@@ -184,18 +186,32 @@
         // Con sesión ausente la RPC retorna exclusivamente el precio público.
         const headers={apikey:KEY,'Content-Type':'application/json'};
         if(jwt)headers.Authorization='Bearer '+jwt;
-        const response=await fetch(ROOT+'/rest/v1/rpc/cc_portal_public_catalog_v3',{
+        let response=await fetch(ROOT+'/rest/v1/rpc/cc_portal_public_catalog_v3',{
           method:'POST',headers,body:'{}',signal:controller.signal
         });
+        let publicFallback=false;
+        if(!response.ok && jwt && (response.status===401||response.status===403)){
+          // Una sesión caducada no puede bloquear el catálogo PÚBLICO.
+          // Ante 401/403, repetir sin JWT: siempre precio público, nunca
+          // aceptar un supuesto descuento calculado por el navegador.
+          response=await fetch(ROOT+'/rest/v1/rpc/cc_portal_public_catalog_v3',{
+            method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},
+            body:'{}',signal:controller.signal
+          });
+          publicFallback=true;
+        }
         if(!response.ok)throw Error('La lista real no está disponible.');
         const result=await response.json();
         if(!Array.isArray(result))throw Error('Respuesta de productos inválida');
+        if(publicFallback&&result.some(p=>p.price_tier!=='PUBLIC'||p.distributor_price_pen!=null))
+          throw Error('No se pudo validar el precio público');
         if(jwt!==jwtNow())return;
         rows=result.filter(p=>p.id&&p.title&&Number(p.price_pen)>0&&Number(p.stock)>0);
         loaded=true;error='';
+        authNotice=publicFallback?'La sesión caducó. Se muestran precios públicos. Vuelve a ingresar para recuperar tu tarifa de distribuidor.':'';
       }catch(_){
         if(jwt===jwtNow()){
-          rows=[];loaded=false;error='No se pudo verificar el catálogo.';
+          rows=[];loaded=false;error='No se pudo verificar el catálogo.';authNotice='';
         }
       }finally{
         clearTimeout(timeout);loading=false;inFlight=null;revision++;
@@ -214,7 +230,21 @@
     else window.alert('No se puede abrir el catálogo original.');
     schedule();void refresh();
   }
+  function refreshIfVisible(){
+    const section=document.querySelector('#productos .v23-catalog-section');
+    if(!section||!section.getClientRects().length)return;
+    const now=Date.now();
+    if(now-lastVisibleRefresh<2500)return;
+    lastVisibleRefresh=now;
+    void refresh();
+  }
   function init(){
+    // Actualizar las tarifas cuando el usuario regresa a la tienda desde
+    // otra pestaña o se renueva su membresía.
+    window.addEventListener('focus',refreshIfVisible);
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden)refreshIfVisible();
+    });
     new MutationObserver(schedule).observe(document.getElementById('app')||document.body,{
       childList:true,subtree:true
     });
