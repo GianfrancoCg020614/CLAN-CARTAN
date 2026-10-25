@@ -8,7 +8,8 @@ const api=(p,m,b)=>window.cc80.api(p,m,b);
 const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'COBRA YA',MI_COCHERA:'MI COCHERA',MI_ALQUILER:'MI ALQUILER'})[k]||k;
 const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],['MI_ALQUILER','⌂']];
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
-let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null};
+let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
+let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null};
 let lastReceipt=null,purchasePending=false,membershipPending=false;
 const price=n=>Number.isFinite(Number(n))?'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const make=(tag,cls,txt)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=String(txt);return x;};
@@ -18,8 +19,9 @@ const session=()=>window.CC_V53_SESSION;
 const active=(id,jwt,seq)=>user===id&&token===jwt&&serial===seq&&session()?.userId===id&&session()?.jwt===jwt;
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
- data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null};lastReceipt=null;purchasePending=false;membershipPending=false;
+ data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null};lastReceipt=null;purchasePending=false;membershipPending=false;
  app?.remove();app=null;el('cc166-open-button')?.remove();
+ profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
 }
 function shell(){
  if(app?.isConnected)return app;
@@ -56,7 +58,12 @@ function metric(title,num,tone){
 function title(page,heading,sub){
  const h=make('div','cc166-section-title');h.append(make('h2','',heading));if(sub)h.append(make('p','',sub));page.append(h);
 }
-function nav(to){view=to;render();}
+function openCatalog(){
+ if(typeof window.cc169OpenCatalog==='function'){window.cc169OpenCatalog();return;}
+ if(typeof window.cc77Store==='function'){app.hidden=true;window.cc77Store();return;}
+ notice('El catálogo público está temporalmente inaccesible.');
+}
+function nav(to){if(to==='shop'){openCatalog();return;}view=to;render();}
 function notice(msg){const page=el('cc166-content');if(!page)return;const p=make('p','cc166-notice',msg);p.setAttribute('role','status');page.prepend(p);}
 function mountLauncher(){
  const actions=el('cc77home')?.querySelector('.cc77top .cc77actions');
@@ -250,30 +257,12 @@ function receipt(page){
  page.append(box);
 }
 function shop(page){
- title(page,'Comprar servicios · precios públicos','Cualquier usuario con cuenta puede comprar con saldo REAL, sin membresía de gestión.');
+ title(page,'Comprobante de compra','Aquí verás exclusivamente el resultado de tu compra; el catálogo público es único.');
  receipt(page);
- const action=make('section','cc167-mini');
- const real=data.real.reduce((a,b)=>a+Number(b.balance_pen||0),0);
- const n=make('div','');n.append(make('small','','Saldo real disponible'),make('strong','',verified?price(real):'Consultando…'));
- action.append(n,button('Recargar billetera',openRecharge,'cc166-primary'));page.append(action);
- const items=data.products.filter(p=>p.status==='ACTIVE'&&Number(p.stock)>0);
- if(!items.length){
-  const box=card('Catálogo de STREAM BULL’S','En este momento no hay publicaciones con stock confirmado.');
-  box.append(make('p','cc166-note','Los productos aparecen automáticamente cuando ADMIN o un SÚPER RESELLER con membresía vigente los publica.'));
-  page.append(box);return;
- }
- const grid=make('div','cc167-market');
- for(const p of items){
-  const item=make('article','cc167-product');
-  item.append(make('small','cc167-platform',p.service));
-  item.append(make('h3','',p.title));
-  item.append(make('p','',String(p.description||'Servicio digital publicado por un vendedor autorizado.').slice(0,220)));
-  item.append(make('small','','Duración: '+(p.duration_days||'—')+' días · Stock: '+p.stock));
-  item.append(make('strong','cc167-price',price(p.price_pen)));
-  const own=p.seller_id===user;
-  const buy=button(own?'Tu publicación':'Comprar',()=>void buyProduct(p,buy),'cc166-primary');
-  buy.disabled=!verified||purchasePending||own;item.append(buy);grid.append(item);
- }page.append(grid);
+ const actions=make('div','cc166-actions');
+ actions.append(button('Volver al catálogo público',openCatalog,'cc166-primary'));
+ actions.append(button('Mis compras',()=>nav('orders'),'cc166-secondary'));
+ page.append(actions);
 }
 function storedKey(kind,id){
  const name='cc167:'+kind+':'+user+':'+id;
@@ -305,11 +294,40 @@ async function buyProduct(product,b){
   forgetKey(keyInfo.name);
   lastReceipt={...response,buyer_id:uid};
   await load();
-  view='shop';render();
+  app.hidden=false;view='shop';render();
   receiptFocus();
- }catch(e){if(session()?.userId===uid&&session()?.jwt===jwt)notice('Compra no confirmada: '+String(e?.message||e)+'. No repitas con otra referencia hasta comprobar Mis compras.');}
- finally{purchasePending=false;b.disabled=false;}
+ }catch(e){if(session()?.userId===uid&&session()?.jwt===jwt){app.hidden=false;view='shop';render();notice('Compra no confirmada: '+String(e?.message||e)+'. Revisa Mis compras antes de intentarlo nuevamente.');}}
+ finally{purchasePending=false;b.disabled=false;if(b.isConnected)b.textContent='Comprar con billetera';}
 }
+async function purchaseFromPublicCatalog(productId,buttonEl,displayedPrice){
+ sync();
+ if(!session()?.jwt||!user){
+  if(typeof window.cc77Auth==='function')window.cc77Auth(false);
+  else window.alert('Debes iniciar sesión con tu cuenta CLAN CARTAN.');
+  return;
+ }
+ if(!verified||!window.cc80?.api){
+  window.alert('No es posible confirmar tu saldo. Abre el panel y actualiza los datos antes de comprar.');
+  return;
+ }
+ if(purchasePending)return;
+ try{
+  const rows=await read('cc_portal_stream_products?select=id,seller_id,service,title,price_pen,stock,status&id=eq.'+
+   encodeURIComponent(productId)+'&limit=1',true);
+  const item=rows[0];
+  if(!item||item.status!=='ACTIVE'||Number(item.stock)<1){
+   window.alert('Este producto ya no está disponible. Actualiza el catálogo.');return;
+  }
+  if(Number(item.price_pen)!==Number(displayedPrice)){
+   window.alert('El precio fue actualizado. Actualiza el catálogo antes de confirmar.');return;
+  }
+  // Misma RPC transaccional e idempotente ya usada por el panel V167; no doble checkout.
+  await buyProduct(item,buttonEl||button('Comprar',()=>{},'cc166-primary'));
+ }catch(e){
+  window.alert('No se pudo verificar el producto. No se hizo ningún cargo: '+String(e.message||e));
+ }
+}
+
 function receiptFocus(){el('cc166-content')?.querySelector('.cc167-receipt')?.scrollIntoView({behavior:'smooth',block:'start'});}
 async function buyStreamMembership(amount){
  if(!verified||membershipPending)return;
@@ -489,6 +507,80 @@ async function getRequests(){
  if(Array.isArray(r)){data.requests=r;render();}}
  catch(e){notice('No se pudo consultar las solicitudes: '+String(e.message||e));}
 }
+function profile(page){
+ title(page,'Mi perfil · datos personales','Un registro central para tus cuatro negocios. Los datos se pueden actualizar desde aquí.');
+ const form=make('form','cc166-form cc169-profile-form');
+ form.id='cc169-profile-form';
+ const record=data.profile||{};
+ const fields=[
+  ['full_name','Nombre completo',record.full_name||session()?.displayName||'','text',120],
+  ['phone','WhatsApp (+código del país)',record.phone_e164||'','tel',20],
+  ['region','Región / Departamento',record.region||'','text',80],
+  ['province','Provincia',record.province||'','text',80],
+  ['district','Distrito',record.district||'','text',80]
+ ];
+ for(const [key,caption,value,type,max] of fields){
+  const label=make('label','',caption),input=document.createElement('input');
+  input.name=key;input.value=value;input.type=type;input.maxLength=max;
+  if(key==='full_name')input.required=true;
+  if(key==='phone'){input.placeholder='+51912345678';input.autocomplete='tel';}
+  if(key==='full_name')input.autocomplete='name';
+  label.append(input);form.append(label);
+ }
+ const mailLabel=make('label','','Correo de acceso · solo lectura'),mailInput=document.createElement('input');
+ mailInput.type='email';mailInput.value=profileEmail||'Consultando correo…';
+ mailInput.readOnly=true;mailInput.autocomplete='off';mailLabel.append(mailInput);form.append(mailLabel);
+ const note=make('p','cc166-note','Estos datos pertenecen a tu cuenta CLAN CARTAN, no a un negocio. El DNI/documento, las condiciones aceptadas y el correo de acceso no se cambian desde aquí.');
+ note.classList.add('cc169-profile-note');form.append(note);
+ const submit=make('button','cc166-primary','Guardar cambios');submit.type='submit';
+ form.append(submit);
+ form.addEventListener('submit',e=>{e.preventDefault();void saveProfile(new FormData(form),submit);});
+ page.append(form);
+ if(!profileEmail&&profileEmailOwner!==user&&!profileEmailLoading)void loadEmail();
+}
+async function loadEmail(){
+ const s=session();if(!s?.jwt||!s.userId||profileEmailLoading)return;
+ const uid=s.userId,jwt=s.jwt;profileEmailLoading=true;
+ try{
+  const r=await fetch(s.root+'/auth/v1/user',{headers:{apikey:s.key,Authorization:'Bearer '+s.jwt}});
+  if(!r.ok)throw Error('Correo temporalmente no disponible');
+  const auth=await r.json();
+  if(auth?.id===uid&&session()?.jwt===jwt&&user===uid){
+   profileEmail=String(auth.email||'');
+   profileEmailOwner=uid;
+   if(view==='profile')render();
+  }
+ }catch(_){if(user===uid){profileEmail='Correo no disponible';profileEmailOwner=uid;if(view==='profile')render();}}
+ finally{profileEmailLoading=false;}
+}
+async function saveProfile(form,buttonEl){
+ const uid=user,jwt=token;
+ if(!verified||!uid||!jwt){notice('Inicia sesión y actualiza tus datos antes de guardar.');return;}
+ const value=k=>String(form.get(k)||'').trim();
+ const fullName=value('full_name'),phone=value('phone').replace(/[\s\-()]/g,'');
+ const fields=['region','province','district'];
+ if(fullName.length<2||fullName.length>120||phone&&!/^\+[1-9][0-9]{7,14}$/.test(phone)
+   ||fields.some(k=>value(k).length>80)){
+  notice('Corrige el nombre y escribe el WhatsApp internacional, por ejemplo +51912345678.');return;
+ }
+ buttonEl.disabled=true;buttonEl.textContent='Guardando…';
+ try{
+  const saved=await api('rpc/cc_portal_save_my_profile','POST',{
+   p_full_name:fullName,p_phone_e164:phone,p_region:value('region'),
+   p_province:value('province'),p_district:value('district')
+  });
+  if(user!==uid||session()?.jwt!==jwt)return;
+  if(!saved?.saved)throw Error('No se confirmó la actualización');
+  await load();
+  if(user!==uid||session()?.jwt!==jwt)return;
+  if(session()){session().displayName=fullName;}
+  if(typeof window.cc95RenderUser==='function')window.cc95RenderUser();
+  view='profile';render();notice('Perfil actualizado. Los cuatro negocios utilizarán estos datos de la misma cuenta.');
+ }catch(e){
+  if(user===uid){buttonEl.disabled=false;buttonEl.textContent='Guardar cambios';notice('No se guardaron los cambios: '+String(e?.message||e));}
+ }
+}
+
 function other(page){
  const labels={
  orders:['Pedidos y renovaciones','Los detalles completos están disponibles dentro del negocio de origen.'],
@@ -518,6 +610,7 @@ function render(){
  case 'publish':publish(page);break;
  case 'sales':sales(page);break;
  case 'admin':admin(page);break;
+ case 'profile':profile(page);break;
  default:other(page);
  }
 }
@@ -528,7 +621,7 @@ async function load(){
  if(!user||busy||!window.cc80?.api)return;
  busy=true;const id=user,jwt=token,n=++serial;const idp=enc(id);
  try{
-  const [admins,members,subs,businesses,real,bonus,ma,mc,cy,moves,superRoles,products,shopOrders,plans]=await Promise.all([
+  const [admins,members,subs,businesses,real,bonus,ma,mc,cy,moves,superRoles,products,shopOrders,plans,details]=await Promise.all([
    read('cc_admins?select=user_id&user_id=eq.'+idp+'&limit=1',true),
    read('cc_memberships?select=id,role,status,business_id&user_id=eq.'+idp,true),
    read('cc_subscriptions?select=membership_id,status,start_at,end_at&order=end_at.desc&limit=150',true),
@@ -542,7 +635,8 @@ async function load(){
    read('cc_portal_super_resellers?select=enabled,user_id,admin_percent&user_id=eq.'+idp+'&limit=1'),
    read('cc_portal_stream_products?select=id,seller_id,service,title,description,duration_days,price_pen,stock,status&order=created_at.desc&limit=100',true),
    readOrders(),
-   read('cc_plans?select=business_id,code,price_pen,is_active&code=eq.STREAM_365&is_active=eq.true')
+   read('cc_plans?select=business_id,code,price_pen,is_active&code=eq.STREAM_365&is_active=eq.true'),
+   read('cc_user_details?select=full_name,phone_e164,region,province,district&user_id=eq.'+idp+'&limit=1')
   ]);
   if(!active(id,jwt,n))return;
   const hasSub=m=>subs.some(sub=>sub.membership_id===m.id&&sub.status==='ACTIVE'&&
@@ -564,13 +658,16 @@ async function load(){
    mc:mc[0]||null,ma:ma[0]||null,cy,moves,products,orders:shopOrders,
    requests:data.requests,
    plan:plans.find(p=>p.business_id===streamId)||null,
+   profile:details[0]||null,
    bonuses:[
     {label:'Bono COBRA YA',amount:Number(bonus[0]?.balance_pen||0)},
     {label:'Bono MI COCHERA',amount:Number(mc[0]?.bonus_pen||0)},
     {label:'Bono MI ALQUILER',amount:Number(ma[0]?.bonus_pen||0)}
    ].filter(x=>Number.isFinite(x.amount)&&x.amount>0)
   };
-  verified=true;render();
+  verified=true;
+  if(data.profile?.full_name&&session()?.userId===id){session().displayName=data.profile.full_name;window.cc95RenderUser?.();}
+  render();
  }catch(e){if(active(id,jwt,n)){verified=false;render();notice('No fue posible verificar los datos reales. Compras y activaciones permanecerán bloqueadas hasta actualizar.');}}
  finally{if(user===id&&token===jwt)busy=false;}
 }
@@ -593,6 +690,13 @@ function init(){
  window.addEventListener('focus',()=>{sync();if(user&&!busy)void load();});
  window.cc166OpenPanel=()=>{sync();if(app){app.hidden=false;render();}};
  window.cc166RefreshPanel=()=>void load();
+ window.cc166PurchaseProductFromCatalog=(id,btn,price)=>purchaseFromPublicCatalog(id,btn,price);
+ window.cc166OpenProfile=()=>{
+  sync();
+  if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
+  app.hidden=false;view='profile';render();
+ };
+
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();

@@ -99,10 +99,28 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  if(!document.getElementById('cc166-panel-style')){
   const css=document.createElement('link');css.id='cc166-panel-style';
-  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=1681';document.head.append(css);
+  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=1691';document.head.append(css);
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=1681';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=1691';script.async=false;document.head.append(script);
+ }
+})();
+
+
+/* Catálogo único: adaptar el escaparate público real al checkout verificado.
+ * No incluye una segunda tienda ni edita módulos de COBRA YA/COCHERA/ALQUILER.
+ */
+(function(){
+ 'use strict';
+ if(!document.getElementById('cc169-public-catalog-style')){
+  const link=document.createElement('link');link.id='cc169-public-catalog-style';
+  link.rel='stylesheet';link.href='styles/v169-catalogo-perfil.css?v=1691';
+  document.head.append(link);
+ }
+ if(!document.getElementById('cc169-public-catalog-script')){
+  const script=document.createElement('script');script.id='cc169-public-catalog-script';
+  script.src='scripts/v169-catalogo-unico.js?v=1691';
+  script.async=false;document.head.append(script);
  }
 })();

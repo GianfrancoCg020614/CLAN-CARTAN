@@ -10,6 +10,8 @@ const privateOrders=read('supabase/migrations/20261025_cc_portal_private_orders_
 const js=read('scripts/v166-portal-roles.js');
 const loader=read('scripts/v151-portal-polish.js');
 const index=read('index.html');
+const catalog=read('scripts/v169-catalogo-unico.js');
+const profileMigration=read('supabase/migrations/20261025_cc_portal_catalog_profile_v169.sql');
 const checks=[
  [main.includes('checkout_key uuid not null unique'),'Idempotencia de órdenes'],
  [main.includes('for update'),'Bloqueo de stock/billetera antes de cargo'],
@@ -38,8 +40,14 @@ const checks=[
  [js.includes("role.includes")===false,'No confiar en rol a partir de texto'],
  [js.includes("case 'shop':shop(page)")&&js.includes("case 'admin':admin(page)"),'Un panel con rutas por rol'],
  [js.includes('businessTabs(page)'),'Una barra de cuatro pestañas'],
- [loader.includes('v166-portal-roles.js?v=1681'),'El cargador usa versión de panel actualizada'],
- [index.includes('scripts/v151-portal-polish.js?v=1681'),'El HTML no carga el panel previo en caché']
+ [loader.includes('v166-portal-roles.js?v=1691'),'El cargador usa versión de panel actualizada'],
+ [index.includes('scripts/v151-portal-polish.js?v=1691'),'El HTML no carga el panel previo en caché'],
+ [catalog.includes('rpc/cc_portal_public_catalog'),'Catálogo público lee únicamente publicaciones reales'],
+ [catalog.includes('cc166PurchaseProductFromCatalog'),'Catálogo reutiliza el checkout verificado existente'],
+ [catalog.includes("querySelectorAll('.v23-product-grid,.v23-empty,.cc169-result')"),'No quedan tarjetas de compra duplicadas'],
+ [profileMigration.includes('public.cc_portal_save_my_profile('),'Mi perfil actualiza la ficha central existente'],
+ [js.includes("case 'profile':profile(page)"),'Solo una vista de datos personales para los cuatro negocios'],
+ [loader.includes('scripts/v169-catalogo-unico.js?v=1691'),'El loader incluye el catálogo único']
 ];
 for(const [condition,message] of checks){assert.ok(condition,message);}
 console.log('PASS · '+checks.length+' comprobaciones financieras, de privacidad y navegación sin pagos reales.');
