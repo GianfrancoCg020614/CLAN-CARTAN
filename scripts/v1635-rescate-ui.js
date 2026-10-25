@@ -82,3 +82,18 @@ else init();
   script.async = false;
   document.head.appendChild(script);
 })();
+
+
+/* Panel unificado de tres roles: solo UI y RPC del servidor, sin sustituir Auth. */
+(function(){
+ 'use strict';
+ const styleId='cc166-three-roles-style',scriptId='cc166-three-roles-script';
+ if(!document.getElementById(styleId)){
+  const link=document.createElement('link');link.id=styleId;link.rel='stylesheet';
+  link.href='styles/v166-portal-roles.css?v=1661';document.head.append(link);
+ }
+ if(!document.getElementById(scriptId)){
+  const script=document.createElement('script');script.id=scriptId;
+  script.src='scripts/v166-portal-roles.js?v=1661';script.async=false;document.head.append(script);
+ }
+})();
