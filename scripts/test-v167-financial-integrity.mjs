@@ -44,7 +44,7 @@ const checks=[
  [js.includes("role.includes")===false,'No confiar en rol a partir de texto'],
  [js.includes("case 'shop':shop(page)")&&js.includes("case 'admin':admin(page)"),'Un panel con rutas por rol'],
  [js.includes('businessTabs(page)'),'Una barra de cuatro pestañas'],
- [loader.includes('v166-portal-roles.js?v=1731'),'El cargador usa versión de panel actualizada'],
+ [loader.includes('v166-portal-roles.js?v=174'),'El cargador usa versión de panel actualizada'],
  [index.includes('scripts/v151-portal-polish.js?v=1731'),'El HTML no carga el panel previo en caché'],
  [catalog.includes('rpc/cc_portal_public_catalog'),'Catálogo público lee únicamente publicaciones reales'],
  [catalog.includes('cc166PurchaseProductFromCatalog'),'Catálogo reutiliza el checkout verificado existente'],
