@@ -10,7 +10,7 @@ const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],[
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
-let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null};
+let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};
 let lastReceipt=null,purchasePending=false,membershipPending=false;
 const price=n=>Number.isFinite(Number(n))?'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const make=(tag,cls,txt)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=String(txt);return x;};
@@ -20,7 +20,7 @@ const session=()=>window.CC_V53_SESSION;
 const active=(id,jwt,seq)=>user===id&&token===jwt&&serial===seq&&session()?.userId===id&&session()?.jwt===jwt;
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
- data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null};lastReceipt=null;purchasePending=false;membershipPending=false;
+ data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};lastReceipt=null;purchasePending=false;membershipPending=false;
  app?.remove();app=null;el('cc166-open-button')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
@@ -314,14 +314,14 @@ async function purchaseFromPublicCatalog(productId,buttonEl,displayedPrice){
  }
  if(purchasePending)return;
  try{
-  const rows=await read('cc_portal_stream_products?select=id,seller_id,service,title,price_pen,stock,status&id=eq.'+
-   encodeURIComponent(productId)+'&limit=1',true);
-  const item=rows[0];
+  // Verificación por servidor: el navegador jamás elige quién merece precio distribuidor.
+  const item=await api('rpc/cc_portal_stream_price_for_me','POST',{p_product_id:productId});
   if(!item||item.status!=='ACTIVE'||Number(item.stock)<1){
    window.alert('Este producto ya no está disponible. Actualiza el catálogo.');return;
   }
   if(Number(item.price_pen)!==Number(displayedPrice)){
-   window.alert('El precio fue actualizado. Actualiza el catálogo antes de confirmar.');return;
+   window.alert('El precio o tu membresía cambió. Actualiza el catálogo antes de confirmar.');
+   window.cc169RefreshCatalog?.();return;
   }
   // Misma RPC transaccional e idempotente ya usada por el panel V167; no doble checkout.
   await buyProduct(item,buttonEl||button('Comprar',()=>{},'cc166-primary'));
@@ -404,6 +404,7 @@ function publish(page){
  const specs=[
  ['service','Plataforma','select'],['title','Nombre del producto','text'],
  ['days','Duración (días)','number'],['price','Precio al público (S/)','number'],
+ ['distributor','Precio reseller / distribuidor (S/)','number'],
  ['cost','Costo de adquisición (S/)','number'],['stock','Stock disponible','number'],
  ['whatsapp','WhatsApp de soporte','tel'],['description','Descripción','textarea']
  ];
@@ -425,8 +426,12 @@ function publish(page){
  for(const p of products){
   const row=make('div','cc166-product cc167-stock-row');
   row.append(make('strong','',p.title));
-  row.append(make('span','',p.service+' · '+price(p.price_pen)+' · Stock '+p.stock+' · '+p.status));
+  const ownPrice=data.priceDetails.find(info=>info.id===p.id);
+  row.append(make('span','',p.service+' · Público '+price(p.price_pen)+
+   ' · Reseller '+price(ownPrice?.distributor_price_pen??p.price_pen)+
+   ' · Stock '+p.stock+' · '+p.status));
   const actions=make('div','cc167-actions');
+  actions.append(button('Editar precios',()=>void editPrices(p,ownPrice),'cc166-secondary'));
   actions.append(button('Actualizar stock',()=>void editProduct(p,'stock'),'cc166-secondary'));
   actions.append(button(p.status==='ACTIVE'?'Pausar':'Reactivar',()=>void editProduct(p,'status'),'cc166-secondary'));
   actions.append(button('WhatsApp',()=>void editProduct(p,'whatsapp'),'cc166-secondary'));
@@ -435,6 +440,38 @@ function publish(page){
   list.append(row);
  }
  page.append(list);
+}
+async function editPrices(product,details){
+ if(!data.admin&&!data.super)return;
+ const oldPublic=Number(details?.public_price_pen??product.price_pen);
+ const oldDistributor=Number(details?.distributor_price_pen??oldPublic);
+ const publicInput=window.prompt('Nuevo precio para AFILIADO / PÚBLICO (S/) · '+
+   product.title,String(oldPublic));
+ if(publicInput===null)return;
+ const distributorInput=window.prompt('Nuevo precio para RESELLER (S/) · '+
+   product.title,String(oldDistributor));
+ if(distributorInput===null)return;
+ const pub=Number(publicInput),dist=Number(distributorInput);
+ if(!Number.isFinite(pub)||!Number.isFinite(dist)||pub<=0||pub>10000||
+    dist<=0||dist>pub||Math.abs(pub*100-Math.round(pub*100))>1e-7||
+    Math.abs(dist*100-Math.round(dist*100))>1e-7){
+  notice('Precios inválidos. Deben tener máximo 2 decimales y el precio reseller no debe superar el público.');return;
+ }
+ if(!window.confirm('¿Guardar precios de '+product.title+'? Público '+
+    price(pub)+' · Reseller '+price(dist)+'. Las compras futuras usarán estas tarifas.'))return;
+ const uid=user,jwt=token;
+ try{
+  const result=await api('rpc/cc_portal_update_stream_prices','POST',{
+   p_product_id:product.id,p_public_price_pen:pub,p_distributor_price_pen:dist
+  });
+  if(!result?.updated)throw Error('Actualización no confirmada');
+  if(session()?.userId!==uid||session()?.jwt!==jwt)return;
+  await load();view='publish';render();
+  notice('Ambos precios se actualizaron. Las compras anteriores conservan su precio pagado.');
+  window.cc169RefreshCatalog?.();
+ }catch(e){
+  if(user===uid)notice('No se actualizaron los precios: '+String(e?.message||e));
+ }
 }
 async function editProduct(p,kind){
  const args={p_product_id:p.id,p_stock:null,p_status:null,p_whatsapp:null};
@@ -465,9 +502,9 @@ async function editProduct(p,kind){
 async function publishSave(fd,b){
  if(!user||!verified)return;
  const s=session(),uid=user,jwt=token;
- const value=k=>String(fd.get(k)||'').trim(),days=Number(value('days')),stock=Number(value('stock')),p=Number(value('price')),c=Number(value('cost'));
- if(!(p>0&&c>=0&&c<=p&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1)){
-  notice('Verifica precio, costo, stock y duración.');return;
+ const value=k=>String(fd.get(k)||'').trim(),days=Number(value('days')),stock=Number(value('stock')),p=Number(value('price')),d=Number(value('distributor')),c=Number(value('cost'));
+ if(!(p>0&&d>0&&c>=0&&c<=d&&d<=p&&p<=10000&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1&&Math.abs(p*100-Math.round(p*100))<1e-7&&Math.abs(d*100-Math.round(d*100))<1e-7)){
+  notice('Verifica que costo ≤ reseller ≤ público, con 2 decimales como máximo, además de stock y duración.');return;
  }
  const flyer=fd.get('flyer');
  const hasFlyer=flyer instanceof Blob&&flyer.size>0;
@@ -480,9 +517,9 @@ async function publishSave(fd,b){
  b.disabled=true;b.textContent='Publicando…';
  try{
   // Conservar la RPC V167 y el MISMO id comercial: no crear un producto por cada imagen.
-  const productId=await api('rpc/cc_portal_publish_stream_product','POST',{
+  const productId=await api('rpc/cc_portal_publish_stream_product_v2','POST',{
    p_service:value('service'),p_title:value('title'),p_duration_days:days,p_price_pen:p,
-   p_cost_pen:c,p_stock:stock,p_whatsapp:value('whatsapp'),p_description:value('description')
+   p_distributor_price_pen:d,p_cost_pen:c,p_stock:stock,p_whatsapp:value('whatsapp'),p_description:value('description')
   });
   if(!productId||typeof productId!=='string')throw Error('El servidor no confirmó el producto.');
   if(session()?.userId!==uid||session()?.jwt!==jwt)return;
@@ -513,11 +550,9 @@ function roleLabel(role){
 }
 function accessLabel(item){
  if(item.is_admin)return 'Acceso administrativo';
- if(item.trial_active)return 'Prueba activa hasta '+trialDate(item.trial_until);
  if(item.access_until&&Date.parse(item.access_until)>Date.now())
   return 'Membresía activa hasta '+trialDate(item.access_until);
- if(item.trial_until)return 'Prueba utilizada · Sin acceso vigente';
- return 'Pendiente de membresía';
+ return 'Membresía pendiente o vencida';
 }
 async function loadAdminAccounts(force=false){
  if(!data.admin||!user||!session()?.jwt)return;
@@ -559,32 +594,6 @@ async function adminChangeRole(person,role,percent,btn){
  }catch(e){notice('No se cambió el rol: '+String(e?.message||e));}
  finally{adminActionBusy=false;btn.disabled=false;}
 }
-async function adminTrial(person,stop,btn){
- if(adminActionBusy||!data.admin||person.is_admin)return;
- const operation=stop?'finalizar':'activar';
- const explanation=stop?
-  '¿Finalizar ahora la prueba de '+person.email+'? Se cerrará su acceso de prueba sin tocar la billetera.':
-  '¿Activar una prueba GRATUITA de 7 días para '+person.email+
-  '? No se cobrará dinero. El usuario tendrá permisos operativos durante la prueba; una publicación real puede aparecer en el catálogo y recibir compras reales.';
- if(!confirm(explanation))return;
- adminActionBusy=true;btn.disabled=true;
- const uid=user,jwt=token;
- try{
-  const out=await api(stop?
-   'rpc/cc_portal_admin_end_stream_trial':'rpc/cc_portal_admin_start_stream_trial',
-   'POST',stop?{p_email:person.email}:{p_email:person.email,p_days:7});
-  if(user!==uid||session()?.jwt!==jwt)return;
-  if(stop?!out?.ended:!out?.activated)throw Error('La operación no se confirmó');
-  await loadAdminAccounts(true);
-  if(view==='admin')notice(stop?
-   'Prueba finalizada sin cargos.':
-   'Prueba activada para '+person.email+' hasta '+trialDate(out.ends_at)+
-   '. Ya puede cerrar sesión e ingresar para probar su panel.');
- }catch(e){
-  if(user===uid&&session()?.jwt===jwt)
-   notice('No se pudo '+operation+' la prueba: '+String(e?.message||e));
- }finally{adminActionBusy=false;btn.disabled=false;}
-}
 function adminAccountRow(person){
  const wrap=make('article','cc171-person');
  const identity=make('div','cc171-person-id');
@@ -596,8 +605,7 @@ function adminAccountRow(person){
  identity.append(icon,info);wrap.append(identity);
  const type=make('div','cc171-person-role');
  type.append(make('strong','cc171-role-label',roleLabel(person.role_assigned)));
- const status=make('small',person.trial_active?'cc171-status-active':
-   person.access_until&&Date.parse(person.access_until)>Date.now()?
+ const status=make('small',person.access_until&&Date.parse(person.access_until)>Date.now()?
    'cc171-status-active':'cc171-status-pending',accessLabel(person));
  type.append(status);wrap.append(type);
  if(person.is_admin){
@@ -606,16 +614,10 @@ function adminAccountRow(person){
  }
  const area=make('div','cc171-person-actions');
  const active=person.access_until&&Date.parse(person.access_until)>Date.now();
- if(person.trial_active){
-  area.append(button('Finalizar prueba',function(){void adminTrial(person,true,this)},
-   'cc166-secondary cc171-small'));
- }else if(!active&&person.role_assigned!=='AFFILIATE'&&!person.trial_until){
-  area.append(button('Probar 7 días · S/ 0',function(){void adminTrial(person,false,this)},
-   'cc166-primary cc171-small'));
- }else if(active){
-  area.append(make('span','cc171-state','Acceso habilitado'));
- }else if(person.trial_until){
-  area.append(make('span','cc171-state','Prueba utilizada'));
+ if(active){
+  area.append(make('span','cc171-state','Membresía vigente'));
+ }else{
+  area.append(make('span','cc171-state','Activación mediante plan de STREAM BULL’S'));
  }
  const details=make('details','cc171-inline-details');
  const summary=make('summary','','Cambiar rol');
@@ -651,9 +653,9 @@ function admin(page){
  if(adminAccountsState==='idle')void loadAdminAccounts();
  const summary=make('div','cc171-top-summary');
  if(adminAccountsState==='ready'){
-  const active=adminAccounts.filter(a=>a.trial_active||
+  const active=adminAccounts.filter(a=>a.is_admin||
    a.access_until&&Date.parse(a.access_until)>Date.now()).length;
-  const pending=adminAccounts.filter(a=>!a.is_admin&&!a.trial_active&&
+  const pending=adminAccounts.filter(a=>!a.is_admin&&
     !(a.access_until&&Date.parse(a.access_until)>Date.now())).length;
   summary.append(metric('Usuarios registrados',String(adminAccounts.length),'blue'),
     metric('Accesos vigentes',String(active),'aqua'),
@@ -662,7 +664,7 @@ function admin(page){
   summary.append(metric('Usuarios','Consultando…','blue'));
  }
  page.append(summary);
- const box=card('Cuentas y permisos','Elige la cuenta y administra su rol o una prueba temporal sin cobro.');
+ const box=card('Cuentas y permisos','Consulta las cuentas y asigna roles. Las membresías se activan mediante su plan vigente.');
  if(adminAccountsState==='loading'){
   box.append(make('p','cc166-note','Consultando usuarios y membresías…'));
  }else if(adminAccountsState==='error'){
@@ -692,7 +694,7 @@ function admin(page){
  }
  page.append(box);
  const help=make('p','cc171-help');
- help.textContent='La prueba dura hasta 7 días, se concede una sola vez y queda registrada. No acredita dinero ni genera un pago. Para usar los accesos, el usuario debe cerrar sesión y volver a ingresar.';
+ help.textContent='Los AFILIADOS ven precios públicos. Los RESELLERS y SÚPER RESELLERS con membresía vigente obtienen precios de distribuidor en STREAM BULL’S. Asignar un rol no crea una suscripción ni mueve dinero.';
  page.append(help);
  const advanced=make('details','cc171-advanced');
  advanced.append(make('summary','','Herramientas avanzadas · abrir solo cuando las necesites'));
@@ -838,11 +840,12 @@ function render(){
 async function read(path,required=false){try{const r=await api(path);if(!Array.isArray(r))throw Error('Respuesta inválida');return r;}catch(e){if(required)throw e;return[];}}
 async function readOrders(){const rows=await api('rpc/cc_portal_my_stream_orders','POST',{p_limit:100});if(!Array.isArray(rows))throw Error('Pedidos no disponibles');return rows;}
 async function readMoves(){try{const r=await api('rpc/cc_my_real_wallet_movements','POST',{p_service:null,p_limit:120});return Array.isArray(r)?r:[];}catch(_){return[];}}
+async function readOwnPriceDetails(){try{const r=await api('rpc/cc_portal_my_stream_prices','POST',{});return Array.isArray(r)?r:[];}catch(_){return[];}}
 async function load(){
  if(!user||busy||!window.cc80?.api)return;
  busy=true;const id=user,jwt=token,n=++serial;const idp=enc(id);
  try{
-  const [admins,members,subs,businesses,real,bonus,ma,mc,cy,moves,superRoles,products,shopOrders,plans,details]=await Promise.all([
+  const [admins,members,subs,businesses,real,bonus,ma,mc,cy,moves,superRoles,products,priceDetails,shopOrders,plans,details]=await Promise.all([
    read('cc_admins?select=user_id&user_id=eq.'+idp+'&limit=1',true),
    read('cc_memberships?select=id,role,status,business_id&user_id=eq.'+idp,true),
    read('cc_subscriptions?select=membership_id,status,start_at,end_at&order=end_at.desc&limit=150',true),
@@ -855,6 +858,7 @@ async function load(){
    readMoves(),
    read('cc_portal_super_resellers?select=enabled,user_id,admin_percent&user_id=eq.'+idp+'&limit=1'),
    read('cc_portal_stream_products?select=id,seller_id,service,title,description,duration_days,price_pen,stock,status,flyer_path&order=created_at.desc&limit=100',true),
+   readOwnPriceDetails(),
    readOrders(),
    read('cc_plans?select=business_id,code,price_pen,is_active&code=eq.STREAM_365&is_active=eq.true'),
    read('cc_user_details?select=full_name,phone_e164,region,province,district&user_id=eq.'+idp+'&limit=1')
@@ -876,7 +880,7 @@ async function load(){
    superPermission:!!superRoles[0]?.enabled,
    reseller:!!currentRoleReseller,
    members,subs,businesses,real,
-   mc:mc[0]||null,ma:ma[0]||null,cy,moves,products,orders:shopOrders,
+   mc:mc[0]||null,ma:ma[0]||null,cy,moves,products,priceDetails,orders:shopOrders,
    requests:data.requests,
    plan:plans.find(p=>p.business_id===streamId)||null,
    profile:details[0]||null,
