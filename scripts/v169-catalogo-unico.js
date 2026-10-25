@@ -178,7 +178,7 @@
       }catch(_){
         rows=[];loaded=false;error='No se pudo verificar el catálogo.';
       }finally{
-        clearTimeout(timeout);loading=false;inFlight=null;revision++;schedule();
+        clearTimeout(timeout);loading=false;inFlight=null;revision++;render();
       }
     })();
     return inFlight;
@@ -196,6 +196,7 @@
     });
     window.cc169OpenCatalog=openCatalog;
     window.cc169RefreshCatalog=refresh;
+    render();
     void refresh();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
