@@ -54,7 +54,7 @@ const checks=[
  [flyerSql.includes('5242880'),'Máximo 5 MB a nivel de almacenamiento'],
  [flyerSql.includes("m.role='SUPER_RESELLER'")&&flyerSql.includes("s.end_at>now()"),'Subida y edición requieren permiso y membresía vigente'],
  [flyerSql.includes('p.seller_id::text=split_part(name'), 'Cada archivo ligado al vendedor y publicación'],
- [flyerSql.includes('not exists(select 1 from storage.objects')===false, 'No acepta rutas inventadas: verifica objeto existente'],
+ [flyerSql.includes('or not exists(select 1 from storage.objects'), 'No acepta rutas inventadas: verifica objeto existente'],
  [flyerSql.includes('public.cc_portal_public_catalog() c'),'El catálogo V170 reutiliza validación V169 sin duplicarla'],
  [flyerSql.includes('grant select(flyer_path)'),'Permisos de consulta acotados al flyer'],
  [flyer.includes("rpc/cc_portal_set_stream_product_flyer"),'Subida enlaza flyer mediante RPC autorizada'],
