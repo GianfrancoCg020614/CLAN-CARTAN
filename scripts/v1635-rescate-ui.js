@@ -50,8 +50,50 @@ function init(){
  const cards=home?.querySelector('.cc77cards');
  if(!cards)return;
  const observer=new MutationObserver(()=>rentalCard());
- observer.observe(cards,{childList:true});
+ // También detectar tarjetas insertadas dentro de contenedores anidados.
+ observer.observe(cards,{childList:true,subtree:true});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
+})();
+
+/* Extensión separada: consulta de saldo real, nunca operaciones financieras.
+ * Mantener el rescate de diseño independiente de esta lectura. */
+(function () {
+  'use strict';
+  const id = 'cc1635-wallet-script';
+  if (document.getElementById(id)) return;
+  const script = document.createElement('script');
+  script.id = id;
+  script.src = 'scripts/v1635-wallet-resumen.js?v=1637';
+  script.async = false;
+  document.head.append(script);
+})();
+
+
+/* Interfaz simplificada, sin alterar operaciones ni componentes financieros. */
+(function () {
+  'use strict';
+  const id = 'cc165-clean-interface-script';
+  if (document.getElementById(id)) return;
+  const script = document.createElement('script');
+  script.id = id;
+  script.src = 'scripts/v1635-interfaz-limpia.js?v=1651';
+  script.async = false;
+  document.head.appendChild(script);
+})();
+
+
+/* Panel unificado de tres roles: solo UI y RPC del servidor, sin sustituir Auth. */
+(function(){
+ 'use strict';
+ const styleId='cc166-three-roles-style',scriptId='cc166-three-roles-script';
+ if(!document.getElementById(styleId)){
+  const link=document.createElement('link');link.id=styleId;link.rel='stylesheet';
+  link.href='styles/v166-portal-roles.css?v=1661';document.head.append(link);
+ }
+ if(!document.getElementById(scriptId)){
+  const script=document.createElement('script');script.id=scriptId;
+  script.src='scripts/v166-portal-roles.js?v=1661';script.async=false;document.head.append(script);
+ }
 })();

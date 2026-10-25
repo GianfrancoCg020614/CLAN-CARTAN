@@ -69,11 +69,16 @@ jobs:
       - name: Rescate V163.5 sobre main sin cambios financieros
         run: |
           node --check scripts/v1635-rescate-ui.js
+          node --check scripts/v1635-interfaz-limpia.js
           node --check scripts/v161-1-mi-alquiler.js
           node --check scripts/v161-2-mi-alquiler.js
           node --check scripts/v161-3-mi-alquiler.js
           node --check scripts/v161-4-mi-alquiler.js
           node scripts/check-v1635-rescate-main.mjs
+      - name: Verificar consolidación REAL de solo lectura V163.5
+        run: |
+          node --check scripts/v1635-wallet-resumen.js
+          node --test scripts/test-v1635-wallet-readonly.mjs
       - name: Comprobar tarjetas reales en Chrome sin iniciar sesión
         run: |
           set -e
@@ -88,6 +93,9 @@ jobs:
           grep -q 'id="cc164-theme-toggle"' /tmp/clan-dom.html
           grep -q 'id="cc161-marketing"' /tmp/clan-dom.html
           grep -q 'scripts/v172-clan-referrals.js?v=172' /tmp/clan-dom.html
+          node scripts/test-v1635-interfaz-limpia-browser.mjs
+          node --check scripts/v166-portal-roles.js
+          node scripts/test-v166-three-roles-browser.mjs
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
