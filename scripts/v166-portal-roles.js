@@ -138,57 +138,63 @@ function movementList(page,max){
  }page.append(box);
 }
 function overview(page){
- title(page,userRole()==='AFILIADO'?'Bienvenido · Compra tus servicios':'Tu actividad general','Una plataforma, cuatro negocios y un solo panel según tu membresía.');
- const real=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
- const hero=make('section','cc167-hero');
- hero.append(make('h2','',userRole()==='AFILIADO'?'Tu billetera y catálogo':'Resumen de CLAN CARTAN'));
- hero.append(make('p','',userRole()==='AFILIADO'?
-  'Recarga tu saldo real y compra servicios digitales a precios públicos. Después de pagar podrás notificar al vendedor por WhatsApp.':
-  'Selecciona arriba el negocio que deseas administrar. Solo se habilitan los controles correspondientes a tu rol y membresía.'));
- const buttons=make('div','cc167-actions');
- buttons.append(button('Comprar servicios',()=>nav('shop'),'cc166-primary'));
- buttons.append(button('Recargar saldo',openRecharge,'cc166-secondary'));hero.append(buttons);page.append(hero);
- const stats=make('div','cc166-stats');
- stats.append(metric('Saldo real disponible',verified?price(real):'—','aqua'));
- stats.append(metric('Mis compras',String(data.orders.filter(o=>o.buyer_id===user).length),'blue'));
- if(data.admin||data.super||data.reseller){
-  stats.append(metric('Negocios activos',services.filter(b=>access(b[0]).ok).length+' / 4','gold'));
-  stats.append(metric('Movimientos consultados',String(data.moves.length),'purple'));
+ const balance=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
+ const bought=data.orders.filter(o=>o.buyer_id===user);
+ const published=data.products.filter(p=>p.seller_id===user);
+ const sold=data.orders.filter(o=>o.seller_id===user);
+ const currentBusiness=services.filter(b=>access(b[0]).ok).length;
+ const kind=data.admin?'admin':data.super?'super':data.superPermission?'super-pending':data.reseller?'reseller':'affiliate';
+ const headings={
+  admin:['Centro de administración','Usuarios, publicaciones y ventas sin salir de un panel.'],
+  super:['Mi negocio STREAM BULL’S','Publica servicios, atiende pedidos y revisa tus movimientos.'],
+  'super-pending':['Súper reseller · membresía pendiente','La asignación está registrada. La venta exige una membresía verificada.'],
+  reseller:['Mi espacio reseller','Compra y consulta tus servicios desde una sola cuenta.'],
+  affiliate:['Bienvenido a CLAN CARTAN','Explora el catálogo público y consulta tus compras.']
+ }[kind];
+ title(page,headings[0],headings[1]);
+ const hero=make('section','cc167-hero cc174-overview-hero');
+ hero.append(make('h2','',data.admin?'Resumen de operaciones':data.super?'Tu tienda y ventas':'Un espacio para tus servicios'));
+ const actions=make('div','cc167-actions');
+ if(data.admin){
+  actions.append(button('Gestionar usuarios',()=>nav('admin'),'cc166-primary'));
+  actions.append(button('Publicaciones',()=>nav('publish'),'cc166-secondary'));
+ }else if(data.super){
+  actions.append(button('Publicar servicio',()=>nav('publish'),'cc166-primary'));
+  actions.append(button('Ventas y entregas',()=>nav('sales'),'cc166-secondary'));
+ }else if(data.superPermission&&!data.super){
+  actions.append(button('Consultar membresía',()=>nav('business:STREAM_BULLS'),'cc166-primary'));
+ }else{
+  actions.append(button('Explorar catálogo',()=>nav('shop'),'cc166-primary'));
+  if(data.reseller)actions.append(button('Mis negocios',()=>nav('businesses'),'cc166-secondary'));
+ }
+ hero.append(actions);page.append(hero);
+ const stats=make('div','cc166-stats cc174-overview-stats');
+ if(data.admin){
+  stats.append(metric('Cuentas',adminAccountsState==='ready'?String(adminAccounts.length):'Ver usuarios','blue'));
+  stats.append(metric('Publicaciones',String(data.products.length),'gold'));
+  stats.append(metric('Pedidos consultados',String(data.orders.length),'aqua'));
+ }else if(data.super){
+  stats.append(metric('Mis publicaciones',String(published.length),'gold'));
+  stats.append(metric('Mis ventas',String(sold.length),'aqua'));
+  stats.append(metric('Saldo real',verified?price(balance):'—','blue'));
+ }else{
+  stats.append(metric('Saldo real',verified?price(balance):'—','aqua'));
+  stats.append(metric('Mis compras',String(bought.length),'blue'));
+  if(data.reseller)stats.append(metric('Negocios activos',currentBusiness+' / 4','gold'));
  }
  page.append(stats);
- if(data.admin||data.super||data.reseller){
-  const next=card('Mi actividad','El negocio se abre desde las pestañas superiores; la contabilidad se consulta desde Billetera.');
-  const buttons2=make('div','cc166-actions');
-  buttons2.append(button('Ver mis negocios',()=>nav('businesses'),'cc166-primary'));
-  if(data.super||data.admin)buttons2.append(button('Publicar servicio',()=>nav('publish'),'cc166-secondary'));
-  next.append(buttons2);page.append(next);
- }
- // Mismo portal general, pero herramientas comerciales exclusivas de STREAM BULL'S
- // para SUPER_RESELLER con permiso y membresía verificados por el servidor.
  if(data.super&&!data.admin){
-  const owned=data.products.filter(p=>p.seller_id===user);
-  const sold=data.orders.filter(o=>o.seller_id===user);
   const center=card('Centro Súper reseller · STREAM BULL’S',
-   'Gestiona tus publicaciones y entregas. Los precios de distribuidor y las comisiones se verifican en el servidor.');
-  const summary=make('div','cc166-stats');
-  summary.append(metric('Mis publicaciones',String(owned.length),'gold'));
-  summary.append(metric('Mis ventas registradas',String(sold.length),'aqua'));
-  center.append(summary);
-  const actions=make('div','cc166-actions');
-  actions.append(button('Publicar y gestionar',()=>nav('publish'),'cc166-primary'));
-  actions.append(button('Ver mis ventas',()=>nav('sales'),'cc166-secondary'));
-  center.append(actions);page.append(center);
+   'Publicaciones y ventas propias. Los precios y las comisiones se confirman en el servidor.');
+  center.append(button('Gestionar mis ventas',()=>nav('sales'),'cc166-secondary'));
+  page.append(center);
  }else if(data.superPermission&&!data.super&&!data.admin){
   const pending=card('Súper reseller · activación pendiente',
-   'Tu permiso está asignado, pero no se ha confirmado una membresía vigente de STREAM BULL’S. Hasta entonces, publicar y gestionar ventas permanece bloqueado.');
-  pending.append(button('Consultar membresía STREAM BULL’S',
-    ()=>nav('business:STREAM_BULLS'),'cc166-secondary'));
+   'Publicar y gestionar ventas requiere una membresía activa de STREAM BULL’S.');
+  pending.append(button('Ver membresía',()=>nav('business:STREAM_BULLS'),'cc166-secondary'));
   page.append(pending);
  }
- const wallet=card('Últimos movimientos','Cada cargo indica el producto, activación, recarga o renovación.');
- movementList(wallet,5);page.append(wallet);
 }
-
 function openRecharge(){exitTo(()=>{if(typeof window.cc116OpenRecharge==='function')window.cc116OpenRecharge();else window.cc80?.open();});}
 function wallet(page){
  title(page,'Billetera digital única','Un saldo total real para compras y membresías, con trazabilidad de cada servicio.');
