@@ -511,6 +511,7 @@ function render(){
  }
 }
 async function read(path,required=false){try{const r=await api(path);if(!Array.isArray(r))throw Error('Respuesta inválida');return r;}catch(e){if(required)throw e;return[];}}
+async function readOrders(){const rows=await api('rpc/cc_portal_my_stream_orders','POST',{p_limit:100});if(!Array.isArray(rows))throw Error('Pedidos no disponibles');return rows;}
 async function readMoves(){try{const r=await api('rpc/cc_my_real_wallet_movements','POST',{p_service:null,p_limit:120});return Array.isArray(r)?r:[];}catch(_){return[];}}
 async function load(){
  if(!user||busy||!window.cc80?.api)return;
@@ -529,7 +530,7 @@ async function load(){
    readMoves(),
    read('cc_portal_super_resellers?select=enabled,user_id,admin_percent&user_id=eq.'+idp+'&limit=1'),
    read('cc_portal_stream_products?select=id,seller_id,service,title,description,duration_days,price_pen,stock,status&order=created_at.desc&limit=100',true),
-   read('cc_portal_stream_orders?select=id,checkout_key,buyer_id,seller_id,title,price_pen,admin_fee_pen,seller_payable_pen,seller_whatsapp,status,created_at&order=created_at.desc&limit=100',true),
+   readOrders(),
    read('cc_plans?select=business_id,code,price_pen,is_active&code=eq.STREAM_365&is_active=eq.true')
   ]);
   if(!active(id,jwt,n))return;
