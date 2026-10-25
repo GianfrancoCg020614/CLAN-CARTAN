@@ -1,6 +1,6 @@
-/* CLAN CARTAN · V166 · Panel unificado para ADMIN / RESELLER / SUPER_RESELLER.
-   Control real: se consulta Supabase con RLS, nunca se inventan saldos ni membresías.
-   Los paneles antiguos siguen intactos. */
+/* CLAN CARTAN · V173.1 · Panel único para ADMIN / RESELLER / SUPER_RESELLER.
+   Control real: Supabase con RLS; no se inventan saldos ni membresías.
+   Sin accesos desde este panel a administración heredada. */
 (function(){
 'use strict';
 const el=id=>document.getElementById(id);
@@ -161,6 +161,28 @@ function overview(page){
   buttons2.append(button('Ver mis negocios',()=>nav('businesses'),'cc166-primary'));
   if(data.super||data.admin)buttons2.append(button('Publicar servicio',()=>nav('publish'),'cc166-secondary'));
   next.append(buttons2);page.append(next);
+ }
+ // Mismo portal general, pero herramientas comerciales exclusivas de STREAM BULL'S
+ // para SUPER_RESELLER con permiso y membresía verificados por el servidor.
+ if(data.super&&!data.admin){
+  const owned=data.products.filter(p=>p.seller_id===user);
+  const sold=data.orders.filter(o=>o.seller_id===user);
+  const center=card('Centro Súper reseller · STREAM BULL’S',
+   'Gestiona tus publicaciones y entregas. Los precios de distribuidor y las comisiones se verifican en el servidor.');
+  const summary=make('div','cc166-stats');
+  summary.append(metric('Mis publicaciones',String(owned.length),'gold'));
+  summary.append(metric('Mis ventas registradas',String(sold.length),'aqua'));
+  center.append(summary);
+  const actions=make('div','cc166-actions');
+  actions.append(button('Publicar y gestionar',()=>nav('publish'),'cc166-primary'));
+  actions.append(button('Ver mis ventas',()=>nav('sales'),'cc166-secondary'));
+  center.append(actions);page.append(center);
+ }else if(data.superPermission&&!data.super&&!data.admin){
+  const pending=card('Súper reseller · activación pendiente',
+   'Tu permiso está asignado, pero no se ha confirmado una membresía vigente de STREAM BULL’S. Hasta entonces, publicar y gestionar ventas permanece bloqueado.');
+  pending.append(button('Consultar membresía STREAM BULL’S',
+    ()=>nav('business:STREAM_BULLS'),'cc166-secondary'));
+  page.append(pending);
  }
  const wallet=card('Últimos movimientos','Cada cargo indica el producto, activación, recarga o renovación.');
  movementList(wallet,5);page.append(wallet);
@@ -723,8 +745,7 @@ function admin(page){
  actions.append(
   button('Ver solicitudes',()=>void consultRequests(),'cc166-secondary'),
   button('Revisar recargas',()=>exitTo(()=>{window.cc80?.open();el('cc136admin')?.querySelector('summary')?.click();}),'cc166-secondary'),
-  button('Auditoría de movimientos',()=>exitTo(()=>{window.cc80?.open();el('cc143report')?.querySelector('summary')?.click();}),'cc166-secondary'),
-  button('Administración anterior',()=>exitTo(()=>el('cc92-admin-button')?.click()),'cc166-secondary')
+  button('Auditoría de movimientos',()=>exitTo(()=>{window.cc80?.open();el('cc143report')?.querySelector('summary')?.click();}),'cc166-secondary')
  );
  advanced.append(actions,oldRequests);
  page.append(advanced);
