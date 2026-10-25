@@ -38,8 +38,8 @@ const checks=[
  [js.includes("role.includes")===false,'No confiar en rol a partir de texto'],
  [js.includes("case 'shop':shop(page)")&&js.includes("case 'admin':admin(page)"),'Un panel con rutas por rol'],
  [js.includes('businessTabs(page)'),'Una barra de cuatro pestañas'],
- [loader.includes('v166-portal-roles.js?v=1671'),'El cargador usa versión de panel actualizada'],
- [index.includes('scripts/v151-portal-polish.js?v=1671'),'El HTML no carga el panel previo en caché']
+ [loader.includes('v166-portal-roles.js?v=1681'),'El cargador usa versión de panel actualizada'],
+ [index.includes('scripts/v151-portal-polish.js?v=1681'),'El HTML no carga el panel previo en caché']
 ];
 for(const [condition,message] of checks){assert.ok(condition,message);}
 console.log('PASS · '+checks.length+' comprobaciones financieras, de privacidad y navegación sin pagos reales.');
