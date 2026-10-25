@@ -92,3 +92,17 @@ function init(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+
+/* V166 · Pantalla general de ADMIN / RESELLER / SUPER_RESELLER.
+   Añadir después de la UI existente; nunca reemplazar Auth ni historial. */
+(function(){
+ 'use strict';
+ if(!document.getElementById('cc166-panel-style')){
+  const css=document.createElement('link');css.id='cc166-panel-style';
+  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=1662';document.head.append(css);
+ }
+ if(!document.getElementById('cc166-panel-script')){
+  const script=document.createElement('script');script.id='cc166-panel-script';
+  script.src='scripts/v166-portal-roles.js?v=1662';script.async=false;document.head.append(script);
+ }
+})();
