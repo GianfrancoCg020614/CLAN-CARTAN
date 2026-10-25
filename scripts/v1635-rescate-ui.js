@@ -69,3 +69,16 @@ else init();
   script.async = false;
   document.head.append(script);
 })();
+
+
+/* Interfaz simplificada, sin alterar operaciones ni componentes financieros. */
+(function () {
+  'use strict';
+  const id = 'cc165-clean-interface-script';
+  if (document.getElementById(id)) return;
+  const script = document.createElement('script');
+  script.id = id;
+  script.src = 'scripts/v1635-interfaz-limpia.js?v=1651';
+  script.async = false;
+  document.head.appendChild(script);
+})();
