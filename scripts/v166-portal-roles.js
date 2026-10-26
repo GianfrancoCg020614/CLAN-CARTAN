@@ -14,7 +14,7 @@ let walletTab='summary',rechargeMode='manual';
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
 let ownPending=null,ownPendingState='idle',ownPendingError='',ownPendingBusy=false;
-let rechargeQueueBusy=false,autoRefreshTimer=null,adminLastQueueFetch=0;
+let rechargeQueueBusy=false,autoRefreshTimer=null,adminLastQueueFetch=0,ownBalancePollBusy=false;
 let ownRechargeIdentity=null,ownIdentityState='idle',ownIdentityError='';
 let rechargeRows=[],rechargeState='idle',rechargeError='';
 let rechargeReady=null,rechargeSaving=false,assistedRechargeSaving=false;
@@ -37,7 +37,7 @@ function reset(){
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
  ownPending=null;ownPendingState='idle';ownPendingError='';ownPendingBusy=false;
- rechargeQueueBusy=false;adminLastQueueFetch=0;
+ rechargeQueueBusy=false;adminLastQueueFetch=0;ownBalancePollBusy=false;
  ownRechargeIdentity=null;ownIdentityState='idle';ownIdentityError='';
  rechargeRows=[];rechargeState='idle';rechargeError='';
  rechargeReady=null;rechargeSaving=false;assistedRechargeSaving=false;
@@ -718,6 +718,23 @@ async function loadOwnPendingRequest(force=false,background=false){
    else if(changed&&view==='wallet'&&walletTab==='manual')render();
   }
  }
+}
+async function refreshOwnWalletBalance(){
+ if(!verified||!user||!session()?.jwt||busy||ownBalancePollBusy||data.admin)return;
+ ownBalancePollBusy=true;
+ const uid=user,jwt=token;
+ try{
+  const rows=await api('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+enc(uid),'GET');
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt||!verified)return;
+  if(!Array.isArray(rows))return;
+  const normalize=values=>values.map(v=>[String(v.service),Number(v.balance_pen||0)])
+   .sort((a,b)=>a[0].localeCompare(b[0]));
+  if(JSON.stringify(normalize(data.real))!==JSON.stringify(normalize(rows))){
+   data.real=rows;
+   if(view==='home'||(view==='wallet'&&walletTab==='summary'))render();
+  }
+ }catch(_){ /* Fallo de red: conservar el saldo verificado anterior, no inventar créditos. */ }
+ finally{ownBalancePollBusy=false;}
 }
 async function loadOwnRechargeIdentity(force=false){
  if(!verified||!user||!session()?.jwt)return;
@@ -1886,6 +1903,8 @@ function init(){
     void loadAdminRecharges(true,true);
   }else if(view==='wallet'&&walletTab==='manual'){
    void loadOwnPendingRequest(true,true);
+  }else if(view==='home'||(view==='wallet'&&walletTab==='summary')){
+   void refreshOwnWalletBalance();
   }
  },12000);
  window.cc166OpenPanel=()=>{
