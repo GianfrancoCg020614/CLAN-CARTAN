@@ -47,7 +47,7 @@ try{
    'if(role.includes("ADMIN")){[...document.querySelectorAll(".cc166-navitem")].find(b=>b.textContent.includes("Usuarios"))?.click();noLegacyAdmin=noLegacyAdmin&&[...document.querySelectorAll("#cc166-panel button")].every(b=>!b.textContent.includes("Administración anterior"));[...document.querySelectorAll(".cc166-navitem")].find(b=>(b.textContent.includes("Inicio")||b.textContent.includes("Resumen")))?.click();}',
    'const oldHome=!!x("cc77home");',
    'const actualBalance='+ (mode==='admin'?'true':'x("cc166-content")?.textContent.includes("S/ 12.50")')+';',
-   'const businessCount=tabCount==='+ (mode==='affiliate'?0:4)+';',
+   'const businessCount=tabCount===4;',
    'const menuAdmin=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Usuarios"));',
    'const menuPublish=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.toLowerCase().includes("publicaciones"));',
    'const controlsOK=!!window.cc166OpenPanel&&!!window.cc166RefreshPanel;',
