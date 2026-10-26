@@ -327,7 +327,7 @@ function adminSectionTabs(items,current,choose){
  const nav=make('nav','cc175-tabs');nav.setAttribute('aria-label','Secciones de administración');
  for(const [id,label] of items){
   const selected=current===id;
-  const b=button(label,()=>choose(id),'cc175-tab'+(selected?' selected':''));
+  const b=button(label,()=>{if(id!==current)navigationHistory.push({view,walletTab});choose(id);},'cc175-tab'+(selected?' selected':''));
   b.setAttribute('aria-pressed',String(selected));nav.append(b);
  }
  return nav;
@@ -338,7 +338,7 @@ function safeDate(value){
  catch(_){return '—';}
 }
 function adminWalletTabs(page){
- page.append(adminSectionTabs([['summary','Saldo y movimientos'],['recharges','Recargas'],['audit','Auditoría']],walletTab,id=>{walletTab=id;render();}));
+ page.append(adminSectionTabs([['summary','Panel financiero'],['recharges','Recargas manuales'],['audit','Auditoría']],walletTab,id=>{walletTab=id;render();}));
 }
 async function loadAdminRecharges(force=false){
  if(!data.admin||!user||!session()?.jwt)return;
@@ -495,34 +495,152 @@ function adminAudit(page){
  }
  page.append(box);
 }
+async function loadAutoRechargeMethods(force=false){
+ if(autoState==='loading'||(autoState==='ready'&&!force)||!verified)return;
+ autoState='loading';autoError='';const uid=user,jwt=token;
+ try{
+  const items=await api('rpc/cc_auto_topup_method_status','POST',{});
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(!Array.isArray(items))throw Error('Estado automático no verificado');
+  autoMethods=items;autoState='ready';
+ }catch(e){if(uid===user&&jwt===token){autoState='error';autoError=String(e?.message||e);}}
+ finally{if(uid===user&&jwt===token&&view==='wallet'&&walletTab==='automatic')render();}
+}
+function personalAutoRecharge(page){
+ if(autoState==='idle')void loadAutoRechargeMethods();
+ const box=card('Recarga automática','Solo se habilita cuando existe confirmación autenticada del procesador. Un QR o captura no es acreditación automática.');
+ if(autoState==='idle'||autoState==='loading')box.append(make('p','cc166-note','Verificando proveedores…'));
+ else if(autoState==='error'){
+  box.append(make('p','cc166-notice','No se pudo verificar disponibilidad: '+autoError));
+  box.append(button('Reintentar',()=>void loadAutoRechargeMethods(true),'cc166-secondary'));
+ }else{
+  const grid=make('div','cc177-auto-methods');
+  for(const provider of autoMethods){
+   const line=make('article','cc177-provider');
+   line.append(make('strong','',String(provider.provider||'Proveedor')));
+   line.append(make('p','',String(provider.status_text||'Sin confirmación del proveedor')));
+   line.append(make('span',provider.enabled?'cc177-state-ready':'cc177-state-pending',
+    provider.enabled?'Método informado como habilitado':'No disponible'));
+   // Estado habilitado NO constituye un checkout verificado: no inventar botón para acreditar.
+   grid.append(line);
+  }
+  if(!autoMethods.length)grid.append(make('p','cc166-empty','No existen métodos automáticos conectados.'));
+  box.append(grid);
+ }
+ box.append(button('Ir a recarga manual',()=>{walletTab='manual';render();},'cc166-secondary'));
+ page.append(box);
+}
+async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
+ if(personalTopupSaving||!verified||!session()?.jwt)return;
+ const value=Number(amount),name=String(otherPayer||data.profile?.full_name||session()?.displayName||'').trim().replace(/\s+/g,' ');
+ if(!['STREAM_BULLS','COBRA_YA','MI_ALQUILER'].includes(service)
+  ||!Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.0001){
+  notice('Elige una billetera habilitada e ingresa un importe válido de S/ 1 a S/ 1,000.');return;
+ }
+ if(name.length<5||name.length>120||!name.includes(' ')){
+  notice('Completa tu nombre y apellido una sola vez en Mi perfil para registrar recargas.');return;
+ }
+ const ref=String(reference||'').trim();
+ if(ref&&(!/^.{4,120}$/.test(ref))){notice('La referencia debe tener entre 4 y 120 caracteres.');return;}
+ if(!window.confirm('¿Registrar una solicitud de recarga de '+price(value)+' para '+serviceName(service)+'? No se acreditará dinero hasta verificar el depósito.'))return;
+ personalTopupSaving=true;btn.disabled=true;const uid=user,jwt=token;
+ try{
+  const result=await api('rpc/cc_submit_manual_recharge','POST',{
+   p_service:service,p_amount:value,p_payer_name:name,p_payer_reference:ref||null
+  });
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(!result)throw Error('No se confirmó la solicitud');
+  notice('Solicitud registrada · '+String(result).slice(0,8)+'. PENDIENTE: tu saldo no se modifica hasta que ADMIN verifique el ingreso.');
+ }catch(e){if(uid===user&&jwt===token)notice('Solicitud no registrada: '+String(e?.message||e));}
+ finally{personalTopupSaving=false;btn.disabled=false;}
+}
+function personalManualRecharge(page){
+ const box=card('Solicitar recarga manual',
+  'La cuenta beneficiaria es la cuenta CLAN CARTAN con la que iniciaste sesión. No debes volver a registrarte ni escribir tu usuario.');
+ const accountName=String(data.profile?.full_name||session()?.displayName||'').trim();
+ box.append(make('p','cc177-identity-notice','Beneficiario: '+(accountName||'Tu usuario registrado')+' · ID de cuenta verificado'));
+ const form=make('form','cc177-recharge-form');
+ const serviceLabel=make('label','','Billetera');
+ const service=document.createElement('select');service.required=true;
+ for(const code of ['STREAM_BULLS','COBRA_YA','MI_ALQUILER']){
+  const opt=make('option','',serviceName(code));opt.value=code;service.append(opt);
+ }
+ serviceLabel.append(service);form.append(serviceLabel);
+ const amountLabel=make('label','','Importe (S/)');
+ const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
+ amountLabel.append(amount);form.append(amountLabel);
+ const referenceLabel=make('label','','Referencia bancaria (si ya depositaste)');
+ const reference=document.createElement('input');reference.maxLength=120;reference.placeholder='Número de operación';referenceLabel.append(reference);form.append(referenceLabel);
+ const thirdParty=make('details','cc177-third-party');
+ thirdParty.append(make('summary','','¿El depósito lo hizo otra persona?'));
+ const otherLabel=make('label','','Nombre del depositante diferente al titular');
+ const otherName=document.createElement('input');otherName.maxLength=120;
+ otherLabel.append(otherName);thirdParty.append(otherLabel);form.append(thirdParty);
+ if(!accountName||!accountName.includes(' ')){
+  const info=make('p','cc176-finance-warning','Completa tu nombre y apellido una sola vez en Mi perfil para utilizar recargas manuales.');
+  info.append(button('Ir a Mi perfil',()=>nav('profile'),'cc166-secondary'));box.append(info);
+ }
+ const submit=make('button','cc166-primary','Registrar solicitud');submit.type='submit';
+ form.append(submit);
+ form.addEventListener('submit',e=>{
+  e.preventDefault();
+  void submitAccountRecharge(service.value,amount.value,reference.value,otherName.value,submit);
+ });
+ box.append(form);
+ box.append(make('p','cc166-note','Recarga manual: PENDIENTE hasta que ADMIN compruebe el dinero recibido. Las recargas automáticas requieren una integración confirmada, no se simulan.'));
+ page.append(box);
+}
 function wallet(page){
- title(page,'Billetera digital única','Saldo real, recargas y movimientos verificados desde una sola sección.');
+ title(page,'Billetera única',data.admin?'Supervisión de recargas, bonos y auditoría. No se mezcla dinero recibido con bonos.':'Saldo verificado y movimientos de todos tus negocios, en una sola cuenta.');
  if(data.admin){
   adminWalletTabs(page);
   if(walletTab==='recharges'){adminRecharges(page);return;}
   if(walletTab==='audit'){adminAudit(page);return;}
+  if(rechargeState==='idle')void loadAdminRecharges();
+  if(auditState==='idle')void loadAdminAudit();
+  const grid=make('div','cc176-attention-grid');
+  for(const [heading,detail,cta,fn] of [
+   ['Recargas manuales',rechargeState==='ready'?rechargeRows.length+' solicitudes por verificar':'Revisar cola bancaria','Gestionar recargas',()=>finance('recharges')],
+   ['Auditoría financiera','Ingresos, egresos y trazabilidad de saldos reales.','Ver auditoría',()=>finance('audit')],
+   ['Bonos de bienvenida','Incentivos gratuitos; no se confunden con efectivo.','Otorgar bonos',()=>nav('bonuses')]
+  ]){
+   const block=card(heading,detail);block.append(button(cta,fn,'cc166-secondary'));grid.append(block);
+  }
+  page.append(grid);return;
  }
+ page.append(adminSectionTabs([
+  ['summary','Resumen'],['manual','Recarga manual'],['automatic','Recarga automática'],['movements','Movimientos']
+ ],walletTab,id=>{walletTab=id;render();}));
+ if(walletTab==='manual'){personalManualRecharge(page);return;}
+ if(walletTab==='automatic'){personalAutoRecharge(page);return;}
+ if(walletTab==='movements'){movementList(page,120);return;}
  const real=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
  const box=make('section','cc167-hero');
- box.append(make('h2','','Saldo REAL disponible'));
+ box.append(make('h2','','Saldo real disponible'));
  box.append(make('strong','cc167-balance',verified?price(real):'Consultando…'));
- box.append(make('p','','Una compra puede descontar varias subbilleteras en una sola operación atómica, sin usar bonos.'));
+ box.append(make('p','','Las compras utilizan saldo verificado. Los bonos gratuitos se registran por separado.'));
  const actions=make('div','cc167-actions');
- actions.append(button(data.admin?'Revisar recargas':'Recargar',openRecharge,'cc166-primary'),
- button(data.admin?'Auditoría de movimientos':'Ver movimientos',
-  ()=>data.admin?finance('audit'):nav('movements'),'cc166-secondary'));box.append(actions);page.append(box);
- const promo=card('Bonos promocionales','Separados del saldo real y no considerados como efectivo disponible.');
- const total=data.bonuses.reduce((a,b)=>a+Number(b.amount||0),0);
- promo.append(metric('Total bonos verificados',verified?price(total):'—','purple'));
- const detail=make('details','cc167-advanced'),summary=make('summary','','Ver detalle de bonos');detail.append(summary);
- if(!data.bonuses.length)detail.append(make('p','cc166-note','Sin bonos activos verificados.'));
- for(const b of data.bonuses)detail.append(make('p','cc166-note',b.label+' · '+price(b.amount)));
- promo.append(detail);page.append(promo);
- const accounts=make('details','cc167-advanced');accounts.append(make('summary','','Detalle técnico de saldos por negocio'));
- for(const [code] of services)accounts.append(make('p','cc166-note',serviceName(code)+' · '+price(data.real.find(r=>r.service===code)?.balance_pen||0)));
- page.append(accounts);
- const recent=card('Movimientos e historial','Cada descuento o ingreso tiene su concepto y referencia.');
- movementList(recent,12);page.append(recent);
+ actions.append(button('Recarga manual',()=>{walletTab='manual';render();},'cc166-primary'),
+  button('Recarga automática',()=>{walletTab='automatic';render();},'cc166-secondary'));
+ box.append(actions);page.append(box);
+ const businesses=card('Saldo por negocio','Detalle de los fondos registrados a nombre de esta cuenta.');
+ const rows=make('div','cc177-business-balances');
+ for(const [code] of services){
+  const line=make('div','cc177-balance-row');
+  line.append(make('span','',serviceName(code)),make('strong','',price(data.real.find(r=>r.service===code)?.balance_pen||0)));
+  rows.append(line);
+ }
+ businesses.append(rows);page.append(businesses);
+ if(data.bonuses.length){
+  const promos=card('Bonos promocionales','No son dinero retirables ni saldo real.');
+  const detail=make('div','cc177-business-balances');
+  for(const b of data.bonuses){
+   const line=make('div','cc177-balance-row');line.append(make('span','',b.label),make('strong','',price(b.amount)));detail.append(line);
+  }
+  promos.append(detail);page.append(promos);
+ }
+ const latest=card('Últimos movimientos','Los depósitos pendientes no aumentan tu saldo.');
+ movementList(latest,8);page.append(latest);
 }
 function memberships(page){
  title(page,'Accesos y suscripciones','Las mismas pestañas aparecen arriba. La administración del negocio exige membresía vigente.');
