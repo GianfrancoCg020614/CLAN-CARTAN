@@ -859,7 +859,7 @@ async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
 }
 function personalManualRecharge(page){
  if(ownPendingState==='idle')void loadOwnPendingRequest();
- if(ownPending&&ownIdentityState==='idle')void loadOwnRechargeIdentity();
+ if(ownPending?.status==='PENDING'&&ownIdentityState==='idle')void loadOwnRechargeIdentity();
  const box=card('Solicitar recarga manual',
   'La cuenta beneficiaria es la misma con la que iniciaste sesión. No vuelvas a escribir tu usuario.');
  const accountName=String(data.profile?.full_name||session()?.displayName||'').trim();
