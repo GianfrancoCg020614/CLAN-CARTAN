@@ -1147,7 +1147,7 @@ async function loadAdminAccounts(force=false){
   adminAccountsState='error';
   adminAccountsError=String(e?.message||e);
  }finally{
-  if(user===uid&&session()?.jwt===jwt&&['home','attention','admin','approvals'].includes(view))render();
+  if(user===uid&&session()?.jwt===jwt&&['home','attention','admin','approvals','wallet','bonuses'].includes(view))render();
  }
 }
 async function adminSetSuper(person,enable,percent,btn){
