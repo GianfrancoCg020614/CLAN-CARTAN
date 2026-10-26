@@ -313,7 +313,10 @@ function overview(page){
   page.append(pending);
  }
 }
-function openRecharge(){exitTo(()=>{if(typeof window.cc116OpenRecharge==='function')window.cc116OpenRecharge();else window.cc80?.open();});}
+function openRecharge(){
+ if(data.admin){finance('recharges');return;}
+ exitTo(()=>{if(typeof window.cc116OpenRecharge==='function')window.cc116OpenRecharge();else window.cc80?.open();});
+}
 
 function adminSectionTabs(items,current,choose){
  const nav=make('nav','cc175-tabs');nav.setAttribute('aria-label','Secciones de administración');
@@ -338,51 +341,96 @@ async function loadAdminRecharges(force=false){
  rechargeState='loading';rechargeError='';
  const uid=user,jwt=token;
  try{
-  const rows=await api('rpc/cc_admin_manual_recharge_queue','POST',{});
-  if(!active(uid,jwt,serial))return;
-  if(!Array.isArray(rows))throw Error('Formato de recargas no válido');
-  rechargeRows=rows;rechargeState='ready';
- }catch(e){if(user===uid&&token===jwt){rechargeState='error';rechargeError=String(e?.message||e);}}
- finally{if(user===uid&&token===jwt&&((view==='wallet'&&walletTab==='recharges')||view==='home'||view==='attention'))render();}
+  const [rows,ready]=await Promise.all([
+   api('rpc/cc_admin_manual_recharge_queue','POST',{}),
+   api('rpc/cc_manual_recharge_public_status','POST',{})
+  ]);
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(!Array.isArray(rows))throw Error('No se recibió la cola de recargas');
+  rechargeRows=rows;rechargeReady=Array.isArray(ready)&&ready.length?ready[0]:{enabled:false};
+  rechargeState='ready';
+ }catch(e){
+  if(user===uid&&token===jwt){rechargeState='error';rechargeError=String(e?.message||e);rechargeReady=null;}
+ }finally{
+  if(user===uid&&token===jwt&&((view==='wallet'&&walletTab==='recharges')||view==='home'||view==='attention'))render();
+ }
 }
-function openAdminRechargeReview(){
- if(!data.admin)return;
- // Reutilizar el flujo ya protegido de verificación bancaria y conciliación.
- // No acreditar saldo únicamente desde esta vista informativa.
- exitTo(()=>{
-  if(typeof window.cc80?.open!=='function')throw Error('Módulo de billetera no disponible');
-  window.cc80.open();
-  const queue=el('cc136admin');
-  if(!queue)throw Error('No se encontró el control de recargas verificadas');
-  el('cc136adminRefresh')?.click();
-  queue.scrollIntoView({behavior:'smooth',block:'start'});
- });
+async function adminDecideRecharge(row,approve,transaction,bank,confirmed,btn){
+ if(!data.admin||!verified||rechargeSaving||!row?.request_id)return;
+ const tx=String(transaction||'').trim(),origin=String(bank||'').trim();
+ if(approve&&(!rechargeReady?.enabled||!confirmed||tx.length<8||tx.length>120)){
+  notice('Acreditación bloqueada: confirma el depósito real habilitado y escribe la referencia bancaria única (8 a 120 caracteres).');return;
+ }
+ if(!window.confirm(approve?
+  '¿Verificaste el ingreso REAL de '+price(row.amount_pen)+' y autorizas acreditarlo una sola vez?':
+  '¿Rechazar esta solicitud sin acreditar dinero?'))return;
+ const uid=user,jwt=token;rechargeSaving=true;btn.disabled=true;
+ try{
+  const result=await api('rpc/cc_admin_decide_manual_recharge','POST',{
+   p_request:row.request_id,p_approve:approve,
+   p_bank_tx:approve?tx:null,p_bank:approve?origin:null,
+   p_confirmed_received:approve?true:false
+  });
+  if(user!==uid||session()?.jwt!==jwt)return;
+  if(result!==true){
+   notice('Solicitud ya procesada o sin cambio. Actualiza la cola para ver su estado.');
+  }else{
+   notice(approve?'Recarga verificada y acreditada por el servidor.':'Solicitud rechazada sin acreditar.');
+  }
+  rechargeState='idle';auditState='idle';
+  await loadAdminRecharges(true);
+ }catch(e){
+  if(user===uid&&session()?.jwt===jwt)notice('No se procesó la recarga: '+String(e?.message||e));
+ }finally{rechargeSaving=false;btn.disabled=false;}
 }
 function adminRecharges(page){
- const box=card('Recargas por verificar','Solo los depósitos comprobados por ADMIN pueden acreditarse. Una solicitud no equivale a dinero recibido.');
+ const box=card('Recargas pendientes','El ADMIN verifica el pago bancario real antes de acreditar. Los comprobantes declarados no son confirmación.');
  const actions=make('div','cc166-actions');
- actions.append(button('Actualizar pendientes',()=>void loadAdminRecharges(true),'cc166-secondary'));
- actions.append(button('Verificar depósitos',openAdminRechargeReview,'cc166-primary'));
- box.append(actions);
+ actions.append(button('Actualizar pendientes',()=>void loadAdminRecharges(true),'cc166-secondary'));box.append(actions);
  if(rechargeState==='idle')void loadAdminRecharges();
  if(rechargeState==='idle'||rechargeState==='loading')box.append(make('p','cc166-note','Consultando solicitudes de recarga…'));
- else if(rechargeState==='error')box.append(make('p','cc166-notice','Recargas no disponibles: '+rechargeError));
- else if(!rechargeRows.length)box.append(make('p','cc166-empty','No hay recargas pendientes de revisión.'));
- else{
-  box.append(make('p','cc166-note',rechargeRows.length+' recarga(s) pendientes. La aprobación requiere verificar el ingreso bancario real.'));
+ else if(rechargeState==='error'){
+  box.append(make('p','cc166-notice','Recargas no disponibles: '+rechargeError));
+  box.append(button('Reintentar',()=>void loadAdminRecharges(true),'cc166-secondary'));
+ }else{
+  if(!rechargeReady?.enabled){
+   box.append(make('p','cc176-finance-warning',
+    'Acreditación bancaria no habilitada en el servidor. Puedes revisar o rechazar, pero no aprobar depósitos hasta habilitar la cuenta recaudadora.'));
+  }
+  box.append(metric('Solicitudes por verificar',String(rechargeRows.length),'gold'));
+  if(!rechargeRows.length)box.append(make('p','cc166-empty','No hay recargas pendientes de revisión.'));
   const list=make('div','cc175-records');
-  for(const r of rechargeRows.slice(0,80)){
-   const line=make('article','cc175-record');
-   const info=make('div','');
-   info.append(make('strong','',String(r.payer_name||'Cliente')));
-   info.append(make('small','',serviceName(r.service)+' · '+safeDate(r.created_at)));
-   info.append(make('small','','Solicitud '+String(r.request_id||'—')));
-   line.append(info,make('strong','',price(r.amount_pen)));list.append(line);
+  for(const row of rechargeRows.slice(0,80)){
+   const item=make('article','cc176-recharge-record');
+   const top=make('div','cc176-recharge-head'),left=make('div','');
+   left.append(make('strong','',String(row.payer_name||'Cliente')));
+   left.append(make('small','',serviceName(row.service)+' · '+safeDate(row.created_at)));
+   left.append(make('small','','Solicitud '+String(row.request_id||'—')));
+   if(row.payer_reference)left.append(make('small','','Referencia declarada (NO verificada): '+String(row.payer_reference)));
+   top.append(left,make('strong','',price(row.amount_pen)));item.append(top);
+   const actions=make('div','cc166-actions');
+   const review=make('details','cc176-review');
+   review.append(make('summary','','Revisar comprobación bancaria'));
+   const controls=make('div','cc176-recharge-fields');
+   const tx=document.createElement('input');tx.maxLength=120;tx.placeholder='Referencia única de operación bancaria (mín. 8)';
+   tx.setAttribute('aria-label','ID del depósito bancario verificado');
+   const bank=document.createElement('input');bank.maxLength=64;bank.placeholder='Banco de origen (opcional)';
+   bank.setAttribute('aria-label','Banco de origen');
+   const label=make('label','cc176-verify-label');
+   const checkbox=document.createElement('input');checkbox.type='checkbox';
+   label.append(checkbox,document.createTextNode(' He comprobado el ingreso REAL en la cuenta autorizada.'));
+   const approve=button('Aprobar y acreditar',()=>void adminDecideRecharge(row,true,tx.value,bank.value,checkbox.checked,approve),'cc166-primary');
+   approve.disabled=!rechargeReady?.enabled;
+   controls.append(tx,bank,label,approve);
+   review.append(controls);actions.append(review);
+   const reject=button('Rechazar solicitud',()=>void adminDecideRecharge(row,false,'','',false,reject),'cc166-secondary');
+   actions.append(reject);item.append(actions);list.append(item);
   }
   box.append(list);
  }
  page.append(box);
 }
+
 async function loadAdminAudit(force=false){
  if(!data.admin||!user||!session()?.jwt)return;
  if(auditState==='loading'||(auditState==='ready'&&!force))return;
@@ -455,8 +503,9 @@ function wallet(page){
  box.append(make('strong','cc167-balance',verified?price(real):'Consultando…'));
  box.append(make('p','','Una compra puede descontar varias subbilleteras en una sola operación atómica, sin usar bonos.'));
  const actions=make('div','cc167-actions');
- actions.append(button('Recargar',openRecharge,'cc166-primary'),
- button('Ver movimientos',()=>nav('movements'),'cc166-secondary'));box.append(actions);page.append(box);
+ actions.append(button(data.admin?'Revisar recargas':'Recargar',openRecharge,'cc166-primary'),
+ button(data.admin?'Auditoría de movimientos':'Ver movimientos',
+  ()=>data.admin?finance('audit'):nav('movements'),'cc166-secondary'));box.append(actions);page.append(box);
  const promo=card('Bonos promocionales','Separados del saldo real y no considerados como efectivo disponible.');
  const total=data.bonuses.reduce((a,b)=>a+Number(b.amount||0),0);
  promo.append(metric('Total bonos verificados',verified?price(total):'—','purple'));
