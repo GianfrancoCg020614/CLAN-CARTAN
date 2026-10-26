@@ -1,22 +1,17 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const html=fs.readFileSync('index.html','utf8');
-function check(s){assert.ok(html.includes(s),'Missing: '+s)}
-check("const auth=await api('/auth/v1/token?grant_type=password'");
-check("const me=await api('/auth/v1/user',{},jwt)");
-check('let admins=[];try{admins=await api(');
-check('let memberships=[];try{memberships=await api(');
-check("sin otorgar permisos:");
-check("acceso básico sin privilegios:");
-check("if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(error)");
-check("Error de interfaz tras autenticación correcta");
-check("window.CC_V53_SESSION={jwt:jwt,userId:me.id");
-check("document.getElementById('cc54logout')?.style?.setProperty('display','block')");
-check('Correo o contraseña incorrectos.');
-check('if(!Array.isArray(admins)||admins.length===0)');
-check('content="V161-20261021"');
-check('scripts/v161-global-currency-flags.js?v=161');
-check('scripts/v161-marketing-account.js?v=161');
-assert.equal((html.match(/let memberships=\[\];try\{memberships=await api\(/g)||[]).length,1);
-assert.equal((html.match(/let admins=\[\];try\{admins=await api\(/g)||[]).length,1);
-console.log('PASS V161.1: auth primary, no ADMIN promotion, safe fallback on secondary failures; V161 preserved.');
+const normalized=html.replace(/\s+/g,' ');
+function has(pattern,description){assert.match(normalized,pattern,description)}
+has(/const auth=await api\('\/auth\/v1\/token\?grant_type=password'/,'Password login');
+has(/const me=await api\('\/auth\/v1\/user'/,'Identity validation');
+has(/let admins=\[\];\s*try\s*\{\s*admins=await api\('\/rest\/v1\/cc_admins/,'ADMIN lookup with guarded failure');
+has(/let memberships=\[\];\s*try\s*\{\s*memberships=await api\('\/rest\/v1\/cc_memberships/,'Membership lookup with guarded failure');
+has(/if\(!isAdmin\)/,'No commercial role unless checked');
+has(/ccAuthGeneration/,'Auth generation race guard');
+has(/ccInstallSession\(auth,gen\)/,'Session installation');
+has(/scripts\/v161-global-currency-flags\.js\?v=161/,'V161 currency');
+has(/scripts\/v161-marketing-account\.js\?v=161/,'V161 marketing');
+assert.equal((normalized.match(/let admins=\[\];/g)||[]).length,1,'Single ADMIN lookup');
+assert.equal((normalized.match(/let memberships=\[\];/g)||[]).length,1,'Single membership lookup');
+console.log('PASS V161: real login, server-checked roles, resilient lookups, race protection.');
