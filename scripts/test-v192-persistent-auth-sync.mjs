@@ -37,6 +37,6 @@ assert.match(panel,/void loadAdminRecharges\(true,true\)/);
 assert.match(panel,/void loadOwnPendingRequest\(true,true\)/);
 assert.match(panel,/cc_admin_decide_manual_recharge_v189/,'La acreditación es exclusiva de ADMIN');
 assert.match(panel,/restoreAdminReviewDrafts\(rechargeDrafts\)/);
-assert.match(loader,/scripts\/v166-portal-roles\.js\?v=192/);
-assert.match(html,/scripts\/v151-portal-polish\.js\?v=192/);
+assert.match(loader,/scripts\/v166-portal-roles\.js\?v=193/);
+assert.match(html,/scripts\/v151-portal-polish\.js\?v=193/);
 console.log('PASS V192: login persistente, sesión validada, salida explícita, mismo panel y sincronización manual.');
