@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V175 · Operaciones ADMIN organizadas por sección.
+/* CLAN CARTAN · V176 · Consola empresarial por roles, sin administración heredada.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -13,6 +13,7 @@ let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminAction
 let adminTab='accounts',walletTab='summary';
 let requestRows=[],requestState='idle',requestError='';
 let rechargeRows=[],rechargeState='idle',rechargeError='';
+let rechargeReady=null,rechargeSaving=false;
 let auditData=null,auditRows=[],auditState='idle',auditError='';
 let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};
 let lastReceipt=null,purchasePending=false,membershipPending=false;
@@ -31,13 +32,14 @@ function reset(){
  adminTab='accounts';walletTab='summary';
  requestRows=[];requestState='idle';requestError='';
  rechargeRows=[];rechargeState='idle';rechargeError='';
+ rechargeReady=null;rechargeSaving=false;
  auditData=null;auditRows=[];auditState='idle';auditError='';
 }
 function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>V175 · CLAN CARTAN · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN / CONSOLA DE GESTIÓN</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -105,29 +107,45 @@ function userRole(){
 }
 function renderNav(){
  const menu=el('cc166-nav');menu.replaceChildren();
- // Navegación deliberadamente corta: el acceso lo decide el servidor.
- const items=[['home','◫','Inicio']];
- if(data.admin)items.push(['admin','⚙','Usuarios']);
- if(data.admin||data.super)items.push(['publish','♛','Publicaciones'],['sales','◈','Ventas']);
- items.push(['shop','▣','Catálogo'],['orders','◱','Mis compras'],['wallet','▤','Billetera']);
- if(data.admin||data.super||data.reseller||data.superPermission||data.members.some(m=>m.role==='RESELLER'||m.role==='SUPER_RESELLER'))
-  items.push(['businesses','▦','Mis negocios']);
- items.push(['profile','♙','Mi perfil']);
- for(const [id,icon,labelText] of items){
-  const selected=view===id||(id==='businesses'&&view.startsWith('business:'));
-  const b=button('',()=>nav(id),'cc166-navitem'+(selected?' selected':''));
-  b.append(make('span','',icon),make('span','',labelText));menu.append(b);
+ app.classList.toggle('cc176-admin',!!data.admin);
+ const groups=data.admin?[
+  ['DIRECCIÓN',[['home','◫','Resumen'],['attention','◷','Atención de hoy']]],
+  ['GESTIÓN',[['admin','♙','Usuarios'],['approvals','✓','Súper reseller'],['publish','▣','Publicaciones'],['sales','◈','Ventas']]],
+  ['FINANZAS',[['wallet','▤','Billetera']]],
+  ['PLATAFORMAS',[['businesses','▦','Negocios'],['shop','◇','Catálogo'],['orders','◱','Mis compras'],['profile','⚙','Mi perfil']]]
+ ]:[
+  ['',[
+   ['home','◫','Inicio'],['shop','▣','Catálogo'],['orders','◱','Mis compras'],
+   ['wallet','▤','Billetera'],
+   ...(data.super?[['publish','♛','Publicaciones'],['sales','◈','Ventas']]:[]),
+   ...(data.super||data.reseller||data.superPermission||
+      data.members.some(m=>m.role==='RESELLER'||m.role==='SUPER_RESELLER')?[['businesses','▦','Mis negocios']]:[]),
+   ['profile','♙','Mi perfil']
+  ]]
+ ];
+ for(const [heading,items] of groups){
+  if(heading)menu.append(make('p','cc176-nav-heading',heading));
+  for(const [id,icon,labelText] of items){
+   const selected=view===id||(id==='businesses'&&view.startsWith('business:'));
+   const b=button('',()=>nav(id),'cc166-navitem'+(selected?' selected':''));
+   b.setAttribute('aria-current',selected?'page':'false');
+   b.append(make('span','',icon),make('span','',labelText));menu.append(b);
+  }
  }
  const aside=el('cc166-aside-foot');aside.replaceChildren();
- aside.append(button('← Volver al portal',()=>{app.hidden=true;},'cc166-back'));
+ if(data.admin){
+  aside.append(make('p','cc176-side-note','Administración protegida · 4 negocios · una cuenta'));
+  aside.append(button('Ver tienda pública',()=>nav('shop'),'cc166-back'));
+ }else aside.append(button('← Volver al portal',()=>{app.hidden=true;},'cc166-back'));
  const role=el('cc166-role');
- role.textContent=userRole()+' · '+(verified?'Permisos y saldos verificados':'Comprobando tu cuenta…');
+ role.textContent=userRole()+' · '+(verified?'Cuenta verificada':'Verificando datos…');
  const heading=app.querySelector('.cc166-top h1');
- if(heading)heading.textContent='CLAN CARTAN · '+userRole();
+ if(heading)heading.textContent=data.admin?'Consola administrativa':data.super?'Centro Súper reseller':'Mi cuenta CLAN CARTAN';
  const top=el('cc166-top-actions');top.replaceChildren();
  top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
  top.append(button('✕',()=>{app.hidden=true;},'cc166-x'));
 }
+
 function businessTabs(page){
  const tabs=make('nav','cc167-tabs');tabs.setAttribute('aria-label','Negocios CLAN CARTAN');
  for(const [code] of services){
@@ -153,7 +171,87 @@ function movementList(page,max){
    (pending?'Sin afectar saldo · ':'')+price(m.amount_pen)));box.append(row);
  }page.append(box);
 }
+function adminRecords(){
+ return {
+  pendingDeliveries:data.orders.filter(o=>o.status==='PAID_AWAITING_DELIVERY'),
+  pendingPayments:adminAccountsState==='ready'?adminAccounts.filter(a=>!a.is_admin&&!a.access_until):[],
+  superApproved:adminAccountsState==='ready'?adminAccounts.filter(a=>!a.is_admin&&a.super_enabled):[],
+  activeProducts:data.products.filter(p=>p.status==='ACTIVE')
+ };
+}
+function adminHome(page){
+ if(adminAccountsState==='idle')void loadAdminAccounts();
+ if(rechargeState==='idle')void loadAdminRecharges();
+ const k=adminRecords();
+ const intro=make('section','cc176-intro');
+ const tag=make('p','cc176-eyebrow','DIRECCIÓN / VISTA GENERAL');
+ intro.append(tag);
+ intro.append(make('h2','','Control de operaciones'));
+ intro.append(make('p','','Una vista para decidir qué necesita atención. Sin módulos antiguos ni funciones duplicadas.'));
+ const quick=make('div','cc166-actions');
+ quick.append(button('Revisar pendientes',()=>nav('attention'),'cc166-primary'));
+ quick.append(button('Administrar usuarios',()=>nav('admin'),'cc166-secondary'));
+ intro.append(quick);page.append(intro);
+ const stats=make('div','cc176-kpis');
+ stats.append(metric('Usuarios registrados',adminAccountsState==='ready'?String(adminAccounts.length):'—','blue'));
+ stats.append(metric('Publicaciones activas',String(k.activeProducts.length),'gold'));
+ stats.append(metric('Entregas por atender',String(k.pendingDeliveries.length),'aqua'));
+ stats.append(metric('Recargas por verificar',rechargeState==='ready'?String(rechargeRows.length):'—','purple'));
+ page.append(stats);
+ const section=make('div','cc176-dashboard-columns');
+ const tasks=card('Prioridades de hoy','Pendientes actuales obtenidos del servidor, sin movimientos inventados.');
+ const items=[
+  [rechargeState==='ready'?rechargeRows.length:'—','Recargas por verificar','Revisar recargas',()=>finance('recharges')],
+  [k.pendingDeliveries.length,'Entregas de STREAM BULL’S','Abrir ventas',()=>nav('sales')],
+  [adminAccountsState==='ready'?k.pendingPayments.length:'—','Membresías pendientes de pago','Ver usuarios',()=>nav('admin')]
+ ];
+ for(const [num,heading,action,fn] of items){
+  const item=make('div','cc176-task');
+  item.append(make('strong','cc176-task-count',num));
+  const details=make('div','');details.append(make('strong','',heading));details.append(make('small','',num===0?'Sin pendientes':'Consulta para revisar el detalle'));
+  item.append(details,button(action,fn,'cc166-secondary'));tasks.append(item);
+ }
+ section.append(tasks);
+ const business=card('Áreas comerciales','Las aprobaciones manuales se aplican solo a Súper reseller.');
+ const blocks=[
+  ['Súper reseller', 'Autoriza los permisos especiales. El pago anual es independiente.',()=>nav('approvals')],
+  ['Publicaciones', 'Catálogo y precios públicos / distribuidor en una sola sección.',()=>nav('publish')],
+  ['Finanzas', 'Recargas verificadas, saldos y auditoría, sin abrir otra administración.',()=>finance('audit')]
+ ];
+ for(const [t,d,fn] of blocks){
+  const x=button('',fn,'cc176-resource');
+  x.append(make('strong','',t),make('small','',d));business.append(x);
+ }
+ section.append(business);page.append(section);
+ const note=make('p','cc176-footnote',
+ 'STREAM BULL’S: membresía anual de 365 días. El reseller se activa al pagar con su billetera; ADMIN solo autoriza la categoría Súper reseller.');
+ page.append(note);
+}
+function adminAttention(page){
+ if(adminAccountsState==='idle')void loadAdminAccounts();
+ if(rechargeState==='idle')void loadAdminRecharges();
+ title(page,'Atención de hoy','Prioridades reales sin aprobaciones de reseller ni pantallas duplicadas.');
+ const k=adminRecords();
+ const wrap=make('div','cc176-attention-grid');
+ const tiles=[
+  ['Recargas pendientes',rechargeState==='ready'?String(rechargeRows.length):'—',
+   'Solo acreditar depósitos comprobados.','Abrir recargas',()=>finance('recharges')],
+  ['Entregas por completar',String(k.pendingDeliveries.length),
+   'Pedidos pagados que requieren entrega.','Ver ventas',()=>nav('sales')],
+  ['Cuentas sin membresía vigente',adminAccountsState==='ready'?String(k.pendingPayments.length):'—',
+   'El reseller paga el plan anual desde su propia billetera.','Ver usuarios',()=>nav('admin')],
+  ['Permisos Súper reseller',adminAccountsState==='ready'?String(k.superApproved.length):'—',
+   'Aprobación manual ADMIN; no genera cargos ni suscripciones.','Gestionar permisos',()=>nav('approvals')]
+ ];
+ for(const [heading,number,desc,cta,fn] of tiles){
+  const tile=card(heading,desc);tile.append(make('strong','cc176-attention-number',number),button(cta,fn,'cc166-secondary'));wrap.append(tile);
+ }
+ page.append(wrap);
+ page.append(make('p','cc166-note','Las cifras de pedidos y publicaciones reflejan los registros consultados. Las recargas no modifican saldos hasta su verificación bancaria.'));
+}
+function finance(tab){walletTab=tab;view='wallet';render();}
 function overview(page){
+ if(data.admin){adminHome(page);return;}
  const balance=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
  const bought=data.orders.filter(o=>o.buyer_id===user);
  const published=data.products.filter(p=>p.seller_id===user);
@@ -174,8 +272,8 @@ function overview(page){
  hero.append(make('h2','',data.admin?'Resumen de operaciones':data.super?'Tu tienda y ventas':'Un espacio para tus servicios'));
  const actions=make('div','cc167-actions');
  if(data.admin){
-  actions.append(button('Gestionar usuarios',()=>nav('admin'),'cc166-primary'));
-  actions.append(button('Publicaciones',()=>nav('publish'),'cc166-secondary'));
+  actions.append(button('Atención de hoy',()=>nav('attention'),'cc166-primary'));
+  actions.append(button('Gestionar usuarios',()=>nav('admin'),'cc166-secondary'));
  }else if(data.super){
   actions.append(button('Publicar servicio',()=>nav('publish'),'cc166-primary'));
   actions.append(button('Ventas y entregas',()=>nav('sales'),'cc166-secondary'));
@@ -1051,6 +1149,8 @@ function render(){
  if(view.startsWith('business:')){businessPage(page,view.slice('business:'.length));return;}
  switch(view){
  case 'home':overview(page);break;
+ case 'attention':data.admin?adminAttention(page):overview(page);break;
+ case 'approvals':data.admin?adminApprovals(page):overview(page);break;
  case 'shop':shop(page);break;
  case 'wallet':wallet(page);break;
  case 'businesses':memberships(page);break;
@@ -1116,9 +1216,7 @@ async function load(){
     {label:'Bono MI ALQUILER',amount:Number(ma[0]?.bonus_pen||0)}
    ].filter(x=>Number.isFinite(x.amount)&&x.amount>0)
   };
-  const firstVerified=!verified;
   verified=true;
-  if(firstVerified&&data.admin&&view==='home')view='admin';
   if(data.profile?.full_name&&session()?.userId===id){session().displayName=data.profile.full_name;window.cc95RenderUser?.();}
   render();
  }catch(e){if(active(id,jwt,n)){verified=false;render();notice('No fue posible verificar los datos reales. Compras y activaciones permanecerán bloqueadas hasta actualizar.');}}
