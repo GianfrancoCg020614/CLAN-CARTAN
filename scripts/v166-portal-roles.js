@@ -665,10 +665,10 @@ function whatsappPaidUrl(request){
  if(!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id))return '';
  const account=String(data.profile?.full_name||session()?.displayName||'Usuario CLAN CARTAN').trim();
  const msg='YA PAGUE CON SOLICITUD '+id+', y te envio mi comprobante.'+
-  '\\nCuenta: '+account+
-  '\\nNegocio: '+serviceName(request.service||'STREAM_BULLS')+
-  '\\nImporte solicitado: '+price(request.amount_pen)+
-  '\\nNota: pendiente de validación por ADMIN.';
+  '\nCuenta: '+account+
+  '\nNegocio: '+serviceName(request.service||'STREAM_BULLS')+
+  '\nImporte solicitado: '+price(request.amount_pen)+
+  '\nNota: pendiente de validación por ADMIN.';
  return 'https://wa.me/51923391637?text='+encodeURIComponent(msg);
 }
 function whatsappPendingButton(request){
@@ -722,7 +722,7 @@ async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
  if(ownPending?.service===service&&ownPending?.status==='PENDING'){
   notice('Ya tienes una solicitud pendiente para esta billetera. Utiliza su número al informar el comprobante por WhatsApp.');return;
  }
- const value=Number(amount),name=String(otherPayer||data.profile?.full_name||session()?.displayName||'').trim().replace(/\\s+/g,' ');
+ const value=Number(amount),name=String(otherPayer||data.profile?.full_name||session()?.displayName||'').trim().replace(/\s+/g,' ');
  if(!['STREAM_BULLS','COBRA_YA','MI_ALQUILER'].includes(service)
   ||!Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.0001){
   notice('Elige una billetera habilitada e ingresa un importe válido de S/ 1 a S/ 1,000.');return;
