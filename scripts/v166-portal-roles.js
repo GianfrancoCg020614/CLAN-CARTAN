@@ -1905,6 +1905,7 @@ async function load(){
    ].filter(x=>Number.isFinite(x.amount)&&x.amount>0)
   };
   verified=true;
+  if(!data.admin&&ownPendingState==='idle')void loadOwnPendingRequest(false,true);
   if(data.profile?.full_name&&session()?.userId===id){session().displayName=data.profile.full_name;window.cc95RenderUser?.();}
   render();
  }catch(e){if(active(id,jwt,n)){verified=false;render();notice('No fue posible verificar los datos reales. Compras y activaciones permanecerán bloqueadas hasta actualizar.');}}
@@ -1952,13 +1953,13 @@ function init(){
  if(!autoRefreshTimer)autoRefreshTimer=window.setInterval(()=>{
   if(document.hidden||!app||app.hidden||!user||!verified||!session()?.jwt)return;
   if(data.admin){
-   if(view==='home'||view==='attention'||(view==='wallet'&&
-     (walletTab==='recharges'||walletTab==='summary')))
-    void loadAdminRecharges(true,true);
-  }else if(view==='wallet'&&walletTab==='manual'){
-   void loadOwnPendingRequest(true,true);
-  }else if(view==='home'||(view==='wallet'&&walletTab==='summary')){
-   void refreshOwnWalletBalance();
+   // ADMIN conoce nuevas solicitudes aun desde otros apartados del panel.
+   void loadAdminRecharges(true,true);
+  }else{
+   if(ownPendingState==='ready'||(view==='wallet'&&walletTab==='manual'))
+    void loadOwnPendingRequest(true,true);
+   if(view==='home'||(view==='wallet'&&walletTab==='summary'))
+    void refreshOwnWalletBalance();
   }
  },12000);
  window.cc166OpenPanel=()=>{
