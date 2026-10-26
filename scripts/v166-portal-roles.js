@@ -177,13 +177,16 @@ function businessTabs(page){
  page.append(tabs);
 }
 function movementList(page,max){
- const box=make('div','cc166-list');const moves=data.moves.slice(0,max);
+ const box=make('div','cc166-list');
+ // Las transferencias contables entre servicios no son movimientos del cliente:
+ // un único saldo no debe mostrar débitos/créditos internos duplicados.
+ const moves=data.moves.filter(m=>m.movement_type!=='TRANSFER').slice(0,max);
  if(!moves.length)box.append(make('p','cc166-empty',verified?'No se encontraron movimientos reales.':'Consultando movimientos…'));
  for(const m of moves){
   const row=make('div','cc166-movement'),a=make('div','');
   let dt='—';if(m.occurred_at){try{dt=new Date(m.occurred_at).toLocaleDateString('es-PE',{timeZone:'America/Lima'});}catch(_){}}
   const pending=m.affects_balance===false;
-  a.append(make('small','',dt+' · '+serviceName(m.service)+' · '+(m.movement_type||'Movimiento')+
+  a.append(make('small','',dt+' · '+(m.movement_type==='RECHARGE'?'Billetera única':serviceName(m.service))+' · '+(m.movement_type||'Movimiento')+
     (pending?' · SOLICITUD NO ACREDITADA':' · '+(m.status||'REGISTRADO'))));
   a.append(make('span','',String(m.description||m.reference||'Movimiento registrado').slice(0,130)));
   row.append(a,make('strong',pending?'pending':Number(m.amount_pen)<0?'minus':'plus',
@@ -532,7 +535,7 @@ function adminRecharges(page){
    left.append(identity);
    if(row.payer_name&&String(row.payer_name).trim()!==String(row.registered_name||'').trim())
     left.append(make('small','cc184-payer-note','Depositante declarado (NO verificado): '+String(row.payer_name)));
-   left.append(make('small','','Negocio: '+serviceName(row.service)+' · '+safeDate(row.created_at)));
+   left.append(make('small','','Billetera única CLAN CARTAN · '+safeDate(row.created_at)));
    left.append(make('small','cc184-request','N.º de solicitud: '+String(row.request_id||'—')));
    if(row.payer_reference)left.append(make('small','','Referencia declarada (NO verificada): '+String(row.payer_reference)));
    top.append(left,make('strong','',price(row.amount_pen)));item.append(top);
@@ -677,7 +680,7 @@ function whatsappPaidUrl(request){
  const account=String(data.profile?.full_name||session()?.displayName||'Usuario CLAN CARTAN').trim();
  const msg='YA PAGUE CON SOLICITUD '+id+', y te envio mi comprobante.'+
   '\nCuenta: '+account+
-  '\nNegocio: '+serviceName(request.service||'STREAM_BULLS')+
+  '\nBilletera: CLAN CARTAN (única)'+
   '\nImporte solicitado: '+price(request.amount_pen)+
   '\nNota: pendiente de validación por ADMIN.';
  return 'https://wa.me/51923391637?text='+encodeURIComponent(msg);
