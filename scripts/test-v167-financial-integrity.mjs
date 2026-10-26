@@ -98,7 +98,7 @@ const checks=[
  [catalog.includes("headers.Authorization='Bearer '+jwt"),'Catálogo envía sesión auténtica para consultar tarifa'],
  [catalog.includes('cc_portal_public_catalog_v3'),'Catálogo consulta la RPC segura V3'],
  [loader.includes('scripts/v169-catalogo-unico.js?v=1731'),'Caché actualizado para RPC de tarifas'],
- [index.includes('scripts/v151-portal-polish.js?v=175'),'Portada publica nueva versión del catálogo'],
+ [index.includes('scripts/v151-portal-polish.js?v=176'),'Portada publica nueva versión del catálogo'],
  [index.includes("function cc79StreamBenefits(){")&&index.includes("window.cc166OpenStreamMembership()"),'Beneficios abren membresía real'],
  [!index.includes('rpc/sb_pay_affiliation_test')&&!index.includes('rpc/cc_request_test_topup'),'Afiliación y recarga ficticias retiradas'],
  [index.includes("if(adminBtn)adminBtn.style.display='none'; // Accesible"),'ADMIN antiguo oculto de navegación principal'],
