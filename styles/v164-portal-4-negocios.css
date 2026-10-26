@@ -119,3 +119,16 @@ html[data-cc-theme="light"] #ma1611layer button:not(.active){background:#eaf3f7;
 #cc77home .cc77cards > .cc77card .cc78service-logo,
 #cc77home .cc77cards > .ma1611-card .ma1611-card-icon{width:100px;height:100px;max-width:100px;min-width:100px;flex-basis:100px}
 }
+
+/* V211 · Los cuatro logotipos comerciales comparten el mismo lienzo de 140 px. */
+#cc77home .cc77cards > .cc77card .cc78service{grid-template-columns:minmax(0,1fr);grid-template-rows:140px auto;justify-items:start;align-content:start;gap:12px;min-height:0}
+#cc77home .cc77cards > .cc77card .cc78service-logo,
+#cc77home .cc77cards > .ma1611-card .ma1611-card-icon{box-sizing:border-box;display:block!important;width:140px!important;height:140px!important;min-width:140px!important;max-width:140px!important;min-height:140px!important;max-height:140px!important;flex:0 0 140px!important;object-fit:contain!important;object-position:center!important;margin:0!important;border-radius:20px}
+#cc77home .cc77cards > .cc77card .cc78service h2{width:100%;min-height:0;margin:0}
+#cc77home .cc77cards > .ma1611-card .ma1611-card-icon{order:1}
+#cc77home .cc77cards > .ma1611-card h2{order:2;min-height:0}
+@media(max-width:590px){
+#cc77home .cc77cards > .cc77card .cc78service{grid-template-rows:130px auto}
+#cc77home .cc77cards > .cc77card .cc78service-logo,
+#cc77home .cc77cards > .ma1611-card .ma1611-card-icon{width:130px!important;height:130px!important;min-width:130px!important;max-width:130px!important;min-height:130px!important;max-height:130px!important;flex-basis:130px!important}
+}
