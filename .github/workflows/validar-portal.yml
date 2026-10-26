@@ -112,6 +112,7 @@ jobs:
           node scripts/test-v175-admin-tabs-browser.mjs
           node scripts/test-v177-wallet-roles-browser.mjs
           node scripts/test-v181-admin-grants-browser.mjs
+          node scripts/test-v183-qr-whatsapp-browser.mjs
           node scripts/test-v182-recharges-regression.mjs
           node scripts/test-v177-role-contract.mjs
           node scripts/test-v172-prices-browser.mjs
