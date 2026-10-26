@@ -31,6 +31,6 @@ assert.match(sql,/p_confirmed_received is distinct from true/i,'El servidor exig
 assert.match(sql,/v_req\.user_id=v_admin/i,'Ningún ADMIN acredita su propia cuenta');
 assert.match(sql,/create unique index if not exists cc_verified_receipt_reference_unique_global/,'No repetir referencias');
 assert.match(js,/p_confirmed_received:approve\?true:false/,'El cliente nunca autoacredita al crear solicitudes');
-assert.match(loader,/v166-portal-roles\.js\?v=192/);
-assert.match(html,/scripts\/v151-portal-polish\.js\?v=192/);
+assert.match(loader,/v166-portal-roles\.js\?v=193/);
+assert.match(html,/scripts\/v151-portal-polish\.js\?v=193/);
 console.log('PASS V190: ADMIN y cliente sincronizados, sin duplicados y sin borrar borradores.');
