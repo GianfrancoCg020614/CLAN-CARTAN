@@ -117,7 +117,7 @@ jobs:
           node scripts/test-v173-home-bridge.mjs
           node scripts/test-v173-session-browser.mjs
           node scripts/test-v173-catalog-fallback-browser.mjs
-          node -e "const fs=require('fs');if(!fs.readFileSync('scripts/v151-portal-polish.js','utf8').includes('v166-portal-roles.js?v=179'))process.exit(1)"
+          node -e "const fs=require('fs');if(!fs.readFileSync('scripts/v151-portal-polish.js','utf8').includes('v166-portal-roles.js?v=180'))process.exit(1)"
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
