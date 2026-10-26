@@ -4848,12 +4848,15 @@ function ccSaveToken(value){if(!value)return;try{localStorage.setItem(CC_SESSION
 function ccEraseToken(){try{localStorage.removeItem(CC_SESSION_KEY)}catch(_){}}
 function ccSessionRevoked(error){return /invalid.refresh.token|invalid_grant|refresh.token.not.found|session.not.found/i.test(String(error?.message||error))}
 async function ccRotateSession(){
+ const generation=ccAuthGeneration;
  const run=async()=>{
   const saved=ccReadToken()||refreshToken;
   if(!saved)throw Error('No hay una sesión guardada');
   const auth=await api('/auth/v1/token?grant_type=refresh_token',{
    method:'POST',body:JSON.stringify({refresh_token:saved})});
   if(!auth?.access_token||!auth?.refresh_token)throw Error('No se pudo renovar sesión');
+  // Guardar la rotación bajo el mismo bloqueo compartido por las pestañas.
+  if(generation===ccAuthGeneration)ccSaveToken(auth.refresh_token);
   return auth;
  };
  if(navigator?.locks?.request)return navigator.locks.request('cc-v192-supabase-refresh',{mode:'exclusive'},run);
