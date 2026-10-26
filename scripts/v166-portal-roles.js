@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V187 · Billetera REAL única y bonos sólo para activaciones.
+/* CLAN CARTAN · V188 · Billetera REAL única y bonos sólo para activaciones.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -46,7 +46,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V187 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V188 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -391,8 +391,8 @@ async function loadAdminRecharges(force=false){
 async function adminDecideRecharge(row,approve,transaction,bank,confirmed,btn){
  if(!data.admin||!verified||rechargeSaving||!row?.request_id)return;
  const tx=String(transaction||'').trim(),origin=String(bank||'').trim();
- if(approve&&(!rechargeReady?.enabled||!confirmed||tx.length<8||tx.length>120)){
-  notice('Acreditación bloqueada: confirma el depósito real habilitado y escribe la referencia bancaria única (8 a 120 caracteres).');return;
+ if(approve&&(!rechargeReady?.enabled||!confirmed||(tx.length>0&&tx.length<8)||tx.length>120)){
+  notice('Confirma el ingreso real. La referencia es opcional; si la escribes, debe tener entre 8 y 120 caracteres.');return;
  }
  if(!window.confirm(approve?
   '¿Verificaste el ingreso REAL de '+price(row.amount_pen)+' y autorizas acreditarlo una sola vez?':
@@ -401,7 +401,7 @@ async function adminDecideRecharge(row,approve,transaction,bank,confirmed,btn){
  try{
   const result=await api('rpc/cc_admin_decide_manual_recharge','POST',{
    p_request:row.request_id,p_approve:approve,
-   p_bank_tx:approve?tx:null,p_bank:approve?origin:null,
+   p_bank_tx:approve?(tx||null):null,p_bank:approve?(origin||null):null,
    p_confirmed_received:approve?true:false
   });
   if(user!==uid||session()?.jwt!==jwt)return;
@@ -545,8 +545,8 @@ function adminRecharges(page){
    const review=make('details','cc176-review');
    review.append(make('summary','','Revisar comprobación bancaria'));
    const controls=make('div','cc176-recharge-fields');
-   const tx=document.createElement('input');tx.maxLength=120;tx.placeholder='Referencia única de operación bancaria (mín. 8)';
-   tx.setAttribute('aria-label','ID del depósito bancario verificado');
+   const tx=document.createElement('input');tx.maxLength=120;tx.placeholder='Referencia bancaria (opcional, mín. 8 si se indica)';
+   tx.setAttribute('aria-label','Referencia bancaria (opcional)');
    const bank=document.createElement('input');bank.maxLength=64;bank.placeholder='Banco de origen (opcional)';
    bank.setAttribute('aria-label','Banco de origen');
    const label=make('label','cc176-verify-label');

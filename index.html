@@ -4841,7 +4841,10 @@ async function api(path,opts={},jwt=null){
  return data;
 }
 // V100: mantener activa una sesión Supabase mientras la página permanezca abierta.
-// El refresh token no se guarda en localStorage, y nunca se expone en la interfaz.
+// V188: conservar solo el refresh token en esta pestaña para sobrevivir a F5.
+const sessionStorageKey="cc188-refresh-token";
+function saveRefreshToken(){try{if(refreshToken)sessionStorage.setItem(sessionStorageKey,refreshToken);else sessionStorage.removeItem(sessionStorageKey);}catch(_){}}
+window.cc188ClearSession=function(){refreshToken=null;saveRefreshToken();};
 async function refreshSupabaseSession(){
  if(!refreshToken || !window.CC_V53_SESSION)return;
  if(refreshPending)return refreshPending;
@@ -4852,6 +4855,7 @@ async function refreshSupabaseSession(){
   if(!response?.access_token || !response?.refresh_token)throw Error('No se pudo renovar la sesión.');
   sessionToken=response.access_token;
   refreshToken=response.refresh_token;
+  saveRefreshToken();
   if(window.CC_V53_SESSION)window.CC_V53_SESSION.jwt=sessionToken;
  })();
  try{await refreshPending;}
@@ -4860,17 +4864,10 @@ async function refreshSupabaseSession(){
 }
 window.setInterval(()=>{if(!document.hidden)refreshSupabaseSession();},20*60*1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSupabaseSession();});
-async function signIn(event){
- event.preventDefault();btn.disabled=true;status.textContent='Verificando sesión y autorización…';
- try{
-  const email=document.getElementById('cc-real-email').value.trim();
-  const password=document.getElementById('cc-real-pass').value;
-  const auth=await api('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password,gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
-  if(!auth.access_token)throw Error('No se recibió una sesión válida.');
-  const jwt=auth.access_token;
-  refreshToken=auth.refresh_token||null;
+async function acceptAuthenticatedSession(jwt){
   const me=await api('/auth/v1/user',{},jwt);
   if(!me?.id)throw Error('No se pudo verificar la identidad.');
+  saveRefreshToken();
   let admins=[];try{admins=await api('/rest/v1/cc_admins?select=user_id&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}catch(error){console.warn('ADMIN no disponible, sin otorgar permisos:',error?.message||error)}
   if(!Array.isArray(admins)||admins.length===0){
     let memberships=[];try{memberships=await api('/rest/v1/cc_memberships?select=status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}catch(error){console.warn('Membresías no disponibles; acceso básico sin privilegios:',error?.message||error)}
@@ -4894,6 +4891,30 @@ async function signIn(event){
   const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent='CLAN CARTAN · ADMIN autenticado. Gestiona COBRA YA y tus billeteras desde el panel de servicios.';document.body.appendChild(banner);
   // El login ADMIN real se completa independientemente del panel local opcional.
   if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(error){console.error('Error de interfaz tras autenticación correcta',error);document.getElementById('cc77home')?.style?.setProperty('display','block')}}
+}
+async function restoreSupabaseSession(){
+ let saved;try{saved=sessionStorage.getItem(sessionStorageKey);}catch(_){return;}
+ if(!saved)return;
+ btn.disabled=true;status.textContent="Restaurando sesión…";
+ try{
+  const auth=await api("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:JSON.stringify({refresh_token:saved})});
+  if(!auth.access_token||!auth.refresh_token)throw Error("Sesión vencida. Vuelve a ingresar.");
+  refreshToken=auth.refresh_token;saveRefreshToken();
+  await acceptAuthenticatedSession(auth.access_token);
+ }catch(e){status.textContent="No se pudo restaurar la sesión. Vuelve a ingresar. "+String(e.message||"");}
+ finally{btn.disabled=false;}
+}
+window.addEventListener("load",()=>void restoreSupabaseSession(),{once:true});
+async function signIn(event){
+ event.preventDefault();btn.disabled=true;status.textContent='Verificando sesión y autorización…';
+ try{
+  const email=document.getElementById('cc-real-email').value.trim();
+  const password=document.getElementById('cc-real-pass').value;
+  const auth=await api('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password,gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
+  if(!auth.access_token)throw Error('No se recibió una sesión válida.');
+  const jwt=auth.access_token;
+  refreshToken=auth.refresh_token||null;
+  await acceptAuthenticatedSession(jwt);
  }catch(e){
  const err=String(e.message||'Error desconocido');
  const pending=/email not confirmed|email_not_confirmed/i.test(err);
@@ -5025,7 +5046,7 @@ const originalLogin=window.loginDemo;
 window.loginDemo=function(id){if(!verified||window.CC_V53_SESSION?.isAdmin!==true||id!=='admin'){alert('Acceso no autorizado. Usa el inicio de sesión real de CLAN CARTAN.');return;}return originalLogin(id);};
 window.cccLoginByEmail=function(){alert('Utiliza únicamente el inicio de sesión seguro de CLAN CARTAN.');};
 window.cccOpenBusinessAuth=function(){alert('Accede a los módulos según el estado real de tus servicios.');};
-window.logout=function(){window.CC_V53_SESSION=null;verified=false;refreshToken=null;if(sessionToken)api('/auth/v1/logout',{method:'POST'},sessionToken).catch(()=>{});sessionToken=null;location.reload();};
+window.logout=function(){window.cc188ClearSession?.();window.CC_V53_SESSION=null;verified=false;refreshToken=null;if(sessionToken)api('/auth/v1/logout',{method:'POST'},sessionToken).catch(()=>{});sessionToken=null;location.reload();};
 })();
 </script>
 
@@ -5616,7 +5637,7 @@ window.cy54={
 const layer=document.getElementById('cy53layer');
 const panel=layer?.querySelector('.cywrap');
 // V114: navegación unificada en la cabecera de COBRA YA.
-window.cc54SwitchAccount=async function(){const adminButton=document.getElementById('cc92-admin-button');if(adminButton)adminButton.style.display='none';
+window.cc54SwitchAccount=async function(){window.cc188ClearSession?.();const adminButton=document.getElementById('cc92-admin-button');if(adminButton)adminButton.style.display='none';
  try{
   const s=window.CC_V53_SESSION;
   if(s?.jwt)await fetch(s.root+'/auth/v1/logout',{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+s.jwt}});
@@ -5998,6 +6019,6 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <link rel="stylesheet" href="styles/v164-portal-4-negocios.css?v=1636">
 <script src="scripts/v161-1-mi-alquiler.js?v=1636" defer></script>
 <script src="scripts/v1635-rescate-ui.js?v=1636" defer></script>
-<script src="scripts/v151-portal-polish.js?v=187"></script>
+<script src="scripts/v151-portal-polish.js?v=188"></script>
 </body>
 </html>
