@@ -14,7 +14,7 @@ const setup=[
  'if(p.startsWith("cc_admins?"))return [{user_id:"test-admin"}];',
  'if(p==="rpc/cc_portal_admin_accounts_v2")return [{registry_no:1,registry_code:"CLAN1",registry_alias:"CLAN1",email:"admin@ejemplo.test",role_assigned:"ADMIN",is_admin:true}];',
  'if(p==="rpc/cc_admin_reseller_requests")throw Error("La bandeja COBRA YA no pertenece a STREAM BULLS");',
- 'if(p==="rpc/cc_manual_recharge_public_status")return [{enabled:true}];',
+ 'if(p==="rpc/cc_admin_manual_recharge_status_v189")return [{enabled:true}];',
  'if(p==="rpc/cc_admin_manual_recharge_queue_v184")return [{request_id:"req-test",registry_no:2,registry_code:"CLAN2",registered_alias:"CLAN CARTAN",registered_name:"Nombre verificado",registered_email:"clan2@ejemplo.test",payer_name:"Cliente de prueba",service:"STREAM_BULLS",amount_pen:12,created_at:"2026-10-25T12:00:00Z"}];',
  'if(p==="rpc/cc_admin_financial_summary")return {cash_received_pen:18,paid_service_consumption_pen:7,real_wallet_liability_pen:11,free_bonus_granted_pen:0,free_bonus_available_pen:0,free_bonus_consumed_pen:0,refunded_service_pen:0};',
  'if(p==="rpc/cc_admin_wallet_financial_audit")return [{event_type:"RECARGA",concept:"Operación de prueba",amount_pen:18,recorded_at:"2026-10-25T12:00:00Z",balance_before:0,balance_after:18,service:"STREAM_BULLS",reference:"r-test",status:"VERIFIED"}];',
