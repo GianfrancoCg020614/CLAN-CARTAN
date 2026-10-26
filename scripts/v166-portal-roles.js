@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V179 · Validación de plan anual pagado en el servidor y el panel.
+/* CLAN CARTAN · V180 · Cambiar situación comercial directamente en Usuarios.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -40,7 +40,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V179 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V180 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -1081,9 +1081,9 @@ async function adminSetSuper(person,enable,percent,btn){
   if(!success)throw Error('El servidor no confirmó el cambio');
   adminAccountsState='idle';
   await loadAdminAccounts(true);
-  if(session()?.userId===user&&view==='approvals')
-   notice((enable?'Autorización registrada para ':'Permiso revocado a ')+name+
-    '. No se han modificado pagos ni saldos.');
+  if(session()?.userId===user&&['approvals','admin'].includes(view))
+   notice((enable?'Súper reseller autorizado: ':'Permiso especial retirado: ')+name+
+    '. Los pagos y días de membresía se conservan.');
  }catch(e){notice('No se aplicó el permiso: '+String(e?.message||e));}
  finally{adminActionBusy=false;btn.disabled=false;}
 }
@@ -1130,7 +1130,32 @@ function adminAccountRow(person){
  const save=button('Guardar nombre',()=>void adminRenameAlias(person,input.value,save),'cc166-secondary cc171-small');
  tools.append(input,save);rename.append(tools);actions.append(rename);
  if(person.is_admin)actions.append(make('span','cc171-admin-protected','ADMIN protegido'));
- else actions.append(button('Permisos Súper reseller',()=>nav('approvals'),'cc166-secondary cc171-small'));
+ else{
+  const isApproved=person.role_assigned==='SUPER_RESELLER'&&!!person.super_enabled;
+  const pendingSuper=person.role_assigned==='SUPER_RESELLER'&&!person.super_enabled;
+  const paid=!!(person.paid_until&&Date.parse(person.paid_until)>Date.now());
+  const controls=make('details','cc171-inline-details cc180-role-editor');
+  controls.append(make('summary','','Gestionar rol'));
+  const inner=make('div','cc180-role-form');
+  inner.append(make('strong','',isApproved?'Súper reseller autorizado':pendingSuper?'Súper reseller pendiente':'Reseller / afiliado'));
+  inner.append(make('small','',paid?'Plan STREAM BULL’S anual pagado hasta '+trialDate(person.paid_until):
+    'La membresía anual todavía no figura pagada. No se puede activar Súper reseller.'));
+  if(isApproved||pendingSuper){
+   const downgrade=button('Cambiar a Reseller',()=>void adminSetSuper(person,false,20,downgrade),'cc166-secondary cc171-small');
+   inner.append(downgrade);
+   inner.append(make('small','','Retira el permiso o la solicitud especial; no modifica los días pagados ni acredita saldo.'));
+  }else if(paid){
+   const field=make('label','cc180-commission','Comisión ADMIN (%)');
+   const percent=document.createElement('input');percent.type='number';percent.min='0';percent.max='100';
+   percent.step='0.01';percent.value='20';percent.setAttribute('aria-label','Comisión ADMIN para '+person.email);
+   field.append(percent);inner.append(field);
+   const authorize=button('Autorizar Súper reseller',()=>void adminSetSuper(person,true,percent.value,authorize),'cc166-primary cc171-small');
+   inner.append(authorize);
+  }else{
+   inner.append(make('small','cc180-unpaid','El reseller se activa al pagar S/ 25 anuales desde su billetera. No se activa desde ADMIN.'));
+  }
+  controls.append(inner);actions.append(controls);
+ }
  wrap.append(actions);return wrap;
 }
 function adminApprovals(page){
@@ -1303,7 +1328,7 @@ function admin(page){
  }
  page.append(box);
  const help=make('p','cc171-help');
- help.textContent='Los afiliados compran a precio público; el reseller obtiene precio distribuidor tras pagar su membresía anual de STREAM BULL’S. Únicamente ADMIN puede autorizar el permiso Súper reseller.';
+ help.textContent='Abre «Gestionar rol» junto a cada usuario. El reseller obtiene precio distribuidor al pagar la membresía anual; ADMIN autoriza Súper reseller solo después de ese pago. Los días y saldos se conservan al retirar el permiso especial.';
  page.append(help);
 
 }
