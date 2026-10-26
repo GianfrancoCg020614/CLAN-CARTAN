@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V191 · Billetera REAL única y bonos sólo para activaciones.
+/* CLAN CARTAN · V192 · Billetera REAL única y bonos sólo para activaciones.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -28,6 +28,26 @@ const button=(txt,fn,cls)=>{const x=make('button',cls||'',txt);x.type='button';x
 const enc=s=>encodeURIComponent(s);
 const session=()=>window.CC_V53_SESSION;
 const active=(id,jwt,seq)=>user===id&&token===jwt&&serial===seq&&session()?.userId===id&&session()?.jwt===jwt;
+// La vista del panel se guarda por usuario, sin guardar privilegios ni credenciales.
+const PANEL_CONTEXT='cc_v192_panel_context';
+function restorePanelState(uid){
+ try{
+  const saved=JSON.parse(sessionStorage.getItem(PANEL_CONTEXT)||'null');
+  if(saved?.uid!==uid)return null;
+  const allowed=['home','attention','approvals','bonuses','wallet','businesses','movements',
+   'orders','publish','sales','admin','profile','shop'];
+  const v=String(saved.view||'');
+  if(!allowed.includes(v)&&!/^business:(STREAM_BULLS|COBRA_YA|MI_COCHERA|MI_ALQUILER)$/.test(v))return null;
+  const tabs=['summary','manual','automatic','movements','recharges','audit'];
+  return {view:v,walletTab:tabs.includes(saved.walletTab)?saved.walletTab:'summary',open:!!saved.open};
+ }catch(_){return null}
+}
+function savePanelState(){
+ if(!user||!app||!session()?.jwt)return;
+ try{sessionStorage.setItem(PANEL_CONTEXT,JSON.stringify({
+  uid:user,view,walletTab,open:!app.hidden
+ }))}catch(_){}
+}
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
  data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};lastReceipt=null;purchasePending=false;membershipPending=false;
@@ -48,7 +68,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V191 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V192 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -1829,6 +1849,7 @@ function render(){
  }
  restoreAdminReviewDrafts(rechargeDrafts);
  restoreAdminGrantDraft(grantDraft);
+ savePanelState();
 }
 async function read(path,required=false){try{const r=await api(path);if(!Array.isArray(r))throw Error('Respuesta inválida');return r;}catch(e){if(required)throw e;return[];}}
 async function readOrders(){const rows=await api('rpc/cc_portal_my_stream_orders','POST',{p_limit:100});if(!Array.isArray(rows))throw Error('Pedidos no disponibles');return rows;}
@@ -1905,7 +1926,10 @@ function sync(){
   render();void load();return;
  }
  const sameUser=s.userId===user,previouslyHidden=app?.hidden===true;
- reset();user=s.userId;token=s.jwt;shell();app.hidden=!!(sameUser&&previouslyHidden);
+ const previous=restorePanelState(s.userId);
+ reset();user=s.userId;token=s.jwt;shell();
+ if(previous){view=previous.view;walletTab=previous.walletTab;app.hidden=!previous.open;}
+ else app.hidden=!!(sameUser&&previouslyHidden);
  render();void load();
 }
 function init(){
@@ -1913,6 +1937,10 @@ function init(){
  new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync();});})
  .observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','hidden']});
  document.addEventListener('click',e=>{if(e.target.closest?.('#cc54logout'))reset();},true);
+ document.addEventListener('cc192-session-ready',()=>sync());
+ document.addEventListener('cc192-session-refreshed',()=>sync());
+ document.addEventListener('cc192-session-ended',()=>reset());
+ window.addEventListener('pagehide',()=>savePanelState());
  window.addEventListener('focus',()=>{
   sync();
   if(user&&!busy)void load();
