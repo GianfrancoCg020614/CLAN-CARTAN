@@ -30,7 +30,7 @@ const probe=[
  'const x=id=>document.getElementById(id),panel=x("cc166-panel");',
  'const initialCount=document.querySelectorAll("#cc166-panel").length;',
  'const dashboardTabs=document.querySelectorAll("#cc166-content .cc167-tab").length===0;',
- '[...document.querySelectorAll(".cc166-navitem")].find(b=>b.textContent.includes("Mis negocios"))?.click();',
+ '[...document.querySelectorAll(".cc166-navitem")].find(b=>b.textContent.includes("Negocios"))?.click();',
  'const tab=document.querySelectorAll("#cc166-content .cc167-tab")[1];tab?.click();',
  'const oldBusiness=x("cc166-content")?.textContent.includes("COBRA YA");',
  'const previousJwt=window.CC_V53_SESSION.jwt;',

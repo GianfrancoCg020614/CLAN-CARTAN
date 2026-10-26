@@ -37,7 +37,7 @@ const probe=[
  'const noMixedRequests=!$("#cc166-content")?.textContent.includes("Solicitudes de reseller");',
  'setTimeout(()=>{try{',
  '[...$$(".cc166-navitem")].find(e=>e.textContent.includes("Billetera"))?.click();',
- 'clickTab("Recargas");',
+ 'clickTab("Recargas manuales");',
  'setTimeout(()=>{try{',
  'const recharges=$("#cc166-content")?.textContent.includes("Cliente de prueba")&&$("#cc166-content")?.textContent.includes("S/ 12.00");',
  'const verificationButton=[...$$("#cc166-content button")].some(e=>e.textContent==="Aprobar y acreditar");',

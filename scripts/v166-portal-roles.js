@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V176 · Consola empresarial por roles, sin administración heredada.
+/* CLAN CARTAN · V177 · Panel común y permisos según rol, sin administración heredada.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -10,7 +10,9 @@ const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],[
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
-let walletTab='summary';
+let walletTab='summary',rechargeMode='manual';
+let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
+let bonusSaving=false,personalTopupSaving=false;
 let rechargeRows=[],rechargeState='idle',rechargeError='';
 let rechargeReady=null,rechargeSaving=false;
 let auditData=null,auditRows=[],auditState='idle',auditError='';
@@ -25,10 +27,11 @@ const active=(id,jwt,seq)=>user===id&&token===jwt&&serial===seq&&session()?.user
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
  data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};lastReceipt=null;purchasePending=false;membershipPending=false;
- app?.remove();app=null;el('cc166-open-button')?.remove();
+ app?.remove();app=null;el('cc166-open-button')?.remove();el('cc177-return-panel')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
- walletTab='summary';
+ walletTab='summary';rechargeMode='manual';navigationHistory=[];
+ autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
  rechargeRows=[];rechargeState='idle';rechargeError='';
  rechargeReady=null;rechargeSaving=false;
  auditData=null;auditRows=[];auditState='idle';auditError='';
@@ -37,7 +40,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN / CONSOLA DE GESTIÓN</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V177 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -53,10 +56,23 @@ function access(code){
  }
  return {ok:false,reason:'Membresía pendiente o vencida'};
 }
+function addReturnControl(){
+ if(!user||!session()?.jwt)return;
+ let host=el('cc177-return-panel');
+ if(host)return;
+ host=make('div','cc177-return-panel');host.id='cc177-return-panel';
+ host.append(button('← Volver a mi panel',()=>{
+  host.remove();sync();
+  if(app){app.hidden=false;render();}
+ },'cc166-primary'));
+ host.append(button('✕',()=>host.remove(),'cc166-secondary'));
+ document.body.append(host);
+}
 function exitTo(fn){
  if(typeof fn!=='function')return;
  app.hidden=true;
- try{fn();}catch(e){app.hidden=false;notice('No se pudo abrir el módulo actual.');}
+ try{fn();addReturnControl();}
+ catch(e){app.hidden=false;notice('No se pudo abrir el módulo solicitado.');}
 }
 function card(title,desc){
  const box=make('article','cc166-card');box.append(make('h2','',title));
@@ -69,14 +85,20 @@ function title(page,heading,sub){
  const h=make('div','cc166-section-title');h.append(make('h2','',heading));if(sub)h.append(make('p','',sub));page.append(h);
 }
 function openCatalog(){
- if(typeof window.cc169OpenCatalog==='function'){window.cc169OpenCatalog();return;}
- if(typeof window.cc77Store==='function'){app.hidden=true;window.cc77Store();return;}
+ if(data.admin){notice('ADMIN supervisa y valida. La compra personal no forma parte del panel administrativo.');return;}
+ if(typeof window.cc169OpenCatalog==='function'){window.cc169OpenCatalog();addReturnControl();return;}
+ if(typeof window.cc77Store==='function'){app.hidden=true;window.cc77Store();addReturnControl();return;}
  notice('El catálogo público está temporalmente inaccesible.');
 }
 function nav(to){
+ if(to==='back'){
+  const prior=navigationHistory.pop();
+  if(prior){view=prior.view;walletTab=prior.walletTab;render();return;}
+  if(view!=='home'){view='home';walletTab='summary';render();return;}
+  app.hidden=true;return;
+ }
  if(to==='shop'){openCatalog();return;}
- // Al pulsar una sección principal, mostrar su vista inicial.
- // Las pestañas internas cambian el estado sin reiniciar la navegación.
+ if(view!==to)navigationHistory.push({view,walletTab});
  if(to==='wallet')walletTab='summary';
  view=to;render();
 }
@@ -104,24 +126,21 @@ function userRole(){
 }
 function renderNav(){
  const menu=el('cc166-nav');menu.replaceChildren();
- app.classList.toggle('cc176-admin',!!data.admin);
- const groups=data.admin?[
-  ['DIRECCIÓN',[['home','◫','Resumen'],['attention','◷','Atención de hoy']]],
-  ['GESTIÓN',[['admin','♙','Usuarios'],['approvals','✓','Súper reseller'],['publish','▣','Publicaciones'],['sales','◈','Ventas']]],
-  ['FINANZAS',[['wallet','▤','Billetera']]],
-  ['PLATAFORMAS',[['businesses','▦','Negocios'],['shop','◇','Catálogo'],['orders','◱','Mis compras'],['profile','⚙','Mi perfil']]]
- ]:[
-  ['',[
-   ['home','◫','Inicio'],['shop','▣','Catálogo'],['orders','◱','Mis compras'],
-   ['wallet','▤','Billetera'],
-   ...(data.super?[['publish','♛','Publicaciones'],['sales','◈','Ventas']]:[]),
-   ...(data.super||data.reseller||data.superPermission||
-      data.members.some(m=>m.role==='RESELLER'||m.role==='SUPER_RESELLER')?[['businesses','▦','Mis negocios']]:[]),
-   ['profile','♙','Mi perfil']
-  ]]
+ // Una sola interfaz para los 4 roles. El servidor decide los permisos.
+ app.classList.add('cc176-admin');
+ const admin=!!data.admin,superRole=!admin&&!!data.super;
+ const groups=[
+  ['GENERAL',[['home','◫',admin?'Resumen':'Inicio'],...(admin?[['attention','◷','Atención de hoy']]:[])]],
+  ['OPERACIONES',[
+   ...(admin?[['admin','♙','Usuarios'],['approvals','✓','Súper reseller'],
+     ['sales','◈','Supervisar pedidos'],['bonuses','◇','Bonos']]:[]),
+   ...(superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas']]:[]),
+   ...(!admin?[['shop','▣','Catálogo'],['orders','◱','Mis compras']]:[]),
+   ['wallet','▤','Billetera']]],
+  ['MI CUENTA',[['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
  ];
  for(const [heading,items] of groups){
-  if(heading)menu.append(make('p','cc176-nav-heading',heading));
+  menu.append(make('p','cc176-nav-heading',heading));
   for(const [id,icon,labelText] of items){
    const selected=view===id||(id==='businesses'&&view.startsWith('business:'));
    const b=button('',()=>nav(id),'cc166-navitem'+(selected?' selected':''));
@@ -130,19 +149,19 @@ function renderNav(){
   }
  }
  const aside=el('cc166-aside-foot');aside.replaceChildren();
- if(data.admin){
-  aside.append(make('p','cc176-side-note','Administración protegida · 4 negocios · una cuenta'));
-  aside.append(button('Ver tienda pública',()=>nav('shop'),'cc166-back'));
- }else aside.append(button('← Volver al portal',()=>{app.hidden=true;},'cc166-back'));
+ aside.append(make('p','cc176-side-note',
+  admin?'ADMIN · Validación y supervisión':superRole?'Súper reseller · Publicaciones y ventas':
+  'Cuenta CLAN CARTAN · Accesos según membresía'));
+ aside.append(button('← Salir al portal',()=>{app.hidden=true;},'cc166-back'));
  const role=el('cc166-role');
  role.textContent=userRole()+' · '+(verified?'Cuenta verificada':'Verificando datos…');
  const heading=app.querySelector('.cc166-top h1');
- if(heading)heading.textContent=data.admin?'Consola administrativa':data.super?'Centro Súper reseller':'Mi cuenta CLAN CARTAN';
+ if(heading)heading.textContent='Panel CLAN CARTAN';
  const top=el('cc166-top-actions');top.replaceChildren();
+ top.append(button('← Atrás',()=>nav('back'),'cc166-secondary cc177-back'));
  top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
- top.append(button('✕',()=>{app.hidden=true;},'cc166-x'));
+ top.append(button('✕ Cerrar',()=>{app.hidden=true;},'cc166-x'));
 }
-
 function businessTabs(page){
  const tabs=make('nav','cc167-tabs');tabs.setAttribute('aria-label','Negocios CLAN CARTAN');
  for(const [code] of services){
@@ -211,9 +230,10 @@ function adminHome(page){
  section.append(tasks);
  const business=card('Áreas comerciales','Las aprobaciones manuales se aplican solo a Súper reseller.');
  const blocks=[
-  ['Súper reseller', 'Autoriza los permisos especiales. El pago anual es independiente.',()=>nav('approvals')],
-  ['Publicaciones', 'Catálogo y precios públicos / distribuidor en una sola sección.',()=>nav('publish')],
-  ['Finanzas', 'Recargas verificadas, saldos y auditoría, sin abrir otra administración.',()=>finance('audit')]
+  ['Súper reseller','Autoriza permisos especiales solo después de la membresía anual.',()=>nav('approvals')],
+  ['Bonos de bienvenida','Otorga bonos promocionales gratuitos a usuarios registrados.',()=>nav('bonuses')],
+  ['Supervisar pedidos','Revisa operaciones, sin publicar ni entregar como vendedor.',()=>nav('sales')],
+  ['Finanzas','Recargas verificadas y auditoría de todas las billeteras.',()=>finance('audit')]
  ];
  for(const [t,d,fn] of blocks){
   const x=button('',fn,'cc176-resource');
@@ -322,7 +342,7 @@ function adminSectionTabs(items,current,choose){
  const nav=make('nav','cc175-tabs');nav.setAttribute('aria-label','Secciones de administración');
  for(const [id,label] of items){
   const selected=current===id;
-  const b=button(label,()=>choose(id),'cc175-tab'+(selected?' selected':''));
+  const b=button(label,()=>{if(id!==current)navigationHistory.push({view,walletTab});choose(id);},'cc175-tab'+(selected?' selected':''));
   b.setAttribute('aria-pressed',String(selected));nav.append(b);
  }
  return nav;
@@ -333,7 +353,7 @@ function safeDate(value){
  catch(_){return '—';}
 }
 function adminWalletTabs(page){
- page.append(adminSectionTabs([['summary','Saldo y movimientos'],['recharges','Recargas'],['audit','Auditoría']],walletTab,id=>{walletTab=id;render();}));
+ page.append(adminSectionTabs([['summary','Panel financiero'],['recharges','Recargas manuales'],['audit','Auditoría']],walletTab,id=>{walletTab=id;render();}));
 }
 async function loadAdminRecharges(force=false){
  if(!data.admin||!user||!session()?.jwt)return;
@@ -490,52 +510,185 @@ function adminAudit(page){
  }
  page.append(box);
 }
+async function loadAutoRechargeMethods(force=false){
+ if(autoState==='loading'||(autoState==='ready'&&!force)||!verified)return;
+ autoState='loading';autoError='';const uid=user,jwt=token;
+ try{
+  const items=await api('rpc/cc_auto_topup_method_status','POST',{});
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(!Array.isArray(items))throw Error('Estado automático no verificado');
+  autoMethods=items;autoState='ready';
+ }catch(e){if(uid===user&&jwt===token){autoState='error';autoError=String(e?.message||e);}}
+ finally{if(uid===user&&jwt===token&&view==='wallet'&&walletTab==='automatic')render();}
+}
+function personalAutoRecharge(page){
+ if(autoState==='idle')void loadAutoRechargeMethods();
+ const box=card('Recarga automática','Solo se habilita cuando existe confirmación autenticada del procesador. Un QR o captura no es acreditación automática.');
+ if(autoState==='idle'||autoState==='loading')box.append(make('p','cc166-note','Verificando proveedores…'));
+ else if(autoState==='error'){
+  box.append(make('p','cc166-notice','No se pudo verificar disponibilidad: '+autoError));
+  box.append(button('Reintentar',()=>void loadAutoRechargeMethods(true),'cc166-secondary'));
+ }else{
+  const grid=make('div','cc177-auto-methods');
+  for(const provider of autoMethods){
+   const line=make('article','cc177-provider');
+   line.append(make('strong','',String(provider.provider||'Proveedor')));
+   line.append(make('p','',String(provider.status_text||'Sin confirmación del proveedor')));
+   line.append(make('span',provider.enabled?'cc177-state-ready':'cc177-state-pending',
+    provider.enabled?'Método informado como habilitado':'No disponible'));
+   // Estado habilitado NO constituye un checkout verificado: no inventar botón para acreditar.
+   grid.append(line);
+  }
+  if(!autoMethods.length)grid.append(make('p','cc166-empty','No existen métodos automáticos conectados.'));
+  box.append(grid);
+ }
+ box.append(button('Ir a recarga manual',()=>{walletTab='manual';render();},'cc166-secondary'));
+ page.append(box);
+}
+async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
+ if(personalTopupSaving||!verified||!session()?.jwt)return;
+ const value=Number(amount),name=String(otherPayer||data.profile?.full_name||session()?.displayName||'').trim().replace(/\s+/g,' ');
+ if(!['STREAM_BULLS','COBRA_YA','MI_ALQUILER'].includes(service)
+  ||!Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.0001){
+  notice('Elige una billetera habilitada e ingresa un importe válido de S/ 1 a S/ 1,000.');return;
+ }
+ if(name.length<5||name.length>120||!name.includes(' ')){
+  notice('Completa tu nombre y apellido una sola vez en Mi perfil para registrar recargas.');return;
+ }
+ const ref=String(reference||'').trim();
+ if(ref&&(!/^.{4,120}$/.test(ref))){notice('La referencia debe tener entre 4 y 120 caracteres.');return;}
+ if(!window.confirm('¿Registrar una solicitud de recarga de '+price(value)+' para '+serviceName(service)+'? No se acreditará dinero hasta verificar el depósito.'))return;
+ personalTopupSaving=true;btn.disabled=true;const uid=user,jwt=token;
+ try{
+  const result=await api('rpc/cc_submit_manual_recharge','POST',{
+   p_service:service,p_amount:value,p_payer_name:name,p_payer_reference:ref||null
+  });
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(!result)throw Error('No se confirmó la solicitud');
+  notice('Solicitud registrada · '+String(result).slice(0,8)+'. PENDIENTE: tu saldo no se modifica hasta que ADMIN verifique el ingreso.');
+ }catch(e){if(uid===user&&jwt===token)notice('Solicitud no registrada: '+String(e?.message||e));}
+ finally{personalTopupSaving=false;btn.disabled=false;}
+}
+function personalManualRecharge(page){
+ const box=card('Solicitar recarga manual',
+  'La cuenta beneficiaria es la cuenta CLAN CARTAN con la que iniciaste sesión. No debes volver a registrarte ni escribir tu usuario.');
+ const accountName=String(data.profile?.full_name||session()?.displayName||'').trim();
+ box.append(make('p','cc177-identity-notice','Beneficiario: '+(accountName||'Tu usuario registrado')+' · ID de cuenta verificado'));
+ const form=make('form','cc177-recharge-form');
+ const serviceLabel=make('label','','Billetera');
+ const service=document.createElement('select');service.required=true;
+ for(const code of ['STREAM_BULLS','COBRA_YA','MI_ALQUILER']){
+  const opt=make('option','',serviceName(code));opt.value=code;service.append(opt);
+ }
+ serviceLabel.append(service);form.append(serviceLabel);
+ const amountLabel=make('label','','Importe (S/)');
+ const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
+ amountLabel.append(amount);form.append(amountLabel);
+ const referenceLabel=make('label','','Referencia bancaria (si ya depositaste)');
+ const reference=document.createElement('input');reference.maxLength=120;reference.placeholder='Número de operación';referenceLabel.append(reference);form.append(referenceLabel);
+ const thirdParty=make('details','cc177-third-party');
+ thirdParty.append(make('summary','','¿El depósito lo hizo otra persona?'));
+ const otherLabel=make('label','','Nombre del depositante diferente al titular');
+ const otherName=document.createElement('input');otherName.maxLength=120;
+ otherLabel.append(otherName);thirdParty.append(otherLabel);form.append(thirdParty);
+ if(!accountName||!accountName.includes(' ')){
+  const info=make('p','cc176-finance-warning','Completa tu nombre y apellido una sola vez en Mi perfil para utilizar recargas manuales.');
+  info.append(button('Ir a Mi perfil',()=>nav('profile'),'cc166-secondary'));box.append(info);
+ }
+ const submit=make('button','cc166-primary','Registrar solicitud');submit.type='submit';
+ form.append(submit);
+ form.addEventListener('submit',e=>{
+  e.preventDefault();
+  void submitAccountRecharge(service.value,amount.value,reference.value,otherName.value,submit);
+ });
+ box.append(form);
+ box.append(make('p','cc166-note','Recarga manual: PENDIENTE hasta que ADMIN compruebe el dinero recibido. Las recargas automáticas requieren una integración confirmada, no se simulan.'));
+ page.append(box);
+}
 function wallet(page){
- title(page,'Billetera digital única','Saldo real, recargas y movimientos verificados desde una sola sección.');
+ title(page,'Billetera única',data.admin?'Supervisión de recargas, bonos y auditoría. No se mezcla dinero recibido con bonos.':'Saldo verificado y movimientos de todos tus negocios, en una sola cuenta.');
  if(data.admin){
   adminWalletTabs(page);
   if(walletTab==='recharges'){adminRecharges(page);return;}
   if(walletTab==='audit'){adminAudit(page);return;}
+  if(rechargeState==='idle')void loadAdminRecharges();
+  if(auditState==='idle')void loadAdminAudit();
+  const grid=make('div','cc176-attention-grid');
+  for(const [heading,detail,cta,fn] of [
+   ['Recargas manuales',rechargeState==='ready'?rechargeRows.length+' solicitudes por verificar':'Revisar cola bancaria','Gestionar recargas',()=>finance('recharges')],
+   ['Auditoría financiera','Ingresos, egresos y trazabilidad de saldos reales.','Ver auditoría',()=>finance('audit')],
+   ['Bonos de bienvenida','Incentivos gratuitos; no se confunden con efectivo.','Otorgar bonos',()=>nav('bonuses')]
+  ]){
+   const block=card(heading,detail);block.append(button(cta,fn,'cc166-secondary'));grid.append(block);
+  }
+  page.append(grid);return;
  }
+ page.append(adminSectionTabs([
+  ['summary','Resumen'],['manual','Recarga manual'],['automatic','Recarga automática'],['movements','Movimientos']
+ ],walletTab,id=>{walletTab=id;render();}));
+ if(walletTab==='manual'){personalManualRecharge(page);return;}
+ if(walletTab==='automatic'){personalAutoRecharge(page);return;}
+ if(walletTab==='movements'){movementList(page,120);return;}
  const real=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
  const box=make('section','cc167-hero');
- box.append(make('h2','','Saldo REAL disponible'));
+ box.append(make('h2','','Saldo real disponible'));
  box.append(make('strong','cc167-balance',verified?price(real):'Consultando…'));
- box.append(make('p','','Una compra puede descontar varias subbilleteras en una sola operación atómica, sin usar bonos.'));
+ box.append(make('p','','Las compras utilizan saldo verificado. Los bonos gratuitos se registran por separado.'));
  const actions=make('div','cc167-actions');
- actions.append(button(data.admin?'Revisar recargas':'Recargar',openRecharge,'cc166-primary'),
- button(data.admin?'Auditoría de movimientos':'Ver movimientos',
-  ()=>data.admin?finance('audit'):nav('movements'),'cc166-secondary'));box.append(actions);page.append(box);
- const promo=card('Bonos promocionales','Separados del saldo real y no considerados como efectivo disponible.');
- const total=data.bonuses.reduce((a,b)=>a+Number(b.amount||0),0);
- promo.append(metric('Total bonos verificados',verified?price(total):'—','purple'));
- const detail=make('details','cc167-advanced'),summary=make('summary','','Ver detalle de bonos');detail.append(summary);
- if(!data.bonuses.length)detail.append(make('p','cc166-note','Sin bonos activos verificados.'));
- for(const b of data.bonuses)detail.append(make('p','cc166-note',b.label+' · '+price(b.amount)));
- promo.append(detail);page.append(promo);
- const accounts=make('details','cc167-advanced');accounts.append(make('summary','','Detalle técnico de saldos por negocio'));
- for(const [code] of services)accounts.append(make('p','cc166-note',serviceName(code)+' · '+price(data.real.find(r=>r.service===code)?.balance_pen||0)));
- page.append(accounts);
- const recent=card('Movimientos e historial','Cada descuento o ingreso tiene su concepto y referencia.');
- movementList(recent,12);page.append(recent);
+ actions.append(button('Recarga manual',()=>{walletTab='manual';render();},'cc166-primary'),
+  button('Recarga automática',()=>{walletTab='automatic';render();},'cc166-secondary'));
+ box.append(actions);page.append(box);
+ const businesses=card('Saldo por negocio','Detalle de los fondos registrados a nombre de esta cuenta.');
+ const rows=make('div','cc177-business-balances');
+ for(const [code] of services){
+  const line=make('div','cc177-balance-row');
+  line.append(make('span','',serviceName(code)),make('strong','',price(data.real.find(r=>r.service===code)?.balance_pen||0)));
+  rows.append(line);
+ }
+ businesses.append(rows);page.append(businesses);
+ if(data.bonuses.length){
+  const promos=card('Bonos promocionales','No son dinero retirables ni saldo real.');
+  const detail=make('div','cc177-business-balances');
+  for(const b of data.bonuses){
+   const line=make('div','cc177-balance-row');line.append(make('span','',b.label),make('strong','',price(b.amount)));detail.append(line);
+  }
+  promos.append(detail);page.append(promos);
+ }
+ const latest=card('Últimos movimientos','Los depósitos pendientes no aumentan tu saldo.');
+ movementList(latest,8);page.append(latest);
 }
 function memberships(page){
  title(page,'Accesos y suscripciones','Las mismas pestañas aparecen arriba. La administración del negocio exige membresía vigente.');
  page.append(make('p','cc166-note','Selecciona un negocio arriba para revisar su acceso, plan y funciones. No existen cuatro paneles generales diferentes.'));
 }
 function businessPage(page,code){
+ if(data.admin){
+  title(page,serviceName(code)+' · Administración','Vista de supervisión del negocio. ADMIN no compra, publica ni usa una membresía de cliente.');
+  const panel=card('Controles administrativos','Los accesos comerciales y las operaciones pertenecen a reseller y Súper reseller.');
+  const actions=make('div','cc166-actions');
+  if(code==='STREAM_BULLS'){
+   actions.append(button('Ver permisos Súper reseller',()=>nav('approvals'),'cc166-primary'));
+   actions.append(button('Supervisar pedidos',()=>nav('sales'),'cc166-secondary'));
+  }else{
+   panel.append(make('p','cc166-note','El módulo operativo de este negocio conserva sus controles y permisos de origen; no se han duplicado ni simulado transacciones.'));
+   const existing={COBRA_YA:()=>window.cc79Cobra?.(),MI_COCHERA:()=>window.mc158Open?.(),MI_ALQUILER:()=>window.ma1611MiAlquiler?.open()}[code];
+   actions.append(button('Abrir módulo del negocio',()=>exitTo(existing),'cc166-secondary'));
+  }
+  actions.append(button('← Negocios',()=>nav('businesses'),'cc166-secondary'));
+  panel.append(actions);page.append(panel);return;
+ }
  const info=access(code);title(page,serviceName(code),info.ok?'Membresía verificada · Controles habilitados':'Tu acceso a este negocio está bloqueado hasta activar o renovar la membresía.');
  if(code==='STREAM_BULLS'){
   const shell=card('STREAM BULL’S · Servicios digitales',info.ok?'Tu suscripción de gestión está activa.':'Puedes comprar productos sin membresía. Para gestionar cuentas necesitas activar el plan.');
   const actions=make('div','cc166-actions');
-  actions.append(button('Comprar servicios',()=>nav('shop'),'cc166-primary'));
+  if(!data.admin)actions.append(button('Comprar servicios',()=>nav('shop'),'cc166-primary'));
   if(info.ok){
-   if(data.super||data.admin)actions.append(button('Mis publicaciones',()=>nav('publish'),'cc166-secondary'));
+   if(data.super&&!data.admin)actions.append(button('Mis publicaciones',()=>nav('publish'),'cc166-secondary'));
    else actions.append(button('Mi catálogo',()=>nav('shop'),'cc166-secondary'));
   }else{
-   const cost=Number(data.plan?.price_pen||25);
-   shell.append(metric('Membresía anual · 365 días',price(cost),'gold'));
-   actions.append(button('Activar por '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary'));
+   const cost=Number(data.plan?.price_pen);
+   shell.append(metric('Membresía anual · 365 días',Number.isFinite(cost)&&cost>0?price(cost):'Precio no verificado','gold'));
+   if(!data.admin){const pay=button('Activar por '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary');pay.disabled=!(Number.isFinite(cost)&&cost>0&&verified);actions.append(pay);}
   }
   shell.append(actions);page.append(shell);
  }else{
@@ -693,6 +846,7 @@ function orders(page){
  }
 }
 async function markDelivered(order){
+ if(data.admin){notice('Solo el vendedor puede marcar su pedido como entregado.');return;}
  if(!window.confirm('¿Confirmas que entregaste el producto al comprador? Esta acción no transfiere ni libera dinero.'))return;
  try{
   const ok=await api('rpc/cc_portal_mark_stream_order_delivered','POST',{p_order_id:order.id});
@@ -702,7 +856,7 @@ async function markDelivered(order){
 }
 function sales(page){
  if(!data.admin&&!data.super){nav('home');return;}
- title(page,'Ventas y entregas','Cada compra se guarda con comisión ADMIN y pago pendiente al vendedor; sin liquidaciones automáticas.');
+ title(page,data.admin?'Supervisión de pedidos':'Ventas y entregas','Cada compra se guarda con comisión ADMIN y pago pendiente al vendedor; sin liquidaciones automáticas.');
  const rows=data.orders.filter(o=>data.admin||o.seller_id===user);
  const totals=rows.reduce((s,r)=>({sale:s.sale+Number(r.price_pen||0),
   owed:s.owed+(r.status==='REFUNDED'?0:Number(r.seller_payable_pen||0)),
@@ -719,14 +873,13 @@ function sales(page){
   info.append(make('strong','',o.title));
   info.append(make('small','','Pedido '+o.id+' · '+String(o.status).replaceAll('_',' ')));
   line.append(info,make('strong','',price(o.price_pen)));
-  const b=button(o.status==='FULFILLED'?'Entregado':'Marcar entregado',()=>void markDelivered(o),'cc166-secondary');
-  b.disabled=o.status!=='PAID_AWAITING_DELIVERY';
-  line.append(b);page.append(line);
+  if(!data.admin){const b=button(o.status==='FULFILLED'?'Entregado':'Marcar entregado',()=>void markDelivered(o),'cc166-secondary');b.disabled=o.status!=='PAID_AWAITING_DELIVERY';line.append(b);}
+  page.append(line);
  }
 }
 
 function publish(page){
- if(!data.admin&&!data.super)return overview(page);
+ if(data.admin||!data.super)return overview(page);
  title(page,'Publicar servicios · STREAM BULL’S','Publicaciones registradas por el servidor con autor y stock.');
  const box=card('Nuevo servicio','La membresía y el permiso se verifican antes de guardar.');
  const form=make('form','cc166-form');form.id='cc166-publish-form';
@@ -771,7 +924,7 @@ function publish(page){
  page.append(list);
 }
 async function editPrices(product,details){
- if(!data.admin&&!data.super)return;
+ if(data.admin||!data.super)return;
  const oldPublic=Number(details?.public_price_pen??product.price_pen);
  const oldDistributor=Number(details?.distributor_price_pen??oldPublic);
  const publicInput=window.prompt('Nuevo precio para AFILIADO / PÚBLICO (S/) · '+
@@ -904,6 +1057,8 @@ async function loadAdminAccounts(force=false){
 }
 async function adminSetSuper(person,enable,percent,btn){
  if(!data.admin||adminActionBusy||person.is_admin||!verified)return;
+ const paid=!!(person.access_until&&Date.parse(person.access_until)>Date.now());
+ if(enable&&!paid){notice('Primero debe activar su membresía anual de STREAM BULL’S desde su propia billetera. ADMIN solo autoriza después del pago.');return;}
  const commission=Number(percent);
  if(!Number.isFinite(commission)||commission<0||commission>100||
     Math.abs(commission*100-Math.round(commission*100))>0.00001){
@@ -1018,9 +1173,10 @@ function adminApprovals(page){
    const rate=document.createElement('input');rate.type='number';rate.min='0';rate.max='100';
    rate.step='0.01';rate.value='20';rate.setAttribute('aria-label','Porcentaje ADMIN para '+person.email);
    const label=make('label','','Comisión ADMIN (%)');label.append(rate);controls.append(label);
-   const btn=button(approved?'Revocar permiso':'Autorizar Súper reseller',function(){
+   const btn=button(approved?'Revocar permiso':!live?'Requiere membresía pagada':'Autorizar Súper reseller',function(){
     void adminSetSuper(person,!approved,rate.value,this);
    },approved?'cc166-secondary':'cc166-primary');
+   btn.disabled=!approved&&!live;
    controls.append(btn);row.append(controls);box.append(row);
   }
  }
@@ -1028,6 +1184,85 @@ function adminApprovals(page){
  page.append(make('p','cc166-note','Los roles, vigencias y permisos se verifican en el servidor. Ninguna cuenta recibe acceso por cambiar su nombre CLAN.'));
 }
 
+function adminBonuses(page){
+ if(!data.admin)return overview(page);
+ if(adminAccountsState==='idle')void loadAdminAccounts();
+ title(page,'Bonos de bienvenida','Otorga beneficios gratuitos sin mezclar bonos promocionales con saldo real ni modificar la tarifa de los planes.');
+ const intro=card('Asignación de bonos','Operación exclusiva de ADMIN; cada bono se registra con su destinatario, motivo y referencia única.');
+ if(adminAccountsState==='loading'||adminAccountsState==='idle'){
+  intro.append(make('p','cc166-note','Cargando usuarios registrados…'));page.append(intro);return;
+ }
+ if(adminAccountsState==='error'){
+  intro.append(make('p','cc166-notice',adminAccountsError));
+  intro.append(button('Reintentar',()=>void loadAdminAccounts(true),'cc166-secondary'));page.append(intro);return;
+ }
+ const options=adminAccounts.filter(person=>!person.is_admin);
+ if(!options.length){intro.append(make('p','cc166-empty','No hay destinatarios registrados.'));page.append(intro);return;}
+ const form=make('form','cc166-form cc177-bonus-form');
+ const label=make('label','','Usuario registrado');
+ const recipient=document.createElement('select');
+ recipient.required=true;
+ options.forEach(person=>{
+  const item=make('option','',(person.registry_code||'CLAN')+' · '+(person.registry_alias||person.display_name||person.email));
+  item.value=person.email;recipient.append(item);
+ });
+ label.append(recipient);form.append(label);
+ const business=make('label','','Negocio que recibe el bono');
+ const service=document.createElement('select');
+ for(const [code,title] of [['COBRA_YA','COBRA YA · bono de bienvenida'],['MI_COCHERA','MI COCHERA · bono promocional'],['MI_ALQUILER','MI ALQUILER · bono promocional']]){
+  const item=make('option','',title);item.value=code;service.append(item);
+ }
+ business.append(service);form.append(business);
+ const money=make('label','','Bono gratuito (S/)');
+ const amount=document.createElement('input');amount.type='number';amount.min='0.01';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
+ money.append(amount);form.append(money);
+ const why=make('label','','Motivo para auditoría');
+ const reason=document.createElement('input');reason.type='text';reason.maxLength=180;reason.minLength=5;reason.required=true;reason.value='Bono de bienvenida';
+ why.append(reason);form.append(why);
+ const save=make('button','cc166-primary','Otorgar bono gratuito');save.type='submit';form.append(save);
+ const hint=make('p','cc166-note','El bono COBRA YA solo se otorga a revendedores elegibles y su uso está limitado a ese negocio. MI COCHERA y MI ALQUILER conservan su propia contabilidad de bonos. STREAM BULL’S no tiene un bono inventado.');
+ form.append(hint);
+ form.addEventListener('submit',e=>{
+  e.preventDefault();
+  const userOption=options.find(p=>p.email===recipient.value);
+  void adminGrantBonus(userOption,service.value,amount.value,reason.value,save);
+ });
+ intro.append(form);page.append(intro);
+}
+async function adminGrantBonus(person,service,rawAmount,rawReason,btn){
+ if(!data.admin||!verified||bonusSaving||!person||person.is_admin)return;
+ const amount=Number(rawAmount),reason=String(rawReason||'').trim();
+ if(!Number.isFinite(amount)||amount<=0||amount>1000||
+    Math.abs(amount*100-Math.round(amount*100))>0.00001||reason.length<5||reason.length>180){
+  notice('Verifica el importe (hasta S/ 1,000), dos decimales y un motivo de al menos 5 caracteres.');return;
+ }
+ if(!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(service))return;
+ if(service!=='COBRA_YA'&&!/^[0-9a-f-]{36}$/i.test(String(person.user_id||''))){
+  notice('ID de destinatario no verificado. Actualiza el registro antes de otorgar bonos.');return;
+ }
+ if(!window.confirm('¿Otorgar BONO GRATUITO de '+price(amount)+' a '+person.registry_code+' en '+serviceName(service)+'? No es recarga de efectivo ni modifica su dinero real.'))return;
+ if(!window.crypto?.randomUUID){notice('Conexión segura requerida para registrar el bono.');return;}
+ bonusSaving=true;btn.disabled=true;const uid=user,jwt=token;const request=window.crypto.randomUUID();
+ try{
+  const args=service==='COBRA_YA'?{
+   path:'rpc/cc_admin_grant_welcome_balance',
+   body:{p_recipient_email:person.email,p_service:'COBRA_YA',p_amount_pen:amount,p_request_id:request,p_reason:reason}
+  }:service==='MI_COCHERA'?{
+   path:'rpc/mc_admin_grant_bonus',
+   body:{p_reseller:person.user_id,p_amount:amount,p_request:request,p_note:reason}
+  }:{
+   path:'rpc/ma_admin_grant_bonus',
+   body:{p_reseller:person.user_id,p_amount:amount,p_request:request,p_note:reason}
+  };
+  const balance=await api(args.path,'POST',args.body);
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(balance===undefined||balance===null)throw Error('Operación no confirmada');
+  notice('Bono registrado para '+person.registry_code+' · '+price(amount)+' · Referencia '+request+'. No se modificó la billetera real.');
+  auditState='idle';
+ }catch(e){
+  if(user===uid&&jwt===token)notice('El bono no se confirmó: '+String(e?.message||e)+' · Referencia '+request+'. Comprueba historial antes de reintentarlo.');
+ }finally{bonusSaving=false;btn.disabled=false;}
+}
 function admin(page){
  if(!data.admin)return overview(page);
  title(page,'Directorio de usuarios','Registro CLAN permanente, contacto, rol y vigencia. Las autorizaciones especiales tienen una sección propia.');
@@ -1169,6 +1404,7 @@ function other(page){
 }
 function render(){
  if(!app||!user)return;
+ el('cc177-return-panel')?.remove();
  mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
  // Cuatro negocios, un selector: visible únicamente al gestionar negocios.
  if(view==='businesses'||view.startsWith('business:'))businessTabs(page);
@@ -1177,12 +1413,13 @@ function render(){
  case 'home':overview(page);break;
  case 'attention':data.admin?adminAttention(page):overview(page);break;
  case 'approvals':data.admin?adminApprovals(page):overview(page);break;
+ case 'bonuses':data.admin?adminBonuses(page):overview(page);break;
  case 'shop':shop(page);break;
  case 'wallet':wallet(page);break;
  case 'businesses':memberships(page);break;
  case 'movements':movements(page);break;
  case 'orders':orders(page);break;
- case 'publish':publish(page);break;
+ case 'publish':data.super&&!data.admin?publish(page):overview(page);break;
  case 'sales':sales(page);break;
  case 'admin':admin(page);break;
  case 'profile':profile(page);break;
