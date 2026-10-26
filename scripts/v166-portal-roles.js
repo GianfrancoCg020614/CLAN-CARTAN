@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V176 · Consola empresarial por roles, sin administración heredada.
+/* CLAN CARTAN · V177 · Panel común y permisos según rol, sin administración heredada.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -10,7 +10,9 @@ const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],[
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
-let walletTab='summary';
+let walletTab='summary',rechargeMode='manual';
+let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
+let bonusSaving=false,personalTopupSaving=false;
 let rechargeRows=[],rechargeState='idle',rechargeError='';
 let rechargeReady=null,rechargeSaving=false;
 let auditData=null,auditRows=[],auditState='idle',auditError='';
@@ -28,7 +30,8 @@ function reset(){
  app?.remove();app=null;el('cc166-open-button')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
- walletTab='summary';
+ walletTab='summary';rechargeMode='manual';navigationHistory=[];
+ autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
  rechargeRows=[];rechargeState='idle';rechargeError='';
  rechargeReady=null;rechargeSaving=false;
  auditData=null;auditRows=[];auditState='idle';auditError='';
@@ -37,7 +40,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN / CONSOLA DE GESTIÓN</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V177 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -74,9 +77,14 @@ function openCatalog(){
  notice('El catálogo público está temporalmente inaccesible.');
 }
 function nav(to){
+ if(to==='back'){
+  const prior=navigationHistory.pop();
+  if(prior){view=prior.view;walletTab=prior.walletTab;render();return;}
+  if(view!=='home'){view='home';walletTab='summary';render();return;}
+  app.hidden=true;return;
+ }
  if(to==='shop'){openCatalog();return;}
- // Al pulsar una sección principal, mostrar su vista inicial.
- // Las pestañas internas cambian el estado sin reiniciar la navegación.
+ if(view!==to)navigationHistory.push({view,walletTab});
  if(to==='wallet')walletTab='summary';
  view=to;render();
 }
@@ -104,24 +112,21 @@ function userRole(){
 }
 function renderNav(){
  const menu=el('cc166-nav');menu.replaceChildren();
- app.classList.toggle('cc176-admin',!!data.admin);
- const groups=data.admin?[
-  ['DIRECCIÓN',[['home','◫','Resumen'],['attention','◷','Atención de hoy']]],
-  ['GESTIÓN',[['admin','♙','Usuarios'],['approvals','✓','Súper reseller'],['publish','▣','Publicaciones'],['sales','◈','Ventas']]],
-  ['FINANZAS',[['wallet','▤','Billetera']]],
-  ['PLATAFORMAS',[['businesses','▦','Negocios'],['shop','◇','Catálogo'],['orders','◱','Mis compras'],['profile','⚙','Mi perfil']]]
- ]:[
-  ['',[
-   ['home','◫','Inicio'],['shop','▣','Catálogo'],['orders','◱','Mis compras'],
-   ['wallet','▤','Billetera'],
-   ...(data.super?[['publish','♛','Publicaciones'],['sales','◈','Ventas']]:[]),
-   ...(data.super||data.reseller||data.superPermission||
-      data.members.some(m=>m.role==='RESELLER'||m.role==='SUPER_RESELLER')?[['businesses','▦','Mis negocios']]:[]),
-   ['profile','♙','Mi perfil']
-  ]]
+ // Una sola interfaz para los 4 roles. El servidor decide los permisos.
+ app.classList.add('cc176-admin');
+ const admin=!!data.admin,superRole=!admin&&!!data.super;
+ const groups=[
+  ['GENERAL',[['home','◫',admin?'Resumen':'Inicio'],...(admin?[['attention','◷','Atención de hoy']]:[])]],
+  ['OPERACIONES',[
+   ...(admin?[['admin','♙','Usuarios'],['approvals','✓','Súper reseller'],
+     ['sales','◈','Supervisar pedidos'],['bonuses','◇','Bonos']]:[]),
+   ...(superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas']]:[]),
+   ...(!admin?[['shop','▣','Catálogo'],['orders','◱','Mis compras']]:[]),
+   ['wallet','▤','Billetera']]],
+  ['MI CUENTA',[['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
  ];
  for(const [heading,items] of groups){
-  if(heading)menu.append(make('p','cc176-nav-heading',heading));
+  menu.append(make('p','cc176-nav-heading',heading));
   for(const [id,icon,labelText] of items){
    const selected=view===id||(id==='businesses'&&view.startsWith('business:'));
    const b=button('',()=>nav(id),'cc166-navitem'+(selected?' selected':''));
@@ -130,19 +135,19 @@ function renderNav(){
   }
  }
  const aside=el('cc166-aside-foot');aside.replaceChildren();
- if(data.admin){
-  aside.append(make('p','cc176-side-note','Administración protegida · 4 negocios · una cuenta'));
-  aside.append(button('Ver tienda pública',()=>nav('shop'),'cc166-back'));
- }else aside.append(button('← Volver al portal',()=>{app.hidden=true;},'cc166-back'));
+ aside.append(make('p','cc176-side-note',
+  admin?'ADMIN · Validación y supervisión':superRole?'Súper reseller · Publicaciones y ventas':
+  'Cuenta CLAN CARTAN · Accesos según membresía'));
+ aside.append(button('← Salir al portal',()=>{app.hidden=true;},'cc166-back'));
  const role=el('cc166-role');
  role.textContent=userRole()+' · '+(verified?'Cuenta verificada':'Verificando datos…');
  const heading=app.querySelector('.cc166-top h1');
- if(heading)heading.textContent=data.admin?'Consola administrativa':data.super?'Centro Súper reseller':'Mi cuenta CLAN CARTAN';
+ if(heading)heading.textContent='Panel CLAN CARTAN';
  const top=el('cc166-top-actions');top.replaceChildren();
+ top.append(button('← Atrás',()=>nav('back'),'cc166-secondary cc177-back'));
  top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
- top.append(button('✕',()=>{app.hidden=true;},'cc166-x'));
+ top.append(button('✕ Cerrar',()=>{app.hidden=true;},'cc166-x'));
 }
-
 function businessTabs(page){
  const tabs=make('nav','cc167-tabs');tabs.setAttribute('aria-label','Negocios CLAN CARTAN');
  for(const [code] of services){
@@ -212,8 +217,8 @@ function adminHome(page){
  const business=card('Áreas comerciales','Las aprobaciones manuales se aplican solo a Súper reseller.');
  const blocks=[
   ['Súper reseller', 'Autoriza los permisos especiales. El pago anual es independiente.',()=>nav('approvals')],
-  ['Publicaciones', 'Catálogo y precios públicos / distribuidor en una sola sección.',()=>nav('publish')],
-  ['Finanzas', 'Recargas verificadas, saldos y auditoría, sin abrir otra administración.',()=>finance('audit')]
+  ['Supervisar pedidos', 'Validaciones y entregas, sin publicar como ADMIN.',()=>nav('sales')],
+  ['Finanzas', 'Recargas verificadas, saldos y auditoría en esta cuenta.',()=>finance('audit')]
  ];
  for(const [t,d,fn] of blocks){
   const x=button('',fn,'cc176-resource');
@@ -528,14 +533,14 @@ function businessPage(page,code){
  if(code==='STREAM_BULLS'){
   const shell=card('STREAM BULL’S · Servicios digitales',info.ok?'Tu suscripción de gestión está activa.':'Puedes comprar productos sin membresía. Para gestionar cuentas necesitas activar el plan.');
   const actions=make('div','cc166-actions');
-  actions.append(button('Comprar servicios',()=>nav('shop'),'cc166-primary'));
+  if(!data.admin)actions.append(button('Comprar servicios',()=>nav('shop'),'cc166-primary'));
   if(info.ok){
-   if(data.super||data.admin)actions.append(button('Mis publicaciones',()=>nav('publish'),'cc166-secondary'));
+   if(data.super&&!data.admin)actions.append(button('Mis publicaciones',()=>nav('publish'),'cc166-secondary'));
    else actions.append(button('Mi catálogo',()=>nav('shop'),'cc166-secondary'));
   }else{
-   const cost=Number(data.plan?.price_pen||25);
-   shell.append(metric('Membresía anual · 365 días',price(cost),'gold'));
-   actions.append(button('Activar por '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary'));
+   const cost=Number(data.plan?.price_pen);
+   shell.append(metric('Membresía anual · 365 días',Number.isFinite(cost)&&cost>0?price(cost):'Precio no verificado','gold'));
+   if(!data.admin){const pay=button('Activar por '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary');pay.disabled=!(Number.isFinite(cost)&&cost>0&&verified);actions.append(pay);}
   }
   shell.append(actions);page.append(shell);
  }else{
@@ -693,6 +698,7 @@ function orders(page){
  }
 }
 async function markDelivered(order){
+ if(data.admin){notice('Solo el vendedor puede marcar su pedido como entregado.');return;}
  if(!window.confirm('¿Confirmas que entregaste el producto al comprador? Esta acción no transfiere ni libera dinero.'))return;
  try{
   const ok=await api('rpc/cc_portal_mark_stream_order_delivered','POST',{p_order_id:order.id});
@@ -702,7 +708,7 @@ async function markDelivered(order){
 }
 function sales(page){
  if(!data.admin&&!data.super){nav('home');return;}
- title(page,'Ventas y entregas','Cada compra se guarda con comisión ADMIN y pago pendiente al vendedor; sin liquidaciones automáticas.');
+ title(page,data.admin?'Supervisión de pedidos':'Ventas y entregas','Cada compra se guarda con comisión ADMIN y pago pendiente al vendedor; sin liquidaciones automáticas.');
  const rows=data.orders.filter(o=>data.admin||o.seller_id===user);
  const totals=rows.reduce((s,r)=>({sale:s.sale+Number(r.price_pen||0),
   owed:s.owed+(r.status==='REFUNDED'?0:Number(r.seller_payable_pen||0)),
@@ -719,14 +725,13 @@ function sales(page){
   info.append(make('strong','',o.title));
   info.append(make('small','','Pedido '+o.id+' · '+String(o.status).replaceAll('_',' ')));
   line.append(info,make('strong','',price(o.price_pen)));
-  const b=button(o.status==='FULFILLED'?'Entregado':'Marcar entregado',()=>void markDelivered(o),'cc166-secondary');
-  b.disabled=o.status!=='PAID_AWAITING_DELIVERY';
-  line.append(b);page.append(line);
+  if(!data.admin){const b=button(o.status==='FULFILLED'?'Entregado':'Marcar entregado',()=>void markDelivered(o),'cc166-secondary');b.disabled=o.status!=='PAID_AWAITING_DELIVERY';line.append(b);}
+  page.append(line);
  }
 }
 
 function publish(page){
- if(!data.admin&&!data.super)return overview(page);
+ if(data.admin||!data.super)return overview(page);
  title(page,'Publicar servicios · STREAM BULL’S','Publicaciones registradas por el servidor con autor y stock.');
  const box=card('Nuevo servicio','La membresía y el permiso se verifican antes de guardar.');
  const form=make('form','cc166-form');form.id='cc166-publish-form';
@@ -771,7 +776,7 @@ function publish(page){
  page.append(list);
 }
 async function editPrices(product,details){
- if(!data.admin&&!data.super)return;
+ if(data.admin||!data.super)return;
  const oldPublic=Number(details?.public_price_pen??product.price_pen);
  const oldDistributor=Number(details?.distributor_price_pen??oldPublic);
  const publicInput=window.prompt('Nuevo precio para AFILIADO / PÚBLICO (S/) · '+
@@ -1177,12 +1182,13 @@ function render(){
  case 'home':overview(page);break;
  case 'attention':data.admin?adminAttention(page):overview(page);break;
  case 'approvals':data.admin?adminApprovals(page):overview(page);break;
+ case 'bonuses':data.admin?adminBonuses(page):overview(page);break;
  case 'shop':shop(page);break;
  case 'wallet':wallet(page);break;
  case 'businesses':memberships(page);break;
  case 'movements':movements(page);break;
  case 'orders':orders(page);break;
- case 'publish':publish(page);break;
+ case 'publish':data.super&&!data.admin?publish(page):overview(page);break;
  case 'sales':sales(page);break;
  case 'admin':admin(page);break;
  case 'profile':profile(page);break;
