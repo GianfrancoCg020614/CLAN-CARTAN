@@ -132,3 +132,14 @@ html[data-cc-theme="light"] #ma1611layer button:not(.active){background:#eaf3f7;
 #cc77home .cc77cards > .cc77card .cc78service-logo,
 #cc77home .cc77cards > .ma1611-card .ma1611-card-icon{width:130px!important;height:130px!important;min-width:130px!important;max-width:130px!important;min-height:130px!important;max-height:130px!important;flex-basis:130px!important}
 }
+
+/* V212 · Incremento del 50 % en las cuatro marcas: 140→210 px y 130→195 px. */
+#cc77home .cc77cards > .cc77card .cc78service{grid-template-rows:210px auto!important;justify-items:center!important}
+#cc77home .cc77cards > .cc77card .cc78service-logo,
+#cc77home .cc77cards > .ma1611-card .ma1611-card-icon{width:210px!important;height:210px!important;min-width:210px!important;max-width:210px!important;min-height:210px!important;max-height:210px!important;flex:0 0 210px!important;object-fit:contain!important;object-position:center!important;margin-inline:auto!important}
+#cc77home .cc77cards > .ma1611-card .ma1611-card-icon{align-self:center!important}
+@media(max-width:590px){
+#cc77home .cc77cards > .cc77card .cc78service{grid-template-rows:195px auto!important}
+#cc77home .cc77cards > .cc77card .cc78service-logo,
+#cc77home .cc77cards > .ma1611-card .ma1611-card-icon{width:195px!important;height:195px!important;min-width:195px!important;max-width:195px!important;min-height:195px!important;max-height:195px!important;flex-basis:195px!important}
+}
