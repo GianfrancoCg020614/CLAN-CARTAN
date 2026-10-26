@@ -32,7 +32,7 @@ try{
    'const rendered=!!panel&&!panel.hidden;',
    'const zIndex=Number(getComputedStyle(panel).zIndex)>2147483638;',
    'const noGlobalTabs=document.querySelectorAll("#cc166-content .cc167-tab").length===0;',
-   '[...document.querySelectorAll(".cc166-navitem")].find(b=>b.textContent.includes("Negocios"))?.click();',
+   '[...document.querySelectorAll(".cc166-navitem")].find(b=>b.textContent.toLowerCase().includes("negocios"))?.click();',
    'const tabCount=document.querySelectorAll("#cc166-content .cc167-tab").length;',
    'document.querySelectorAll("#cc166-content .cc167-tab")[1]?.click();',
    'const scopedBusiness=tabCount===0||document.querySelector("#cc166-content .cc166-section-title h2")?.textContent==="COBRA YA"&&!document.querySelector("#cc166-content .cc167-product");',
