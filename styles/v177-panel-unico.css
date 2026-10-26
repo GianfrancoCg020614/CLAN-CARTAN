@@ -174,3 +174,23 @@
  #cc166-panel .cc183-method-card button{flex:0 0 auto}
  #cc166-panel .cc183-whatsapp{width:100%}
 }
+
+/* V184 · Identidad ADMIN fiable por cuenta CLAN y contacto registrado. */
+#cc166-panel .cc184-recharge-identity{
+ display:grid;gap:5px;margin:0 0 10px;padding:11px 13px;
+ border:1px solid #376473;border-radius:11px;background:#0b2738;min-width:0;
+}
+#cc166-panel .cc184-register-line{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+#cc166-panel .cc184-register-line .cc184-code{
+ display:inline-block;padding:4px 9px;border:1px solid #38a0a2;
+ border-radius:999px;background:#11404d;color:#bcfff5;font-size:12px;
+}
+#cc166-panel .cc184-reg-no{font-weight:750;font-size:12px;color:#dceefa}
+#cc166-panel .cc184-identity-line{margin:0;color:#d1e8f1;font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+#cc166-panel .cc184-payer-note{color:#edce98;overflow-wrap:anywhere}
+#cc166-panel .cc184-request{overflow-wrap:anywhere;user-select:text}
+#cc166-panel .cc176-recharge-head>div:first-child{min-width:0;flex:1}
+@media(max-width:660px){
+ #cc166-panel .cc184-recharge-identity{padding:10px}
+ #cc166-panel .cc184-register-line{align-items:flex-start}
+}

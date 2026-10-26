@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V183 · QR de referencia y aviso por WhatsApp de solicitudes reales.
+/* CLAN CARTAN · V185 · Billetera REAL única y bonos sólo para activaciones.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -44,7 +44,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V183 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V185 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -177,13 +177,16 @@ function businessTabs(page){
  page.append(tabs);
 }
 function movementList(page,max){
- const box=make('div','cc166-list');const moves=data.moves.slice(0,max);
+ const box=make('div','cc166-list');
+ // Las transferencias contables entre servicios no son movimientos del cliente:
+ // un único saldo no debe mostrar débitos/créditos internos duplicados.
+ const moves=data.moves.filter(m=>m.movement_type!=='TRANSFER').slice(0,max);
  if(!moves.length)box.append(make('p','cc166-empty',verified?'No se encontraron movimientos reales.':'Consultando movimientos…'));
  for(const m of moves){
   const row=make('div','cc166-movement'),a=make('div','');
   let dt='—';if(m.occurred_at){try{dt=new Date(m.occurred_at).toLocaleDateString('es-PE',{timeZone:'America/Lima'});}catch(_){}}
   const pending=m.affects_balance===false;
-  a.append(make('small','',dt+' · '+serviceName(m.service)+' · '+(m.movement_type||'Movimiento')+
+  a.append(make('small','',dt+' · '+(m.movement_type==='RECHARGE'?'Billetera única':serviceName(m.service))+' · '+(m.movement_type||'Movimiento')+
     (pending?' · SOLICITUD NO ACREDITADA':' · '+(m.status||'REGISTRADO'))));
   a.append(make('span','',String(m.description||m.reference||'Movimiento registrado').slice(0,130)));
   row.append(a,make('strong',pending?'pending':Number(m.amount_pen)<0?'minus':'plus',
@@ -370,7 +373,7 @@ async function loadAdminRecharges(force=false){
  const uid=user,jwt=token;
  try{
   const [rows,ready]=await Promise.all([
-   api('rpc/cc_admin_manual_recharge_queue','POST',{}),
+   api('rpc/cc_admin_manual_recharge_queue_v184','POST',{}),
    api('rpc/cc_manual_recharge_public_status','POST',{})
   ]);
   if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
@@ -425,7 +428,7 @@ async function submitAdminAssistedRecharge(target,service,amount,reference,butto
  if(!data.admin||!verified||assistedRechargeSaving||!session()?.jwt)return;
  const recipient=adminAccounts.find(x=>x.user_id===target&&!x.is_admin);
  const value=Number(amount),ref=String(reference||'').trim();
- if(!recipient||!['STREAM_BULLS','COBRA_YA','MI_ALQUILER'].includes(service)||
+ if(!recipient||service!=='STREAM_BULLS'||
  !Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.00001||
  (ref&&(ref.length<4||ref.length>120))){
   notice('Selecciona un usuario no ADMIN, billetera compatible e importe entre S/ 1 y S/ 1000.');return;
@@ -474,12 +477,9 @@ function adminAssistedRechargeForm(page){
      selector.value=chosenAdminRecipient;
    chosenAdminRecipient=null;
    uLabel.append(selector);form.append(uLabel);
-   const serviceLabel=make('label','','Billetera del negocio');
-   const business=document.createElement('select');
-   for(const code of ['STREAM_BULLS','COBRA_YA','MI_ALQUILER']){
-    const opt=make('option','',serviceName(code));opt.value=code;business.append(opt);
-   }
-   serviceLabel.append(business);form.append(serviceLabel);
+   // El identificador STREAM_BULLS es el asiento contable interno de entrada.
+   // El cliente y ADMIN no eligen billeteras por negocio: el saldo es compartido.
+   form.append(make('p','cc185-unified-explain','Destino: billetera única CLAN CARTAN · disponible para los cuatro negocios.'));
    const priceLabel=make('label','','Monto de recarga (S/)');
    const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
    priceLabel.append(amount);form.append(priceLabel);
@@ -489,7 +489,7 @@ function adminAssistedRechargeForm(page){
    const submit=make('button','cc166-primary','Registrar recarga pendiente');submit.type='submit';
    form.append(submit);
    form.addEventListener('submit',e=>{
-    e.preventDefault();void submitAdminAssistedRecharge(selector.value,business.value,amount.value,reference.value,submit);
+    e.preventDefault();void submitAdminAssistedRecharge(selector.value,'STREAM_BULLS',amount.value,reference.value,submit);
    });
    details.append(form);
   }
@@ -520,9 +520,23 @@ function adminRecharges(page){
   for(const row of rechargeRows.slice(0,80)){
    const item=make('article','cc176-recharge-record');
    const top=make('div','cc176-recharge-head'),left=make('div','');
-   left.append(make('strong','',String(row.payer_name||'Cliente')));
-   left.append(make('small','',serviceName(row.service)+' · '+safeDate(row.created_at)));
-   left.append(make('small','','Solicitud '+String(row.request_id||'—')));
+   // Identificación de la cuenta desde auth.users + registro CLAN, NO desde el comprobante.
+   const identity=make('div','cc184-recharge-identity');
+   const number=Number(row.registry_no);
+   const code=typeof row.registry_code==='string'&&/^CLAN[0-9]+$/.test(row.registry_code)?
+     row.registry_code:(Number.isSafeInteger(number)&&number>0?'CLAN'+number:'Registro no disponible');
+   const codeLine=make('div','cc184-register-line');
+   codeLine.append(make('strong','cc184-code',code));
+   if(Number.isSafeInteger(number)&&number>0)codeLine.append(make('span','cc184-reg-no','N.º de registro: '+number));
+   identity.append(codeLine);
+   if(row.registered_alias)identity.append(make('p','cc184-identity-line','Usuario: '+String(row.registered_alias)));
+   identity.append(make('p','cc184-identity-line','Nombre registrado: '+String(row.registered_name||'No disponible')));
+   identity.append(make('p','cc184-identity-line','Correo de la cuenta: '+String(row.registered_email||'No disponible')));
+   left.append(identity);
+   if(row.payer_name&&String(row.payer_name).trim()!==String(row.registered_name||'').trim())
+    left.append(make('small','cc184-payer-note','Depositante declarado (NO verificado): '+String(row.payer_name)));
+   left.append(make('small','','Billetera única CLAN CARTAN · '+safeDate(row.created_at)));
+   left.append(make('small','cc184-request','N.º de solicitud: '+String(row.request_id||'—')));
    if(row.payer_reference)left.append(make('small','','Referencia declarada (NO verificada): '+String(row.payer_reference)));
    top.append(left,make('strong','',price(row.amount_pen)));item.append(top);
    const actions=make('div','cc166-actions');
@@ -666,7 +680,7 @@ function whatsappPaidUrl(request){
  const account=String(data.profile?.full_name||session()?.displayName||'Usuario CLAN CARTAN').trim();
  const msg='YA PAGUE CON SOLICITUD '+id+', y te envio mi comprobante.'+
   '\nCuenta: '+account+
-  '\nNegocio: '+serviceName(request.service||'STREAM_BULLS')+
+  '\nBilletera: CLAN CARTAN (única)'+
   '\nImporte solicitado: '+price(request.amount_pen)+
   '\nNota: pendiente de validación por ADMIN.';
  return 'https://wa.me/51923391637?text='+encodeURIComponent(msg);
@@ -719,20 +733,20 @@ function qrReferenceCards(){
 }
 async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
  if(personalTopupSaving||!verified||!session()?.jwt)return;
- if(ownPending?.service===service&&ownPending?.status==='PENDING'){
-  notice('Ya tienes una solicitud pendiente para esta billetera. Utiliza su número al informar el comprobante por WhatsApp.');return;
+ if(ownPending?.status==='PENDING'){
+  notice('Ya tienes una recarga pendiente en tu billetera única. Usa su número para informar el comprobante.');return;
  }
  const value=Number(amount),name=String(otherPayer||data.profile?.full_name||session()?.displayName||'').trim().replace(/\s+/g,' ');
- if(!['STREAM_BULLS','COBRA_YA','MI_ALQUILER'].includes(service)
+ if(service!=='STREAM_BULLS'
   ||!Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.0001){
-  notice('Elige una billetera habilitada e ingresa un importe válido de S/ 1 a S/ 1,000.');return;
+  notice('Ingresa un importe válido de S/ 1 a S/ 1,000 para tu billetera única.');return;
  }
  if(name.length<5||name.length>120||!name.includes(' ')){
   notice('Completa tu nombre y apellido una sola vez en Mi perfil para registrar recargas.');return;
  }
  const ref=String(reference||'').trim();
  if(ref&&(!/^.{4,120}$/.test(ref))){notice('La referencia debe tener entre 4 y 120 caracteres.');return;}
- if(!window.confirm('¿Registrar una solicitud PENDIENTE de '+price(value)+' para '+serviceName(service)+'? Esto no acredita saldo.'))return;
+ if(!window.confirm('¿Solicitar '+price(value)+' para la billetera única CLAN CARTAN? La recarga quedará PENDIENTE hasta verificar el depósito.'))return;
  personalTopupSaving=true;btn.disabled=true;const uid=user,jwt=token;
  try{
   const result=await api('rpc/cc_submit_manual_recharge','POST',{
@@ -763,7 +777,7 @@ function personalManualRecharge(page){
   const pending=make('section','cc183-pending');
   pending.append(make('strong','','Solicitud registrada · PENDIENTE DE VALIDACIÓN'));
   pending.append(make('p','','N.º de solicitud: '+String(ownPending.id)));
-  pending.append(make('p','',serviceName(ownPending.service)+' · '+price(ownPending.amount_pen)));
+  pending.append(make('p','','Billetera única CLAN CARTAN · '+price(ownPending.amount_pen)));
   pending.append(whatsappPendingButton(ownPending));
   pending.append(make('small','','El botón abre WhatsApp con tu número de solicitud. Adjunta el comprobante en el chat; el mensaje no acredita el saldo.'));
   const refresh=button('Actualizar estado',()=>void loadOwnPendingRequest(true),'cc166-secondary');
@@ -772,13 +786,7 @@ function personalManualRecharge(page){
  }
  box.append(qrReferenceCards());
  const form=make('form','cc177-recharge-form');
- const serviceLabel=make('label','','Billetera');
- const service=document.createElement('select');service.required=true;
- for(const code of ['STREAM_BULLS','COBRA_YA','MI_ALQUILER']){
-  const opt=make('option','',serviceName(code));opt.value=code;service.append(opt);
- }
- if(ownPending?.service)service.value=ownPending.service;
- serviceLabel.append(service);form.append(serviceLabel);
+ form.append(make('p','cc185-unified-explain','Se recarga una sola vez a tu billetera CLAN CARTAN. El saldo disponible es el mismo para comprar y activar servicios de los cuatro negocios.'));
  const amountLabel=make('label','','Importe (S/)');
  const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
  amountLabel.append(amount);form.append(amountLabel);
@@ -796,14 +804,14 @@ function personalManualRecharge(page){
  }
  const submit=make('button','cc166-primary','Registrar solicitud');submit.type='submit';
  const sync=()=>{
-  const waiting=ownPendingState==='loading'||ownPending?.service===service.value&&ownPending?.status==='PENDING';
+  const waiting=ownPendingState==='loading'||ownPending?.status==='PENDING';
   submit.disabled=!!waiting||personalTopupSaving;
-  submit.textContent=waiting&&ownPending?.service===service.value?'Ya tienes una solicitud pendiente':'Registrar solicitud';
+  submit.textContent=waiting&&ownPending?.status==='PENDING'?'Ya tienes una solicitud pendiente':'Registrar solicitud';
  };
- service.addEventListener('change',sync);sync();form.append(submit);
+ sync();form.append(submit);
  form.addEventListener('submit',e=>{
   e.preventDefault();
-  void submitAccountRecharge(service.value,amount.value,reference.value,otherName.value,submit);
+  void submitAccountRecharge('STREAM_BULLS',amount.value,reference.value,otherName.value,submit);
  });
  box.append(form);
  box.append(make('p','cc166-note','Recarga manual: PENDIENTE hasta que ADMIN compruebe el ingreso. El QR y el aviso por WhatsApp no son confirmación del depósito ni habilitan recargas automáticas.'));
@@ -821,7 +829,7 @@ function wallet(page){
   for(const [heading,detail,cta,fn] of [
    ['Recargas manuales',rechargeState==='ready'?rechargeRows.length+' solicitudes por verificar':'Revisar cola bancaria','Gestionar recargas',()=>finance('recharges')],
    ['Auditoría financiera','Ingresos, egresos y trazabilidad de saldos reales.','Ver auditoría',()=>finance('audit')],
-   ['Bonos de bienvenida','Incentivos gratuitos; no se confunden con efectivo.','Otorgar bonos',()=>nav('bonuses')]
+   ['Bonos de activación','Solo COBRA YA, MI COCHERA y MI ALQUILER; nunca STREAM BULL’S.','Otorgar bono',()=>nav('bonuses')]
   ]){
    const block=card(heading,detail);block.append(button(cta,fn,'cc166-secondary'));grid.append(block);
   }
@@ -842,16 +850,12 @@ function wallet(page){
  actions.append(button('Recarga manual',()=>{walletTab='manual';render();},'cc166-primary'),
   button('Recarga automática',()=>{walletTab='automatic';render();},'cc166-secondary'));
  box.append(actions);page.append(box);
- const businesses=card('Saldo por negocio','Detalle de los fondos registrados a nombre de esta cuenta.');
- const rows=make('div','cc177-business-balances');
- for(const [code] of services){
-  const line=make('div','cc177-balance-row');
-  line.append(make('span','',serviceName(code)),make('strong','',price(data.real.find(r=>r.service===code)?.balance_pen||0)));
-  rows.append(line);
- }
- businesses.append(rows);page.append(businesses);
+ const unified=card('Una sola billetera · cuatro negocios',
+  'El saldo real disponible se muestra una sola vez, sin repartirlo ni duplicarlo entre plataformas.');
+ unified.append(make('p','cc185-unified-explain','STREAM BULL’S · COBRA YA · MI COCHERA · MI ALQUILER'));
+ page.append(unified);
  if(data.bonuses.length){
-  const promos=card('Bonos promocionales','No son dinero retirables ni saldo real.');
+  const promos=card('Bonos únicamente para activaciones','Son ayudas promocionales para activar o renovar COBRA YA, MI COCHERA y MI ALQUILER. No son dinero real, no se transfieren y NO se aceptan en STREAM BULL’S.');
   const detail=make('div','cc177-business-balances');
   for(const b of data.bonuses){
    const line=make('div','cc177-balance-row');line.append(make('span','',b.label),make('strong','',price(b.amount)));detail.append(line);
@@ -1411,8 +1415,8 @@ function adminApprovals(page){
 function adminBonuses(page){
  if(!data.admin)return overview(page);
  if(adminAccountsState==='idle')void loadAdminAccounts();
- title(page,'Bonos de bienvenida','Otorga beneficios gratuitos sin mezclar bonos promocionales con saldo real ni modificar la tarifa de los planes.');
- const intro=card('Asignación de bonos','Operación exclusiva de ADMIN; cada bono se registra con su destinatario, motivo y referencia única.');
+ title(page,'Bonos para activaciones','Únicamente activaciones de COBRA YA, MI COCHERA y MI ALQUILER; nunca se usan en STREAM BULL’S.');
+ const intro=card('Otorgar bono de activación','Solo para activaciones comerciales de los tres negocios compatibles. Nunca se suma a la billetera única de dinero real.');
  if(adminAccountsState==='loading'||adminAccountsState==='idle'){
   intro.append(make('p','cc166-note','Cargando usuarios registrados…'));page.append(intro);return;
  }
@@ -1436,7 +1440,7 @@ function adminBonuses(page){
  label.append(recipient);form.append(label);
  const business=make('label','','Negocio que recibe el bono');
  const service=document.createElement('select');
- for(const [code,title] of [['COBRA_YA','COBRA YA · bono de bienvenida'],['MI_COCHERA','MI COCHERA · bono promocional'],['MI_ALQUILER','MI ALQUILER · bono promocional']]){
+ for(const [code,title] of [['COBRA_YA','COBRA YA · activación'],['MI_COCHERA','MI COCHERA · activación'],['MI_ALQUILER','MI ALQUILER · activación']]){
   const item=make('option','',title);item.value=code;service.append(item);
  }
  business.append(service);form.append(business);
@@ -1447,7 +1451,7 @@ function adminBonuses(page){
  const reason=document.createElement('input');reason.type='text';reason.maxLength=180;reason.minLength=5;reason.required=true;reason.value='Bono de bienvenida';
  why.append(reason);form.append(why);
  const save=make('button','cc166-primary','Otorgar bono gratuito');save.type='submit';form.append(save);
- const hint=make('p','cc166-note','El bono COBRA YA solo se otorga a revendedores elegibles y su uso está limitado a ese negocio. MI COCHERA y MI ALQUILER conservan su propia contabilidad de bonos. STREAM BULL’S no tiene un bono inventado.');
+ const hint=make('p','cc166-note','Los bonos de activación sólo funcionan en COBRA YA, MI COCHERA o MI ALQUILER. No son saldo real, no recargan la billetera y nunca compran productos o membresías de STREAM BULL’S.');
  form.append(hint);
  form.addEventListener('submit',e=>{
   e.preventDefault();
