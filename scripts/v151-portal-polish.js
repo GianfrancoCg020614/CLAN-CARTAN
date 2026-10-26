@@ -169,3 +169,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  link.rel='stylesheet';link.href='styles/v177-panel-unico.css?v=193';
  document.head.append(link);
 })();
+
+/* V194 · único panel de ventas CLAN CARTAN, sin panel alternativo. */
+(function(){
+ if(document.getElementById('cc194-liquidation-script'))return;
+ const script=document.createElement('script');
+ script.id='cc194-liquidation-script';
+ script.src='scripts/v194-sales.js?v=1941';
+ script.async=false;
+ document.head.append(script);
+})();
