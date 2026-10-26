@@ -1,0 +1,38 @@
+name: STREAM BULL'S - Validar Atención de hoy (STAGING)
+on:
+  push:
+    branches: [feature/streambulls-atencion-espacios-20261026]
+    paths:
+      - 'scripts/streambulls-operations-core.js'
+      - 'scripts/streambulls-atencion-preview.js'
+      - 'scripts/test-streambulls-atencion.mjs'
+      - 'streambulls-staging.html'
+      - 'styles/streambulls-atencion-preview.css'
+      - '.github/workflows/streambulls-staging-tests.yml'
+  pull_request:
+    paths:
+      - 'scripts/streambulls-operations-core.js'
+      - 'scripts/streambulls-atencion-preview.js'
+      - 'scripts/test-streambulls-atencion.mjs'
+      - 'streambulls-staging.html'
+  workflow_dispatch:
+jobs:
+  stage-check:
+    name: Operaciones y reglas sin billetera real
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check scripts/streambulls-operations-core.js
+      - run: node --check scripts/streambulls-atencion-preview.js
+      - run: node scripts/test-streambulls-atencion.mjs
+      - name: Verificar que no se añadió el módulo a index.html
+        run: |
+          if grep -q 'streambulls-atencion-preview' index.html; then
+            echo "Producción no debe cargar scripts de staging"
+            exit 1
+          fi
