@@ -86,10 +86,28 @@
       '<p>La siguiente integración se habilitará únicamente con los permisos del servidor.</p></div></div>';
     if (typeof window.ma1612Enhance === 'function') window.ma1612Enhance(area.id, target);
   }
-  function open() {
+  let opening = false;
+  async function open() {
     if (!session()?.jwt) {
       if (typeof window.cc77Auth === 'function') window.cc77Auth(false);
       return;
+    }
+    if (opening) return;
+    opening = true;
+    const originalUser = session()?.userId;
+    try {
+      // El servidor, no el botón, decide si ADMIN o la membresía vigente permite gestionar.
+      const authorized = await window.cc80.api('rpc/ma_can_use', 'POST', {});
+      if (!session()?.jwt || session()?.userId !== originalUser) return;
+      if (authorized !== true) {
+        window.alert('MI ALQUILER requiere una membresía vigente. Entra a Panel de control → Negocios → MI ALQUILER para activarla con tu billetera CLAN CARTAN.');
+        return;
+      }
+    } catch (_) {
+      window.alert('No se pudo verificar tu membresía de MI ALQUILER. Inténtalo nuevamente.');
+      return;
+    } finally {
+      opening = false;
     }
     mountStyles();
     let layer = $('ma1611layer');
