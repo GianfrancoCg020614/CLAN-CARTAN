@@ -7,8 +7,14 @@ const loader=fs.readFileSync('scripts/v151-portal-polish.js','utf8');
 const postpay=fs.readFileSync('supabase/migrations/20261026004600_cc_super_postpay_approval_v178.sql','utf8');
 const annual=fs.readFileSync('supabase/migrations/20261026010000_cc_super_annual_validation_v179.sql','utf8');
 const index=fs.readFileSync('index.html','utf8');
+const grantSql=fs.readFileSync('supabase/migrations/20261026020000_cc_admin_assisted_recharge_v181.sql','utf8');
 const inlineSql=fs.readFileSync('supabase/migrations/20261026014000_cc_portal_admin_inline_roles_v180.sql','utf8');
-const checks=[
+const checks=
+ [js.includes("function adminAssistedRechargeForm(page)")&&js.includes("function openAdminGrantRecharge(person)")&&js.includes("function openAdminGrantBonus(person)"),'ADMIN puede otorgar recarga y bono desde la ficha'],
+ [js.includes("api('rpc/cc_admin_create_manual_recharge_for_user'")&&js.includes("cc_admin_decide_manual_recharge"),'Recarga asistida queda pendiente antes de acreditación bancaria'],
+ [grantSql.includes("exists(select 1 from public.cc_admins where user_id=actor)")&&grantSql.includes("p_target=actor"),'RPC solo ADMIN y prohibido otorgarse a sí mismo'],
+ [grantSql.includes("status='PENDING'")&&grantSql.includes("p_request"),'Recarga deduplicada y pendiente, sin alterar saldos'],
+ [
  [js.includes("cc180-role-editor") && js.includes("Cambiar a Reseller") && js.includes("Autorizar Súper reseller"),'Los cambios se hacen en la ficha del usuario'],
  [js.includes("person.paid_until") && js.includes("const paid=!!"), 'Permisos especiales solo tras el pago anual'],
  [inlineSql.includes("elsif not p_enabled then") && inlineSql.includes("set role='RESELLER'"),'Se permite bajar Súper reseller pendiente a Reseller sin activar membresía'],
