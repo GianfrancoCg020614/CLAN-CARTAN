@@ -16,7 +16,7 @@ const setup=[
  'window.__accounts=[',
  '{registry_no:1,registry_code:"CLAN1",registry_alias:"CLAN1",email:"admin@example.com",display_name:"Administrador",is_admin:true,role_assigned:"ADMIN",membership_status:"ACTIVE",access_until:null,trial_until:null,trial_active:false,super_enabled:false},',
  '{registry_no:2,registry_code:"CLAN2",registry_alias:"CLAN CARTAN",email:"clancartan@gmail.com",display_name:"CLAN CARTAN",is_admin:false,role_assigned:"SUPER_RESELLER",membership_status:"PENDING",access_until:null,trial_until:null,trial_active:false,super_enabled:false},',
- '{registry_no:3,registry_code:"CLAN3",registry_alias:"LUIS CAR",email:"luiscar1425@gmail.com",display_name:"Luis Car",is_admin:false,role_assigned:"RESELLER",membership_status:"ACTIVE",access_until:"2099-12-31T23:59:00Z",trial_until:null,trial_active:false,super_enabled:false}',
+ '{registry_no:3,registry_code:"CLAN3",registry_alias:"LUIS CAR",email:"luiscar1425@gmail.com",display_name:"Luis Car",is_admin:false,role_assigned:"RESELLER",membership_status:"ACTIVE",access_until:"2099-12-31T23:59:00Z",paid_until:"2099-12-31T23:59:00Z",trial_until:null,trial_active:false,super_enabled:false}',
  '];',
  'window.cc80={open(){},api:async(path,method,args)=>{',
  'if(path.startsWith("cc_admins?"))return [{user_id:"fake-admin"}];',
