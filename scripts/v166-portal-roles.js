@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V188 · Billetera REAL única y bonos sólo para activaciones.
+/* CLAN CARTAN · V189 · Billetera REAL única y bonos sólo para activaciones.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -46,7 +46,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V188 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V189 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -376,7 +376,7 @@ async function loadAdminRecharges(force=false){
  try{
   const [rows,ready]=await Promise.all([
    api('rpc/cc_admin_manual_recharge_queue_v184','POST',{}),
-   api('rpc/cc_manual_recharge_public_status','POST',{})
+   api('rpc/cc_admin_manual_recharge_status_v189','POST',{})
   ]);
   if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
   if(!Array.isArray(rows))throw Error('No se recibió la cola de recargas');
@@ -392,14 +392,14 @@ async function adminDecideRecharge(row,approve,transaction,bank,confirmed,btn){
  if(!data.admin||!verified||rechargeSaving||!row?.request_id)return;
  const tx=String(transaction||'').trim(),origin=String(bank||'').trim();
  if(approve&&(!rechargeReady?.enabled||!confirmed||tx.length<8||tx.length>120)){
-  notice('Acreditación bloqueada: confirma el depósito real habilitado y escribe la referencia bancaria única (8 a 120 caracteres).');return;
+  notice('Acreditación bloqueada: verifica el dinero recibido, marca la confirmación y escribe la referencia bancaria única (8 a 120 caracteres).');return;
  }
  if(!window.confirm(approve?
   '¿Verificaste el ingreso REAL de '+price(row.amount_pen)+' y autorizas acreditarlo una sola vez?':
   '¿Rechazar esta solicitud sin acreditar dinero?'))return;
  const uid=user,jwt=token;rechargeSaving=true;btn.disabled=true;
  try{
-  const result=await api('rpc/cc_admin_decide_manual_recharge','POST',{
+  const result=await api('rpc/cc_admin_decide_manual_recharge_v189','POST',{
    p_request:row.request_id,p_approve:approve,
    p_bank_tx:approve?tx:null,p_bank:approve?origin:null,
    p_confirmed_received:approve?true:false
@@ -497,13 +497,13 @@ function adminAssistedRechargeForm(page){
   }
  }
  if(rechargeState==='ready'&&!rechargeReady?.enabled)
-   details.append(make('p','cc176-finance-warning','La recepción bancaria comercial NO está habilitada actualmente. Puedes registrar solicitudes, pero NO acreditarlas hasta su habilitación y verificación.'));
+   details.append(make('p','cc176-finance-warning','Aprobación manual no disponible en el servidor; no acredites hasta verificar la conexión.'));
  details.append(make('p','cc166-note','Bonos de bienvenida se otorgan aparte, en ADMIN → Bonos. No requieren ni simulan depósitos.'));
  box.append(details);page.append(box);
 }
 function adminRecharges(page){
  adminAssistedRechargeForm(page);
- const box=card('Recargas pendientes','El ADMIN verifica el pago bancario real antes de acreditar. Los comprobantes declarados no son confirmación.');
+ const box=card('Recargas pendientes','Aprobación MANUAL: verifica el ingreso REAL en tu cuenta antes de acreditar. El envío de WhatsApp o un comprobante por sí solo no acredita saldo.');
  const actions=make('div','cc166-actions');
  actions.append(button('Actualizar pendientes',()=>void loadAdminRecharges(true),'cc166-secondary'));box.append(actions);
  if(rechargeState==='idle')void loadAdminRecharges();
@@ -514,7 +514,11 @@ function adminRecharges(page){
  }else{
   if(!rechargeReady?.enabled){
    box.append(make('p','cc176-finance-warning',
-    '⛔ Aprobación y acreditación deshabilitadas: no consta autorización comercial verificada para el método de cobro Lemon / DALE. La recepción comercial debe estar habilitada en el servidor y el ADMIN debe cotejar el dinero realmente recibido antes de acreditarlo. Puedes consultar o rechazar solicitudes sin afectar los saldos.'));
+    '⛔ Aprobación manual no disponible: el servidor no confirmó la disponibilidad del módulo. No se modifican saldos.'));
+  }
+  if(rechargeReady?.enabled){
+   box.append(make('p','cc166-note',
+    '✅ Validación manual habilitada. Para acreditar, coteja el ingreso bancario, introduce su operación única y marca la casilla. La autorización comercial de Lemon / DALE sigue independiente.'));
   }
   box.append(metric('Solicitudes por verificar',String(rechargeRows.length),'gold'));
   if(!rechargeRows.length)box.append(make('p','cc166-empty','No hay recargas pendientes de revisión.'));
@@ -555,11 +559,11 @@ function adminRecharges(page){
    const approve=button('Aprobar y acreditar',()=>void adminDecideRecharge(row,true,tx.value,bank.value,checkbox.checked,approve),'cc166-primary');
    approve.disabled=!rechargeReady?.enabled;
    if(approve.disabled){
-    approve.title='Bloqueado: falta autorización comercial verificada del método recaudador.';
+    approve.title='Bloqueado: el servidor no ha confirmado el módulo de aprobación manual.';
     const reasonId='cc188-recharge-block-'+String(row.request_id).replace(/[^a-z0-9-]/gi,'');
     approve.setAttribute('aria-describedby',reasonId);
     const reason=make('small','cc176-finance-warning',
-      '⛔ No se puede acreditar aún: el método Lemon / DALE no tiene autorización comercial verificada. Marcar la casilla no habilita el pago.');
+      '⛔ Módulo manual no confirmado. Actualiza pendientes y verifica el estado del servidor.');
     reason.id=reasonId;
     controls.append(reason);
    }
