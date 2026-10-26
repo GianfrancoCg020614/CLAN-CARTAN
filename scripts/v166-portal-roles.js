@@ -686,22 +686,37 @@ function personalAutoRecharge(page){
  box.append(button('Ir a recarga manual',()=>{walletTab='manual';render();},'cc166-secondary'));
  page.append(box);
 }
-async function loadOwnPendingRequest(force=false){
- if(!verified||!user||!session()?.jwt)return;
- if(ownPendingState==='loading'||(ownPendingState==='ready'&&!force))return;
- ownPendingState='loading';ownPendingError='';
+async function loadOwnPendingRequest(force=false,background=false){
+ if(!verified||!user||!session()?.jwt||ownPendingBusy)return;
+ if(ownPendingState==='ready'&&!force)return;
+ ownPendingBusy=true;
+ const previous=ownPending,previousState=ownPendingState;
+ if(!background)ownPendingState='loading';
+ ownPendingError='';
  const uid=user,jwt=token,seq=serial;
+ let changed=!background,creditChanged=false;
  try{
-  // Solo la solicitud del usuario autenticado (RLS), nunca solicitudes de otros clientes.
+  // Consulta última solicitud propia (PENDING / APPROVED / REJECTED) bajo RLS.
   const result=await api('cc_manual_recharge_requests?select=id,service,amount_pen,status,created_at,payer_reference&user_id=eq.'+
-   enc(uid)+'&status=eq.PENDING&order=created_at.desc&limit=1','GET');
+   enc(uid)+'&order=created_at.desc&limit=1','GET');
   if(!active(uid,jwt,seq))return;
   if(!Array.isArray(result))throw Error('La respuesta de solicitudes no es válida');
-  ownPending=result[0]||null;ownPendingState='ready';
+  const next=result[0]||null;
+  changed=previousState!=='ready'||String(previous?.id||'')!==String(next?.id||'')||
+   String(previous?.status||'')!==String(next?.status||'')||
+   Number(previous?.amount_pen||0)!==Number(next?.amount_pen||0);
+  creditChanged=!!previous&&previous.status==='PENDING'&&next?.id===previous.id&&next.status==='APPROVED';
+  ownPending=next;ownPendingState='ready';
  }catch(e){
-  if(active(uid,jwt,seq)){ownPendingError=String(e?.message||e);ownPendingState='error';}
+  if(active(uid,jwt,seq)&&(!background||previousState!=='ready')){
+   ownPendingError=String(e?.message||e);ownPendingState='error';changed=true;
+  }
  }finally{
-  if(active(uid,jwt,seq)&&view==='wallet'&&walletTab==='manual')render();
+  ownPendingBusy=false;
+  if(active(uid,jwt,seq)){
+   if(creditChanged)void load();
+   else if(changed&&view==='wallet'&&walletTab==='manual')render();
+  }
  }
 }
 async function loadOwnRechargeIdentity(force=false){
@@ -836,7 +851,7 @@ function personalManualRecharge(page){
  else if(ownPendingState==='error'){
   box.append(make('p','cc166-notice','No se pudo consultar el estado de recargas: '+ownPendingError));
   box.append(button('Consultar pendientes',()=>void loadOwnPendingRequest(true),'cc166-secondary'));
- }else if(ownPending){
+ }else if(ownPending?.status==='PENDING'){
   const pending=make('section','cc183-pending');
   pending.append(make('strong','','Solicitud registrada · PENDIENTE DE VALIDACIÓN'));
   pending.append(make('p','','N.º de solicitud: '+String(ownPending.id)));
@@ -850,6 +865,20 @@ function personalManualRecharge(page){
   const refresh=button('Actualizar estado',()=>void loadOwnPendingRequest(true),'cc166-secondary');
   pending.append(refresh);
   box.append(pending);
+ }else if(ownPending?.status==='APPROVED'){
+  const approved=make('section','cc183-pending');
+  approved.append(make('strong','cc177-state-ready','✅ Recarga aprobada y acreditada'));
+  approved.append(make('p','','Importe: '+price(ownPending.amount_pen)));
+  approved.append(make('p','','Solicitud: '+String(ownPending.id)));
+  approved.append(make('small','','El saldo disponible puede ser menor si ya realizaste compras o renovaciones.'));
+  approved.append(button('Ver saldo actualizado',()=>{walletTab='summary';render();void load();},'cc166-primary'));
+  box.append(approved);
+ }else if(ownPending?.status==='REJECTED'){
+  const rejected=make('section','cc183-pending');
+  rejected.append(make('strong','','Solicitud rechazada'));
+  rejected.append(make('p','','N.º de solicitud: '+String(ownPending.id)));
+  rejected.append(make('small','','Esta solicitud se cerró sin acreditar saldo. Puedes registrar otra.'));
+  box.append(rejected);
  }
  box.append(qrReferenceCards());
  const form=make('form','cc177-recharge-form');
@@ -1841,8 +1870,32 @@ function init(){
  new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync();});})
  .observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','hidden']});
  document.addEventListener('click',e=>{if(e.target.closest?.('#cc54logout'))reset();},true);
- window.addEventListener('focus',()=>{sync();if(user&&!busy)void load();});
- window.cc166OpenPanel=()=>{sync();if(app){app.hidden=false;render();}};
+ window.addEventListener('focus',()=>{
+  sync();
+  if(user&&!busy)void load();
+  if(user&&verified&&data.admin)void loadAdminRecharges(true,true);
+  else if(user&&verified&&view==='wallet'&&walletTab==='manual')void loadOwnPendingRequest(true,true);
+ });
+ // Lectura periódica: solicitud del cliente -> ADMIN; aprobación -> cliente.
+ // Nunca acredita dinero al crear una solicitud, solo notifica cambios.
+ if(!autoRefreshTimer)autoRefreshTimer=window.setInterval(()=>{
+  if(document.hidden||!app||app.hidden||!user||!verified||!session()?.jwt)return;
+  if(data.admin){
+   if(view==='home'||view==='attention'||(view==='wallet'&&
+     (walletTab==='recharges'||walletTab==='summary')))
+    void loadAdminRecharges(true,true);
+  }else if(view==='wallet'&&walletTab==='manual'){
+   void loadOwnPendingRequest(true,true);
+  }
+ },12000);
+ window.cc166OpenPanel=()=>{
+  sync();
+  if(app){
+   app.hidden=false;render();
+   if(data.admin)void loadAdminRecharges(true,true);
+   else if(view==='wallet'&&walletTab==='manual')void loadOwnPendingRequest(true,true);
+  }
+ };
  window.cc166OpenStreamMembership=()=>{
   sync();
   if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
@@ -1850,7 +1903,11 @@ function init(){
   view='business:STREAM_BULLS';
   render();
  };
- window.cc166RefreshPanel=()=>load();
+ window.cc166RefreshPanel=()=>{
+  if(!busy)void load();
+  if(data.admin)void loadAdminRecharges(true,true);
+  else if(view==='wallet'&&walletTab==='manual')void loadOwnPendingRequest(true,true);
+ };
  window.cc166PurchaseProductFromCatalog=(id,btn,price)=>purchaseFromPublicCatalog(id,btn,price);
  window.cc166OpenProfile=()=>{
   sync();
