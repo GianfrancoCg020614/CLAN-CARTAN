@@ -54,3 +54,35 @@
  #cc166-panel .cc166-top #cc166-top-actions{flex-wrap:wrap;justify-content:flex-end}
  #cc177-return-panel{bottom:83px;right:12px}
 }
+
+/* V180 · Cambio de situación comercial directamente en la ficha ADMIN. */
+#cc166-panel .cc180-role-editor{
+ min-width:min(220px,100%);max-width:290px;
+ padding:9px 10px;border:1px solid #32576a;border-radius:10px;background:#102737;
+}
+#cc166-panel .cc180-role-editor>summary{
+ cursor:pointer;color:#b8f4ec;font-weight:800;font-size:12px;
+ outline-offset:3px;
+}
+#cc166-panel .cc180-role-form{
+ display:grid;gap:9px;margin-top:12px;min-width:0;
+}
+#cc166-panel .cc180-role-form strong{color:#f0fbff;font-size:12px}
+#cc166-panel .cc180-role-form small{
+ font-size:11px;line-height:1.55;color:#b0c9d6;overflow-wrap:anywhere;
+}
+#cc166-panel .cc180-role-form .cc180-unpaid{color:#edc889}
+#cc166-panel .cc180-role-form button{
+ width:100%;min-height:36px;white-space:normal;text-align:center;
+}
+#cc166-panel .cc180-commission{
+ display:grid;gap:5px;color:#b9d8e1;font-size:11px;font-weight:700;
+}
+#cc166-panel .cc180-commission input{
+ width:100%;height:38px;padding:8px;
+ color:#f1ffff;background:#091b29;border:1px solid #3b6874;border-radius:8px;
+}
+@media(max-width:650px){
+ #cc166-panel .cc180-role-editor{max-width:100%;width:100%}
+ #cc166-panel .cc171-person-actions{max-width:100%}
+}
