@@ -853,7 +853,6 @@ function wallet(page){
  const unified=card('Una sola billetera · cuatro negocios',
   'El saldo real disponible se muestra una sola vez, sin repartirlo ni duplicarlo entre plataformas.');
  unified.append(make('p','cc185-unified-explain','STREAM BULL’S · COBRA YA · MI COCHERA · MI ALQUILER'));
- unified.append(make('strong','cc185-unified-total',verified?price(real):'Consultando…'));
  page.append(unified);
  if(data.bonuses.length){
   const promos=card('Bonos únicamente para activaciones','Son ayudas promocionales para activar o renovar COBRA YA, MI COCHERA y MI ALQUILER. No son dinero real, no se transfieren y NO se aceptan en STREAM BULL’S.');
