@@ -4840,70 +4840,177 @@ async function api(path,opts={},jwt=null){
  if(!resp.ok)throw Error(data.msg||data.error_description||data.message||'Error de autenticación ('+resp.status+')');
  return data;
 }
-// V100: mantener activa una sesión Supabase mientras la página permanezca abierta.
-// El refresh token no se guarda en localStorage, y nunca se expone en la interfaz.
-async function refreshSupabaseSession(){
- if(!refreshToken || !window.CC_V53_SESSION)return;
- if(refreshPending)return refreshPending;
- refreshPending=(async()=>{
-  const response=await api('/auth/v1/token?grant_type=refresh_token',{
-   method:'POST',body:JSON.stringify({refresh_token:refreshToken})
-  });
-  if(!response?.access_token || !response?.refresh_token)throw Error('No se pudo renovar la sesión.');
-  sessionToken=response.access_token;
-  refreshToken=response.refresh_token;
-  if(window.CC_V53_SESSION)window.CC_V53_SESSION.jwt=sessionToken;
- })();
- try{await refreshPending;}
- catch(error){console.warn('La sesión requiere revalidación:',error?.message||error);}
- finally{refreshPending=null;}
+// V192 · Sesión persistente para navegador propio. No se guardan contraseñas.
+const CC_SESSION_KEY='cc_v192_refresh_token';
+let ccAuthGeneration=0,ccRestorePending=null,ccNextRefreshAt=0;
+function ccReadToken(){try{return localStorage.getItem(CC_SESSION_KEY)||null}catch(_){return null}}
+function ccSaveToken(value){if(!value)return;try{localStorage.setItem(CC_SESSION_KEY,value)}catch(_){}}
+function ccEraseToken(){try{localStorage.removeItem(CC_SESSION_KEY)}catch(_){}}
+function ccSessionRevoked(error){return /invalid.refresh.token|invalid_grant|refresh.token.not.found|session.not.found/i.test(String(error?.message||error))}
+async function ccRotateSession(){
+ const run=async()=>{
+  const saved=ccReadToken()||refreshToken;
+  if(!saved)throw Error('No hay una sesión guardada');
+  const auth=await api('/auth/v1/token?grant_type=refresh_token',{
+   method:'POST',body:JSON.stringify({refresh_token:saved})});
+  if(!auth?.access_token||!auth?.refresh_token)throw Error('No se pudo renovar sesión');
+  return auth;
+ };
+ if(navigator?.locks?.request)return navigator.locks.request('cc-v192-supabase-refresh',{mode:'exclusive'},run);
+ return run();
 }
-window.setInterval(()=>{if(!document.hidden)refreshSupabaseSession();},20*60*1000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSupabaseSession();});
+async function ccInstallSession(auth,expectedGeneration){
+ if(!auth?.access_token||!auth?.refresh_token)throw Error('Respuesta de autenticación incompleta');
+ const jwt=auth.access_token;
+ const me=await api('/auth/v1/user',{},jwt);
+ if(!me?.id)throw Error('No se verificó la identidad');
+ if(expectedGeneration!==ccAuthGeneration)return false;
+ let admins=[];
+ try{admins=await api('/rest/v1/cc_admins?select=user_id&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}
+ catch(error){console.warn('Sin respuesta de permisos ADMIN:',error?.message||error)}
+ if(expectedGeneration!==ccAuthGeneration)return false;
+ const isAdmin=Array.isArray(admins)&&admins.some(x=>x.user_id===me.id);
+ let authorized=false,commercialRole=null;
+ if(!isAdmin){
+  let memberships=[];
+  try{memberships=await api('/rest/v1/cc_memberships?select=status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}
+  catch(error){console.warn('No se pudo consultar membresías:',error?.message||error)}
+  if(expectedGeneration!==ccAuthGeneration)return false;
+  const active=Array.isArray(memberships)?memberships.filter(m=>m.status==='ACTIVE'):[];
+  authorized=active.some(m=>m.cc_businesses?.code==='COBRA_YA'&&m.role==='RESELLER');
+  commercialRole=active.find(m=>['AFFILIATE','RESELLER','SUPER_RESELLER'].includes(m.role))?.role||null;
+ }
+ if(expectedGeneration!==ccAuthGeneration)return false;
+ sessionToken=jwt;refreshToken=auth.refresh_token;verified=true;
+ ccNextRefreshAt=Date.now()+Math.max(60,Number(auth.expires_in)||3600)*1000-180000;
+ window.CC_V53_SESSION={jwt,userId:me.id,root,key,isAdmin,isReseller:authorized,
+  ...(isAdmin?{}:{commercialRole}),
+  displayName:String(me.user_metadata?.full_name||me.user_metadata?.display_name||me.email?.split('@')[0]||'Usuario')};
+ ccSaveToken(refreshToken);
+ gate.style.display='none';
+ document.getElementById('cc77back').style.display='none';
+ document.getElementById('cc54logout')?.style.setProperty('display','block');
+ if(!isAdmin)document.getElementById('cy53open')?.style.setProperty('display','block');
+ document.getElementById('cc-real-banner')?.remove();
+ try{if(typeof cc79AfterLogin==='function')cc79AfterLogin();
+ else document.getElementById('cc77home')?.style.setProperty('display','block')}
+ catch(error){console.warn('Sesión válida, falló la vista:',error?.message||error)}
+ document.dispatchEvent(new Event('cc192-session-ready'));
+ return true;
+}
+async function ccRestoreSession(){
+ if(window.CC_V53_SESSION)return true;
+ if(ccRestorePending)return ccRestorePending;
+ if(!ccReadToken())return false;
+ const gen=ccAuthGeneration;
+ status.textContent='Recuperando tu sesión segura…';btn.disabled=true;
+ ccRestorePending=(async()=>{
+  try{
+   const auth=await ccRotateSession();
+   if(gen!==ccAuthGeneration)return false;
+   return await ccInstallSession(auth,gen);
+  }catch(error){
+   if(gen!==ccAuthGeneration)return false;
+   if(ccSessionRevoked(error)){
+    ccEraseToken();status.textContent='Esta sesión terminó en el servidor. Inicia sesión nuevamente.';
+   }else{
+    status.textContent='No se pudo reconectar. Tu sesión sigue guardada. Revisa internet y vuelve a intentar.';
+    console.warn('Sesión aún recuperable:',error?.message||error);
+   }
+   return false;
+  }finally{if(gen===ccAuthGeneration)btn.disabled=false}
+ })();
+ try{return await ccRestorePending}finally{ccRestorePending=null}
+}
+async function refreshSupabaseSession(force=false){
+ if(!window.CC_V53_SESSION||!refreshToken)return;
+ if(!force&&Date.now()<ccNextRefreshAt)return;
+ if(refreshPending)return refreshPending;
+ const gen=ccAuthGeneration,owner=window.CC_V53_SESSION.userId;
+ refreshPending=(async()=>{
+  try{
+   const auth=await ccRotateSession();
+   if(gen!==ccAuthGeneration||window.CC_V53_SESSION?.userId!==owner)return;
+   const me=await api('/auth/v1/user',{},auth.access_token);
+   if(gen!==ccAuthGeneration||me?.id!==owner)throw Error('Cuenta distinta. Vuelve a ingresar.');
+   sessionToken=auth.access_token;refreshToken=auth.refresh_token;
+   ccNextRefreshAt=Date.now()+Math.max(60,Number(auth.expires_in)||3600)*1000-180000;
+   ccSaveToken(refreshToken);
+   window.CC_V53_SESSION.jwt=sessionToken;
+   document.dispatchEvent(new Event('cc192-session-refreshed'));
+  }catch(error){
+   console.warn('Renovación pendiente:',error?.message||error);
+   if(gen===ccAuthGeneration&&ccSessionRevoked(error)){
+    ccEraseToken();refreshToken=null;sessionToken=null;verified=false;
+    window.CC_V53_SESSION=null;gate.style.display='flex';
+    status.textContent='La sesión fue revocada en el servidor; debes iniciar sesión.';
+    document.dispatchEvent(new Event('cc192-session-ended'));
+   }
+  }
+ })();
+ try{await refreshPending}finally{refreshPending=null}
+}
+window.ccV192RestoreSession=ccRestoreSession;
+window.ccV192Logout=async function(){
+ const old=sessionToken||window.CC_V53_SESSION?.jwt;
+ ccAuthGeneration++;ccEraseToken();refreshToken=null;sessionToken=null;verified=false;
+ try{sessionStorage.removeItem('cc_v192_panel_context')}catch(_){}
+ window.CC_V53_SESSION=null;
+ document.dispatchEvent(new Event('cc192-session-ended'));
+ try{if(old)await api('/auth/v1/logout?scope=local',{method:'POST'},old)}
+ catch(error){console.warn('Sesión local cerrada:',error?.message||error)}
+ location.reload();
+};
+window.setInterval(()=>{if(!document.hidden)void refreshSupabaseSession()},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refreshSupabaseSession(true)});
+window.addEventListener('online',()=>{
+ if(!window.CC_V53_SESSION)void ccRestoreSession();
+ else void refreshSupabaseSession(true);
+});
+window.addEventListener('focus',()=>{
+ if(!window.CC_V53_SESSION)void ccRestoreSession();
+ else void refreshSupabaseSession();
+});
+window.addEventListener('storage',event=>{
+ if(event.key!==CC_SESSION_KEY)return;
+ if(!event.newValue&&window.CC_V53_SESSION){
+  ccAuthGeneration++;refreshToken=null;sessionToken=null;verified=false;
+  window.CC_V53_SESSION=null;gate.style.display='flex';
+  status.textContent='La sesión se cerró en otra pestaña.';
+  document.dispatchEvent(new Event('cc192-session-ended'));
+ }
+});
 async function signIn(event){
- event.preventDefault();btn.disabled=true;status.textContent='Verificando sesión y autorización…';
+ event.preventDefault();
+ const gen=++ccAuthGeneration;
+ btn.disabled=true;status.textContent='Verificando sesión y autorización…';
  try{
   const email=document.getElementById('cc-real-email').value.trim();
   const password=document.getElementById('cc-real-pass').value;
-  const auth=await api('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password,gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
-  if(!auth.access_token)throw Error('No se recibió una sesión válida.');
-  const jwt=auth.access_token;
-  refreshToken=auth.refresh_token||null;
-  const me=await api('/auth/v1/user',{},jwt);
-  if(!me?.id)throw Error('No se pudo verificar la identidad.');
-  let admins=[];try{admins=await api('/rest/v1/cc_admins?select=user_id&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}catch(error){console.warn('ADMIN no disponible, sin otorgar permisos:',error?.message||error)}
-  if(!Array.isArray(admins)||admins.length===0){
-    let memberships=[];try{memberships=await api('/rest/v1/cc_memberships?select=status,role,cc_businesses(code)&user_id=eq.'+encodeURIComponent(me.id),{},jwt)}catch(error){console.warn('Membresías no disponibles; acceso básico sin privilegios:',error?.message||error)}
-    const active=Array.isArray(memberships)?memberships.filter(m=>m.status==='ACTIVE'):[];
-    const authorized=active.some(m=>m.cc_businesses?.code==='COBRA_YA'&&m.role==='RESELLER');
-    const commercialRole=active.find(m=>['AFFILIATE','RESELLER','SUPER_RESELLER'].includes(m.role))?.role||null;
-    sessionToken=jwt;verified=true;window.CC_V53_SESSION={jwt:jwt,userId:me.id,root:root,key:key,isAdmin:false,isReseller:authorized,commercialRole:commercialRole,displayName:String(me.user_metadata?.full_name||me.user_metadata?.display_name||me.email?.split('@')[0]||'Usuario')};
-    gate.style.display='none';
-    document.getElementById('cc77back').style.display='none';
-    document.getElementById('cc54logout')?.style?.setProperty('display','block');
-    const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent=authorized?'CLAN CARTAN · RESELLER autenticado · cartera privada':commercialRole?'CLAN CARTAN · '+commercialRole.replaceAll('_',' ')+' · consulta de tus servicios':'CLAN CARTAN · Cuenta personal autenticada · servicios por activar';document.body.appendChild(banner);
-    // Mantener sesión real RESELLER autenticada: nunca usar rutas ADMIN locales.
-    document.getElementById('cy53open')?.style?.setProperty('display','block');
-    if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(error){console.error('Error de interfaz tras autenticación correcta',error);document.getElementById('cc77home')?.style?.setProperty('display','block')}}
-    return;
+  const auth=await api('/auth/v1/token?grant_type=password',{
+   method:'POST',body:JSON.stringify({email,password,gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})
+  });
+  if(gen!==ccAuthGeneration)return;
+  await ccInstallSession(auth,gen);
+ }catch(error){
+  if(gen!==ccAuthGeneration)return;
+  const err=String(error?.message||'Error de ingreso');
+  const pending=/email not confirmed|email_not_confirmed/i.test(err);
+  status.textContent=pending?'Confirma tu correo electrónico o solicita un nuevo código.':
+   /invalid login credentials|invalid_grant|invalid credentials/i.test(err)?
+   'Correo o contraseña incorrectos. Usa «¿Olvidaste tu contraseña?» para recuperarla.':err;
+  if(pending){
+   document.getElementById('cc91-email').textContent=document.getElementById('cc-real-email').value.trim();
+   document.getElementById('cc91-confirm').style.display='block';
   }
-  sessionToken=jwt;verified=true;window.CC_V53_SESSION={jwt:jwt,userId:me.id,root:root,key:key,isAdmin:true,isReseller:false,displayName:String(me.user_metadata?.full_name||me.user_metadata?.display_name||me.email?.split('@')[0]||'Usuario')};
-  gate.style.display='none';
-  document.getElementById('cc77back').style.display='none';
-  document.getElementById('cc54logout')?.style?.setProperty('display','block');
-  const banner=document.createElement('div');banner.id='cc-real-banner';banner.textContent='CLAN CARTAN · ADMIN autenticado. Gestiona COBRA YA y tus billeteras desde el panel de servicios.';document.body.appendChild(banner);
-  // El login ADMIN real se completa independientemente del panel local opcional.
-  if(typeof cc79AfterLogin==='function'){try{cc79AfterLogin()}catch(error){console.error('Error de interfaz tras autenticación correcta',error);document.getElementById('cc77home')?.style?.setProperty('display','block')}}
- }catch(e){
- const err=String(e.message||'Error desconocido');
- const pending=/email not confirmed|email_not_confirmed/i.test(err);
- status.textContent=pending?'Confirma tu correo electrónico o solicita un nuevo código.':/invalid login credentials|invalid_grant|invalid credentials/i.test(err)?'Correo o contraseña incorrectos. Usa «¿Olvidaste tu contraseña?» para recuperarla.':err;
- if(pending){document.getElementById('cc91-email').textContent=document.getElementById('cc-real-email').value.trim();document.getElementById('cc91-confirm').style.display='block';}
- document.getElementById('cc90-resend').style.display=pending?'block':'none';
- document.getElementById('cc-real-pass').value='';
+  document.getElementById('cc90-resend').style.display=pending?'block':'none';
+ }finally{
+  document.getElementById('cc-real-pass').value='';
+  if(gen===ccAuthGeneration)btn.disabled=false;
+ }
 }
- finally{btn.disabled=false;}
-}
+// Restaurar automáticamente en cada carga, sin reutilizar la contraseña.
+void ccRestoreSession();
 let registering=false,registrationPending=false;
 const ccParte1LegalReady=()=>document.getElementById('cc-v81-terms').checked&&document.getElementById('cc164-privacy').checked;
 function ccParte1SyncRegisterButton(){
@@ -5025,7 +5132,7 @@ const originalLogin=window.loginDemo;
 window.loginDemo=function(id){if(!verified||window.CC_V53_SESSION?.isAdmin!==true||id!=='admin'){alert('Acceso no autorizado. Usa el inicio de sesión real de CLAN CARTAN.');return;}return originalLogin(id);};
 window.cccLoginByEmail=function(){alert('Utiliza únicamente el inicio de sesión seguro de CLAN CARTAN.');};
 window.cccOpenBusinessAuth=function(){alert('Accede a los módulos según el estado real de tus servicios.');};
-window.logout=function(){window.CC_V53_SESSION=null;verified=false;refreshToken=null;if(sessionToken)api('/auth/v1/logout',{method:'POST'},sessionToken).catch(()=>{});sessionToken=null;location.reload();};
+window.logout=function(){return window.ccV192Logout();};verified=false;refreshToken=null;if(sessionToken)api('/auth/v1/logout',{method:'POST'},sessionToken).catch(()=>{});sessionToken=null;location.reload();};
 })();
 </script>
 
@@ -5616,15 +5723,7 @@ window.cy54={
 const layer=document.getElementById('cy53layer');
 const panel=layer?.querySelector('.cywrap');
 // V114: navegación unificada en la cabecera de COBRA YA.
-window.cc54SwitchAccount=async function(){const adminButton=document.getElementById('cc92-admin-button');if(adminButton)adminButton.style.display='none';
- try{
-  const s=window.CC_V53_SESSION;
-  if(s?.jwt)await fetch(s.root+'/auth/v1/logout',{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+s.jwt}});
- }catch(e){console.warn('No se confirmó cierre remoto; se descarta la sesión local.',e)}
- window.CC_V53_SESSION=null;
- document.getElementById('cy53layer').style.display='none';
- location.reload();
-};
+window.cc54SwitchAccount=function(){return window.ccV192Logout();};
 const btn=document.getElementById('cc54logout');
 const watch=new MutationObserver(()=>{const logged=!!window.CC_V53_SESSION;btn.style.display=logged?'block':'none';});
 watch.observe(document.documentElement,{childList:true,subtree:true});
