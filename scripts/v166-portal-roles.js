@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V183 · QR de referencia y aviso por WhatsApp de solicitudes reales.
+/* CLAN CARTAN · V184 · Registro CLAN y correo verificados en recargas ADMIN.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -44,7 +44,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V183 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V184 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -370,7 +370,7 @@ async function loadAdminRecharges(force=false){
  const uid=user,jwt=token;
  try{
   const [rows,ready]=await Promise.all([
-   api('rpc/cc_admin_manual_recharge_queue','POST',{}),
+   api('rpc/cc_admin_manual_recharge_queue_v184','POST',{}),
    api('rpc/cc_manual_recharge_public_status','POST',{})
   ]);
   if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
@@ -520,9 +520,23 @@ function adminRecharges(page){
   for(const row of rechargeRows.slice(0,80)){
    const item=make('article','cc176-recharge-record');
    const top=make('div','cc176-recharge-head'),left=make('div','');
-   left.append(make('strong','',String(row.payer_name||'Cliente')));
-   left.append(make('small','',serviceName(row.service)+' · '+safeDate(row.created_at)));
-   left.append(make('small','','Solicitud '+String(row.request_id||'—')));
+   // Identificación de la cuenta desde auth.users + registro CLAN, NO desde el comprobante.
+   const identity=make('div','cc184-recharge-identity');
+   const number=Number(row.registry_no);
+   const code=typeof row.registry_code==='string'&&/^CLAN[0-9]+$/.test(row.registry_code)?
+     row.registry_code:(Number.isSafeInteger(number)&&number>0?'CLAN'+number:'Registro no disponible');
+   const codeLine=make('div','cc184-register-line');
+   codeLine.append(make('strong','cc184-code',code));
+   if(Number.isSafeInteger(number)&&number>0)codeLine.append(make('span','cc184-reg-no','N.º de registro: '+number));
+   identity.append(codeLine);
+   if(row.registered_alias)identity.append(make('p','cc184-identity-line','Usuario: '+String(row.registered_alias)));
+   identity.append(make('p','cc184-identity-line','Nombre registrado: '+String(row.registered_name||'No disponible')));
+   identity.append(make('p','cc184-identity-line','Correo de la cuenta: '+String(row.registered_email||'No disponible')));
+   left.append(identity);
+   if(row.payer_name&&String(row.payer_name).trim()!==String(row.registered_name||'').trim())
+    left.append(make('small','cc184-payer-note','Depositante declarado (NO verificado): '+String(row.payer_name)));
+   left.append(make('small','','Negocio: '+serviceName(row.service)+' · '+safeDate(row.created_at)));
+   left.append(make('small','cc184-request','N.º de solicitud: '+String(row.request_id||'—')));
    if(row.payer_reference)left.append(make('small','','Referencia declarada (NO verificada): '+String(row.payer_reference)));
    top.append(left,make('strong','',price(row.amount_pen)));item.append(top);
    const actions=make('div','cc166-actions');
