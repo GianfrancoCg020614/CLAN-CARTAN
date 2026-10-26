@@ -998,6 +998,24 @@ function wallet(page){
  const latest=card('Últimos movimientos','Los depósitos pendientes no aumentan tu saldo.');
  movementList(latest,8);page.append(latest);
 }
+function businessPeriod(code){
+ const periods=[];
+ if(code==='COBRA_YA'){
+  for(const row of data.cy||[])if(row.status==='ACTIVE')periods.push({start:row.period_start||row.start_at,end:row.period_end});
+ }else if(code==='MI_COCHERA'||code==='MI_ALQUILER'){
+  const row=code==='MI_COCHERA'?data.mc:data.ma;
+  if(row?.subscription_until&&!row.suspended)periods.push({start:row.subscription_start||row.started_at||row.created_at,end:row.subscription_until});
+ }else{
+  for(const m of data.members||[])for(const sub of data.subs||[])if(sub.membership_id===m.id&&sub.status==='ACTIVE')periods.push({start:sub.start_at,end:sub.end_at});
+ }
+ return periods.filter(p=>p.end&&Number.isFinite(Date.parse(p.end))).sort((a,b)=>Date.parse(b.end)-Date.parse(a.end))[0]||null;
+}
+function businessPeriodInfo(box,code){
+ const period=businessPeriod(code);
+ if(!period)return;
+ const fmt=x=>x&&Number.isFinite(Date.parse(x))?new Date(x).toLocaleDateString('es-PE',{timeZone:'America/Lima'}):'No registrada';
+ box.append(make('p','cc166-note','Inicio: '+fmt(period.start)+' · Vencimiento: '+fmt(period.end)));
+}
 const businessMonthlyPrice=15;
 function realBalance(){return data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);}
 function businessPayButtons(box,code,active){
@@ -1005,11 +1023,11 @@ function businessPayButtons(box,code,active){
  box.append(make('p','cc166-note','30 días · S/ 15.00 · Saldo real de tu billetera CLAN CARTAN: '+price(realBalance())));
  const actions=make('div','cc166-actions');
  if(!active||code!=='COBRA_YA'){
-  const b=button(active?'Renovar 30 días por S/ 15.00':'💳 Pagar S/ 15.00 y activar',
+  const b=button(active?'Renovar 30 días por S/ 15.00':'💳 Pagar suscripción · S/ 15.00',
    ()=>void activateBusiness(code,b),'cc166-primary');
   b.disabled=!verified||!!businessActivationPending;actions.append(b);
  }
- if(!active&&realBalance()<businessMonthlyPrice)actions.append(button('Recargar billetera',
+ if(realBalance()<businessMonthlyPrice)actions.append(button('Saldo insuficiente · Recargar billetera',
   ()=>{view='wallet';walletTab='manual';render();},'cc166-secondary'));
  box.append(actions);
 }
@@ -1048,13 +1066,16 @@ function memberships(page){
  const list=make('div','cc176-attention-grid');
  for(const [code] of services){
   const active=access(code).ok,cardEl=card(serviceName(code),active?'✅ Membresía activa':'○ No habilitado · Activar');
+  businessPeriodInfo(cardEl,code);
   if(code==='STREAM_BULLS'){
    const cost=Number(data.plan?.price_pen);
    cardEl.append(make('p','cc166-note','Plan 365 días · '+(cost>0?price(cost):'Precio no verificado')));
-   if(!active&&verified&&cost>0&&!data.admin)
-    cardEl.append(button('Pagar y activar por '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary'));
+   if(verified&&cost>0&&!data.admin){
+    cardEl.append(button(active?'Renovar suscripción · '+price(cost):'Pagar suscripción · '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary'));
+    if(realBalance()<cost)cardEl.append(button('Saldo insuficiente · Recargar billetera',()=>{view='wallet';walletTab='manual';render();},'cc166-secondary'));
+   }
   }else businessPayButtons(cardEl,code,active);
-  cardEl.append(button(active?'Entrar al negocio':'Ver membresía',()=>{view='business:'+code;render();},'cc166-secondary'));
+  cardEl.append(button(active?'Ingresar a '+serviceName(code):'Ver suscripción',()=>{view='business:'+code;render();},active?'cc166-primary':'cc166-secondary'));
   list.append(cardEl);
  }
  page.append(list);
@@ -1079,6 +1100,7 @@ function businessPage(page,code){
  const info=access(code);title(page,serviceName(code),info.ok?'Membresía verificada · Controles habilitados':'Tu acceso a este negocio está bloqueado hasta activar o renovar la membresía.');
  if(code==='STREAM_BULLS'){
   const shell=card('STREAM BULL’S · Servicios digitales',info.ok?'Tu suscripción de gestión está activa.':'Puedes comprar productos sin membresía. Para gestionar cuentas necesitas activar el plan.');
+  businessPeriodInfo(shell,code);
   const actions=make('div','cc166-actions');
   if(!data.admin)actions.append(button('Comprar en catálogo público',()=>nav('shop'),'cc166-secondary'));
   if(info.ok){
@@ -1088,12 +1110,14 @@ function businessPage(page,code){
   }else{
    const cost=Number(data.plan?.price_pen);
    shell.append(metric('Membresía anual · 365 días',Number.isFinite(cost)&&cost>0?price(cost):'Precio no verificado','gold'));
-   if(!data.admin){const pay=button('Activar por '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary');pay.disabled=!(Number.isFinite(cost)&&cost>0&&verified);actions.append(pay);}
+   if(!data.admin){const pay=button('Pagar suscripción · '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary');pay.disabled=!(Number.isFinite(cost)&&cost>0&&verified);actions.append(pay);}
   }
+  if(info.ok&&!data.admin){const cost=Number(data.plan?.price_pen);if(cost>0)actions.append(button('Renovar suscripción · '+price(cost),()=>void buyStreamMembership(cost),'cc166-secondary'));}
   shell.append(actions);page.append(shell);
  }else{
   const shell=card(info.ok?'Membresía activa':'Activar con saldo real',
    info.ok?'Tu membresía está vigente.':'Paga S/ 15.00 por 30 días desde tu billetera única. La activación es inmediata al confirmar el descuento.');
+  businessPeriodInfo(shell,code);
   businessPayButtons(shell,code,info.ok);
   if(info.ok||data.admin)shell.append(button('Ingresar a '+serviceName(code),()=>{
    const fn={COBRA_YA:()=>window.cc79Cobra?.(),MI_COCHERA:()=>window.mc158Open?.(),
