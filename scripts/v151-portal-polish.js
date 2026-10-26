@@ -99,11 +99,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  if(!document.getElementById('cc166-panel-style')){
   const css=document.createElement('link');css.id='cc166-panel-style';
-  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=174';document.head.append(css);
+  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=176';document.head.append(css);
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=175';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=176';script.async=false;document.head.append(script);
  }
 })();
 
@@ -148,6 +148,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  if(document.getElementById('cc171-admin-simple-css'))return;
  const css=document.createElement('link');
  css.id='cc171-admin-simple-css';css.rel='stylesheet';
- css.href='styles/v171-admin-simple.css?v=175';
+ css.href='styles/v171-admin-simple.css?v=176';
  document.head.append(css);
+})();
+
+/* V176 · Estilo exclusivo para la consola de ADMIN. Sin nuevos paneles. */
+(function(){
+ 'use strict';
+ if(document.getElementById('cc176-admin-style'))return;
+ const style=document.createElement('link');style.id='cc176-admin-style';
+ style.rel='stylesheet';style.href='styles/v176-admin-console.css?v=176';
+ document.head.append(style);
 })();
