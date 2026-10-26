@@ -81,7 +81,7 @@ async function lookupDni(button){const form=button.closest('form[data-ma-form="t
   const res=await fetch(s.root+'/functions/v1/ma-verify-dni',{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+s.jwt,'Content-Type':'application/json'},body:JSON.stringify({dni})});
   const data=await res.json().catch(()=>({}));
   if(!form.isConnected||form.elements.namedItem('document')?.value?.trim()!==previous)return;
-  if(res.ok&&(data.status==='found'||data.status==='saved')&&data.full_name){name.value=String(data.full_name).slice(0,160);info.textContent=data.status==='saved'?'Nombre encontrado en tu cartera (sin nueva consulta externa).':'Nombre consultado mediante API Perú. Revisa los datos antes de guardar.';}
+  if(res.ok&&(data.status==='found'||data.status==='saved')&&data.full_name){name.value=String(data.full_name).slice(0,160);info.textContent=data.status==='saved'?'Identidad verificada guardada (sin consumir cupo).':'Nombre consultado mediante API Perú. Revisa los datos antes de guardar.';}
   else{const reasons={operator_not_approved:'Sin autorización vigente para consulta externa.',quota_exhausted:'Cupo API Perú agotado.',provider_not_configured:'Token API Perú no configurado.',subscription_inactive:'Membresía no activa.',not_found:'No se encontró el DNI.',provider_unavailable:'Proveedor no disponible.',membership_unavailable:'No se pudo validar la membresía.'};info.textContent=(reasons[data.reason]||'Consulta no disponible.')+' Puedes registrar manualmente.';}
  }catch(_){info.textContent='No se pudo conectar con API Perú. Puedes registrar manualmente.';}finally{button.disabled=false;}
 }
