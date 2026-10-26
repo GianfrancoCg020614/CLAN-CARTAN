@@ -86,3 +86,25 @@ html[data-cc-theme="light"] #ma1611layer h2,html[data-cc-theme="light"] #ma1611l
 html[data-cc-theme="light"] #ma1611layer .ma1611-head p,html[data-cc-theme="light"] #ma1611layer .ma1611-summary p{color:#506a7c}
 html[data-cc-theme="light"] #ma1611layer button:not(.active){background:#eaf3f7;color:#25485a;border-color:#b8ced8}
 @media(prefers-reduced-motion:reduce){#cc77home .cc77card,#cc77home .ma1611-card{transition:none!important}#cc77home .cc77card:hover,#cc77home .ma1611-card:hover{transform:none!important}}
+/* V209 · Tarjetas comerciales de cuatro negocios: retícula, tipografía y acciones uniformes. */
+#cc77home .cc77cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:stretch}
+#cc77home .cc77cards > .cc77card,#cc77home .cc77cards > .ma1611-card{position:relative;display:flex;flex-direction:column;gap:14px;min-height:510px;padding:24px 22px;border:1px solid rgba(55,205,207,.65);border-radius:22px;background:linear-gradient(155deg,#0d414b,#092335 80%);box-shadow:0 16px 36px rgba(0,9,20,.28);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:left}
+#cc77home .cc77cards > .cc77card .cc77tag,#cc77home .cc77cards > .ma1611-card .ma1611-card-copy small{display:flex;align-items:center;min-height:35px;max-width:none;width:100%;padding:7px 12px;border:1px solid rgba(67,204,204,.45);border-radius:18px;background:rgba(2,42,52,.65);color:#a6eee8;font-size:10px;font-weight:800;line-height:1.35;letter-spacing:.065em;text-transform:uppercase}
+#cc77home .cc77cards > .cc77card .cc78service{display:grid;grid-template-columns:74px minmax(0,1fr);align-items:center;gap:13px;min-height:90px}
+#cc77home .cc77cards > .cc77card .cc78service-logo,#cc77home .cc77cards > .ma1611-card .ma1611-card-icon{display:block;width:74px;height:74px;max-width:74px;min-width:74px;flex:0 0 74px;object-fit:contain;border-radius:15px;margin:0}
+#cc77home .cc77cards > .cc77card h2,#cc77home .cc77cards > .ma1611-card h2{font-family:inherit;font-size:clamp(21px,2vw,29px);font-weight:850;line-height:1.12;letter-spacing:-.035em;text-transform:uppercase;margin:0;color:#f6fcff}
+#cc77home .cc77cards > .ma1611-card{justify-content:flex-start}
+#cc77home .cc77cards > .ma1611-card .ma1611-card-copy{display:contents}
+#cc77home .cc77cards > .ma1611-card .ma1611-card-icon{order:1}
+#cc77home .cc77cards > .ma1611-card .ma1611-card-copy small{order:0}
+#cc77home .cc77cards > .ma1611-card h2{order:2;min-height:55px}
+#cc77home .cc77cards > .ma1611-card p{order:3;flex:1 1 auto}
+#cc77home .cc77cards > .ma1611-card .ma1611-chip{order:4}
+#cc77home .cc77cards > .ma1611-card button{order:5}
+#cc77home .cc77cards > .cc77card p,#cc77home .cc77cards > .ma1611-card p{font-family:inherit;font-size:13px;line-height:1.7;color:#d2e1e8;margin:0}
+#cc77home .cc77cards > .cc77card .cc77actions{margin-top:auto;display:flex;flex-direction:column;gap:10px;width:100%}
+#cc77home .cc77cards > .cc77card .cc77actions button,#cc77home .cc77cards > .ma1611-card button{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:11px 12px;margin:0;border-radius:12px;border:1px solid #45d8d8;background:linear-gradient(100deg,#17d6c4,#2dbbeb);color:#062435;font-family:inherit;font-size:12px;font-weight:800;line-height:1.35;text-align:center;text-transform:none;box-sizing:border-box}
+#cc77home .cc77cards > .cc77card .cc77actions button:focus-visible,#cc77home .cc77cards > .ma1611-card button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#cc77home .cc77cards > .cc77card .cc77actions button:hover,#cc77home .cc77cards > .ma1611-card button:hover{filter:brightness(1.08)}
+@media(max-width:1130px){#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))}#cc77home .cc77cards > .cc77card,#cc77home .cc77cards > .ma1611-card{min-height:440px}}
+@media(max-width:590px){#cc77home .cc77cards{grid-template-columns:1fr}#cc77home .cc77cards > .cc77card,#cc77home .cc77cards > .ma1611-card{min-height:0;padding:21px}}
