@@ -42,7 +42,7 @@ jobs:
           assert(ui.includes('sb_oper_confirm_transfer'));
           assert(ui.includes('sb_oper_record_payment'));
           assert(ui.includes('America/Lima'));
-          assert(!ui.includes('DEMO'));
+          assert(!ui.includes('fixtures('));
           assert(css.includes('#sb195-attention'));
           const sql=fs.readFileSync('supabase/migrations/20261026090000_v195_streambulls_schema.sql','utf8');
           assert(sql.includes('enable row level security'));
