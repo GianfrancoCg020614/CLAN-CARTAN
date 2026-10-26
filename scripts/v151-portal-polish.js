@@ -99,11 +99,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  if(!document.getElementById('cc166-panel-style')){
   const css=document.createElement('link');css.id='cc166-panel-style';
-  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=176';document.head.append(css);
+  css.rel='stylesheet';css.href='styles/v166-portal-roles.css?v=177';document.head.append(css);
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=176';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=177';script.async=false;document.head.append(script);
  }
 })();
 
@@ -148,7 +148,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  if(document.getElementById('cc171-admin-simple-css'))return;
  const css=document.createElement('link');
  css.id='cc171-admin-simple-css';css.rel='stylesheet';
- css.href='styles/v171-admin-simple.css?v=176';
+ css.href='styles/v171-admin-simple.css?v=177';
  document.head.append(css);
 })();
 
@@ -157,6 +157,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  if(document.getElementById('cc176-admin-style'))return;
  const style=document.createElement('link');style.id='cc176-admin-style';
- style.rel='stylesheet';style.href='styles/v176-admin-console.css?v=176';
+ style.rel='stylesheet';style.href='styles/v176-admin-console.css?v=177';
  document.head.append(style);
+})();
+
+/* V177 · Diseño común de los cuatro roles; sin abrir administraciones paralelas. */
+(function(){
+ 'use strict';
+ if(document.getElementById('cc177-shared-panel-css'))return;
+ const link=document.createElement('link');link.id='cc177-shared-panel-css';
+ link.rel='stylesheet';link.href='styles/v177-panel-unico.css?v=177';
+ document.head.append(link);
 })();
