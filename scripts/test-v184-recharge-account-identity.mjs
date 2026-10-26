@@ -20,4 +20,18 @@ for(const name of ['registry_no','registry_code','registered_name','registered_e
 }
 assert.match(js,/Depositante declarado \(NO verificado\)/,'No confundir pagador y solicitante');
 assert.doesNotMatch(sql,/update public\.cc_real_service_wallets|insert into public\.cc_real_wallet_ledger/i,'No mover dinero al leer identidad');
+const ownSql=fs.readFileSync('supabase/migrations/20261026032705_cc_portal_my_recharge_identity_v187.sql','utf8');
+const legacy=fs.readFileSync('scripts/v148-manual-whatsapp.js','utf8');
+assert.match(ownSql,/create or replace function public\.cc_portal_my_recharge_identity_v187\(\)/i);
+assert.match(ownSql,/v_uid uuid := \(select auth\.uid\(\)\)/i,'Identidad vinculada al usuario autenticado');
+assert.match(ownSql,/where u\.id=v_uid;/i,'Solo datos propios');
+assert.match(ownSql,/revoke all on function public\.cc_portal_my_recharge_identity_v187\(\) from public,anon;/i);
+assert.match(ownSql,/grant execute on function public\.cc_portal_my_recharge_identity_v187\(\) to authenticated;/i);
+assert.match(js,/api\('rpc\/cc_portal_my_recharge_identity_v187','POST',\{\}\)/);
+assert.match(legacy,/api\('rpc\/cc_portal_my_recharge_identity_v187','POST',\{\}\)/);
+for(const required of ['*YA PAGUÉ – (','*SOLICITUD:*','*Cuenta:*','*Correo:*','*Importe solicitado:*','*Te envío mi comprobante de pago para su verificación.*']) {
+ assert.ok(js.includes(required)&&legacy.includes(required),'El aviso CLAN debe incluir '+required);
+}
+assert.ok(!js.includes('CLAN3'),'El mensaje debe obtener el CLAN desde el servidor; nunca fijo');
+console.log('PASS V187: CLAN, nombre y correo privados; formato WhatsApp uniforme y sin acreditar saldo.');
 console.log('PASS V184: titular, email, CLAN, autorización ADMIN, depósito separado y saldo intacto.');
