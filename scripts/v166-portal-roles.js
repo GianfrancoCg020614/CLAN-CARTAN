@@ -705,10 +705,10 @@ function qrReferenceCards(){
    img.src=m.image;img.alt=m.alt;img.loading='eager';
    img.width=320;img.height=320;
    modal.append(img,make('p','cc183-qr-warning',m.notice));
-   const done=button('✕ Cerrar QR',()=>modal.close(),'cc166-secondary');
+   const done=button('✕ Cerrar QR',()=>{modal.close();modal.remove();},'cc166-secondary');
    modal.append(done);
    modal.addEventListener('close',()=>modal.remove(),{once:true});
-   modal.addEventListener('click',e=>{if(e.target===modal)modal.close();});
+   modal.addEventListener('click',e=>{if(e.target===modal){modal.close();modal.remove();}});
    document.body.append(modal);
    if(typeof modal.showModal==='function')modal.showModal();else modal.open=true;
   },'cc166-secondary cc183-qr-button');
