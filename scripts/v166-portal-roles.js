@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V180 · Cambiar situación comercial directamente en Usuarios.
+/* CLAN CARTAN · V181 · ADMIN valida, otorga recargas y bonos, sin usar servicios.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -14,7 +14,8 @@ let walletTab='summary',rechargeMode='manual';
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
 let rechargeRows=[],rechargeState='idle',rechargeError='';
-let rechargeReady=null,rechargeSaving=false;
+let rechargeReady=null,rechargeSaving=false,assistedRechargeSaving=false;
+let chosenAdminRecipient=null,chosenBonusRecipient=null;
 let auditData=null,auditRows=[],auditState='idle',auditError='';
 let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};
 let lastReceipt=null,purchasePending=false,membershipPending=false;
@@ -33,14 +34,15 @@ function reset(){
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
  rechargeRows=[];rechargeState='idle';rechargeError='';
- rechargeReady=null;rechargeSaving=false;
+ rechargeReady=null;rechargeSaving=false;assistedRechargeSaving=false;
+ chosenAdminRecipient=null;chosenBonusRecipient=null;
  auditData=null;auditRows=[];auditState='idle';auditError='';
 }
 function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V180 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V181 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -189,7 +191,7 @@ function movementList(page,max){
 function adminRecords(){
  return {
   pendingDeliveries:data.orders.filter(o=>o.status==='PAID_AWAITING_DELIVERY'),
-  pendingPayments:adminAccountsState==='ready'?adminAccounts.filter(a=>!a.is_admin&&!a.access_until):[],
+  pendingPayments:adminAccountsState==='ready'?adminAccounts.filter(a=>!a.is_admin&&!(a.paid_until&&Date.parse(a.paid_until)>Date.now())):[],
   superApproved:adminAccountsState==='ready'?adminAccounts.filter(a=>!a.is_admin&&a.super_enabled):[],
   activeProducts:data.products.filter(p=>p.status==='ACTIVE')
  };
@@ -206,6 +208,8 @@ function adminHome(page){
  const quick=make('div','cc166-actions');
  quick.append(button('Revisar pendientes',()=>nav('attention'),'cc166-primary'));
  quick.append(button('Administrar usuarios',()=>nav('admin'),'cc166-secondary'));
+ quick.append(button('Otorgar recarga',()=>openAdminGrantRecharge(),'cc166-primary'));
+ quick.append(button('Otorgar bono',()=>openAdminGrantBonus(),'cc166-secondary'));
  intro.append(quick);page.append(intro);
  const stats=make('div','cc176-kpis');
  stats.append(metric('Usuarios registrados',adminAccountsState==='ready'?String(adminAccounts.length):'—','blue'));
@@ -405,7 +409,96 @@ async function adminDecideRecharge(row,approve,transaction,bank,confirmed,btn){
   if(user===uid&&session()?.jwt===jwt)notice('No se procesó la recarga: '+String(e?.message||e));
  }finally{rechargeSaving=false;btn.disabled=false;}
 }
+function openAdminGrantRecharge(person){
+ if(!data.admin)return;
+ chosenAdminRecipient=person?.user_id||null;
+ finance('recharges');
+}
+function openAdminGrantBonus(person){
+ if(!data.admin)return;
+ chosenBonusRecipient=person?.email||null;
+ nav('bonuses');
+}
+async function submitAdminAssistedRecharge(target,service,amount,reference,buttonEl){
+ if(!data.admin||!verified||assistedRechargeSaving||!session()?.jwt)return;
+ const recipient=adminAccounts.find(x=>x.user_id===target&&!x.is_admin);
+ const value=Number(amount),ref=String(reference||'').trim();
+ if(!recipient||!['STREAM_BULLS','COBRA_YA','MI_ALQUILER'].includes(service)||
+ !Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.00001||
+ (ref&&(ref.length<4||ref.length>120))){
+  notice('Selecciona un usuario no ADMIN, billetera compatible e importe entre S/ 1 y S/ 1000.');return;
+ }
+ if(!window.crypto?.randomUUID){notice('Es necesaria una conexión segura.');return;}
+ if(!window.confirm('¿Registrar una recarga PENDIENTE de '+price(value)+' para '+recipient.registry_code+'? No se acreditará hasta validar el pago real.'))return;
+ assistedRechargeSaving=true;buttonEl.disabled=true;
+ const uid=user,jwt=token,request=window.crypto.randomUUID();
+ try{
+  const result=await api('rpc/cc_admin_create_manual_recharge_for_user','POST',{
+   p_target:recipient.user_id,p_service:service,p_amount:value,
+   p_request:request,p_payer_reference:ref||null
+  });
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(result!==request)throw Error('No se confirmó el registro de la solicitud');
+  rechargeState='idle';
+  await loadAdminRecharges(true);
+  notice('Recarga de '+recipient.registry_code+' registrada como PENDIENTE, referencia '+request.slice(0,8)+'. Debes verificar el depósito real antes de acreditarla.');
+ }catch(e){
+  if(user===uid&&jwt===token)notice('No se registró la recarga: '+String(e?.message||e)+'. Comprueba las solicitudes antes de reintentar.');
+ }finally{assistedRechargeSaving=false;buttonEl.disabled=false;}
+}
+function adminAssistedRechargeForm(page){
+ if(adminAccountsState==='idle')void loadAdminAccounts();
+ const box=card('Otorgar recarga','Selecciona al cliente registrado. Esta acción crea una solicitud manual; nunca acredita fondos sin comprobar el depósito real.');
+ const details=make('details','cc181-grant-form');
+ details.open=!!chosenAdminRecipient;
+ details.append(make('summary','','+ Otorgar recarga a usuario'));
+ if(adminAccountsState==='loading'||adminAccountsState==='idle'){
+  details.append(make('p','cc166-note','Cargando cuentas registradas…'));
+ }else if(adminAccountsState==='error'){
+  details.append(make('p','cc166-notice',adminAccountsError));
+  details.append(button('Reintentar',()=>void loadAdminAccounts(true),'cc166-secondary'));
+ }else{
+  const users=adminAccounts.filter(p=>!p.is_admin&&p.user_id);
+  if(!users.length)details.append(make('p','cc166-note','No hay usuarios habilitados para registrar recargas.'));
+  else{
+   const form=make('form','cc181-assist-fields');
+   const uLabel=make('label','','Cuenta beneficiaria');
+   const selector=document.createElement('select');
+   for(const p of users){
+    const opt=make('option','',(p.registry_code||'CLAN')+' · '+(p.registry_alias||p.display_name||p.email));
+    opt.value=p.user_id;selector.append(opt);
+   }
+   if(chosenAdminRecipient&&users.some(p=>p.user_id===chosenAdminRecipient))
+     selector.value=chosenAdminRecipient;
+   chosenAdminRecipient=null;
+   uLabel.append(selector);form.append(uLabel);
+   const serviceLabel=make('label','','Billetera del negocio');
+   const business=document.createElement('select');
+   for(const code of ['STREAM_BULLS','COBRA_YA','MI_ALQUILER']){
+    const opt=make('option','',serviceName(code));opt.value=code;business.append(opt);
+   }
+   serviceLabel.append(business);form.append(serviceLabel);
+   const priceLabel=make('label','','Monto de recarga (S/)');
+   const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
+   priceLabel.append(amount);form.append(priceLabel);
+   const refLabel=make('label','','Referencia declarada (opcional)');
+   const reference=document.createElement('input');reference.maxLength=120;reference.placeholder='ID de depósito si existe';
+   refLabel.append(reference);form.append(refLabel);
+   const submit=make('button','cc166-primary','Registrar recarga pendiente');submit.type='submit';
+   form.append(submit);
+   form.addEventListener('submit',e=>{
+    e.preventDefault();void submitAdminAssistedRecharge(selector.value,business.value,amount.value,reference.value,submit);
+   });
+   details.append(form);
+  }
+ }
+ if(rechargeState==='ready'&&!rechargeReady?.enabled)
+   details.append(make('p','cc176-finance-warning','La recepción bancaria comercial NO está habilitada actualmente. Puedes registrar solicitudes, pero NO acreditarlas hasta su habilitación y verificación.'));
+ details.append(make('p','cc166-note','Bonos de bienvenida se otorgan aparte, en ADMIN → Bonos. No requieren ni simulan depósitos.'));
+ box.append(details);page.append(box);
+}
 function adminRecharges(page){
+ adminAssistedRechargeForm(page);
  const box=card('Recargas pendientes','El ADMIN verifica el pago bancario real antes de acreditar. Los comprobantes declarados no son confirmación.');
  const actions=make('div','cc166-actions');
  actions.append(button('Actualizar pendientes',()=>void loadAdminRecharges(true),'cc166-secondary'));box.append(actions);
@@ -1131,6 +1224,10 @@ function adminAccountRow(person){
  tools.append(input,save);rename.append(tools);actions.append(rename);
  if(person.is_admin)actions.append(make('span','cc171-admin-protected','ADMIN protegido'));
  else{
+  const quick=make('div','cc181-user-actions');
+  quick.append(button('Otorgar recarga',()=>openAdminGrantRecharge(person),'cc166-secondary cc171-small'));
+  quick.append(button('Otorgar bono',()=>openAdminGrantBonus(person),'cc166-secondary cc171-small'));
+  actions.append(quick);
   const isApproved=person.role_assigned==='SUPER_RESELLER'&&!!person.super_enabled;
   const pendingSuper=person.role_assigned==='SUPER_RESELLER'&&!person.super_enabled;
   const paid=!!(person.paid_until&&Date.parse(person.paid_until)>Date.now());
@@ -1224,6 +1321,9 @@ function adminBonuses(page){
   const item=make('option','',(person.registry_code||'CLAN')+' · '+(person.registry_alias||person.display_name||person.email));
   item.value=person.email;recipient.append(item);
  });
+ if(chosenBonusRecipient&&options.some(p=>p.email===chosenBonusRecipient))
+  recipient.value=chosenBonusRecipient;
+ chosenBonusRecipient=null;
  label.append(recipient);form.append(label);
  const business=make('label','','Negocio que recibe el bono');
  const service=document.createElement('select');
@@ -1288,9 +1388,9 @@ function admin(page){
  const summary=make('div','cc171-top-summary');
  if(adminAccountsState==='ready'){
   const active=adminAccounts.filter(a=>a.is_admin||
-   a.access_until&&Date.parse(a.access_until)>Date.now()).length;
+   a.paid_until&&Date.parse(a.paid_until)>Date.now()).length;
   const pending=adminAccounts.filter(a=>!a.is_admin&&
-    !(a.access_until&&Date.parse(a.access_until)>Date.now())).length;
+    !(a.paid_until&&Date.parse(a.paid_until)>Date.now())).length;
   summary.append(metric('Usuarios registrados',String(adminAccounts.length),'blue'),
     metric('Accesos vigentes',String(active),'aqua'),
     metric('Pendientes',String(pending),'gold'));
