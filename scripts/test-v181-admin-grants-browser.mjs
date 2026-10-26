@@ -19,7 +19,7 @@ const setup=[
  'window.cc80={open(){},api:async function(p,method,b){window.__calls.push({p,b});',
  'if(p.startsWith("cc_admins?"))return [{user_id:"test-admin"}];',
  'if(p==="rpc/cc_portal_admin_accounts_v2")return window.__users;',
- 'if(p==="rpc/cc_admin_manual_recharge_queue")return [];',
+ 'if(p==="rpc/cc_admin_manual_recharge_queue_v184")return [];',
  'if(p==="rpc/cc_manual_recharge_public_status")return [{enabled:false}];',
  'if(p==="rpc/cc_admin_create_manual_recharge_for_user")return b.p_request;',
  'if(p.startsWith("cc_businesses?"))return [{id:"stream",code:"STREAM_BULLS"}];',
