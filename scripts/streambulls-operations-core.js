@@ -134,7 +134,11 @@ function confirmTransfer(s,transferId,accessRemoved){
  assert(accessRemoved===true,'Confirma retirada real del acceso anterior');
  const a=byId(s.assignments,t.assignmentId),c=byId(s.contracts,t.contractId);
  assert(a&&a.state!=='CLOSED'&&c,'Asignación original cambió');
- assert(available(s).some(x=>x.accountId===t.accountId&&x.position===t.position),'Destino ya ocupado');
+ const target=byId(s.accounts,t.accountId);
+ assert(target&&target.status==='ACTIVE'&&target.allowReuse&&new Date(target.end)>new Date(),
+   'Cuenta destino ya no cumple las condiciones');
+ assert(!s.assignments.some(x=>x.accountId===t.accountId&&x.position===t.position&&x.state!=='CLOSED'),
+   'Destino ya ocupado');
  a.state='CLOSED';a.removedAt=new Date().toISOString();
  const next={id:id(),contractId:t.contractId,accountId:t.accountId,position:t.position,
  state:'ACTIVE',assignedAt:new Date().toISOString(),removedAt:null};
