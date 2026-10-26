@@ -28,7 +28,7 @@
       '<div class="ma1611-card-copy"><small>CLAN CARTAN · CUARTA PLATAFORMA</small>' +
       '<h2>MI ALQUILER</h2><p>Habitaciones y locales · alquiler diario y mensual</p>' +
       '<span class="ma1611-chip">V163.5 · Integración progresiva</span></div>' +
-      '<button id="ma1611open" type="button">Explorar MI ALQUILER →</button>';
+      '<button id="ma1611open" type="button">Ingresar a MI ALQUILER</button>';
     card.querySelector('button').addEventListener('click', open);
     return card;
   }
@@ -52,12 +52,12 @@
       '<div><small>CLAN CARTAN · MI ALQUILER</small><h2>Gestión de habitaciones y locales</h2>' +
       '<p>Un acceso · datos independientes de los otros negocios</p></div></div>' +
       '<button type="button" id="ma1611close" class="ma1611-close">← Volver a CLAN CARTAN</button></header>' +
-      '<section class="ma1611-notice" role="status"><strong>Vista previa V163.5:</strong> módulos en integración y pruebas. ' +
+      '<section class="ma1611-notice" role="status"><strong>MI ALQUILER:</strong> módulos en integración y pruebas. ' +
       'Habitaciones, locales, inquilinos y contratos se guardan con acceso restringido en Supabase. ' +
       'Cobros, medidores, garantías y bonos protegidos; avisos al WhatsApp del inquilino, búsqueda y Excel. La consulta DNI usa el backend y respeta la autorización disponible.</section>' +
       '<nav class="ma1611-nav" aria-label="Secciones de Mi Alquiler"></nav>' +
       '<main id="ma1611content" class="ma1611-content" tabindex="-1"></main>' +
-      '<footer class="ma1611-footer">MI ALQUILER · V163.5 en revisión. Sin acreditación automática de recargas ni envíos automáticos de WhatsApp.</footer></div>';
+      '<footer class="ma1611-footer">MI ALQUILER · Acceso sujeto a membresía vigente. Sin acreditación automática de recargas ni envíos automáticos de WhatsApp.</footer></div>';
     layer.querySelector('#ma1611close').addEventListener('click', close);
     layer.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     layer.addEventListener('click', e => { if (e.target === layer) close(); });
