@@ -24,8 +24,8 @@ assert.ok(html.includes('Los visitantes y afiliados ven precios públicos.'),'Pr
 assert.ok(html.includes('S/ 25 por 365 días'),'Condiciones del plan anual no corregidas');
 assert.ok(html.includes('COBRA YA, MI COCHERA y MI ALQUILER'),'Una cuenta para cuatro negocios');
 assert.ok(html.includes('id="cc93-affiliate" hidden'),'Marcador de compatibilidad no inactivo');
-assert.ok(html.includes('scripts/v151-portal-polish.js?v=179'),'El portal conserva versión antigua en caché');
-assert.ok(loader.includes('scripts/v166-portal-roles.js?v=179')&&
+assert.ok(html.includes('scripts/v151-portal-polish.js?v=180'),'El portal conserva versión antigua en caché');
+assert.ok(loader.includes('scripts/v166-portal-roles.js?v=180')&&
  loader.includes('scripts/v169-catalogo-unico.js?v=1731'),'Scripts no versionados');
 assert.ok(panel.includes('window.cc166OpenStreamMembership=()=>{')&&
  panel.includes("view='business:STREAM_BULLS'"),
