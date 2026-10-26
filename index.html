@@ -5132,7 +5132,7 @@ const originalLogin=window.loginDemo;
 window.loginDemo=function(id){if(!verified||window.CC_V53_SESSION?.isAdmin!==true||id!=='admin'){alert('Acceso no autorizado. Usa el inicio de sesión real de CLAN CARTAN.');return;}return originalLogin(id);};
 window.cccLoginByEmail=function(){alert('Utiliza únicamente el inicio de sesión seguro de CLAN CARTAN.');};
 window.cccOpenBusinessAuth=function(){alert('Accede a los módulos según el estado real de tus servicios.');};
-window.logout=function(){return window.ccV192Logout();};verified=false;refreshToken=null;if(sessionToken)api('/auth/v1/logout',{method:'POST'},sessionToken).catch(()=>{});sessionToken=null;location.reload();};
+window.logout=function(){return window.ccV192Logout();};
 })();
 </script>
 
