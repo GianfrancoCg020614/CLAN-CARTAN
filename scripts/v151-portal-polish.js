@@ -179,3 +179,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  script.async=false;
  document.head.append(script);
 })();
+
+/* V195 - controles operativos STREAM BULL'S dentro del panel CLAN CARTAN existente. */
+(function(){
+ if(document.getElementById('sb195-loader'))return;
+ const link=document.createElement('link');link.id='sb195-loader';
+ link.rel='stylesheet';link.href='styles/v195-streambulls-live.css?v=195';document.head.append(link);
+ const script=document.createElement('script');script.id='sb195-live-script';
+ script.src='scripts/v195-streambulls-live.js?v=195';script.async=false;
+ document.head.append(script);
+})();
