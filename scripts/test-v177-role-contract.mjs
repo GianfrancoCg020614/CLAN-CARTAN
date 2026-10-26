@@ -5,8 +5,13 @@ const js=fs.readFileSync('scripts/v166-portal-roles.js','utf8');
 const sql=fs.readFileSync('supabase/migrations/20261026002000_cc_portal_admin_publish_guard_v177.sql','utf8');
 const loader=fs.readFileSync('scripts/v151-portal-polish.js','utf8');
 const postpay=fs.readFileSync('supabase/migrations/20261026004600_cc_super_postpay_approval_v178.sql','utf8');
+const annual=fs.readFileSync('supabase/migrations/20261026010000_cc_super_annual_validation_v179.sql','utf8');
 const index=fs.readFileSync('index.html','utf8');
 const checks=[
+ [annual.includes("p.code='STREAM_365' and p.price_pen>0"),'Se verifica un plan anual comercial pagado'],
+ [annual.includes("'paid_until',s.paid_until"),'ADMIN ve únicamente vencimiento pagado'],
+ [js.includes("person.paid_until") && !js.includes("const paid=!!(person.access_until"),'La interfaz no confunde activación gratuita con pago real'],
+ 
  [js.includes("['bonuses','◇','Bonos']") && js.includes("['sales','◈','Supervisar pedidos']"),'ADMIN administra bonos y supervisa'],
  [js.includes("...(superRole?[['publish','▣','Mis publicaciones']"),'Solo el Súper reseller muestra publicar'],
  [js.includes("if(data.admin||!data.super)return overview(page)"),'Publicación bloqueada en front para ADMIN'],
@@ -21,8 +26,8 @@ const checks=[
  [js.includes("rpc/cc_submit_manual_recharge") && js.includes("data.profile?.full_name"),'Recarga manual usa datos del perfil'],
  [js.includes("rpc/cc_auto_topup_method_status") && js.includes("No disponible"),'Recarga automática muestra estado del proveedor'],
  [js.includes("cc177-return-panel") && js.includes("Atrás") && js.includes("Cerrar"),'Cerrar, volver y navegación en un panel'],
- [loader.includes("scripts/v166-portal-roles.js?v=178") && loader.includes("styles/v177-panel-unico.css?v=177"),'Frontend sin caché antigua'],
- [index.includes("scripts/v151-portal-polish.js?v=178"),'Portada enlazada a V177']
+ [loader.includes("scripts/v166-portal-roles.js?v=179") && loader.includes("styles/v177-panel-unico.css?v=177"),'Frontend sin caché antigua'],
+ [index.includes("scripts/v151-portal-polish.js?v=179"),'Portada enlazada a V177']
 ];
 let failures=0;
 for(const [ok,desc] of checks){if(!ok){console.error('FAIL:',desc);failures++;}}

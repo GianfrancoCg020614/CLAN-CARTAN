@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V178 · Pago anual verificado y autorización ADMIN separada.
+/* CLAN CARTAN · V179 · Validación de plan anual pagado en el servidor y el panel.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -40,7 +40,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V178 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V179 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -1034,9 +1034,9 @@ function roleLabel(role){
 }
 function accessLabel(item){
  if(item.is_admin)return 'Acceso administrativo';
- if(item.access_until&&Date.parse(item.access_until)>Date.now())
-  return 'Membresía activa hasta '+trialDate(item.access_until);
- return 'Membresía pendiente o vencida';
+ if(item.paid_until&&Date.parse(item.paid_until)>Date.now())
+  return 'STREAM BULL’S · anual pagado hasta '+trialDate(item.paid_until);
+ return 'STREAM BULL’S · anual pendiente o vencido';
 }
 async function loadAdminAccounts(force=false){
  if(!data.admin||!user||!session()?.jwt)return;
@@ -1059,7 +1059,7 @@ async function loadAdminAccounts(force=false){
 }
 async function adminSetSuper(person,enable,percent,btn){
  if(!data.admin||adminActionBusy||person.is_admin||!verified)return;
- const paid=!!(person.access_until&&Date.parse(person.access_until)>Date.now());
+ const paid=!!(person.paid_until&&Date.parse(person.paid_until)>Date.now());
  if(enable&&!paid){notice('Primero debe activar su membresía anual de STREAM BULL’S desde su propia billetera. ADMIN solo autoriza después del pago.');return;}
  const commission=Number(percent);
  if(!Number.isFinite(commission)||commission<0||commission>100||
@@ -1067,7 +1067,7 @@ async function adminSetSuper(person,enable,percent,btn){
   notice('La comisión debe estar entre 0 y 100, máximo dos decimales.');return;
  }
  const name=person.registry_alias||person.display_name||person.email;
- const live=person.access_until&&Date.parse(person.access_until)>Date.now();
+ const live=person.paid_until&&Date.parse(person.paid_until)>Date.now();
  const text=enable?
   '¿Autorizar a '+name+' como Súper reseller de STREAM BULL’S? La autorización no cobra ni activa una suscripción.':
   '¿Revocar el permiso Súper reseller de '+name+'? Conservará sus pagos y su cuenta.';
@@ -1117,7 +1117,7 @@ function adminAccountRow(person){
  identity.append(icon,info);wrap.append(identity);
  const state=make('div','cc171-person-role');
  state.append(make('strong','cc171-role-label',roleLabel(person.role_assigned)));
- state.append(make('small',person.access_until&&Date.parse(person.access_until)>Date.now()?
+ state.append(make('small',person.paid_until&&Date.parse(person.paid_until)>Date.now()?
   'cc171-status-active':'cc171-status-pending',accessLabel(person)));
  wrap.append(state);
  const actions=make('div','cc171-person-actions');
@@ -1153,7 +1153,7 @@ function adminApprovals(page){
   if(!users.length)box.append(make('p','cc166-empty','No hay usuarios para autorizar.'));
   for(const person of users){
    const approved=!!person.super_enabled&&person.role_assigned==='SUPER_RESELLER';
-   const live=person.access_until&&Date.parse(person.access_until)>Date.now();
+   const live=person.paid_until&&Date.parse(person.paid_until)>Date.now();
    const row=make('article','cc176-approval-row');
    const identity=make('div','');
    identity.append(make('strong','',person.registry_code+' · '+(person.registry_alias||person.display_name||person.email)));
