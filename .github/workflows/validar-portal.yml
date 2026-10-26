@@ -116,6 +116,7 @@ jobs:
           node scripts/test-v184-recharge-account-identity.mjs
           node scripts/test-v189-admin-manual-recharge.mjs
           node scripts/test-v190-recharge-auto-sync.mjs
+          node scripts/test-v192-persistent-auth-sync.mjs
           node scripts/test-v185-single-wallet.mjs
           node scripts/test-v182-recharges-regression.mjs
           node scripts/test-v177-role-contract.mjs
@@ -124,7 +125,7 @@ jobs:
           node scripts/test-v173-home-bridge.mjs
           node scripts/test-v173-session-browser.mjs
           node scripts/test-v173-catalog-fallback-browser.mjs
-          node -e "const fs=require('fs');if(!fs.readFileSync('scripts/v151-portal-polish.js','utf8').includes('v166-portal-roles.js?v=191'))process.exit(1)"
+          node -e "const fs=require('fs');if(!fs.readFileSync('scripts/v151-portal-polish.js','utf8').includes('v166-portal-roles.js?v=192'))process.exit(1)"
       - name: Verificar firmas y rechazo de eventos Binance (sin pagos)
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
