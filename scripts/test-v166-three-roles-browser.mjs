@@ -42,7 +42,7 @@ try{
    'launcher?.click();const reopens=panel?.hidden===false;',
    'const role=x("cc166-role")?.textContent||"";',
    'const superCenter=!!x("cc166-content")?.textContent.includes("Centro Súper reseller");',
-   'const pendingSuperNotice=!!x("cc166-content")?.textContent.includes("Súper reseller · activación pendiente");',
+   'const pendingSuperNotice=!!x("cc166-content")?.textContent.includes("Súper reseller · membresía pendiente");',
    'let noLegacyAdmin=[...document.querySelectorAll("#cc166-panel button")].every(b=>!b.textContent.includes("Administración anterior"));',
    'if(role.includes("ADMIN")){[...document.querySelectorAll(".cc166-navitem")].find(b=>b.textContent.includes("Usuarios"))?.click();noLegacyAdmin=noLegacyAdmin&&[...document.querySelectorAll("#cc166-panel button")].every(b=>!b.textContent.includes("Administración anterior"));[...document.querySelectorAll(".cc166-navitem")].find(b=>(b.textContent.includes("Inicio")||b.textContent.includes("Resumen")))?.click();}',
    'const oldHome=!!x("cc77home");',
