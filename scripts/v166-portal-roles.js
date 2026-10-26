@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V192 · Billetera REAL única y bonos sólo para activaciones.
+/* CLAN CARTAN · V193 · Billetera REAL única y bonos sólo para activaciones.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -21,7 +21,7 @@ let rechargeReady=null,rechargeSaving=false,assistedRechargeSaving=false;
 let chosenAdminRecipient=null,chosenBonusRecipient=null;
 let auditData=null,auditRows=[],auditState='idle',auditError='';
 let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};
-let lastReceipt=null,purchasePending=false,membershipPending=false;
+let lastReceipt=null,purchasePending=false,membershipPending=false,businessActivationPending=null;
 const price=n=>Number.isFinite(Number(n))?'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const make=(tag,cls,txt)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=String(txt);return x;};
 const button=(txt,fn,cls)=>{const x=make('button',cls||'',txt);x.type='button';x.addEventListener('click',fn);return x;};
@@ -50,7 +50,7 @@ function savePanelState(){
 }
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
- data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};lastReceipt=null;purchasePending=false;membershipPending=false;
+ data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};lastReceipt=null;purchasePending=false;membershipPending=false;businessActivationPending=null;
  app?.remove();app=null;el('cc166-open-button')?.remove();el('cc177-return-panel')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
@@ -68,7 +68,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V192 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V193 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -998,9 +998,66 @@ function wallet(page){
  const latest=card('Últimos movimientos','Los depósitos pendientes no aumentan tu saldo.');
  movementList(latest,8);page.append(latest);
 }
+const businessMonthlyPrice=15;
+function realBalance(){return data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);}
+function businessPayButtons(box,code,active){
+ if(data.admin)return;
+ box.append(make('p','cc166-note','30 días · S/ 15.00 · Saldo real de tu billetera CLAN CARTAN: '+price(realBalance())));
+ const actions=make('div','cc166-actions');
+ if(!active||code!=='COBRA_YA'){
+  const b=button(active?'Renovar 30 días por S/ 15.00':'💳 Pagar S/ 15.00 y activar',
+   ()=>void activateBusiness(code,b),'cc166-primary');
+  b.disabled=!verified||!!businessActivationPending;actions.append(b);
+ }
+ if(!active&&realBalance()<businessMonthlyPrice)actions.append(button('Recargar billetera',
+  ()=>{view='wallet';walletTab='manual';render();},'cc166-secondary'));
+ box.append(actions);
+}
+async function activateBusiness(code,b){
+ if(!verified||data.admin||businessActivationPending||
+    !['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(code))return;
+ if(code==='COBRA_YA'&&access(code).ok){notice('COBRA YA ya tiene membresía vigente.');return;}
+ if(realBalance()<businessMonthlyPrice){notice('Necesitas S/ 15.00 de saldo real. Recarga primero tu billetera.');return;}
+ if(!window.confirm('¿Pagar S/ 15.00 con tu saldo REAL y '+(access(code).ok?'RENOVAR':'ACTIVAR')+
+    ' '+serviceName(code)+' por 30 días? Esta operación descontará tu saldo una sola vez.'))return;
+ let keyInfo;
+ try{keyInfo=storedKey('subscription',code);}catch(e){notice(String(e?.message||e));return;}
+ const uid=user,jwt=token;businessActivationPending=code;
+ if(b?.isConnected){b.disabled=true;b.textContent='Procesando…';}
+ try{
+  const reply=await api('rpc/cc_portal_activate_business_real_v193','POST',{
+   p_service:code,p_request:keyInfo.key,p_expected_amount_pen:businessMonthlyPrice});
+  if(session()?.userId!==uid||session()?.jwt!==jwt)return;
+  if(reply?.service!==code||!reply?.active_until||Number(reply.amount_pen)!==15)
+   throw Error('El servidor no confirmó la membresía. Revisa tus movimientos antes de reintentar.');
+  forgetKey(keyInfo.name);
+  await load();
+  if(session()?.userId!==uid)return;
+  view='business:'+code;app.hidden=false;render();
+  notice('✅ '+serviceName(code)+' activado hasta '+new Date(reply.active_until).toLocaleDateString('es-PE',{timeZone:'America/Lima'})+
+   '. Descuento verificado: S/ 15.00.');
+ }catch(e){if(session()?.userId===uid)notice('No se activó: '+String(e?.message||e)+'. Revisa el saldo y el historial.');}
+ finally{businessActivationPending=null;if(b?.isConnected){b.disabled=false;b.textContent='Pagar S/ 15.00 y activar';}}
+}
 function memberships(page){
- title(page,'Accesos y suscripciones','Las mismas pestañas aparecen arriba. La administración del negocio exige membresía vigente.');
- page.append(make('p','cc166-note','Selecciona un negocio arriba para revisar su acceso, plan y funciones. No existen cuatro paneles generales diferentes.'));
+ title(page,'Negocios · activar y pagar con billetera',
+   'Activa COBRA YA, MI COCHERA y MI ALQUILER directamente con el saldo REAL que ADMIN ya acreditó.');
+ const balance=card('Saldo real disponible',verified?price(realBalance()):'Consultando…');
+ balance.append(button('Recargar billetera',()=>{view='wallet';walletTab='manual';render();},'cc166-secondary'));
+ page.append(balance);
+ const list=make('div','cc176-attention-grid');
+ for(const [code] of services){
+  const active=access(code).ok,cardEl=card(serviceName(code),active?'✅ Membresía activa':'○ No habilitado · Activar');
+  if(code==='STREAM_BULLS'){
+   const cost=Number(data.plan?.price_pen);
+   cardEl.append(make('p','cc166-note','Plan 365 días · '+(cost>0?price(cost):'Precio no verificado')));
+   if(!active&&verified&&cost>0&&!data.admin)
+    cardEl.append(button('Pagar y activar por '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary'));
+  }else businessPayButtons(cardEl,code,active);
+  cardEl.append(button(active?'Entrar al negocio':'Ver membresía',()=>{view='business:'+code;render();},'cc166-secondary'));
+  list.append(cardEl);
+ }
+ page.append(list);
 }
 function businessPage(page,code){
  if(data.admin){
@@ -1033,13 +1090,14 @@ function businessPage(page,code){
   }
   shell.append(actions);page.append(shell);
  }else{
-  const shell=card(info.ok?'Membresía activa':'Acceso no habilitado',
-  info.ok?'Entra a las herramientas existentes de este negocio.':'Activa o renueva el plan desde el flujo protegido del negocio; no se aplicará ningún débito sin confirmación.');
-  shell.append(make('p','cc166-note',info.ok?'Tus operaciones y clientes permanecen bajo tu cuenta CLAN CARTAN.':'El acceso administrativo se habilita solamente cuando el servidor confirma la membresía.'));
-  const next=button(info.ok?'Entrar al negocio':'Consultar activación de membresía',()=>{
-    const original={COBRA_YA:()=>window.cc79Cobra?.(),MI_COCHERA:()=>window.mc158Open?.(),MI_ALQUILER:()=>window.ma1611MiAlquiler?.open()}[code];
-    exitTo(original);
-  },'cc166-primary');shell.append(next);page.append(shell);
+  const shell=card(info.ok?'Membresía activa':'Activar con saldo real',
+   info.ok?'Tu membresía está vigente.':'Paga S/ 15.00 por 30 días desde tu billetera única. La activación es inmediata al confirmar el descuento.');
+  businessPayButtons(shell,code,info.ok);
+  shell.append(button(info.ok?'Entrar al negocio':'Consultar herramientas',()=>{
+   const fn={COBRA_YA:()=>window.cc79Cobra?.(),MI_COCHERA:()=>window.mc158Open?.(),
+    MI_ALQUILER:()=>window.ma1611MiAlquiler?.open()}[code];
+   exitTo(fn);
+  },'cc166-secondary'));page.append(shell);
  }
 }
 
