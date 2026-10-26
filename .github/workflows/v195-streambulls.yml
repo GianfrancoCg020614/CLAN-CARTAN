@@ -1,0 +1,51 @@
+name: V195 STREAM BULL'S - Atención de hoy
+on:
+  push:
+    branches:
+      - feature/v195-streambulls-atencion-produccion
+  pull_request:
+    paths:
+      - scripts/v195-streambulls-live.js
+      - styles/v195-streambulls-live.css
+      - scripts/v151-portal-polish.js
+      - supabase/migrations/*v195_streambulls*
+      - .github/workflows/v195-streambulls.yml
+  workflow_dispatch:
+jobs:
+  seguridad-compatibilidad:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Revisar sintaxis
+        run: |
+          node --check scripts/v195-streambulls-live.js
+          node --check scripts/v151-portal-polish.js
+      - name: Validar integración existente sin datos ficticios
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const ui=fs.readFileSync('scripts/v195-streambulls-live.js','utf8');
+          const loader=fs.readFileSync('scripts/v151-portal-polish.js','utf8');
+          const css=fs.readFileSync('styles/v195-streambulls-live.css','utf8');
+          assert(loader.includes('v195-streambulls-live.js'));
+          assert(loader.includes('v194-sales.js'));
+          assert(ui.includes('sb_oper_has_access_v195'));
+          assert(ui.includes('cc166-content'));
+          assert(ui.includes('sb_oper_release'));
+          assert(ui.includes('sb_oper_request_transfer'));
+          assert(ui.includes('sb_oper_confirm_transfer'));
+          assert(ui.includes('sb_oper_record_payment'));
+          assert(ui.includes('America/Lima'));
+          assert(!ui.includes('fixtures('));
+          assert(css.includes('#sb195-attention'));
+          const sql=fs.readFileSync('supabase/migrations/20261026090000_v195_streambulls_schema.sql','utf8');
+          assert(sql.includes('enable row level security'));
+          assert(sql.includes('sb195_entitled'));
+          console.log('PASS V195: integración, RLS, fecha Lima, operaciones y sin datos ficticios');
+          NODE
