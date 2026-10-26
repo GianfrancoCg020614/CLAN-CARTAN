@@ -1747,6 +1747,30 @@ function other(page){
  box.append(button('Ver negocios',()=>nav('businesses'),'cc166-primary'));
  box.append(button('Volver al portal original',()=>{app.hidden=true;},'cc166-secondary'));page.append(box);
 }
+function saveAdminGrantDraft(){
+ if(!data.admin||view!=='wallet'||walletTab!=='recharges')return null;
+ const details=el('cc166-content')?.querySelector('details.cc181-grant-form');
+ if(!details?.open)return null;
+ const form=details.querySelector('form.cc181-assist-fields');
+ return {open:true,recipient:form?.querySelector('select')?.value||'',
+  amount:form?.querySelector('input[type="number"]')?.value||'',
+  reference:form?.querySelector('input[placeholder="ID de depósito si existe"]')?.value||''};
+}
+function restoreAdminGrantDraft(draft){
+ if(!draft||view!=='wallet'||walletTab!=='recharges')return;
+ const details=el('cc166-content')?.querySelector('details.cc181-grant-form');
+ if(!details)return;
+ details.open=true;
+ const form=details.querySelector('form.cc181-assist-fields');
+ if(!form)return;
+ const recipient=form.querySelector('select');
+ const amount=form.querySelector('input[type="number"]');
+ const reference=form.querySelector('input[placeholder="ID de depósito si existe"]');
+ if(recipient&&[...recipient.options].some(opt=>opt.value===draft.recipient))
+  recipient.value=draft.recipient;
+ if(amount&&draft.amount)amount.value=draft.amount;
+ if(reference)reference.value=draft.reference;
+}
 function saveAdminReviewDrafts(){
  if(!data.admin||view!=='wallet'||walletTab!=='recharges')return [];
  const items=el('cc166-content')?.querySelectorAll('.cc176-recharge-record[data-request-id]')||[];
@@ -1781,6 +1805,7 @@ function restoreAdminReviewDrafts(drafts){
 function render(){
  if(!app||!user)return;
  const rechargeDrafts=saveAdminReviewDrafts();
+ const grantDraft=saveAdminGrantDraft();
  el('cc177-return-panel')?.remove();
  mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
  // Cuatro negocios, un selector: visible únicamente al gestionar negocios.
@@ -1803,6 +1828,7 @@ function render(){
  default:other(page);
  }
  restoreAdminReviewDrafts(rechargeDrafts);
+ restoreAdminGrantDraft(grantDraft);
 }
 async function read(path,required=false){try{const r=await api(path);if(!Array.isArray(r))throw Error('Respuesta inválida');return r;}catch(e){if(required)throw e;return[];}}
 async function readOrders(){const rows=await api('rpc/cc_portal_my_stream_orders','POST',{p_limit:100});if(!Array.isArray(rows))throw Error('Pedidos no disponibles');return rows;}
