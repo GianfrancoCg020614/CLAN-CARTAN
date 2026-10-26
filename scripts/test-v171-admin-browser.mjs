@@ -41,7 +41,7 @@ const probe=[
  'const threeAccounts=$$(".cc171-person").length===3;',
  'const stableCodes=page?.textContent.includes("CLAN1")&&page?.textContent.includes("CLAN2")&&page?.textContent.includes("CLAN3");',
  'const expectedRoles=page?.textContent.includes("SÚPER RESELLER")&&page?.textContent.includes("RESELLER");',
- 'const pendingLabel=page?.textContent.includes("Membresía pendiente o vencida");',
+ 'const pendingLabel=page?.textContent.includes("STREAM BULL’S · anual pendiente o vencido");',
  'const noTrialUi=!page?.textContent.includes("prueba gratuita")&&!page?.textContent.includes("Probar 7 días")&&!page?.textContent.includes("Finalizar prueba");',
  'const noAdvanced=$(".cc171-advanced")===null&&!page?.textContent.includes("Herramientas avanzadas");',
  'const noRoleEditor=!page?.textContent.includes("Cambiar rol");',
