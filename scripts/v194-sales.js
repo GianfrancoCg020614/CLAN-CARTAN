@@ -34,7 +34,14 @@ function mount(){
  const show=msg=>message.textContent=String(msg);
  const loadButton=btn('Ver detalle de ventas',()=>void refresh());
  actions.append(loadButton);node.append(form,actions,message,results);
- container.append(node);
+ const oldLabel=[...container.querySelectorAll('.cc166-metric small')].find(e=>e.textContent.includes('Comisión ADMIN sobre ganancia'));
+ if(oldLabel)oldLabel.textContent='Comisión ADMIN sobre venta';
+ const navigation=by('cc166-nav');
+ for(const button of navigation?.querySelectorAll('button')||[]){
+  const text=[...button.querySelectorAll('span')].find(e=>e.textContent==='Supervisar pedidos');
+  if(text)text.textContent='Liquidación de ventas';
+ }
+ container.insertBefore(node,container.children[1]||null);
  function accountSelected(){return admin?sellers.value:session.userId;}
  const alive=()=>node.isConnected&&window.CC_V53_SESSION?.userId===session.userId;
  const datesOK=()=>start.value&&end.value&&end.value>=start.value&&
