@@ -1065,6 +1065,7 @@ function businessPage(page,code){
   const panel=card('Controles administrativos','Los accesos comerciales y las operaciones pertenecen a reseller y Súper reseller.');
   const actions=make('div','cc166-actions');
   if(code==='STREAM_BULLS'){
+   actions.append(button('Ingresar a STREAM BULL’S',()=>nav('stream-operations'),'cc166-primary'));
    actions.append(button('Ver permisos Súper reseller',()=>nav('approvals'),'cc166-primary'));
    actions.append(button('Supervisar pedidos',()=>nav('sales'),'cc166-secondary'));
   }else{
@@ -1079,8 +1080,9 @@ function businessPage(page,code){
  if(code==='STREAM_BULLS'){
   const shell=card('STREAM BULL’S · Servicios digitales',info.ok?'Tu suscripción de gestión está activa.':'Puedes comprar productos sin membresía. Para gestionar cuentas necesitas activar el plan.');
   const actions=make('div','cc166-actions');
-  if(!data.admin)actions.append(button('Comprar servicios',()=>nav('shop'),'cc166-primary'));
+  if(!data.admin)actions.append(button('Comprar en catálogo público',()=>nav('shop'),'cc166-secondary'));
   if(info.ok){
+   actions.append(button('Ingresar a STREAM BULL’S',()=>nav('stream-operations'),'cc166-primary'));
    if(data.super&&!data.admin)actions.append(button('Mis publicaciones',()=>nav('publish'),'cc166-secondary'));
    else actions.append(button('Mi catálogo',()=>nav('shop'),'cc166-secondary'));
   }else{
@@ -1093,11 +1095,11 @@ function businessPage(page,code){
   const shell=card(info.ok?'Membresía activa':'Activar con saldo real',
    info.ok?'Tu membresía está vigente.':'Paga S/ 15.00 por 30 días desde tu billetera única. La activación es inmediata al confirmar el descuento.');
   businessPayButtons(shell,code,info.ok);
-  shell.append(button(info.ok?'Entrar al negocio':'Consultar herramientas',()=>{
+  if(info.ok||data.admin)shell.append(button('Ingresar a '+serviceName(code),()=>{
    const fn={COBRA_YA:()=>window.cc79Cobra?.(),MI_COCHERA:()=>window.mc158Open?.(),
     MI_ALQUILER:()=>window.ma1611MiAlquiler?.open()}[code];
    exitTo(fn);
-  },'cc166-secondary'));page.append(shell);
+  },'cc166-primary'));page.append(shell);
  }
 }
 
@@ -1890,6 +1892,7 @@ function render(){
  if(view==='businesses'||view.startsWith('business:'))businessTabs(page);
  if(view.startsWith('business:')){businessPage(page,view.slice('business:'.length));return;}
  switch(view){
+ case 'stream-operations':title(page,'STREAM BULL’S · Atención de hoy','Gestión operativa de cuentas y perfiles de tu membresía.');break;
  case 'home':overview(page);break;
  case 'attention':data.admin?adminAttention(page):overview(page);break;
  case 'approvals':data.admin?adminApprovals(page):overview(page);break;
