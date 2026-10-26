@@ -216,9 +216,10 @@ function adminHome(page){
  section.append(tasks);
  const business=card('Áreas comerciales','Las aprobaciones manuales se aplican solo a Súper reseller.');
  const blocks=[
-  ['Súper reseller', 'Autoriza los permisos especiales. El pago anual es independiente.',()=>nav('approvals')],
-  ['Supervisar pedidos', 'Validaciones y entregas, sin publicar como ADMIN.',()=>nav('sales')],
-  ['Finanzas', 'Recargas verificadas, saldos y auditoría en esta cuenta.',()=>finance('audit')]
+  ['Súper reseller','Autoriza permisos especiales solo después de la membresía anual.',()=>nav('approvals')],
+  ['Bonos de bienvenida','Otorga bonos promocionales gratuitos a usuarios registrados.',()=>nav('bonuses')],
+  ['Supervisar pedidos','Revisa operaciones, sin publicar ni entregar como vendedor.',()=>nav('sales')],
+  ['Finanzas','Recargas verificadas y auditoría de todas las billeteras.',()=>finance('audit')]
  ];
  for(const [t,d,fn] of blocks){
   const x=button('',fn,'cc176-resource');
@@ -1027,6 +1028,8 @@ async function loadAdminAccounts(force=false){
 }
 async function adminSetSuper(person,enable,percent,btn){
  if(!data.admin||adminActionBusy||person.is_admin||!verified)return;
+ const paid=!!(person.access_until&&Date.parse(person.access_until)>Date.now());
+ if(enable&&!paid){notice('Primero debe activar su membresía anual de STREAM BULL’S desde su propia billetera. ADMIN solo autoriza después del pago.');return;}
  const commission=Number(percent);
  if(!Number.isFinite(commission)||commission<0||commission>100||
     Math.abs(commission*100-Math.round(commission*100))>0.00001){
@@ -1141,9 +1144,10 @@ function adminApprovals(page){
    const rate=document.createElement('input');rate.type='number';rate.min='0';rate.max='100';
    rate.step='0.01';rate.value='20';rate.setAttribute('aria-label','Porcentaje ADMIN para '+person.email);
    const label=make('label','','Comisión ADMIN (%)');label.append(rate);controls.append(label);
-   const btn=button(approved?'Revocar permiso':'Autorizar Súper reseller',function(){
+   const btn=button(approved?'Revocar permiso':!live?'Requiere membresía pagada':'Autorizar Súper reseller',function(){
     void adminSetSuper(person,!approved,rate.value,this);
    },approved?'cc166-secondary':'cc166-primary');
+   btn.disabled=!approved&&!live;
    controls.append(btn);row.append(controls);box.append(row);
   }
  }
@@ -1151,6 +1155,85 @@ function adminApprovals(page){
  page.append(make('p','cc166-note','Los roles, vigencias y permisos se verifican en el servidor. Ninguna cuenta recibe acceso por cambiar su nombre CLAN.'));
 }
 
+function adminBonuses(page){
+ if(!data.admin)return overview(page);
+ if(adminAccountsState==='idle')void loadAdminAccounts();
+ title(page,'Bonos de bienvenida','Otorga beneficios gratuitos sin mezclar bonos promocionales con saldo real ni modificar la tarifa de los planes.');
+ const intro=card('Asignación de bonos','Operación exclusiva de ADMIN; cada bono se registra con su destinatario, motivo y referencia única.');
+ if(adminAccountsState==='loading'||adminAccountsState==='idle'){
+  intro.append(make('p','cc166-note','Cargando usuarios registrados…'));page.append(intro);return;
+ }
+ if(adminAccountsState==='error'){
+  intro.append(make('p','cc166-notice',adminAccountsError));
+  intro.append(button('Reintentar',()=>void loadAdminAccounts(true),'cc166-secondary'));page.append(intro);return;
+ }
+ const options=adminAccounts.filter(person=>!person.is_admin);
+ if(!options.length){intro.append(make('p','cc166-empty','No hay destinatarios registrados.'));page.append(intro);return;}
+ const form=make('form','cc166-form cc177-bonus-form');
+ const label=make('label','','Usuario registrado');
+ const recipient=document.createElement('select');
+ recipient.required=true;
+ options.forEach(person=>{
+  const item=make('option','',(person.registry_code||'CLAN')+' · '+(person.registry_alias||person.display_name||person.email));
+  item.value=person.email;recipient.append(item);
+ });
+ label.append(recipient);form.append(label);
+ const business=make('label','','Negocio que recibe el bono');
+ const service=document.createElement('select');
+ for(const [code,title] of [['COBRA_YA','COBRA YA · bono de bienvenida'],['MI_COCHERA','MI COCHERA · bono promocional'],['MI_ALQUILER','MI ALQUILER · bono promocional']]){
+  const item=make('option','',title);item.value=code;service.append(item);
+ }
+ business.append(service);form.append(business);
+ const money=make('label','','Bono gratuito (S/)');
+ const amount=document.createElement('input');amount.type='number';amount.min='0.01';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
+ money.append(amount);form.append(money);
+ const why=make('label','','Motivo para auditoría');
+ const reason=document.createElement('input');reason.type='text';reason.maxLength=180;reason.minLength=5;reason.required=true;reason.value='Bono de bienvenida';
+ why.append(reason);form.append(why);
+ const save=make('button','cc166-primary','Otorgar bono gratuito');save.type='submit';form.append(save);
+ const hint=make('p','cc166-note','El bono COBRA YA solo se otorga a revendedores elegibles y su uso está limitado a ese negocio. MI COCHERA y MI ALQUILER conservan su propia contabilidad de bonos. STREAM BULL’S no tiene un bono inventado.');
+ form.append(hint);
+ form.addEventListener('submit',e=>{
+  e.preventDefault();
+  const userOption=options.find(p=>p.email===recipient.value);
+  void adminGrantBonus(userOption,service.value,amount.value,reason.value,save);
+ });
+ intro.append(form);page.append(intro);
+}
+async function adminGrantBonus(person,service,rawAmount,rawReason,btn){
+ if(!data.admin||!verified||bonusSaving||!person||person.is_admin)return;
+ const amount=Number(rawAmount),reason=String(rawReason||'').trim();
+ if(!Number.isFinite(amount)||amount<=0||amount>1000||
+    Math.abs(amount*100-Math.round(amount*100))>0.00001||reason.length<5||reason.length>180){
+  notice('Verifica el importe (hasta S/ 1,000), dos decimales y un motivo de al menos 5 caracteres.');return;
+ }
+ if(!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(service))return;
+ if(service!=='COBRA_YA'&&!/^[0-9a-f-]{36}$/i.test(String(person.user_id||''))){
+  notice('ID de destinatario no verificado. Actualiza el registro antes de otorgar bonos.');return;
+ }
+ if(!window.confirm('¿Otorgar BONO GRATUITO de '+price(amount)+' a '+person.registry_code+' en '+serviceName(service)+'? No es recarga de efectivo ni modifica su dinero real.'))return;
+ if(!window.crypto?.randomUUID){notice('Conexión segura requerida para registrar el bono.');return;}
+ bonusSaving=true;btn.disabled=true;const uid=user,jwt=token;const request=window.crypto.randomUUID();
+ try{
+  const args=service==='COBRA_YA'?{
+   path:'rpc/cc_admin_grant_welcome_balance',
+   body:{p_recipient_email:person.email,p_service:'COBRA_YA',p_amount_pen:amount,p_request_id:request,p_reason:reason}
+  }:service==='MI_COCHERA'?{
+   path:'rpc/mc_admin_grant_bonus',
+   body:{p_reseller:person.user_id,p_amount:amount,p_request:request,p_note:reason}
+  }:{
+   path:'rpc/ma_admin_grant_bonus',
+   body:{p_reseller:person.user_id,p_amount:amount,p_request:request,p_note:reason}
+  };
+  const balance=await api(args.path,'POST',args.body);
+  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
+  if(balance===undefined||balance===null)throw Error('Operación no confirmada');
+  notice('Bono registrado para '+person.registry_code+' · '+price(amount)+' · Referencia '+request+'. No se modificó la billetera real.');
+  auditState='idle';
+ }catch(e){
+  if(user===uid&&jwt===token)notice('El bono no se confirmó: '+String(e?.message||e)+' · Referencia '+request+'. Comprueba historial antes de reintentarlo.');
+ }finally{bonusSaving=false;btn.disabled=false;}
+}
 function admin(page){
  if(!data.admin)return overview(page);
  title(page,'Directorio de usuarios','Registro CLAN permanente, contacto, rol y vigencia. Las autorizaciones especiales tienen una sección propia.');
