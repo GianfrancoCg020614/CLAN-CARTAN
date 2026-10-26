@@ -7,6 +7,10 @@ import {spawnSync} from 'node:child_process';
 const chrome=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(fs.existsSync);
 assert.ok(chrome,'Se requiere Chrome');
 const js=fs.readFileSync('scripts/v166-portal-roles.js','utf8');
+const otherFlow=fs.readFileSync('scripts/v148-manual-whatsapp.js','utf8');
+assert.ok(js.includes('https://wa.me/51923319637?text='),'La recarga nueva dirige al WhatsApp correcto');
+assert.ok(otherFlow.includes('https://wa.me/51923319637?text='),'El flujo anterior usa el mismo WhatsApp');
+assert.ok(!js.includes('51923391637'),'No reintroducir el número anterior');
 const css=['styles/v166-portal-roles.css','styles/v171-admin-simple.css','styles/v176-admin-console.css','styles/v177-panel-unico.css'].map(s=>fs.readFileSync(s,'utf8')).join('\n');
 const qr1=fs.readFileSync('assets/qr-dale-gianfranco.svg','utf8');
 assert.match(qr1,/<svg /);assert.ok(fs.statSync('assets/qr-binance-personal.png').size>200,'QR Binance ausente');
@@ -38,7 +42,7 @@ const probe=[
  'const requestLoaded=$("#cc166-content")?.textContent.includes("'+id+'");',
  'const link=$("#cc166-content .cc183-whatsapp");',
  'const url=link?.getAttribute("href")||"";',
- 'const waDestination=url.startsWith("https://wa.me/51923391637?text=");',
+ 'const waDestination=url.startsWith("https://wa.me/51923319637?text=");',
  'const message=decodeURIComponent(url.split("text=")[1]||"");',
  'const messageCorrect=message.includes("YA PAGUE CON SOLICITUD '+id+', y te envio mi comprobante.");',
  'const qrBtns=$$("#cc166-content .cc183-qr-button");',
