@@ -514,7 +514,7 @@ function adminRecharges(page){
  }else{
   if(!rechargeReady?.enabled){
    box.append(make('p','cc176-finance-warning',
-    'Acreditación bancaria no habilitada en el servidor. Puedes revisar o rechazar, pero no aprobar depósitos hasta habilitar la cuenta recaudadora.'));
+    '⛔ Aprobación y acreditación deshabilitadas: no consta autorización comercial verificada para el método de cobro Lemon / DALE. La recepción comercial debe estar habilitada en el servidor y el ADMIN debe cotejar el dinero realmente recibido antes de acreditarlo. Puedes consultar o rechazar solicitudes sin afectar los saldos.'));
   }
   box.append(metric('Solicitudes por verificar',String(rechargeRows.length),'gold'));
   if(!rechargeRows.length)box.append(make('p','cc166-empty','No hay recargas pendientes de revisión.'));
@@ -554,6 +554,14 @@ function adminRecharges(page){
    label.append(checkbox,document.createTextNode(' He comprobado el ingreso REAL en la cuenta autorizada.'));
    const approve=button('Aprobar y acreditar',()=>void adminDecideRecharge(row,true,tx.value,bank.value,checkbox.checked,approve),'cc166-primary');
    approve.disabled=!rechargeReady?.enabled;
+   if(approve.disabled){
+    approve.title='Bloqueado: falta autorización comercial verificada del método recaudador.';
+    approve.setAttribute('aria-describedby','cc188-recharge-block-reason');
+    const reason=make('small','cc176-finance-warning',
+      '⛔ No se puede acreditar aún: el método Lemon / DALE no tiene autorización comercial verificada. Marcar la casilla no habilita el pago.');
+    reason.id='cc188-recharge-block-reason';
+    controls.append(reason);
+   }
    controls.append(tx,bank,label,approve);
    review.append(controls);actions.append(review);
    const reject=button('Rechazar solicitud',()=>void adminDecideRecharge(row,false,'','',false,reject),'cc166-secondary');
