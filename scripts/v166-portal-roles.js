@@ -27,7 +27,7 @@ const active=(id,jwt,seq)=>user===id&&token===jwt&&serial===seq&&session()?.user
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
  data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};lastReceipt=null;purchasePending=false;membershipPending=false;
- app?.remove();app=null;el('cc166-open-button')?.remove();
+ app?.remove();app=null;el('cc166-open-button')?.remove();el('cc177-return-panel')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
@@ -56,10 +56,23 @@ function access(code){
  }
  return {ok:false,reason:'Membresía pendiente o vencida'};
 }
+function addReturnControl(){
+ if(!user||!session()?.jwt)return;
+ let host=el('cc177-return-panel');
+ if(host)return;
+ host=make('div','cc177-return-panel');host.id='cc177-return-panel';
+ host.append(button('← Volver a mi panel',()=>{
+  host.remove();sync();
+  if(app){app.hidden=false;render();}
+ },'cc166-primary'));
+ host.append(button('✕',()=>host.remove(),'cc166-secondary'));
+ document.body.append(host);
+}
 function exitTo(fn){
  if(typeof fn!=='function')return;
  app.hidden=true;
- try{fn();}catch(e){app.hidden=false;notice('No se pudo abrir el módulo actual.');}
+ try{fn();addReturnControl();}
+ catch(e){app.hidden=false;notice('No se pudo abrir el módulo solicitado.');}
 }
 function card(title,desc){
  const box=make('article','cc166-card');box.append(make('h2','',title));
@@ -72,8 +85,9 @@ function title(page,heading,sub){
  const h=make('div','cc166-section-title');h.append(make('h2','',heading));if(sub)h.append(make('p','',sub));page.append(h);
 }
 function openCatalog(){
- if(typeof window.cc169OpenCatalog==='function'){window.cc169OpenCatalog();return;}
- if(typeof window.cc77Store==='function'){app.hidden=true;window.cc77Store();return;}
+ if(data.admin){notice('ADMIN supervisa y valida. La compra personal no forma parte del panel administrativo.');return;}
+ if(typeof window.cc169OpenCatalog==='function'){window.cc169OpenCatalog();addReturnControl();return;}
+ if(typeof window.cc77Store==='function'){app.hidden=true;window.cc77Store();addReturnControl();return;}
  notice('El catálogo público está temporalmente inaccesible.');
 }
 function nav(to){
@@ -648,6 +662,21 @@ function memberships(page){
  page.append(make('p','cc166-note','Selecciona un negocio arriba para revisar su acceso, plan y funciones. No existen cuatro paneles generales diferentes.'));
 }
 function businessPage(page,code){
+ if(data.admin){
+  title(page,serviceName(code)+' · Administración','Vista de supervisión del negocio. ADMIN no compra, publica ni usa una membresía de cliente.');
+  const panel=card('Controles administrativos','Los accesos comerciales y las operaciones pertenecen a reseller y Súper reseller.');
+  const actions=make('div','cc166-actions');
+  if(code==='STREAM_BULLS'){
+   actions.append(button('Ver permisos Súper reseller',()=>nav('approvals'),'cc166-primary'));
+   actions.append(button('Supervisar pedidos',()=>nav('sales'),'cc166-secondary'));
+  }else{
+   panel.append(make('p','cc166-note','El módulo operativo de este negocio conserva sus controles y permisos de origen; no se han duplicado ni simulado transacciones.'));
+   const existing={COBRA_YA:()=>window.cc79Cobra?.(),MI_COCHERA:()=>window.mc158Open?.(),MI_ALQUILER:()=>window.ma1611MiAlquiler?.open()}[code];
+   actions.append(button('Abrir módulo del negocio',()=>exitTo(existing),'cc166-secondary'));
+  }
+  actions.append(button('← Negocios',()=>nav('businesses'),'cc166-secondary'));
+  panel.append(actions);page.append(panel);return;
+ }
  const info=access(code);title(page,serviceName(code),info.ok?'Membresía verificada · Controles habilitados':'Tu acceso a este negocio está bloqueado hasta activar o renovar la membresía.');
  if(code==='STREAM_BULLS'){
   const shell=card('STREAM BULL’S · Servicios digitales',info.ok?'Tu suscripción de gestión está activa.':'Puedes comprar productos sin membresía. Para gestionar cuentas necesitas activar el plan.');
@@ -1375,6 +1404,7 @@ function other(page){
 }
 function render(){
  if(!app||!user)return;
+ el('cc177-return-panel')?.remove();
  mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
  // Cuatro negocios, un selector: visible únicamente al gestionar negocios.
  if(view==='businesses'||view.startsWith('business:'))businessTabs(page);
