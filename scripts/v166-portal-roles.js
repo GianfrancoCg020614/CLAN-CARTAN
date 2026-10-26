@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V177 · Panel común y permisos según rol, sin administración heredada.
+/* CLAN CARTAN · V178 · Pago anual verificado y autorización ADMIN separada.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -40,7 +40,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V177 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V178 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -116,12 +116,11 @@ function mountLauncher(){
 function userRole(){
  if(data.admin)return 'ADMIN';
  if(data.super)return 'SÚPER RESELLER';
+ const assigned=data.members.some(m=>m.role==='SUPER_RESELLER');
+ if(assigned)return access('STREAM_BULLS').ok?
+  'SÚPER RESELLER · APROBACIÓN PENDIENTE':'SÚPER RESELLER · MEMBRESÍA PENDIENTE';
  if(data.reseller)return 'RESELLER';
- // Permiso preasignado ≠ membresía activa: el servidor mantiene el bloqueo.
- if(data.superPermission&&data.members.some(m=>m.role==='SUPER_RESELLER'))
-  return 'SÚPER RESELLER · MEMBRESÍA PENDIENTE';
- if(data.members.some(m=>m.role==='RESELLER'))
-  return 'RESELLER · MEMBRESÍA PENDIENTE';
+ if(data.members.some(m=>m.role==='RESELLER'))return 'RESELLER · MEMBRESÍA PENDIENTE';
  return 'AFILIADO';
 }
 function renderNav(){
@@ -274,12 +273,15 @@ function overview(page){
  const published=data.products.filter(p=>p.seller_id===user);
  const sold=data.orders.filter(o=>o.seller_id===user);
  const currentBusiness=services.filter(b=>access(b[0]).ok).length;
+ const superAssigned=!data.admin&&!data.super&&data.members.some(m=>m.role==='SUPER_RESELLER');
  const resellerPending=!data.admin&&!data.super&&!data.reseller&&data.members.some(m=>m.role==='RESELLER');
- const kind=data.admin?'admin':data.super?'super':data.superPermission?'super-pending':data.reseller?'reseller':resellerPending?'reseller-pending':'affiliate';
+ const kind=data.admin?'admin':data.super?'super':superAssigned?'super-pending':data.reseller?'reseller':resellerPending?'reseller-pending':'affiliate';
  const headings={
   admin:['Centro de administración','Usuarios, publicaciones y ventas sin salir de un panel.'],
   super:['Mi negocio STREAM BULL’S','Publica servicios, atiende pedidos y revisa tus movimientos.'],
-  'super-pending':['Súper reseller · membresía pendiente','La asignación está registrada. La venta exige una membresía verificada.'],
+  'super-pending':access('STREAM_BULLS').ok?
+   ['Súper reseller · aprobación pendiente','Tu membresía anual está vigente. ADMIN debe autorizar las publicaciones y ventas.']:
+   ['Súper reseller · membresía pendiente','Primero activa la membresía anual. Después ADMIN autorizará las funciones especiales.'],
   reseller:['Mi espacio reseller','Compra y consulta tus servicios desde una sola cuenta.'],
   'reseller-pending':['Reseller · membresía pendiente','Tienes el rol asignado. Los precios de distribuidor requieren una membresía activa.'],
   affiliate:['Bienvenido a CLAN CARTAN','Explora el catálogo público y consulta tus compras.']
@@ -294,7 +296,7 @@ function overview(page){
  }else if(data.super){
   actions.append(button('Publicar servicio',()=>nav('publish'),'cc166-primary'));
   actions.append(button('Ventas y entregas',()=>nav('sales'),'cc166-secondary'));
- }else if((data.superPermission&&!data.super)||resellerPending){
+ }else if(superAssigned||resellerPending){
   actions.append(button('Consultar membresía',()=>nav('business:STREAM_BULLS'),'cc166-primary'));
  }else{
   actions.append(button('Explorar catálogo',()=>nav('shop'),'cc166-primary'));
@@ -321,9 +323,9 @@ function overview(page){
    'Publicaciones y ventas propias. Los precios y las comisiones se confirman en el servidor.');
   center.append(button('Gestionar mis ventas',()=>nav('sales'),'cc166-secondary'));
   page.append(center);
- }else if(data.superPermission&&!data.super&&!data.admin){
-  const pending=card('Súper reseller · activación pendiente',
-   'Publicar y gestionar ventas requiere una membresía activa de STREAM BULL’S.');
+ }else if(superAssigned){
+  const pending=card(access('STREAM_BULLS').ok?'Súper reseller · aprobación ADMIN pendiente':'Súper reseller · membresía pendiente',
+   access('STREAM_BULLS').ok?'Tu pago anual está vigente. Solo ADMIN puede habilitar publicaciones y ventas.':'Primero paga la membresía anual. Después ADMIN autorizará las funciones especiales.');
   pending.append(button('Ver membresía',()=>nav('business:STREAM_BULLS'),'cc166-secondary'));
   page.append(pending);
  }else if(resellerPending){
@@ -1072,19 +1074,10 @@ async function adminSetSuper(person,enable,percent,btn){
  if(!window.confirm(text))return;
  adminActionBusy=true;btn.disabled=true;
  try{
-  let success=false;
-  if(live){
-   const result=await api('rpc/cc_portal_admin_set_super_reseller','POST',{
-    p_email:person.email,p_enabled:enable,p_admin_percent:commission
-   });
-   success=!!result?.updated;
-  }else{
-   const result=await api('rpc/cc_portal_admin_assign_stream_role','POST',{
-    p_email:person.email,p_role:enable?'SUPER_RESELLER':'RESELLER',
-    p_admin_percent:commission
-   });
-   success=!!result?.assigned;
-  }
+  const result=await api('rpc/cc_portal_admin_set_super_reseller','POST',{
+   p_email:person.email,p_enabled:enable,p_admin_percent:commission
+  });
+  const success=!!result?.updated;
   if(!success)throw Error('El servidor no confirmó el cambio');
   adminAccountsState='idle';
   await loadAdminAccounts(true);
