@@ -86,3 +86,38 @@
  #cc166-panel .cc180-role-editor{max-width:100%;width:100%}
  #cc166-panel .cc171-person-actions{max-width:100%}
 }
+
+/* V181 · Otorgar recarga ≠ otorgar bono. Ambas acciones en la misma ficha ADMIN. */
+#cc166-panel .cc181-user-actions{
+ display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:2px 0 7px;
+}
+#cc166-panel .cc181-user-actions button{
+ min-height:33px;padding:7px 11px;font-size:11px;
+}
+#cc166-panel .cc181-grant-form{
+ border:1px solid #2b5663;border-radius:12px;background:#102939;
+ padding:13px 14px;margin-top:12px;
+}
+#cc166-panel .cc181-grant-form>summary{
+ font-size:13px;color:#adf5e8;font-weight:800;cursor:pointer;
+}
+#cc166-panel .cc181-assist-fields{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:12px;margin:16px 0 7px;
+}
+#cc166-panel .cc181-assist-fields label{
+ display:grid;gap:6px;font-size:11px;color:#b9d8e4;font-weight:700;min-width:0;
+}
+#cc166-panel .cc181-assist-fields input,
+#cc166-panel .cc181-assist-fields select{
+ box-sizing:border-box;min-width:0;width:100%;height:42px;
+ padding:8px 10px;border-radius:9px;background:#071d2d;
+ border:1px solid #346473;color:#f4ffff;
+}
+#cc166-panel .cc181-assist-fields button{
+ grid-column:1/-1;justify-self:start;min-height:38px;
+}
+@media(max-width:660px){
+ #cc166-panel .cc181-assist-fields{grid-template-columns:1fr}
+ #cc166-panel .cc181-user-actions button{flex:1 1 auto}
+}

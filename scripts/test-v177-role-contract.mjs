@@ -7,8 +7,13 @@ const loader=fs.readFileSync('scripts/v151-portal-polish.js','utf8');
 const postpay=fs.readFileSync('supabase/migrations/20261026004600_cc_super_postpay_approval_v178.sql','utf8');
 const annual=fs.readFileSync('supabase/migrations/20261026010000_cc_super_annual_validation_v179.sql','utf8');
 const index=fs.readFileSync('index.html','utf8');
+const grantSql=fs.readFileSync('supabase/migrations/20261026020000_cc_admin_assisted_recharge_v181.sql','utf8');
 const inlineSql=fs.readFileSync('supabase/migrations/20261026014000_cc_portal_admin_inline_roles_v180.sql','utf8');
 const checks=[
+ [js.includes("function adminAssistedRechargeForm(page)")&&js.includes("function openAdminGrantRecharge(person)")&&js.includes("function openAdminGrantBonus(person)"),'ADMIN puede otorgar recarga y bono desde la ficha'],
+ [js.includes("api('rpc/cc_admin_create_manual_recharge_for_user'")&&js.includes("cc_admin_decide_manual_recharge"),'Recarga asistida queda pendiente antes de acreditación bancaria'],
+ [grantSql.includes("exists(select 1 from public.cc_admins where user_id=actor)")&&grantSql.includes("p_target=actor"),'RPC solo ADMIN y prohibido otorgarse a sí mismo'],
+ [grantSql.includes("status='PENDING'")&&grantSql.includes("p_request"),'Recarga deduplicada y pendiente, sin alterar saldos'],
  [js.includes("cc180-role-editor") && js.includes("Cambiar a Reseller") && js.includes("Autorizar Súper reseller"),'Los cambios se hacen en la ficha del usuario'],
  [js.includes("person.paid_until") && js.includes("const paid=!!"), 'Permisos especiales solo tras el pago anual'],
  [inlineSql.includes("elsif not p_enabled then") && inlineSql.includes("set role='RESELLER'"),'Se permite bajar Súper reseller pendiente a Reseller sin activar membresía'],
@@ -31,8 +36,8 @@ const checks=[
  [js.includes("rpc/cc_submit_manual_recharge") && js.includes("data.profile?.full_name"),'Recarga manual usa datos del perfil'],
  [js.includes("rpc/cc_auto_topup_method_status") && js.includes("No disponible"),'Recarga automática muestra estado del proveedor'],
  [js.includes("cc177-return-panel") && js.includes("Atrás") && js.includes("Cerrar"),'Cerrar, volver y navegación en un panel'],
- [loader.includes("scripts/v166-portal-roles.js?v=180") && loader.includes("styles/v177-panel-unico.css?v=180"),'Frontend sin caché antigua'],
- [index.includes("scripts/v151-portal-polish.js?v=180"),'Portada enlazada a V177']
+ [loader.includes("scripts/v166-portal-roles.js?v=181") && loader.includes("styles/v177-panel-unico.css?v=181"),'Frontend sin caché antigua'],
+ [index.includes("scripts/v151-portal-polish.js?v=181"),'Portada enlazada a V177']
 ];
 let failures=0;
 for(const [ok,desc] of checks){if(!ok){console.error('FAIL:',desc);failures++;}}
