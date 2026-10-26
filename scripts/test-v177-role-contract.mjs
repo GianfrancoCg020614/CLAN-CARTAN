@@ -21,8 +21,8 @@ const checks=[
  [js.includes("rpc/cc_submit_manual_recharge") && js.includes("data.profile?.full_name"),'Recarga manual usa datos del perfil'],
  [js.includes("rpc/cc_auto_topup_method_status") && js.includes("No disponible"),'Recarga automática muestra estado del proveedor'],
  [js.includes("cc177-return-panel") && js.includes("Atrás") && js.includes("Cerrar"),'Cerrar, volver y navegación en un panel'],
- [loader.includes("scripts/v166-portal-roles.js?v=178") && loader.includes("styles/v177-panel-unico.css?v=177"),'Frontend sin caché antigua'],
- [index.includes("scripts/v151-portal-polish.js?v=178"),'Portada enlazada a V177']
+ [loader.includes("scripts/v166-portal-roles.js?v=179") && loader.includes("styles/v177-panel-unico.css?v=177"),'Frontend sin caché antigua'],
+ [index.includes("scripts/v151-portal-polish.js?v=179"),'Portada enlazada a V177']
 ];
 let failures=0;
 for(const [ok,desc] of checks){if(!ok){console.error('FAIL:',desc);failures++;}}
