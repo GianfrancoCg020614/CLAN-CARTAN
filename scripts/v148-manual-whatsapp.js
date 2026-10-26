@@ -73,6 +73,10 @@ function mount(){
   }
   sending=true;el('cc148send').disabled=true;el('cc148status').textContent='Registrando solicitud pendiente…';
   try{
+   const identity=await window.cc80.api('rpc/cc_portal_my_recharge_identity_v187','POST',{});
+   if(!identity||identity.user_id!==sess.userId||!/^CLAN[1-9][0-9]*$/.test(String(identity.registry_code||''))||
+      !String(identity.registered_name||'').trim()||!String(identity.registered_email||'').includes('@'))
+    throw Error('No se pudo verificar CLAN, nombre y correo del titular');
    const binance=method==='BINANCE';
    const answer=binance
     ? await window.cc80.api('rpc/cc_notify_binance_personal_usdt','POST',{
@@ -84,16 +88,19 @@ function mount(){
    const row=binance?(Array.isArray(answer)?answer[0]:answer):null;
    const request=binance?row?.request_id:answer;
    if(!request)throw Error('No se confirmó el registro');
-   const msg=['*CLAN CARTAN | SOLICITUD DE RECARGA*','', 'Hola ADMIN, ya realicé un pago. Solicito verificarlo.',
-   'Billetera: *'+serviceName(service)+'*',
-   binance?'USDT enviados: *'+paid+' USDT*':'Monto: *'+currency(paid)+'*',
-   ...(binance?['Saldo PEN referencial: *'+currency(row.estimated_pen)+'*',
-     'Tasa protegida: S/ '+row.net_rate_pen_per_usdt+' por USDT',
-     'Acreditación definitiva limitada al PEN neto realmente liquidado.']:[]),
-   'Método: *'+method+'*','N.º de operación: *'+ref+'*',
-   'Código de solicitud: '+request,'Código de usuario: '+sess.userId,
-   '','*Adjunto mi comprobante de pago en este chat.*',
-   'La acreditación queda pendiente de tu verificación.','https://www.clancartan.com/'].join('\n');
+   const msg=[
+    '✅ *YA PAGUÉ – ('+identity.registry_code+')*',
+    '',
+    '🧾 *SOLICITUD:* '+request,
+    '',
+    '👤 *Cuenta:* '+String(identity.registered_name).trim(),
+    '',
+    '📧 *Correo:* '+String(identity.registered_email).trim(),
+    '',
+    '💰 *Importe solicitado:* '+currency(expected),
+    '',
+    '📎 *Te envío mi comprobante de pago para su verificación.*'
+   ].join('\n');
    const url='https://wa.me/51923319637?text='+encodeURIComponent(msg);
    el('cc148status').textContent='Solicitud registrada. Abriendo WhatsApp: adjunta allí tu comprobante y envía el mensaje.';
    const opened=window.open(url,'_blank','noopener,noreferrer');
