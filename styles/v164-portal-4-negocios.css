@@ -143,3 +143,20 @@ html[data-cc-theme="light"] #ma1611layer button:not(.active){background:#eaf3f7;
 #cc77home .cc77cards > .cc77card .cc78service-logo,
 #cc77home .cc77cards > .ma1611-card .ma1611-card-icon{width:195px!important;height:195px!important;min-width:195px!important;max-width:195px!important;min-height:195px!important;max-height:195px!important;flex-basis:195px!important}
 }
+
+/* V213: corregir elementos reales del DOM (oso .cc158-cochera-mark e imagen anidada de alquiler). */
+#cc77home .cc77cards > .cc77card .cc158-cochera-mark{
+ display:block!important;box-sizing:border-box!important;width:210px!important;height:210px!important;min-width:210px!important;max-width:210px!important;min-height:210px!important;max-height:210px!important;flex:0 0 210px!important;
+ margin:0 auto!important;background-image:url("assets/mi-cochera-logo.svg")!important;background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important;
+ font-size:0!important;color:transparent!important;border-radius:20px!important
+}
+#cc77home .cc77cards > .ma1611-card .ma1611-card-icon img{
+ display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;border-radius:18px!important
+}
+#cc77home .cc77cards > .ma1611-card .ma1611-card-icon{display:flex!important;justify-content:center!important;align-items:center!important;background:transparent!important}
+#cc77home .cc77cards > .cc77card .cc78service-logo{background-size:contain!important}
+#cc77home .cc77cards > .cc77card .cc78service h2{text-align:center!important}
+#cc77home .cc77cards > .ma1611-card h2{text-align:center!important}
+@media(max-width:590px){
+#cc77home .cc77cards > .cc77card .cc158-cochera-mark{width:195px!important;height:195px!important;min-width:195px!important;max-width:195px!important;min-height:195px!important;max-height:195px!important;flex-basis:195px!important}
+}
