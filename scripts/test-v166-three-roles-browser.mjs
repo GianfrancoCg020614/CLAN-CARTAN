@@ -35,7 +35,7 @@ try{
    '[...document.querySelectorAll(".cc166-navitem")].find(b=>b.textContent.toLowerCase().includes("negocios"))?.click();',
    'const tabCount=document.querySelectorAll("#cc166-content .cc167-tab").length;',
    'document.querySelectorAll("#cc166-content .cc167-tab")[1]?.click();',
-   'const scopedBusiness=tabCount===0||document.querySelector("#cc166-content .cc166-section-title h2")?.textContent==="COBRA YA"&&!document.querySelector("#cc166-content .cc167-product");',
+   'const scopedBusiness=tabCount===0||document.querySelector("#cc166-content .cc166-section-title h2")?.textContent.startsWith("COBRA YA")&&!document.querySelector("#cc166-content .cc167-product");',
    '[...document.querySelectorAll(".cc166-navitem")].find(b=>(b.textContent.includes("Inicio")||b.textContent.includes("Resumen")))?.click();',
    'const launcher=x("cc166-open-button");const launcherInstalled=!!launcher;',
    'panel?.querySelector(".cc166-x")?.click();const closes=panel?.hidden===true;',
