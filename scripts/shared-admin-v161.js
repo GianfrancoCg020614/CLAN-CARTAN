@@ -38,3 +38,4 @@ window.ClanCartanAdminV161=Object.freeze({SERVICES,SECTIONS,STATUS,normalize,mou
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>mountAll());
 else mountAll();
 })();
+/* Archivo preparado para el módulo V194. */
