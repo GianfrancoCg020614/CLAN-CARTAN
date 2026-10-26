@@ -111,6 +111,7 @@ jobs:
           node scripts/test-v171-admin-browser.mjs
           node scripts/test-v175-admin-tabs-browser.mjs
           node scripts/test-v177-wallet-roles-browser.mjs
+          node scripts/test-v177-role-contract.mjs
           node scripts/test-v172-prices-browser.mjs
           node scripts/test-v172-publish-browser.mjs
           node scripts/test-v173-home-bridge.mjs
