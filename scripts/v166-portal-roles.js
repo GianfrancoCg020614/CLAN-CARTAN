@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V181 · ADMIN valida, otorga recargas y bonos, sin usar servicios.
+/* CLAN CARTAN · V183 · QR de referencia y aviso por WhatsApp de solicitudes reales.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -13,6 +13,7 @@ let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminAction
 let walletTab='summary',rechargeMode='manual';
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
+let ownPending=null,ownPendingState='idle',ownPendingError='';
 let rechargeRows=[],rechargeState='idle',rechargeError='';
 let rechargeReady=null,rechargeSaving=false,assistedRechargeSaving=false;
 let chosenAdminRecipient=null,chosenBonusRecipient=null;
@@ -33,6 +34,7 @@ function reset(){
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
+ ownPending=null;ownPendingState='idle';ownPendingError='';
  rechargeRows=[];rechargeState='idle';rechargeError='';
  rechargeReady=null;rechargeSaving=false;assistedRechargeSaving=false;
  chosenAdminRecipient=null;chosenBonusRecipient=null;
@@ -42,7 +44,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V181 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V183 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -640,8 +642,86 @@ function personalAutoRecharge(page){
  box.append(button('Ir a recarga manual',()=>{walletTab='manual';render();},'cc166-secondary'));
  page.append(box);
 }
+async function loadOwnPendingRequest(force=false){
+ if(!verified||!user||!session()?.jwt)return;
+ if(ownPendingState==='loading'||(ownPendingState==='ready'&&!force))return;
+ ownPendingState='loading';ownPendingError='';
+ const uid=user,jwt=token,seq=serial;
+ try{
+  // Solo la solicitud del usuario autenticado (RLS), nunca solicitudes de otros clientes.
+  const result=await api('cc_manual_recharge_requests?select=id,service,amount_pen,status,created_at,payer_reference&user_id=eq.'+
+   enc(uid)+'&status=eq.PENDING&order=created_at.desc&limit=1','GET');
+  if(!active(uid,jwt,seq))return;
+  if(!Array.isArray(result))throw Error('La respuesta de solicitudes no es válida');
+  ownPending=result[0]||null;ownPendingState='ready';
+ }catch(e){
+  if(active(uid,jwt,seq)){ownPendingError=String(e?.message||e);ownPendingState='error';}
+ }finally{
+  if(active(uid,jwt,seq)&&view==='wallet'&&walletTab==='manual')render();
+ }
+}
+function whatsappPaidUrl(request){
+ const id=String(request?.id||'');
+ if(!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id))return '';
+ const account=String(data.profile?.full_name||session()?.displayName||'Usuario CLAN CARTAN').trim();
+ const msg='YA PAGUE CON SOLICITUD '+id+', y te envio mi comprobante.'+
+  '\nCuenta: '+account+
+  '\nNegocio: '+serviceName(request.service||'STREAM_BULLS')+
+  '\nImporte solicitado: '+price(request.amount_pen)+
+  '\nNota: pendiente de validación por ADMIN.';
+ return 'https://wa.me/51923391637?text='+encodeURIComponent(msg);
+}
+function whatsappPendingButton(request){
+ const link=make('a','cc183-whatsapp','WhatsApp · YA PAGUÉ, enviar comprobante');
+ const url=whatsappPaidUrl(request);
+ if(!url)return make('p','cc166-notice','El número de solicitud aún no está disponible; consulta tus recargas pendientes.');
+ link.href=url;link.target='_blank';link.rel='noopener noreferrer';
+ link.setAttribute('aria-label','Avisar a ADMIN por WhatsApp la solicitud '+request.id);
+ return link;
+}
+function qrReferenceCards(){
+ const section=make('section','cc183-qr-options');
+ section.append(make('h3','','Métodos y QR'));
+ section.append(make('p','cc166-note','Son QR personales de referencia conservados del portal anterior. Los cobros comerciales siguen sin autorización verificada. No envíes dinero para activar una recarga hasta que ADMIN confirme un método autorizado.'));
+ const grid=make('div','cc183-method-grid');
+ const methods=[
+  {id:'lemon',title:'Yape / Lemon',label:'QR Lemon / DALE',
+   image:'assets/qr-dale-gianfranco.svg',
+   alt:'Código QR personal de Lemon/DALE',
+   notice:'Este QR pertenece a Lemon/DALE; NO es un QR de Yape. El escáner Yape puede no aceptarlo. La recepción comercial está inhabilitada y este QR no debe utilizarse todavía para recargas comerciales.'},
+  {id:'binance',title:'Binance Pay',label:'QR Binance personal',
+   image:'assets/qr-binance-personal.png?v=147',
+   alt:'Código QR personal de Binance Pay',
+   notice:'QR Binance personal. Binance Pay utiliza criptoactivos (USDT), no soles; no hay cotización verificada vigente ni autorización comercial. No envíes fondos para acreditar soles hasta que se habilite el cobro correspondiente.'}
+ ];
+ for(const m of methods){
+  const item=make('article','cc183-method-card');
+  item.append(make('strong','',m.title),make('small','',m.label));
+  const open=button('Ver QR',()=>{
+   const modal=make('dialog','cc183-qr-dialog');
+   modal.setAttribute('aria-label','Vista del '+m.label);
+   modal.append(make('h3','',m.label));
+   const img=document.createElement('img');
+   img.src=m.image;img.alt=m.alt;img.loading='eager';
+   img.width=320;img.height=320;
+   modal.append(img,make('p','cc183-qr-warning',m.notice));
+   const done=button('✕ Cerrar QR',()=>{modal.close();modal.remove();},'cc166-secondary');
+   modal.append(done);
+   modal.addEventListener('close',()=>modal.remove(),{once:true});
+   modal.addEventListener('click',e=>{if(e.target===modal){modal.close();modal.remove();}});
+   document.body.append(modal);
+   if(typeof modal.showModal==='function')modal.showModal();else modal.open=true;
+  },'cc166-secondary cc183-qr-button');
+  item.append(open);grid.append(item);
+ }
+ section.append(grid);
+ return section;
+}
 async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
  if(personalTopupSaving||!verified||!session()?.jwt)return;
+ if(ownPending?.service===service&&ownPending?.status==='PENDING'){
+  notice('Ya tienes una solicitud pendiente para esta billetera. Utiliza su número al informar el comprobante por WhatsApp.');return;
+ }
  const value=Number(amount),name=String(otherPayer||data.profile?.full_name||session()?.displayName||'').trim().replace(/\s+/g,' ');
  if(!['STREAM_BULLS','COBRA_YA','MI_ALQUILER'].includes(service)
   ||!Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.0001){
@@ -652,7 +732,7 @@ async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
  }
  const ref=String(reference||'').trim();
  if(ref&&(!/^.{4,120}$/.test(ref))){notice('La referencia debe tener entre 4 y 120 caracteres.');return;}
- if(!window.confirm('¿Registrar una solicitud de recarga de '+price(value)+' para '+serviceName(service)+'? No se acreditará dinero hasta verificar el depósito.'))return;
+ if(!window.confirm('¿Registrar una solicitud PENDIENTE de '+price(value)+' para '+serviceName(service)+'? Esto no acredita saldo.'))return;
  personalTopupSaving=true;btn.disabled=true;const uid=user,jwt=token;
  try{
   const result=await api('rpc/cc_submit_manual_recharge','POST',{
@@ -660,27 +740,51 @@ async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
   });
   if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
   if(!result)throw Error('No se confirmó la solicitud');
-  notice('Solicitud registrada · '+String(result).slice(0,8)+'. PENDIENTE: tu saldo no se modifica hasta que ADMIN verifique el ingreso.');
- }catch(e){if(uid===user&&jwt===token)notice('Solicitud no registrada: '+String(e?.message||e));}
- finally{personalTopupSaving=false;btn.disabled=false;}
+  const id=String(result);
+  // Mostrar inmediatamente el identificador exacto devuelto por el servidor.
+  ownPending={id,service,amount_pen:value,status:'PENDING',payer_reference:ref};
+  ownPendingState='ready';render();
+  notice('Solicitud '+id+' registrada como PENDIENTE. Usa «Ya pagué» para avisar por WhatsApp y adjunta allí el comprobante. El ADMIN verificará el ingreso real.');
+ }catch(e){
+  if(uid===user&&jwt===token)notice('Solicitud no registrada: '+String(e?.message||e));
+ }finally{personalTopupSaving=false;btn.disabled=false;}
 }
 function personalManualRecharge(page){
+ if(ownPendingState==='idle')void loadOwnPendingRequest();
  const box=card('Solicitar recarga manual',
-  'La cuenta beneficiaria es la cuenta CLAN CARTAN con la que iniciaste sesión. No debes volver a registrarte ni escribir tu usuario.');
+  'La cuenta beneficiaria es la misma con la que iniciaste sesión. No vuelvas a escribir tu usuario.');
  const accountName=String(data.profile?.full_name||session()?.displayName||'').trim();
  box.append(make('p','cc177-identity-notice','Beneficiario: '+(accountName||'Tu usuario registrado')+' · ID de cuenta verificado'));
+ if(ownPendingState==='loading')box.append(make('p','cc166-note','Consultando si tienes recargas pendientes…'));
+ else if(ownPendingState==='error'){
+  box.append(make('p','cc166-notice','No se pudo consultar el estado de recargas: '+ownPendingError));
+  box.append(button('Consultar pendientes',()=>void loadOwnPendingRequest(true),'cc166-secondary'));
+ }else if(ownPending){
+  const pending=make('section','cc183-pending');
+  pending.append(make('strong','','Solicitud registrada · PENDIENTE DE VALIDACIÓN'));
+  pending.append(make('p','','N.º de solicitud: '+String(ownPending.id)));
+  pending.append(make('p','',serviceName(ownPending.service)+' · '+price(ownPending.amount_pen)));
+  pending.append(whatsappPendingButton(ownPending));
+  pending.append(make('small','','El botón abre WhatsApp con tu número de solicitud. Adjunta el comprobante en el chat; el mensaje no acredita el saldo.'));
+  const refresh=button('Actualizar estado',()=>void loadOwnPendingRequest(true),'cc166-secondary');
+  pending.append(refresh);
+  box.append(pending);
+ }
+ box.append(qrReferenceCards());
  const form=make('form','cc177-recharge-form');
  const serviceLabel=make('label','','Billetera');
  const service=document.createElement('select');service.required=true;
  for(const code of ['STREAM_BULLS','COBRA_YA','MI_ALQUILER']){
   const opt=make('option','',serviceName(code));opt.value=code;service.append(opt);
  }
+ if(ownPending?.service)service.value=ownPending.service;
  serviceLabel.append(service);form.append(serviceLabel);
  const amountLabel=make('label','','Importe (S/)');
  const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
  amountLabel.append(amount);form.append(amountLabel);
  const referenceLabel=make('label','','Referencia bancaria (si ya depositaste)');
- const reference=document.createElement('input');reference.maxLength=120;reference.placeholder='Número de operación';referenceLabel.append(reference);form.append(referenceLabel);
+ const reference=document.createElement('input');reference.maxLength=120;reference.placeholder='Número de operación';
+ referenceLabel.append(reference);form.append(referenceLabel);
  const thirdParty=make('details','cc177-third-party');
  thirdParty.append(make('summary','','¿El depósito lo hizo otra persona?'));
  const otherLabel=make('label','','Nombre del depositante diferente al titular');
@@ -691,13 +795,18 @@ function personalManualRecharge(page){
   info.append(button('Ir a Mi perfil',()=>nav('profile'),'cc166-secondary'));box.append(info);
  }
  const submit=make('button','cc166-primary','Registrar solicitud');submit.type='submit';
- form.append(submit);
+ const sync=()=>{
+  const waiting=ownPendingState==='loading'||ownPending?.service===service.value&&ownPending?.status==='PENDING';
+  submit.disabled=!!waiting||personalTopupSaving;
+  submit.textContent=waiting&&ownPending?.service===service.value?'Ya tienes una solicitud pendiente':'Registrar solicitud';
+ };
+ service.addEventListener('change',sync);sync();form.append(submit);
  form.addEventListener('submit',e=>{
   e.preventDefault();
   void submitAccountRecharge(service.value,amount.value,reference.value,otherName.value,submit);
  });
  box.append(form);
- box.append(make('p','cc166-note','Recarga manual: PENDIENTE hasta que ADMIN compruebe el dinero recibido. Las recargas automáticas requieren una integración confirmada, no se simulan.'));
+ box.append(make('p','cc166-note','Recarga manual: PENDIENTE hasta que ADMIN compruebe el ingreso. El QR y el aviso por WhatsApp no son confirmación del depósito ni habilitan recargas automáticas.'));
  page.append(box);
 }
 function wallet(page){
