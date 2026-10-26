@@ -716,7 +716,7 @@ function whatsappPaidUrl(request){
   '💰 *Importe solicitado:* '+price(request.amount_pen),
   '',
   '📎 *Te envío mi comprobante de pago para su verificación.*'
- ].join('\\n');
+ ].join('\n');
  return 'https://wa.me/51923319637?text='+encodeURIComponent(msg);
 }
 function whatsappPendingButton(request){
