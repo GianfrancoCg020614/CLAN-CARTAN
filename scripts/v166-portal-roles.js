@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V186 · Billetera REAL única y bonos sólo para activaciones.
+/* CLAN CARTAN · V187 · Billetera REAL única y bonos sólo para activaciones.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -14,6 +14,7 @@ let walletTab='summary',rechargeMode='manual';
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
 let ownPending=null,ownPendingState='idle',ownPendingError='';
+let ownRechargeIdentity=null,ownIdentityState='idle',ownIdentityError='';
 let rechargeRows=[],rechargeState='idle',rechargeError='';
 let rechargeReady=null,rechargeSaving=false,assistedRechargeSaving=false;
 let chosenAdminRecipient=null,chosenBonusRecipient=null;
@@ -35,6 +36,7 @@ function reset(){
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
  ownPending=null;ownPendingState='idle';ownPendingError='';
+ ownRechargeIdentity=null;ownIdentityState='idle';ownIdentityError='';
  rechargeRows=[];rechargeState='idle';rechargeError='';
  rechargeReady=null;rechargeSaving=false;assistedRechargeSaving=false;
  chosenAdminRecipient=null;chosenBonusRecipient=null;
@@ -44,7 +46,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V186 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V187 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -674,21 +676,53 @@ async function loadOwnPendingRequest(force=false){
   if(active(uid,jwt,seq)&&view==='wallet'&&walletTab==='manual')render();
  }
 }
+async function loadOwnRechargeIdentity(force=false){
+ if(!verified||!user||!session()?.jwt)return;
+ if(ownIdentityState==='loading'||(ownIdentityState==='ready'&&!force))return;
+ ownIdentityState='loading';ownIdentityError='';
+ const uid=user,jwt=token,seq=serial;
+ try{
+  // El servidor proporciona CLAN, nombre y correo de auth.uid(); nunca se adivina el CLAN.
+  const result=await api('rpc/cc_portal_my_recharge_identity_v187','POST',{});
+  if(!active(uid,jwt,seq))return;
+  if(!result||result.user_id!==uid||
+     !/^CLAN[1-9][0-9]*$/.test(String(result.registry_code||''))||
+     !String(result.registered_name||'').trim()||
+     !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(result.registered_email||'')))
+    throw Error('No se pudieron verificar los datos de esta cuenta');
+  ownRechargeIdentity=result;ownIdentityState='ready';
+ }catch(e){
+  if(active(uid,jwt,seq)){ownRechargeIdentity=null;ownIdentityError=String(e?.message||e);ownIdentityState='error';}
+ }finally{
+  if(active(uid,jwt,seq)&&view==='wallet'&&walletTab==='manual')render();
+ }
+}
 function whatsappPaidUrl(request){
  const id=String(request?.id||'');
- if(!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id))return '';
- const account=String(data.profile?.full_name||session()?.displayName||'Usuario CLAN CARTAN').trim();
- const msg='YA PAGUE CON SOLICITUD '+id+', y te envio mi comprobante.'+
-  '\nCuenta: '+account+
-  '\nBilletera: CLAN CARTAN (única)'+
-  '\nImporte solicitado: '+price(request.amount_pen)+
-  '\nNota: pendiente de validación por ADMIN.';
+ const person=ownRechargeIdentity;
+ if(!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id)||
+    ownIdentityState!=='ready'||!person||person.user_id!==user||
+    !/^CLAN[1-9][0-9]*$/.test(String(person.registry_code||''))||
+    !Number.isFinite(Number(request.amount_pen))||Number(request.amount_pen)<=0)return '';
+ const msg=[
+  '✅ *YA PAGUÉ – ('+person.registry_code+')*',
+  '',
+  '🧾 *SOLICITUD:* '+id,
+  '',
+  '👤 *Cuenta:* '+String(person.registered_name).trim(),
+  '',
+  '📧 *Correo:* '+String(person.registered_email).trim(),
+  '',
+  '💰 *Importe solicitado:* '+price(request.amount_pen),
+  '',
+  '📎 *Te envío mi comprobante de pago para su verificación.*'
+ ].join('\\n');
  return 'https://wa.me/51923319637?text='+encodeURIComponent(msg);
 }
 function whatsappPendingButton(request){
  const link=make('a','cc183-whatsapp','WhatsApp · YA PAGUÉ, enviar comprobante');
  const url=whatsappPaidUrl(request);
- if(!url)return make('p','cc166-notice','El número de solicitud aún no está disponible; consulta tus recargas pendientes.');
+ if(!url)return make('p','cc166-notice','No se puede preparar el mensaje sin verificar CLAN y los datos del titular.');
  link.href=url;link.target='_blank';link.rel='noopener noreferrer';
  link.setAttribute('aria-label','Avisar a ADMIN por WhatsApp la solicitud '+request.id);
  return link;
@@ -765,6 +799,7 @@ async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
 }
 function personalManualRecharge(page){
  if(ownPendingState==='idle')void loadOwnPendingRequest();
+ if(ownPending&&ownIdentityState==='idle')void loadOwnRechargeIdentity();
  const box=card('Solicitar recarga manual',
   'La cuenta beneficiaria es la misma con la que iniciaste sesión. No vuelvas a escribir tu usuario.');
  const accountName=String(data.profile?.full_name||session()?.displayName||'').trim();
@@ -778,7 +813,11 @@ function personalManualRecharge(page){
   pending.append(make('strong','','Solicitud registrada · PENDIENTE DE VALIDACIÓN'));
   pending.append(make('p','','N.º de solicitud: '+String(ownPending.id)));
   pending.append(make('p','','Billetera única CLAN CARTAN · '+price(ownPending.amount_pen)));
-  pending.append(whatsappPendingButton(ownPending));
+  if(ownIdentityState==='ready')pending.append(whatsappPendingButton(ownPending));
+  else if(ownIdentityState==='error'){
+   pending.append(make('p','cc166-notice','No se verificó tu identidad CLAN: '+ownIdentityError));
+   pending.append(button('Reintentar identidad',()=>void loadOwnRechargeIdentity(true),'cc166-secondary'));
+  }else pending.append(make('p','cc166-note','Verificando tu número CLAN, nombre y correo…'));
   pending.append(make('small','','El botón abre WhatsApp con tu número de solicitud. Adjunta el comprobante en el chat; el mensaje no acredita el saldo.'));
   const refresh=button('Actualizar estado',()=>void loadOwnPendingRequest(true),'cc166-secondary');
   pending.append(refresh);
@@ -1610,6 +1649,7 @@ async function saveProfile(form,buttonEl){
   });
   if(user!==uid||session()?.jwt!==jwt)return;
   if(!saved?.saved)throw Error('No se confirmó la actualización');
+  ownRechargeIdentity=null;ownIdentityState='idle';ownIdentityError='';
   await load();
   if(user!==uid||session()?.jwt!==jwt)return;
   if(session()){session().displayName=fullName;}
