@@ -1,1 +1,16 @@
-import fs from 'node:fs';import assert from 'node:assert/strict';const s=fs.readFileSync('index.html','utf8');assert.ok(s.includes("const auth=await api('/auth/v1/token?grant_type=password'"));assert.ok(s.includes("window.CC_V53_SESSION={jwt:jwt,userId:me.id"));assert.ok(!s.includes("if(typeof loginDemo==='function'){verified=false;}"));assert.ok(!s.includes("if(typeof loginDemo==='function'){try{loginDemo('admin')}"));assert.ok(s.includes("window.CC_V53_SESSION?.isAdmin!==true"));assert.ok(s.includes("gate.style.display='none'"));assert.ok(s.includes("cc79AfterLogin()"));console.log('PASS: real ADMIN and RESELLER sessions stay authenticated; no local role escalation.');
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const s=fs.readFileSync('index.html','utf8');
+const normalized=s.replace(/\s+/g,' ');
+function check(re,label){assert.match(normalized,re,label)}
+check(/const auth=await api\('\/auth\/v1\/token\?grant_type=password'/,'Real password authentication');
+check(/window\.CC_V53_SESSION=\{jwt(?:\s*,|\s*:\s*jwt\s*,)\s*userId:me\.id/,'Verified session uses server identity');
+check(/const me=await api\('\/auth\/v1\/user'/,'Identity fetched from server');
+check(/const isAdmin=Array\.isArray\(admins\)/,'ADMIN determined by backend data');
+check(/if\(!isAdmin\)/,'Commercial roles verified separately');
+check(/window\.CC_V53_SESSION\?\.isAdmin!==true/,'Demo ADMIN bypass prevented');
+check(/gate\.style\.display='none'/,'Gate closes after authentication');
+check(/cc79AfterLogin\(\)/,'Portal opens after authentication');
+assert.ok(!s.includes("if(typeof loginDemo==='function'){verified=false;}"));
+assert.ok(!s.includes("if(typeof loginDemo==='function'){try{loginDemo('admin')}"));
+console.log('PASS V161 Part 1: verified server session, ADMIN checks and no demo escalation.');
