@@ -1,4 +1,4 @@
-/* CLAN CARTAN · V189 · Billetera REAL única y bonos sólo para activaciones.
+/* CLAN CARTAN · V190 · Billetera REAL única y bonos sólo para activaciones.
    Control real: Supabase con RLS; no se inventan saldos ni membresías.
    Sin accesos desde este panel a administración heredada. */
 (function(){
@@ -13,7 +13,8 @@ let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminAction
 let walletTab='summary',rechargeMode='manual';
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
-let ownPending=null,ownPendingState='idle',ownPendingError='';
+let ownPending=null,ownPendingState='idle',ownPendingError='',ownPendingBusy=false;
+let rechargeQueueBusy=false,autoRefreshTimer=null,adminLastQueueFetch=0;
 let ownRechargeIdentity=null,ownIdentityState='idle',ownIdentityError='';
 let rechargeRows=[],rechargeState='idle',rechargeError='';
 let rechargeReady=null,rechargeSaving=false,assistedRechargeSaving=false;
@@ -35,7 +36,8 @@ function reset(){
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
- ownPending=null;ownPendingState='idle';ownPendingError='';
+ ownPending=null;ownPendingState='idle';ownPendingError='';ownPendingBusy=false;
+ rechargeQueueBusy=false;adminLastQueueFetch=0;
  ownRechargeIdentity=null;ownIdentityState='idle';ownIdentityError='';
  rechargeRows=[];rechargeState='idle';rechargeError='';
  rechargeReady=null;rechargeSaving=false;assistedRechargeSaving=false;
@@ -46,7 +48,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V189 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V190 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  document.body.append(app);return app;
 }
 function access(code){
@@ -368,11 +370,15 @@ function safeDate(value){
 function adminWalletTabs(page){
  page.append(adminSectionTabs([['summary','Panel financiero'],['recharges','Recargas manuales'],['audit','Auditoría']],walletTab,id=>{walletTab=id;render();}));
 }
-async function loadAdminRecharges(force=false){
- if(!data.admin||!user||!session()?.jwt)return;
- if(rechargeState==='loading'||(rechargeState==='ready'&&!force))return;
- rechargeState='loading';rechargeError='';
+async function loadAdminRecharges(force=false,background=false){
+ if(!data.admin||!user||!session()?.jwt||rechargeQueueBusy)return;
+ if(rechargeState==='ready'&&!force)return;
+ rechargeQueueBusy=true;
+ const prevState=rechargeState,prevRows=JSON.stringify(rechargeRows),prevEnabled=!!rechargeReady?.enabled;
+ if(!background)rechargeState='loading';
+ rechargeError='';
  const uid=user,jwt=token;
+ let changed=!background;
  try{
   const [rows,ready]=await Promise.all([
    api('rpc/cc_admin_manual_recharge_queue_v184','POST',{}),
@@ -380,12 +386,19 @@ async function loadAdminRecharges(force=false){
   ]);
   if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
   if(!Array.isArray(rows))throw Error('No se recibió la cola de recargas');
-  rechargeRows=rows;rechargeReady=Array.isArray(ready)&&ready.length?ready[0]:{enabled:false};
-  rechargeState='ready';
+  const nextReady=Array.isArray(ready)&&ready.length?ready[0]:{enabled:false};
+  changed=prevState!=='ready'||prevRows!==JSON.stringify(rows)||prevEnabled!==!!nextReady.enabled;
+  rechargeRows=rows;rechargeReady=nextReady;rechargeState='ready';adminLastQueueFetch=Date.now();
  }catch(e){
-  if(user===uid&&token===jwt){rechargeState='error';rechargeError=String(e?.message||e);rechargeReady=null;}
+  if(user===uid&&token===jwt){
+   if(!background||prevState!=='ready'){
+    rechargeState='error';rechargeError=String(e?.message||e);rechargeReady=null;changed=true;
+   }
+  }
  }finally{
-  if(user===uid&&token===jwt&&((view==='wallet'&&walletTab==='recharges')||view==='home'||view==='attention'))render();
+  rechargeQueueBusy=false;
+  if(changed&&user===uid&&token===jwt&&
+      ((view==='wallet'&&(walletTab==='recharges'||walletTab==='summary'))||view==='home'||view==='attention'))render();
  }
 }
 async function adminDecideRecharge(row,approve,transaction,bank,confirmed,btn){
@@ -507,6 +520,7 @@ function adminRecharges(page){
  const actions=make('div','cc166-actions');
  actions.append(button('Actualizar pendientes',()=>void loadAdminRecharges(true),'cc166-secondary'));box.append(actions);
  if(rechargeState==='idle')void loadAdminRecharges();
+ else if(rechargeState==='ready'&&Date.now()-adminLastQueueFetch>15000)void loadAdminRecharges(true,true);
  if(rechargeState==='idle'||rechargeState==='loading')box.append(make('p','cc166-note','Consultando solicitudes de recarga…'));
  else if(rechargeState==='error'){
   box.append(make('p','cc166-notice','Recargas no disponibles: '+rechargeError));
@@ -525,6 +539,7 @@ function adminRecharges(page){
   const list=make('div','cc175-records');
   for(const row of rechargeRows.slice(0,80)){
    const item=make('article','cc176-recharge-record');
+   item.dataset.requestId=String(row.request_id||'');
    const top=make('div','cc176-recharge-head'),left=make('div','');
    // Identificación de la cuenta desde auth.users + registro CLAN, NO desde el comprobante.
    const identity=make('div','cc184-recharge-identity');
@@ -1686,8 +1701,40 @@ function other(page){
  box.append(button('Ver negocios',()=>nav('businesses'),'cc166-primary'));
  box.append(button('Volver al portal original',()=>{app.hidden=true;},'cc166-secondary'));page.append(box);
 }
+function saveAdminReviewDrafts(){
+ if(!data.admin||view!=='wallet'||walletTab!=='recharges')return [];
+ const items=el('cc166-content')?.querySelectorAll('.cc176-recharge-record[data-request-id]')||[];
+ return [...items].map(item=>{
+  const review=item.querySelector('details.cc176-review');
+  if(!review?.open)return null;
+  return {id:item.dataset.requestId,open:true,
+    tx:item.querySelector('input[aria-label="ID del depósito bancario verificado"]')?.value||'',
+    bank:item.querySelector('input[aria-label="Banco de origen"]')?.value||'',
+    confirmed:!!item.querySelector('.cc176-verify-label input[type="checkbox"]')?.checked,
+    focus:document.activeElement?.getAttribute('aria-label')||''};
+ }).filter(Boolean);
+}
+function restoreAdminReviewDrafts(drafts){
+ if(!drafts.length||view!=='wallet'||walletTab!=='recharges')return;
+ for(const draft of drafts){
+  const item=[...(el('cc166-content')?.querySelectorAll('.cc176-recharge-record[data-request-id]')||[])]
+    .find(node=>node.dataset.requestId===draft.id);
+  if(!item)continue;
+  const review=item.querySelector('details.cc176-review');
+  if(review)review.open=draft.open;
+  const tx=item.querySelector('input[aria-label="ID del depósito bancario verificado"]');
+  const bank=item.querySelector('input[aria-label="Banco de origen"]');
+  const confirmed=item.querySelector('.cc176-verify-label input[type="checkbox"]');
+  if(tx)tx.value=draft.tx;
+  if(bank)bank.value=draft.bank;
+  if(confirmed)confirmed.checked=draft.confirmed;
+  if(draft.focus==='ID del depósito bancario verificado')tx?.focus({preventScroll:true});
+  else if(draft.focus==='Banco de origen')bank?.focus({preventScroll:true});
+ }
+}
 function render(){
  if(!app||!user)return;
+ const rechargeDrafts=saveAdminReviewDrafts();
  el('cc177-return-panel')?.remove();
  mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
  // Cuatro negocios, un selector: visible únicamente al gestionar negocios.
@@ -1709,6 +1756,7 @@ function render(){
  case 'profile':profile(page);break;
  default:other(page);
  }
+ restoreAdminReviewDrafts(rechargeDrafts);
 }
 async function read(path,required=false){try{const r=await api(path);if(!Array.isArray(r))throw Error('Respuesta inválida');return r;}catch(e){if(required)throw e;return[];}}
 async function readOrders(){const rows=await api('rpc/cc_portal_my_stream_orders','POST',{p_limit:100});if(!Array.isArray(rows))throw Error('Pedidos no disponibles');return rows;}
