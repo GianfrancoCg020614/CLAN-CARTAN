@@ -23,6 +23,7 @@ assert.match(js,/if\(creditChanged\)void load\(\)/,'Vuelve a consultar saldo y m
 assert.match(js,/ownPending\?\.status==='APPROVED'/,'Muestra aprobación al cliente');
 assert.match(js,/ownPending\?\.status==='REJECTED'/,'Muestra rechazo al cliente');
 assert.match(js,/saveAdminReviewDrafts\(\)/,'Preserva campos escritos por ADMIN al actualizar');
+assert.match(js,/restoreAdminGrantDraft\(grantDraft\)/,'Preserva la recarga asistida durante cambios de cola');
 assert.match(js,/restoreAdminReviewDrafts\(rechargeDrafts\)/,'Restaura campos escritos por ADMIN');
 assert.match(js,/prevState!=='ready'\|\|prevRows!==JSON\.stringify\(rows\)/,'No redibuja una cola idéntica');
 assert.match(js,/rpc\/cc_admin_decide_manual_recharge_v189/,'La aprobación sigue exclusivamente en el RPC validado');
@@ -30,6 +31,6 @@ assert.match(sql,/p_confirmed_received is distinct from true/i,'El servidor exig
 assert.match(sql,/v_req\.user_id=v_admin/i,'Ningún ADMIN acredita su propia cuenta');
 assert.match(sql,/create unique index if not exists cc_verified_receipt_reference_unique_global/,'No repetir referencias');
 assert.match(js,/p_confirmed_received:approve\?true:false/,'El cliente nunca autoacredita al crear solicitudes');
-assert.match(loader,/v166-portal-roles\.js\?v=190/);
-assert.match(html,/scripts\/v151-portal-polish\.js\?v=190/);
+assert.match(loader,/v166-portal-roles\.js\?v=191/);
+assert.match(html,/scripts\/v151-portal-polish\.js\?v=191/);
 console.log('PASS V190: ADMIN y cliente sincronizados, sin duplicados y sin borrar borradores.');
