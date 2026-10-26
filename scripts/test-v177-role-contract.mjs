@@ -5,8 +5,13 @@ const js=fs.readFileSync('scripts/v166-portal-roles.js','utf8');
 const sql=fs.readFileSync('supabase/migrations/20261026002000_cc_portal_admin_publish_guard_v177.sql','utf8');
 const loader=fs.readFileSync('scripts/v151-portal-polish.js','utf8');
 const postpay=fs.readFileSync('supabase/migrations/20261026004600_cc_super_postpay_approval_v178.sql','utf8');
+const annual=fs.readFileSync('supabase/migrations/20261026010000_cc_super_annual_validation_v179.sql','utf8');
 const index=fs.readFileSync('index.html','utf8');
 const checks=[
+ [annual.includes("p.code='STREAM_365' and p.price_pen>0"),'Se verifica un plan anual comercial pagado'],
+ [annual.includes("'paid_until',s.paid_until"),'ADMIN ve únicamente vencimiento pagado'],
+ [js.includes("person.paid_until") && !js.includes("const paid=!!(person.access_until"),'La interfaz no confunde activación gratuita con pago real'],
+ 
  [js.includes("['bonuses','◇','Bonos']") && js.includes("['sales','◈','Supervisar pedidos']"),'ADMIN administra bonos y supervisa'],
  [js.includes("...(superRole?[['publish','▣','Mis publicaciones']"),'Solo el Súper reseller muestra publicar'],
  [js.includes("if(data.admin||!data.super)return overview(page)"),'Publicación bloqueada en front para ADMIN'],
