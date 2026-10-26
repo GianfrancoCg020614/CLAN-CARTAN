@@ -33,7 +33,7 @@ for(const dangerous of ['cc_real_service_wallets?','post_wallet_operation','ma_t
  assert.ok(!ui.includes(dangerous),'La recuperación visual NO debe ejecutar '+dangerous);
 for(const legacy of ['cc77Auth(create)','ccParte1LegalReady'])
  assert.ok(html.includes(legacy),'No alterar seguridad/login/códigos preexistentes '+legacy);
-assert.match(html,/window\\.CC_V53_SESSION=\\{jwt(?:\\s*,|\\s*:\\s*jwt\\s*,)\\s*userId:me\\.id/,'Sesión real vinculada a identidad verificada');
+assert.ok(html.includes('window.CC_V53_SESSION={jwt,userId:me.id') || html.includes('window.CC_V53_SESSION={jwt:jwt,userId:me.id'),'Sesión real vinculada a identidad verificada');
 for(const src of [
  'scripts/v161-1-mi-alquiler.js','scripts/v161-2-mi-alquiler.js',
  'scripts/v161-3-mi-alquiler.js','scripts/v161-4-mi-alquiler.js'
