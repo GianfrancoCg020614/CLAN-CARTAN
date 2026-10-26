@@ -1,0 +1,56 @@
+/* CLAN CARTAN V177: mismos estilos, navegación y controles para TODOS los roles.
+   Las diferencias son permisos verificados en el servidor, no cuatro paneles separados. */
+#cc166-panel .cc177-back{font-size:12px;white-space:nowrap}
+#cc166-panel .cc177-bonus-form,#cc166-panel .cc177-recharge-form{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:12px 0;
+}
+#cc166-panel .cc177-bonus-form label,#cc166-panel .cc177-recharge-form label{
+ display:grid;gap:7px;color:#bfdae4;font-size:12px;font-weight:700;min-width:0;
+}
+#cc166-panel .cc177-bonus-form input,#cc166-panel .cc177-bonus-form select,
+#cc166-panel .cc177-recharge-form input,#cc166-panel .cc177-recharge-form select{
+ width:100%;min-width:0;height:43px;box-sizing:border-box;
+ border:1px solid #355467;border-radius:9px;background:#091b28;
+ color:#eefbff;padding:8px 11px;font-size:13px;
+}
+#cc166-panel .cc177-bonus-form button,#cc166-panel .cc177-recharge-form button,
+#cc166-panel .cc177-bonus-form .cc166-note,#cc166-panel .cc177-recharge-form .cc166-note{
+ grid-column:1/-1;
+}
+#cc166-panel .cc177-third-party{grid-column:1/-1;border:1px solid #345366;border-radius:10px;padding:10px 12px}
+#cc166-panel .cc177-third-party summary{font-size:12px;color:#caeaf0;cursor:pointer}
+#cc166-panel .cc177-third-party label{margin-top:12px}
+#cc166-panel .cc177-identity-notice{
+ padding:10px 13px;border:1px solid #23676e;border-radius:10px;background:#12333d;
+ color:#e1fffb;font-size:12px;line-height:1.5;
+}
+#cc166-panel .cc177-business-balances{display:grid;gap:2px}
+#cc166-panel .cc177-balance-row{
+ display:flex;justify-content:space-between;gap:12px;padding:10px 0;
+ border-bottom:1px solid #2b4354;font-size:12px;
+}
+#cc166-panel .cc177-balance-row:last-child{border:0}
+#cc166-panel .cc177-balance-row strong{color:#a8f1e7}
+#cc166-panel .cc177-auto-methods{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;margin:12px 0}
+#cc166-panel .cc177-provider{background:#0b2232;border:1px solid #315365;border-radius:11px;padding:15px}
+#cc166-panel .cc177-provider strong{color:#effaff;font-size:13px}
+#cc166-panel .cc177-provider p{font-size:12px;color:#abc6d2;line-height:1.6}
+#cc166-panel .cc177-state-ready{color:#7fe8c1;font-size:11px}
+#cc166-panel .cc177-state-pending{color:#edc889;font-size:11px}
+#cc177-return-panel{
+ position:fixed;right:18px;bottom:26px;z-index:2147483001;
+ padding:7px;display:flex;gap:5px;align-items:center;
+ border:1px solid #3b6972;border-radius:12px;background:#102637;
+ box-shadow:0 8px 32px #040b15ac;
+}
+#cc177-return-panel button{
+ padding:10px 13px;border:1px solid #307e82;border-radius:9px;
+ color:#eafcfc;background:#174e57;font-size:12px;font-weight:800;cursor:pointer;
+}
+#cc177-return-panel button:last-child{padding:9px 12px;background:#1c2e3b;color:#b9dbe7}
+@media(max-width:680px){
+ #cc166-panel .cc177-bonus-form,#cc166-panel .cc177-recharge-form{grid-template-columns:1fr}
+ #cc166-panel .cc177-back{padding:6px 8px;font-size:11px}
+ #cc166-panel .cc166-top #cc166-top-actions{flex-wrap:wrap;justify-content:flex-end}
+ #cc177-return-panel{bottom:83px;right:12px}
+}
