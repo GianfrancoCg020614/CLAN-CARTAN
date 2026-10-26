@@ -10,8 +10,7 @@ const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],[
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
-let adminTab='accounts',walletTab='summary';
-let requestRows=[],requestState='idle',requestError='';
+let walletTab='summary';
 let rechargeRows=[],rechargeState='idle',rechargeError='';
 let rechargeReady=null,rechargeSaving=false;
 let auditData=null,auditRows=[],auditState='idle',auditError='';
@@ -29,8 +28,7 @@ function reset(){
  app?.remove();app=null;el('cc166-open-button')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
- adminTab='accounts';walletTab='summary';
- requestRows=[];requestState='idle';requestError='';
+ walletTab='summary';
  rechargeRows=[];rechargeState='idle';rechargeError='';
  rechargeReady=null;rechargeSaving=false;
  auditData=null;auditRows=[];auditState='idle';auditError='';
@@ -79,7 +77,6 @@ function nav(to){
  if(to==='shop'){openCatalog();return;}
  // Al pulsar una sección principal, mostrar su vista inicial.
  // Las pestañas internas cambian el estado sin reiniciar la navegación.
- if(to==='admin')adminTab='accounts';
  if(to==='wallet')walletTab='summary';
  view=to;render();
 }
@@ -346,7 +343,7 @@ async function loadAdminRecharges(force=false){
   if(!Array.isArray(rows))throw Error('Formato de recargas no válido');
   rechargeRows=rows;rechargeState='ready';
  }catch(e){if(user===uid&&token===jwt){rechargeState='error';rechargeError=String(e?.message||e);}}
- finally{if(user===uid&&token===jwt&&view==='wallet'&&walletTab==='recharges')render();}
+ finally{if(user===uid&&token===jwt&&((view==='wallet'&&walletTab==='recharges')||view==='home'||view==='attention'))render();}
 }
 function openAdminRechargeReview(){
  if(!data.admin)return;
@@ -853,28 +850,44 @@ async function loadAdminAccounts(force=false){
   adminAccountsState='error';
   adminAccountsError=String(e?.message||e);
  }finally{
-  if(user===uid&&session()?.jwt===jwt&&view==='admin')render();
+  if(user===uid&&session()?.jwt===jwt&&['home','attention','admin','approvals'].includes(view))render();
  }
 }
-async function adminChangeRole(person,role,percent,btn){
- if(adminActionBusy||!data.admin||person.is_admin)return;
- if(!['AFFILIATE','RESELLER','SUPER_RESELLER'].includes(role))return;
- if(person.access_until&&Date.parse(person.access_until)>Date.now()){
-  notice('Para modificar este rol, primero termina su acceso vigente o revisa su membresía.');
-  return;
+async function adminSetSuper(person,enable,percent,btn){
+ if(!data.admin||adminActionBusy||person.is_admin||!verified)return;
+ const commission=Number(percent);
+ if(!Number.isFinite(commission)||commission<0||commission>100||
+    Math.abs(commission*100-Math.round(commission*100))>0.00001){
+  notice('La comisión debe estar entre 0 y 100, máximo dos decimales.');return;
  }
- if(!confirm('¿Asignar '+roleLabel(role)+' a '+person.email+
-   '? No se activará la membresía ni se cobrará dinero.'))return;
+ const name=person.registry_alias||person.display_name||person.email;
+ const live=person.access_until&&Date.parse(person.access_until)>Date.now();
+ const text=enable?
+  '¿Autorizar a '+name+' como Súper reseller de STREAM BULL’S? La autorización no cobra ni activa una suscripción.':
+  '¿Revocar el permiso Súper reseller de '+name+'? Conservará sus pagos y su cuenta.';
+ if(!window.confirm(text))return;
  adminActionBusy=true;btn.disabled=true;
  try{
-  const out=await api('rpc/cc_portal_admin_assign_stream_role','POST',{
-   p_email:person.email,p_role:role,p_admin_percent:percent
-  });
-  if(!out?.assigned)throw Error('No se confirmó el cambio');
+  let success=false;
+  if(live){
+   const result=await api('rpc/cc_portal_admin_set_super_reseller','POST',{
+    p_email:person.email,p_enabled:enable,p_admin_percent:commission
+   });
+   success=!!result?.updated;
+  }else{
+   const result=await api('rpc/cc_portal_admin_assign_stream_role','POST',{
+    p_email:person.email,p_role:enable?'SUPER_RESELLER':'RESELLER',
+    p_admin_percent:commission
+   });
+   success=!!result?.assigned;
+  }
+  if(!success)throw Error('El servidor no confirmó el cambio');
+  adminAccountsState='idle';
   await loadAdminAccounts(true);
-  if(view==='admin')notice('Rol actualizado: '+person.email+' → '+roleLabel(role)+
-   '. La membresía sigue pendiente hasta su activación.');
- }catch(e){notice('No se cambió el rol: '+String(e?.message||e));}
+  if(session()?.userId===user&&view==='approvals')
+   notice((enable?'Autorización registrada para ':'Permiso revocado a ')+name+
+    '. No se han modificado pagos ni saldos.');
+ }catch(e){notice('No se aplicó el permiso: '+String(e?.message||e));}
  finally{adminActionBusy=false;btn.disabled=false;}
 }
 async function adminRenameAlias(person,next,btn){
@@ -896,115 +909,79 @@ async function adminRenameAlias(person,next,btn){
  finally{adminActionBusy=false;btn.disabled=false;}
 }
 function adminAccountRow(person){
- const wrap=make('article','cc171-person');
+ const wrap=make('article','cc171-person cc176-user-row');
  const identity=make('div','cc171-person-id');
  const icon=make('span','cc171-avatar',
-  String(person.registry_alias||person.display_name||person.email||'?').trim().charAt(0).toUpperCase());
+   String(person.registry_alias||person.display_name||person.email||'?').trim().charAt(0).toUpperCase());
  const info=make('div','cc171-identity');
  info.append(make('span','cc174-registry-id',person.registry_code||'Sin número'));
  info.append(make('strong','',person.registry_alias||person.display_name||person.email));
- let registered='—';
- if(person.registered_at){try{registered=new Date(person.registered_at).toLocaleDateString('es-PE',{timeZone:'America/Lima'});}catch(_){}}
- info.append(make('small','',person.email+' · Registro '+registered));
+ info.append(make('small','',person.email+' · Alta '+safeDate(person.registered_at)));
  identity.append(icon,info);wrap.append(identity);
- const type=make('div','cc171-person-role');
- type.append(make('strong','cc171-role-label',roleLabel(person.role_assigned)));
- const status=make('small',person.access_until&&Date.parse(person.access_until)>Date.now()?
-   'cc171-status-active':'cc171-status-pending',accessLabel(person));
- type.append(status);wrap.append(type);
- const area=make('div','cc171-person-actions');
- const aliasDetails=make('details','cc171-inline-details cc174-rename');
- aliasDetails.append(make('summary','','Editar nombre de registro'));
- const aliasControls=make('div','cc171-edit');
- const aliasInput=document.createElement('input');
- aliasInput.type='text';aliasInput.maxLength=80;
- aliasInput.value=person.registry_alias||person.display_name||'';
- aliasInput.setAttribute('aria-label','Nombre de '+(person.registry_code||person.email));
- const saveAlias=button('Guardar nombre',()=>void adminRenameAlias(person,aliasInput.value,saveAlias),'cc166-secondary cc171-small');
- aliasControls.append(aliasInput,saveAlias);aliasDetails.append(aliasControls);
- area.append(aliasDetails);
- if(person.is_admin){
-  area.append(make('span','cc171-admin-protected','Rol ADMIN protegido'));
-  wrap.append(area);
-  return wrap;
- }
- const active=person.access_until&&Date.parse(person.access_until)>Date.now();
- if(active){
-  area.append(make('span','cc171-state','Membresía vigente'));
+ const state=make('div','cc171-person-role');
+ state.append(make('strong','cc171-role-label',roleLabel(person.role_assigned)));
+ state.append(make('small',person.access_until&&Date.parse(person.access_until)>Date.now()?
+  'cc171-status-active':'cc171-status-pending',accessLabel(person)));
+ wrap.append(state);
+ const actions=make('div','cc171-person-actions');
+ const rename=make('details','cc171-inline-details cc174-rename');
+ rename.append(make('summary','','Editar identificación'));
+ const tools=make('div','cc171-edit');
+ const input=document.createElement('input');input.type='text';input.maxLength=80;
+ input.value=person.registry_alias||person.display_name||'';
+ input.setAttribute('aria-label','Nombre del '+(person.registry_code||person.email));
+ const save=button('Guardar nombre',()=>void adminRenameAlias(person,input.value,save),'cc166-secondary cc171-small');
+ tools.append(input,save);rename.append(tools);actions.append(rename);
+ if(person.is_admin)actions.append(make('span','cc171-admin-protected','ADMIN protegido'));
+ else actions.append(button('Permisos Súper reseller',()=>nav('approvals'),'cc166-secondary cc171-small'));
+ wrap.append(actions);return wrap;
+}
+function adminApprovals(page){
+ if(!data.admin)return overview(page);
+ if(adminAccountsState==='idle')void loadAdminAccounts();
+ title(page,'Autorizaciones · Súper reseller',
+  'ADMIN concede o revoca permisos de publicación en STREAM BULL’S. Reseller se activa automáticamente al pagar su membresía anual.');
+ const guide=make('section','cc176-approval-intro');
+ guide.append(make('strong','','Regla comercial'));
+ guide.append(make('p','','Una autorización es distinta al pago: el usuario autorizado debe mantener su membresía anual de STREAM BULL’S vigente para publicar. Aquí no se cobran membresías ni se activa a los resellers.'));
+ page.append(guide);
+ const box=card('Cuentas y permisos','Solo usuarios registrados. Esta pantalla no muestra solicitudes formales no enviadas por los usuarios.');
+ if(adminAccountsState==='loading'||adminAccountsState==='idle')
+  box.append(make('p','cc166-note','Verificando autorizaciones…'));
+ else if(adminAccountsState==='error'){
+  box.append(make('p','cc166-notice','No se pudieron consultar los permisos: '+adminAccountsError));
+  box.append(button('Reintentar',()=>void loadAdminAccounts(true),'cc166-secondary'));
  }else{
-  area.append(make('span','cc171-state','Activación mediante plan de STREAM BULL’S'));
- }
- const details=make('details','cc171-inline-details');
- const summary=make('summary','','Cambiar rol');
- details.append(summary);
- const controls=make('div','cc171-edit');
- const select=document.createElement('select');
- select.setAttribute('aria-label','Rol para '+person.email);
- for(const [role,name] of [['AFFILIATE','Afiliado'],['RESELLER','Reseller'],
-     ['SUPER_RESELLER','Súper reseller']]){
-  const option=make('option','',name);option.value=role;
-  option.selected=person.role_assigned===role;select.append(option);
- }
- const percent=document.createElement('input');
- percent.type='number';percent.min='0';percent.max='100';percent.step='0.01';
- percent.value='20';percent.setAttribute('aria-label','Comisión ADMIN porcentual sobre ganancia');
- const save=button('Guardar rol',function(){
-  void adminChangeRole(person,select.value,Number(percent.value),this);
- },'cc166-secondary cc171-small');
- save.disabled=!!active;
- controls.append(select,percent,save);
- details.append(make('small','cc171-field-hint',
-  'Porcentaje de comisión ADMIN sobre la ganancia (solo SÚPER RESELLER).'));
- details.append(controls);
- if(active)details.append(make('small','cc171-field-hint',
-  'No se cambia el rol mientras exista una membresía activa.'));
- area.append(details);
- wrap.append(area);
- return wrap;
-}
-
-async function loadAdminRequests(force=false){
- if(!data.admin||!user||!session()?.jwt)return;
- if(requestState==='loading'||(requestState==='ready'&&!force))return;
- requestState='loading';requestError='';
- const uid=user,jwt=token;
- try{
-  const rows=await api('rpc/cc_admin_reseller_requests','POST',{});
-  if(user!==uid||token!==jwt||session()?.jwt!==jwt)return;
-  if(!Array.isArray(rows))throw Error('Formato de solicitudes no válido');
-  requestRows=rows;requestState='ready';
- }catch(e){if(user===uid&&token===jwt){requestState='error';requestError=String(e?.message||e);}}
- finally{if(user===uid&&token===jwt&&view==='admin'&&adminTab==='requests')render();}
-}
-function adminRequests(page){
- if(requestState==='idle')void loadAdminRequests();
- const box=card('Solicitudes de membresía','Revisa las solicitudes registradas antes de tomar decisiones sobre los accesos.');
- const actions=make('div','cc166-actions');
- actions.append(button('Actualizar solicitudes',()=>void loadAdminRequests(true),'cc166-secondary'));
- box.append(actions);
- if(requestState==='idle'||requestState==='loading')
-  box.append(make('p','cc166-note','Consultando solicitudes de reseller…'));
- else if(requestState==='error')
-  box.append(make('p','cc166-notice','No se pudieron consultar las solicitudes: '+requestError));
- else if(!requestRows.length)
-  box.append(make('p','cc166-empty','No hay solicitudes de membresía pendientes.'));
- else{
-  const list=make('div','cc175-records');
-  for(const r of requestRows.slice(0,80)){
-   const line=make('article','cc175-record'),left=make('div','');
-   left.append(make('strong','',String(r.applicant_email||'Solicitante')));
-   left.append(make('small','',String(r.membership_status||'Estado pendiente')));
-   line.append(left);list.append(line);
+  const users=adminAccounts.filter(a=>!a.is_admin);
+  if(!users.length)box.append(make('p','cc166-empty','No hay usuarios para autorizar.'));
+  for(const person of users){
+   const approved=!!person.super_enabled&&person.role_assigned==='SUPER_RESELLER';
+   const live=person.access_until&&Date.parse(person.access_until)>Date.now();
+   const row=make('article','cc176-approval-row');
+   const identity=make('div','');
+   identity.append(make('strong','',person.registry_code+' · '+(person.registry_alias||person.display_name||person.email)));
+   identity.append(make('small','',person.email));
+   identity.append(make('span',approved?'cc176-status-approved':'cc176-status-pending',
+      approved?(live?'Autorizado · Membresía vigente':'Autorizado · Debe activar membresía anual'):
+      'Sin permiso Súper reseller'));
+   row.append(identity);
+   const controls=make('div','cc176-approval-controls');
+   const rate=document.createElement('input');rate.type='number';rate.min='0';rate.max='100';
+   rate.step='0.01';rate.value='20';rate.setAttribute('aria-label','Porcentaje ADMIN para '+person.email);
+   const label=make('label','','Comisión ADMIN (%)');label.append(rate);controls.append(label);
+   const btn=button(approved?'Revocar permiso':'Autorizar Súper reseller',function(){
+    void adminSetSuper(person,!approved,rate.value,this);
+   },approved?'cc166-secondary':'cc166-primary');
+   controls.append(btn);row.append(controls);box.append(row);
   }
-  box.append(list);
  }
  page.append(box);
+ page.append(make('p','cc166-note','Los roles, vigencias y permisos se verifican en el servidor. Ninguna cuenta recibe acceso por cambiar su nombre CLAN.'));
 }
+
 function admin(page){
  if(!data.admin)return overview(page);
- title(page,'Usuarios y membresías','Gestiona el registro CLAN y revisa las solicitudes en esta sección.');
- page.append(adminSectionTabs([['accounts','Cuentas registradas'],['requests','Solicitudes']],adminTab,id=>{adminTab=id;render();}));
- if(adminTab==='requests'){adminRequests(page);return;}
+ title(page,'Directorio de usuarios','Registro CLAN permanente, contacto, rol y vigencia. Las autorizaciones especiales tienen una sección propia.');
  if(adminAccountsState==='idle')void loadAdminAccounts();
  const summary=make('div','cc171-top-summary');
  if(adminAccountsState==='ready'){
@@ -1019,7 +996,7 @@ function admin(page){
   summary.append(metric('Usuarios','Consultando…','blue'));
  }
  page.append(summary);
- const box=card('Cuentas registradas','El número CLAN no cambia al buscar, filtrar o editar un nombre.');
+ const box=card('Cuentas registradas','Los números CLAN se conservan. Cambiar el nombre no modifica permisos, suscripciones ni saldos.');
  if(adminAccountsState==='loading'){
   box.append(make('p','cc166-note','Consultando usuarios y membresías…'));
  }else if(adminAccountsState==='error'){
@@ -1028,7 +1005,7 @@ function admin(page){
  }else if(adminAccountsState==='ready'){
   const heading=make('div','cc171-filter');
   const input=document.createElement('input');
-  input.type='search';input.placeholder='Buscar usuario o correo…';
+  input.type='search';input.placeholder='Buscar CLAN, usuario o correo…';
   input.setAttribute('aria-label','Buscar cuenta');
   heading.append(input,button('↻ Actualizar',()=>void loadAdminAccounts(true),'cc166-secondary'));
   box.append(heading);
@@ -1049,7 +1026,7 @@ function admin(page){
  }
  page.append(box);
  const help=make('p','cc171-help');
- help.textContent='Los AFILIADOS ven precios públicos. Los RESELLERS y SÚPER RESELLERS con membresía vigente obtienen precios de distribuidor en STREAM BULL’S. Asignar un rol no crea una suscripción ni mueve dinero.';
+ help.textContent='Los afiliados compran a precio público; el reseller obtiene precio distribuidor tras pagar su membresía anual de STREAM BULL’S. Únicamente ADMIN puede autorizar el permiso Súper reseller.';
  page.append(help);
 
 }
