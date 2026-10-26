@@ -1,11 +1,11 @@
-/* CLAN CARTAN — módulo DNI para COBRA YA / MI COCHERA.
+/* CLAN CARTAN — módulo DNI para COBRA YA / MI COCHERA / MI ALQUILER.
    Interfaz segura: requiere sesión, consulta en servidor, no almacena DNI localmente.
    El servicio backend autoriza consulta y cupo. No expone APIPERU_TOKEN.
 */
 (function(){
 'use strict';
 const PROJECT='https://pqalxtrcyrpmwqdlibqd.supabase.co';
-const ENDPOINTS=Object.freeze({COBRA_YA:'cc-consulta-dni',MI_COCHERA:'mc-verify-dni'});
+const ENDPOINTS=Object.freeze({COBRA_YA:'cc-consulta-dni',MI_COCHERA:'mc-verify-dni',MI_ALQUILER:'ma-verify-dni'});
 const REASONS=Object.freeze({
  operator_not_approved:'Consulta automática no autorizada todavía. Contacte a ADMIN o complete los datos manualmente.',
  subscription_inactive:'La suscripción de Mi Cochera está inactiva. Complete los datos manualmente.',
@@ -34,7 +34,7 @@ async function verify({service,dni,accessToken,anonKey}={}){
    body:JSON.stringify({dni}),signal:controller.signal
   });}finally{clearTimeout(timer);}
   const data=await response.json().catch(()=>({}));
-  if(response.ok&&data.status==='found'&&typeof data.full_name==='string'&&data.full_name.trim()){
+  if(response.ok&&(data.status==='found'||data.status==='saved')&&typeof data.full_name==='string'&&data.full_name.trim()){
    return {status:'found',full_name:data.full_name.trim(),remaining:data.remaining??null};
   }
   return {status:'manual',message:REASONS[data.reason]||REASONS[data.status]||'No se pudo verificar. Complete los datos manualmente.',reason:data.reason||data.status||'unknown'};
