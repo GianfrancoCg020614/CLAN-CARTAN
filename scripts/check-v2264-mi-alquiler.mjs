@@ -12,7 +12,8 @@ for (const name of modules) {
 const shell = read('v161-1-mi-alquiler.js');
 assert.ok(!shell.includes('vista previa de integración V163.5'), 'La pantalla no debe anunciar una vista previa obsoleta');
 assert.ok(!shell.includes('Activación de datos pendiente'), 'La pantalla no debe indicar activación pendiente con acceso autorizado');
-assert.ok(shell.includes("rpc/ma_can_use"), 'La entrada debe validar permisos con el servidor');
+assert.ok(shell.includes("current?.jwt") && shell.includes("current?.userId"), 'La entrada debe exigir sesión válida');
+assert.ok(read('v161-2-mi-alquiler.js').includes("rpc('ma_ensure_account')"), 'El módulo debe verificar membresía con el servidor');
 assert.ok(shell.includes("aria-modal"), 'La ventana debe conservar semántica de diálogo accesible');
 const core = read('v161-2-mi-alquiler.js');
 const guard = "if(!account.active){target.innerHTML=locked();return;}";
