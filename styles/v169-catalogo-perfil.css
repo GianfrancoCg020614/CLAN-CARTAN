@@ -88,3 +88,7 @@ html body.view-store #app .cc117-header .cc117-actions-top .cc169-admin-shortcut
  html body.view-store #app .cc117-category-strip{position:relative!important;z-index:1!important;clear:both!important}
  html body.view-store #app #productos .v23-catalog-section{padding-inline:clamp(12px,3vw,22px)!important}
 }
+
+/* V229 · Contacto oficial, accesible y sin superposición. */
+html body.view-store #app .cc117-header .cc117-actions-top #cc169-whatsapp-admin{background:#128c63!important;color:#fff!important;border:1px solid #48d4a3!important;text-decoration:none!important;position:static!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:40px!important;padding:9px 13px!important;border-radius:10px!important;white-space:normal!important;font:750 12px/1.3 system-ui,sans-serif!important;box-shadow:none!important}
+@media(max-width:760px){html body.view-store #app .cc117-header .cc117-actions-top #cc169-whatsapp-admin{flex:1 1 145px!important}}
