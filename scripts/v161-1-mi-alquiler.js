@@ -132,7 +132,7 @@
       layer.hidden = false;
       layer.style.setProperty('display', 'block', 'important');
       layer.style.setProperty('visibility', 'visible', 'important');
-      layer.style.setProperty('z-index', '2147483000', 'important');
+      layer.style.setProperty('z-index', '2147483647', 'important');
       layer.scrollTop = 0;
       accessNotice('');
       renderArea('inmuebles');
