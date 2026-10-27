@@ -124,6 +124,21 @@
     });
   }
   // Ordenar acciones existentes sin sustituir sus eventos ni permisos.
+  const officialWhatsApp='https://wa.me/51923319637?text='+encodeURIComponent('Hola, necesito información sobre STREAMBULLS de CLAN CARTAN.');
+  function ensureCatalogWhatsApp(){
+    if(!document.body.classList.contains('view-store'))return;
+    const header=document.querySelector('#app .cc117-header');
+    const actions=header?.querySelector('.cc117-actions-top');
+    if(!actions)return;
+    let link=document.getElementById('cc169-whatsapp-admin');
+    if(!link){
+      link=text('a','cc169-whatsapp-admin cc169-admin-shortcut','WhatsApp ADMIN');
+      link.id='cc169-whatsapp-admin';link.target='_blank';link.rel='noopener noreferrer';
+      link.setAttribute('aria-label','Contactar al administrador de STREAMBULLS por WhatsApp');
+    }
+    link.href=officialWhatsApp;
+    if(link.parentElement!==actions)actions.append(link);
+  }
   function tidyMobileHeader(){
     if(!document.body.classList.contains('view-store'))return;
     const header=document.querySelector('#app #productos .cc117-header, #app .cc117-header');
@@ -146,6 +161,7 @@
     }
     unifyProfileLink();
     tidyMobileHeader();
+    ensureCatalogWhatsApp();
     const section=document.querySelector('#productos .v23-catalog-section');
     if(!section)return;
     const oldBanner=el('cc77demobanner');
