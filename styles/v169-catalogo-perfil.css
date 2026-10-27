@@ -155,3 +155,8 @@ html body.view-store #cc177-return-panel,html body.view-store #cc166-open-button
 html body.view-store #app #productos .cc169-demo-grid{grid-template-columns:minmax(0,1fr)!important;max-width:560px!important}
 html body.view-store #app #productos .v23-filter-reset{display:none!important}
 html body.view-store #cc77back{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+/* V240: un solo botón flotante, sin círculo verde secundario. */
+html body.view-store #cc169-whatsapp-admin{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;border-radius:50%!important;box-shadow:0 5px 16px #0005!important;transform:none!important;background:#20c766!important;border:2px solid #e8fff2!important;isolation:isolate!important}
+html body.view-store #cc169-whatsapp-admin::after{content:none!important;display:none!important}
+html body.view-store #cc169-whatsapp-admin::before{flex:0 0 31px!important}
