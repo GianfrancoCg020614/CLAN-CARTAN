@@ -153,6 +153,28 @@
       if(other.classList.contains('floating-whatsapp')||other.classList.contains('whatsapp-float'))other.hidden=true;
     }
   }
+  function tidyCatalogBack(){
+    if(!document.body.classList.contains('view-store'))return;
+    const header=document.querySelector('#app .cc117-header');
+    const actions=header?.querySelector('.cc117-actions-top');
+    if(!actions)return;
+    let back=document.getElementById('cc169-back-home');
+    if(!back){
+      back=button('← Volver a CLAN CARTAN',()=>{
+        if(typeof window.cc77Home==='function')window.cc77Home();
+        else window.location.assign('/');
+      },'cc169-back-home');
+      back.id='cc169-back-home';
+    }
+    if(back.parentElement!==actions)actions.prepend(back);
+    for(const node of document.querySelectorAll('a,button')){
+      if(node===back||!node.isConnected||node.closest('#cc166-panel'))continue;
+      const label=(node.textContent||'').trim();
+      if(/^(←\\s*)?CLAN CARTAN$/i.test(label)&&node.closest('.cc117-header')!==header){
+        node.hidden=true;node.style.setProperty('display','none','important');
+      }
+    }
+  }
   function tidyMobileHeader(){
     if(!document.body.classList.contains('view-store'))return;
     // El catálogo es público: los accesos administrativos no pertenecen a esta vista.
@@ -172,6 +194,7 @@
     }
     unifyProfileLink();
     tidyMobileHeader();
+    tidyCatalogBack();
     ensureCatalogWhatsApp();
     const section=document.querySelector('#productos .v23-catalog-section');
     if(!section)return;
