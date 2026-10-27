@@ -1529,7 +1529,7 @@ async function adminRenameAlias(person,next,btn){
  finally{adminActionBusy=false;btn.disabled=false;}
 }
 function adminAccountRow(person){
- const wrap=make('article','cc171-person cc176-user-row');
+ const wrap=make('article','cc171-person cc176-user-row cc246-user');
  const identity=make('div','cc171-person-id');
  const icon=make('span','cc171-avatar',
    String(person.registry_alias||person.display_name||person.email||'?').trim().charAt(0).toUpperCase());
