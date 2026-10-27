@@ -187,6 +187,27 @@
       }
     }
   }
+  function cleanLegacyCatalog(){
+    if(!document.body.classList.contains('view-store'))return;
+    // La tienda antigua genera estos elementos fuera de la barra de acciones.
+    for(const node of document.querySelectorAll('#app button,#app a')){
+      if(node.id==='cc169-whatsapp-admin'||node.id==='cc169-back-home')continue;
+      const label=(node.innerText||node.textContent||'').replace(/[^\\p{L}\\p{N} ]/gu,' ').replace(/\\s+/g,' ').trim().toUpperCase();
+      if(/^(ABRIR COBRA YA|SOLICITUDES RESELLER|CLAN CARTAN)$/.test(label)){
+        if(!node.hidden)node.hidden=true;
+        if(node.style.display!=='none')node.style.setProperty('display','none','important');
+      }
+    }
+    // Retirar el aviso informativo del catálogo antiguo; no habilita ventas.
+    for(const node of document.querySelectorAll('#productos p,#productos div,#productos aside')){
+      if(node.children.length>2)continue;
+      const t=(node.textContent||'').trim();
+      if(t.length<230&&/Estas imágenes son SOLO ejemplos/i.test(t)){
+        node.hidden=true;
+        if(node.style.display!=='none')node.style.setProperty('display','none','important');
+      }
+    }
+  }
   function render(){
     // Nunca conservar tarifas de distribuidor en pantalla después de cerrar sesión.
     if(activeJwt!==jwtNow()){
@@ -197,6 +218,7 @@
     tidyMobileHeader();
     tidyCatalogBack();
     ensureCatalogWhatsApp();
+    cleanLegacyCatalog();
     const section=document.querySelector('#productos .v23-catalog-section');
     if(!section)return;
     const oldBanner=el('cc77demobanner');
