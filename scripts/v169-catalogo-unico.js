@@ -159,19 +159,14 @@
     const header=document.querySelector('#app .cc117-header');
     const actions=header?.querySelector('.cc117-actions-top');
     if(!actions)return;
-    let back=document.getElementById('cc169-back-home');
-    if(!back){
-      back=button('← Volver a CLAN CARTAN',()=>{
-        if(typeof window.cc77Home==='function')window.cc77Home();
-        else window.location.assign('/');
-      },'cc169-back-home');
-      back.id='cc169-back-home';
-    }
-    if(back.parentElement!==actions)actions.prepend(back);
+    // Ya existe "Inicio" en el menú original: no agregar otro botón de regreso.
+    document.getElementById('cc169-back-home')?.remove();
+    const home=actions.querySelector('.cc117-link[onclick*="cc77Home"]');
+    if(home){home.setAttribute('aria-label','Volver a CLAN CARTAN');home.title='Volver a CLAN CARTAN';}
     for(const node of document.querySelectorAll('a,button')){
-      if(node===back||!node.isConnected||node.closest('#cc166-panel'))continue;
+      if(!node.isConnected||node.closest('#cc166-panel')||node===home)continue;
       const label=(node.textContent||'').trim();
-      if(/^(←\s*)?CLAN CARTAN$/i.test(label)&&node.closest('.cc117-header')!==header){
+      if(/^(←\\s*)?CLAN CARTAN$/i.test(label)&&node.closest('.cc117-header')!==header){
         node.hidden=true;node.style.setProperty('display','none','important');
       }
     }
