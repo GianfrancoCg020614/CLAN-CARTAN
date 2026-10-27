@@ -10,7 +10,7 @@
   const FLYER_RE=new RegExp('^'+UUID+'/'+UUID+'/'+UUID+'\\.(jpg|jpeg|png|webp)$');
   // Publishable key que ya utiliza index.html: NO es una service_role key.
   const KEY='sb_publishable_nsp19gAqsdRak3JqWpusUg_Qd6mQr0n';
-  let rows=[],loading=false,loaded=false,error='',revision=0,scheduled=false,inFlight=null,showcase=null;
+  let rows=[],loading=false,loaded=false,error='',revision=0,scheduled=false,inFlight=null;
   let activeJwt=String(window.CC_V53_SESSION?.jwt||''),authNotice='';
   let lastVisibleRefresh=0;
   const jwtNow=()=>String(window.CC_V53_SESSION?.jwt||'');
@@ -95,22 +95,6 @@
     card.append(cover,body,actions);
     return card;
   }
-  function readOnlySamples(grid){
-    if(!grid)return null;
-    const clone=grid.cloneNode(true);clone.classList.add('cc169-showcase');
-    clone.querySelectorAll('[onclick],[onkeydown]').forEach(el=>{
-      el.removeAttribute('onclick');el.removeAttribute('onkeydown');el.removeAttribute('tabindex');
-      if(el.getAttribute('role')==='button')el.setAttribute('role','img');
-    });
-    clone.querySelectorAll('button').forEach(b=>{b.disabled=true;b.textContent='Muestra informativa';});
-    clone.querySelectorAll('a[href]').forEach(a=>{a.removeAttribute('href');a.removeAttribute('target');a.setAttribute('aria-disabled','true');});
-    clone.querySelectorAll('.v23-card-price strong,.detail-price,.availability-badge').forEach(el=>{
-      el.textContent='Sin publicación verificada';
-    });
-    clone.querySelectorAll('.product-ribbon').forEach(el=>{el.textContent='Ejemplo';});
-    clone.querySelectorAll('.v23-product-seller').forEach(el=>{el.textContent='Diseño de referencia';});
-    return clone;
-  }
   function unifyProfileLink(){
     const link=document.querySelector('#app .cc117-header .cc117-actions-top .cc117-register');
     if(!link||!window.CC_V53_SESSION?.jwt||link.dataset.cc169Profile==='true')return;
@@ -147,7 +131,7 @@
     if(!nav)return;
     for(const node of document.querySelectorAll('button,a')){
       if(!node.isConnected||node.closest('.cc169-catalog-controls'))continue;
-      const label=(node.textContent||'').trim().replace(/^[^\\p{L}]+/u,'').trim();
+      const label=(node.textContent||'').trim().replace(/^[^A-Za-zÁÉÍÓÚÑáéíóúñ]+/,'').trim();
       if(!/^(Abrir COBRA YA|SOLICITUDES RESELLER)$/i.test(label))continue;
       if(!nav.contains(node))nav.appendChild(node);
       node.classList.add('cc169-admin-shortcut');
@@ -171,9 +155,6 @@
     const state=revision+'|'+chosen+'|'+term+'|'+!!window.CC_V53_SESSION?.jwt;
     if(section.dataset.cc169State===state)return;
     section.dataset.cc169State=state;
-    // Guardar solo imágenes de referencia: jamás permitir comprar a través de la demo.
-    const seedGrid=section.querySelector('.v23-product-grid:not(.cc169-verified-grid)');
-    if(seedGrid)showcase=readOnlySamples(seedGrid);
     // El contenido de demostración NO es inventario: reemplazarlo, nunca combinarlo.
     section.querySelectorAll('.v23-product-grid,.v23-empty,.cc169-result').forEach(n=>n.remove());
     const matches=rows.filter(x=>categoryMatches(x)&&searchMatches(x));
