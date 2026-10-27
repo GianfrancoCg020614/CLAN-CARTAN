@@ -24,6 +24,8 @@ jobs:
           node-version: '22'
       - name: Validar sintaxis y reglas de seguridad
         run: node scripts/check-v130.mjs
+      - name: Comprobar MI ALQUILER V226.4 sin datos reales
+        run: node scripts/check-v2264-mi-alquiler.mjs
       - name: Validar tarjetas COBRA YA V138 y confirmación de pagos
         run: node scripts/check-v138-cobra-ui.mjs
       - name: Verificar ampliaciones y mensajes WhatsApp V140
