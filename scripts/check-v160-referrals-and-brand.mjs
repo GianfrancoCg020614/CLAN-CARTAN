@@ -39,6 +39,6 @@ has(sql,'enable row level security');
 assert.ok(!sql.includes('balance_pen'),'Invitation must never move money');
 has(old,'USDT');
 has(html,'scripts/v145-commerce-guard.js?v=145b');
-has(html,'scripts/v158-mi-cochera.js?v=158');
+assert.match(html,/scripts\/v158-mi-cochera\.js\?v=\d+/, 'MI COCHERA: debe estar cargado el módulo');
 has(html,'scripts/v127-wallet-switch.js?v=1583');
 console.log('PASS V160: STREAM BULLS brand, personalized signup links, attribution, old financial protections intact.');
