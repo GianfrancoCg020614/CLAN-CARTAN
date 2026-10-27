@@ -29,11 +29,23 @@
       '<h2>MI ALQUILER</h2><p>Habitaciones y locales · alquiler diario y mensual</p>' +
       '<span class="ma1611-chip">Gestión de habitaciones y locales</span></div>' +
       '<button id="ma1611open" type="button">Ingresar a MI ALQUILER</button>';
-    card.querySelector('button').addEventListener('click', event => {
+    const enter = card.querySelector('button');
+    let lastPointerOpen = 0;
+    // Safari móvil: abrir durante el toque original, antes de cualquier
+    // manejador global que pueda consumir o retrasar el evento click.
+    enter.addEventListener('pointerdown', event => {
+      if (event.button !== 0 && event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
       event.preventDefault();
-      event.stopPropagation();
+      event.stopImmediatePropagation();
+      lastPointerOpen = Date.now();
       open();
-    });
+    }, { capture: true });
+    enter.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      // Evitar que el click sintético vuelva a abrir la ventana.
+      if (Date.now() - lastPointerOpen > 1200) open();
+    }, { capture: true });
     return card;
   }
   function mount() {
