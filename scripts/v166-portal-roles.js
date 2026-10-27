@@ -1536,13 +1536,31 @@ function adminAccountRow(person){
  const info=make('div','cc171-identity');
  info.append(make('span','cc174-registry-id',person.registry_code||'Sin número'));
  info.append(make('strong','',person.registry_alias||person.display_name||person.email));
- info.append(make('small','',person.email+' · Alta '+safeDate(person.registered_at)));
+ info.append(make('small','',person.email||'Correo no registrado'));
  identity.append(icon,info);wrap.append(identity);
  const state=make('div','cc171-person-role');
  state.append(make('strong','cc171-role-label',roleLabel(person.role_assigned)));
  state.append(make('small',person.paid_until&&Date.parse(person.paid_until)>Date.now()?
   'cc171-status-active':'cc171-status-pending',accessLabel(person)));
  wrap.append(state);
+ const detail=make('details','cc246-user-details');
+ const toggle=make('summary','cc246-eye','👁');
+ toggle.title='Ver datos y acciones de '+(person.registry_code||'usuario');
+ toggle.setAttribute('aria-label',toggle.title);
+ detail.append(toggle);
+ const expanded=make('div','cc246-expanded');
+ const fields=make('div','cc246-fields');
+ for(const [label,value] of [
+  ['Celular',person.phone||'No registrado'],
+  ['Fecha de registro',safeDate(person.registered_at)],
+  ['Documento',[person.document_type,person.document_number].filter(Boolean).join(' ')||'No registrado'],
+  ['Ubicación',[person.region,person.province,person.district].filter(Boolean).join(', ')||'No registrada'],
+  ['Estado',accessLabel(person)]
+ ]){
+  const field=make('div','cc246-field');
+  field.append(make('small','',label),make('strong','',value));fields.append(field);
+ }
+ expanded.append(fields);
  const actions=make('div','cc171-person-actions');
  const rename=make('details','cc171-inline-details cc174-rename');
  rename.append(make('summary','','Editar identificación'));
@@ -1583,7 +1601,7 @@ function adminAccountRow(person){
   }
   controls.append(inner);actions.append(controls);
  }
- wrap.append(actions);return wrap;
+ expanded.append(actions);detail.append(expanded);wrap.append(detail);return wrap;
 }
 function adminApprovals(page){
  if(!data.admin)return overview(page);
@@ -1737,7 +1755,7 @@ function admin(page){
  }else if(adminAccountsState==='ready'){
   const heading=make('div','cc171-filter');
   const input=document.createElement('input');
-  input.type='search';input.placeholder='Buscar CLAN, usuario o correo…';
+  input.type='search';input.placeholder='Buscar CLAN, nombre, correo o celular…';
   input.setAttribute('aria-label','Buscar cuenta');
   heading.append(input,button('↻ Actualizar',()=>void loadAdminAccounts(true),'cc166-secondary'));
   box.append(heading);
@@ -1745,7 +1763,7 @@ function admin(page){
   if(!adminAccounts.length)rows.append(make('p','cc166-empty','No hay cuentas disponibles.'));
   for(const person of adminAccounts){
    const row=adminAccountRow(person);
-   row.dataset.search=(person.email+' '+(person.display_name||'')+' '+(person.registry_code||'')+' '+(person.registry_alias||'')).toLowerCase();
+   row.dataset.search=(person.email+' '+(person.display_name||'')+' '+(person.registry_code||'')+' '+(person.registry_alias||'')+' '+(person.phone||'')+' '+(person.document_number||'')).toLowerCase();
    rows.append(row);
   }
   input.addEventListener('input',()=>{
@@ -1758,7 +1776,7 @@ function admin(page){
  }
  page.append(box);
  const help=make('p','cc171-help');
- help.textContent='Abre «Gestionar rol» junto a cada usuario. El reseller obtiene precio distribuidor al pagar la membresía anual; ADMIN autoriza Súper reseller solo después de ese pago. Los días y saldos se conservan al retirar el permiso especial.';
+ help.textContent='Pulsa el ojo de cada usuario para ver sus datos y las acciones autorizadas. El reseller obtiene precio distribuidor al pagar la membresía anual; ADMIN autoriza Súper reseller solo después de ese pago. Los días y saldos se conservan al retirar el permiso especial.';
  page.append(help);
 
 }
