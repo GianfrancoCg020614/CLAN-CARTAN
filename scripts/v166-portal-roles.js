@@ -768,7 +768,7 @@ async function loadOwnRechargeIdentity(force=false){
   if(!result||result.user_id!==uid||
      !/^CLAN[1-9][0-9]*$/.test(String(result.registry_code||''))||
      !String(result.registered_name||'').trim()||
-     !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(result.registered_email||'')))
+     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(result.registered_email||'')))
     throw Error('No se pudieron verificar los datos de esta cuenta');
   ownRechargeIdentity=result;ownIdentityState='ready';
  }catch(e){
