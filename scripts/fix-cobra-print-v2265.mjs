@@ -11,6 +11,10 @@ if(matches!==1)throw Error('Se esperaba exactamente una ocurrencia; encontradas:
 const updated=html.replace(bad,good);
 if(updated.length!==html.length+good.length-bad.length)throw Error('Cambio inesperado');
 writeFileSync(path,updated);
+const scriptStart=updated.indexOf('<script>',updated.indexOf('id="cy63detail"'));
+const scriptEnd=updated.indexOf('</script>',scriptStart);
+const extracted=updated.slice(scriptStart+8,scriptEnd);
+console.log('Diagnóstico impresión',JSON.stringify({scriptStart,scriptEnd,goodAt:updated.indexOf(good),insideScript:extracted.includes("node.innerHTML+'</body></html>'")}));
 console.log('Cronograma de COBRAYA reparado; cambio único verificado');
 
 // Ejecutar reparación mediante CI después de registrar el workflow.
