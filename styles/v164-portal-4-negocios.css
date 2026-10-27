@@ -237,3 +237,54 @@ html[data-cc-theme="light"] :is(#cc166-panel,#cc166-content,#cc95-user) :is(inpu
 @media(prefers-reduced-motion:reduce){
  :is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(button,[role="button"]){transition:none}
 }
+
+
+/* V226.2 — Interiores de MI COCHERA y STREAMBULLS; sin tocar la portada. */
+#mc158layer,#sb195-attention{
+ --cc226-radius:16px;--cc226-focus:#40d6ce;
+}
+#mc158layer :is(button,input,select,textarea),
+#sb195-attention :is(button,input,select,textarea){box-sizing:border-box;font-family:inherit;max-width:100%}
+#mc158layer :is(button,input,select,textarea,a):focus-visible,
+#sb195-attention :is(button,input,select,textarea,a):focus-visible{
+ outline:3px solid var(--cc226-focus);outline-offset:3px;
+}
+#mc158layer :is(button,input,select,textarea),
+#sb195-attention :is(button,input,select,textarea){min-height:42px;border-radius:11px}
+#mc158layer :is(h2,h3,h4),#sb195-attention :is(h2,h3,h4){line-height:1.25;letter-spacing:-.015em}
+#mc158layer :is(table),#sb195-attention :is(table){width:100%;border-collapse:collapse}
+#mc158layer :is(th,td),#sb195-attention :is(th,td){overflow-wrap:anywhere;vertical-align:middle}
+html[data-cc-theme="light"] #mc158layer{
+ color:#19364a;background:linear-gradient(160deg,#f8fcff,#eaf4f7 70%,#fff9ed);
+ --cc226-focus:#087e94;color-scheme:light;
+}
+html[data-cc-theme="light"] #mc158layer .mc158head{
+ color:#19364a;background:linear-gradient(125deg,#fffdf8,#e9f5f7);border-color:#d5b877;
+ box-shadow:0 8px 26px #173e5214;
+}
+html[data-cc-theme="light"] #mc158layer .mc158head h2{color:#214c60}
+html[data-cc-theme="light"] #mc158layer .mc158head p{color:#496778}
+html[data-cc-theme="light"] #mc158layer :is(input,select,textarea){
+ background:#fff;color:#19364a;border-color:#9dbcc9;
+}
+html[data-cc-theme="light"] #mc158layer :is(input,select,textarea)::placeholder{color:#657d89}
+html[data-cc-theme="light"] #sb195-attention{
+ --sb-bg:#fff;--sb-line:#c7dfe4;--sb-ink:#19364a;--sb-soft:#486778;--sb-mint:#087e94;
+ color:#19364a;background:linear-gradient(145deg,#fff,#edf8fa);
+ border-color:#c7dfe4;color-scheme:light;
+}
+html[data-cc-theme="light"] #sb195-attention :is(input,select,textarea){
+ background:#fff;color:#19364a;border-color:#9dbcc9;
+}
+html[data-cc-theme="light"] #sb195-attention .sb195-btn:not(.primary){
+ background:#e8f3f6;color:#164b60;border-color:#8bb8c6;
+}
+@media(max-width:640px){
+ #mc158layer,#sb195-attention{padding:12px}
+ #mc158layer :is(button,input,select,textarea),
+ #sb195-attention :is(button,input,select,textarea){min-height:44px}
+ #mc158layer :is(th,td),#sb195-attention :is(th,td){padding:8px 6px}
+}
+@media(prefers-reduced-motion:reduce){
+ #mc158layer button,#sb195-attention button{transition:none}
+}
