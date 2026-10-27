@@ -9,6 +9,11 @@ for (const name of modules) {
   new Script(code, { filename: name });
   assert.match(code, /\b(?:ma161[1-4]|ma4|ma3)/, name + ': módulo incorrecto');
 }
+const shell = read('v161-1-mi-alquiler.js');
+assert.ok(!shell.includes('vista previa de integración V163.5'), 'La pantalla no debe anunciar una vista previa obsoleta');
+assert.ok(!shell.includes('Activación de datos pendiente'), 'La pantalla no debe indicar activación pendiente con acceso autorizado');
+assert.ok(shell.includes("rpc/ma_can_use"), 'La entrada debe validar permisos con el servidor');
+assert.ok(shell.includes("aria-modal"), 'La ventana debe conservar semántica de diálogo accesible');
 const core = read('v161-2-mi-alquiler.js');
 const guard = "if(!account.active){target.innerHTML=locked();return;}";
 const finance = "if(typeof window.ma1613Enhance==='function'";
