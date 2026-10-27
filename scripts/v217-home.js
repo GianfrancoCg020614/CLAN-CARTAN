@@ -31,7 +31,18 @@ function apply(){
   if(item.key==='stream'){
    const buttons=card.querySelectorAll('.cc77actions button');
    if(buttons[0]&&buttons[0].textContent!=='Ver catálogo público')buttons[0].textContent='Ver catálogo público';
-   if(buttons[1]&&buttons[1].textContent!=='Acceder a precio distribuidor')buttons[1].textContent='Acceder a precio distribuidor';
+   if(buttons[1]){
+    if(buttons[1].textContent!=='Acceder a precio distribuidor')buttons[1].textContent='Acceder a precio distribuidor';
+    // El botón conserva el flujo real de membresía, sin activación ficticia.
+    buttons[1].type='button';
+    buttons[1].onclick=function(event){
+     event.preventDefault();
+     event.stopPropagation();
+     if(typeof window.cc79StreamBenefits==='function')window.cc79StreamBenefits();
+     else if(!window.CC_V53_SESSION?.jwt)window.cc77Auth?.(false);
+     else if(typeof window.cc166OpenStreamMembership==='function')window.cc166OpenStreamMembership();
+    };
+   }
   }else{
    const button=card.querySelector('.cc77actions button,.ma1611-card-copy button,.ma1611-card > button');
    if(button&&button.textContent!=='Ingresar')button.textContent='Ingresar';
