@@ -101,6 +101,22 @@
     card.append(cover,body,actions);
     return card;
   }
+  function exampleCard(){
+    const card=text('article','product lux v23-product-card cc169-offer cc169-example');
+    const cover=text('div','product-visual cc169-offer-cover');
+    cover.append(text('span','cc169-cover-brand','STREAMBULLS'),text('strong','cc169-cover-title','Servicio de demostración'),text('span','cc169-cover-status','EJEMPLO · NO DISPONIBLE'));
+    const body=text('div','product-body');
+    body.append(text('h3','cc169-offer-title','Publicación de ejemplo'));
+    body.append(text('p','product-preview','Ficha de referencia para revisar el diseño antes de publicar servicios reales.'));
+    const details=text('dl','cc169-product-facts');
+    for(const [label,value] of [['Vendedor','Vendedor de ejemplo'],['Stock','5 unidades (simuladas)'],['Servicio','Streaming (ejemplo)'],['Vigencia','30 días (ejemplo)'],['Precio','S/ 15.00 (simulado)'],['Contacto','No disponible en la demostración']]){
+      const item=text('div','cc169-product-fact');item.append(text('dt','',label),text('dd','',value));details.append(item);
+    }
+    body.append(details);
+    const actions=text('div','product-actions cc117-one-action');
+    const unavailable=text('button','btn cc169-example-disabled','Solo demostración');unavailable.type='button';unavailable.disabled=true;
+    actions.append(unavailable);card.append(cover,body,actions);return card;
+  }
   function unifyProfileLink(){
     const link=document.querySelector('#app .cc117-header .cc117-actions-top .cc117-register');
     if(!link||!window.CC_V53_SESSION?.jwt||link.dataset.cc169Profile==='true')return;
@@ -175,7 +191,8 @@
       holder.append(text('p','cc169-status',rows.length?
         'No encontramos servicios publicados para esta búsqueda.':
         'Todavía no hay productos publicados y verificados. Vuelve pronto para consultar los servicios disponibles.'));
-      // Sin productos reales: mostrar estado vacío, no tarjetas ficticias.
+      // La muestra es visual y no pertenece a la lista de productos reales.
+      if(!rows.length&&!error&&!loading){const demo=text('div','cc169-verified-grid cc169-demo-grid');demo.append(exampleCard());holder.append(demo);}
     } else {
       const grid=text('div','products v6-grid v23-product-grid cc169-verified-grid');
       grid.dataset.cc169Source='verified';matches.forEach(p=>grid.append(buildCard(p)));holder.append(grid);
