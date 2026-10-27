@@ -86,7 +86,6 @@
       '<p>El servidor determina qué información puedes consultar y administrar.</p></div></div>';
     if (typeof window.ma1612Enhance === 'function') window.ma1612Enhance(area.id, target);
   }
-  let opening = false;
   function accessNotice(message) {
     const button = $('ma1611open');
     if (!button) return;
@@ -100,49 +99,36 @@
     }
     notice.textContent = message;
   }
-  async function open() {
-    if (opening) return;
+  function open() {
     const current = session();
     if (!current?.jwt || !current?.userId) {
       accessNotice('Debes iniciar sesión con tu cuenta ADMIN o con una membresía vigente antes de ingresar.');
       if (typeof window.cc77Auth === 'function') window.cc77Auth(false);
       return;
     }
-    opening = true;
-    const button = $('ma1611open');
-    const originalUser = current.userId;
-    if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
-    accessNotice('Verificando tu acceso a MI ALQUILER…');
-    let timeout;
+    // Mostrar la interfaz inmediatamente. La autorización y los datos permanecen
+    // protegidos por ma_ensure_account y las políticas RLS del servidor.
     try {
-      if (typeof window.cc80?.api !== 'function') throw Error('Servicio de acceso no disponible');
-      const authorized = await Promise.race([
-        window.cc80.api('rpc/ma_can_use', 'POST', {}),
-        new Promise((_, reject) => { timeout = setTimeout(() => reject(Error('Tiempo de espera agotado')), 12000); })
-      ]);
-      if (!session()?.jwt || session()?.userId !== originalUser) {
-        accessNotice('Tu sesión cambió. Inicia sesión nuevamente.');
-        return;
-      }
-      if (authorized !== true) {
-        accessNotice('Tu cuenta no tiene acceso autorizado a MI ALQUILER. ADMIN: revisa tu sesión; RESELLER: revisa tu membresía vigente.');
-        return;
-      }
       mountStyles();
       let layer = $('ma1611layer');
       if (!layer) { layer = layout(); document.body.append(layer); }
       layer.hidden = false;
       accessNotice('');
       renderArea('inmuebles');
-      if (typeof window.ma1612OnOpen === 'function') window.ma1612OnOpen();
-      layer.querySelector('#ma1611close').focus();
+      if (typeof window.ma1612OnOpen === 'function') {
+        Promise.resolve(window.ma1612OnOpen()).catch(error => {
+          console.warn('MI ALQUILER: fallo al cargar datos', error);
+          const target = $('ma1611content');
+          if (target) target.textContent = 'No se pudieron cargar los datos. Pulsa Actualizar para reintentar.';
+        });
+      } else {
+        const target = $('ma1611content');
+        if (target) target.textContent = 'El módulo de datos no está disponible. Actualiza la página e inténtalo nuevamente.';
+      }
+      layer.querySelector('#ma1611close')?.focus();
     } catch (error) {
-      console.warn('MI ALQUILER: no se pudo abrir el módulo', error);
-      accessNotice('No se pudo verificar el acceso a MI ALQUILER. Comprueba tu conexión, vuelve a iniciar sesión e inténtalo otra vez.');
-    } finally {
-      clearTimeout(timeout);
-      opening = false;
-      if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
+      console.warn('MI ALQUILER: error al abrir la interfaz', error);
+      accessNotice('No se pudo abrir MI ALQUILER. Actualiza la página e inténtalo nuevamente.');
     }
   }
   function close() {
