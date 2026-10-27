@@ -79,7 +79,13 @@
     body.append(meta);
     body.append(text('h3','cc169-offer-title',product.title));
     body.append(text('p','product-preview',product.description||'Servicio digital. Revisa las condiciones antes de confirmar.'));
-    body.append(text('small','cc169-duration','Duración: '+product.duration_days+' días'));
+    const details=text('dl','cc169-product-facts');
+    const fact=(label,value)=>{const item=text('div','cc169-product-fact');item.append(text('dt','',label),text('dd','',value));details.append(item);};
+    fact('Stock disponible',String(product.stock)+' unidad'+(Number(product.stock)===1?'':'es'));
+    fact('Vendedor',String(product.seller_name||product.seller_display_name||'No informado').trim());
+    fact('Servicio',product.service);
+    fact('Vigencia',product.duration_days+' días');
+    body.append(details);
     const priceBox=text('div','v23-card-price');
     const tier=product.price_tier==='DISTRIBUTOR';
     const amount=text('div','');
