@@ -5541,9 +5541,7 @@ function openDetail(id){
 }
 function closeDetail(){document.getElementById('cy63detail').style.display='none';state.selectedLoan=null}
 function printDetail(){if(!state.selectedLoan)return;const node=document.getElementById('cy63printable');if(!node)return;const w=window.open('','_blank','width=850,height=750');if(!w){alert('Activa las ventanas emergentes para imprimir.');return;}w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>COBRA YA - Cronograma</title><style>body{font-family:Arial,sans-serif;color:#1d2938;margin:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #777!important;padding:7px!important;text-align:left}h2,h3{color:#163b53}@page{size:A4;margin:16mm}</style></head><body>'+node.innerHTML+'<script src="scripts/v207-session-inactivity.js?v=207" defer></script>\n
-<!-- V217: portada aprobada sobre el proyecto original. Funciones de botones intactas. -->
-<link rel="stylesheet" href="styles/v217-home.css?v=218">
-<script src="scripts/v217-home.js?v=2173" defer></script>
+
 </body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
 function open(){session();document.getElementById('cy53layer').style.display='block';cy54.refreshAuth();if(session().isAdmin||session().isReseller)refresh()}
 function close(){document.getElementById('cy53layer').style.display='none'}
@@ -6109,5 +6107,9 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <script src="scripts/v161-4-mi-alquiler.js?v=206" defer></script>
 <script src="scripts/v1635-rescate-ui.js?v=216" defer></script>
 <script src="scripts/v151-portal-polish.js?v=215"></script>
+
+<!-- V217: portada aprobada sobre el proyecto original. Funciones de botones intactas. -->
+<link rel="stylesheet" href="styles/v217-home.css?v=218">
+<script src="scripts/v217-home.js?v=2173" defer></script>
 </body>
 </html>
