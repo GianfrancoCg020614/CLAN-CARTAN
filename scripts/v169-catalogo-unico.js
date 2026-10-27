@@ -155,8 +155,8 @@
     } else if(!matches.length){
       holder.append(text('p','cc169-status',rows.length?
         'No encontramos servicios publicados para esta búsqueda.':
-        'Aún no hay publicaciones activas verificadas. Estas imágenes son SOLO ejemplos; no tienen precio ni compra habilitados.'));
-      if(!rows.length&&showcase)holder.append(showcase.cloneNode(true));
+        'Todavía no hay productos publicados y verificados. Vuelve pronto para consultar los servicios disponibles.'));
+      // Sin productos reales: mostrar estado vacío, no tarjetas ficticias.
     } else {
       const grid=text('div','products v6-grid v23-product-grid cc169-verified-grid');
       grid.dataset.cc169Source='verified';matches.forEach(p=>grid.append(buildCard(p)));holder.append(grid);
