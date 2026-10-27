@@ -142,3 +142,16 @@ html body.view-store #cc177-return-panel,html body.view-store #cc166-open-button
 /* V237: las fichas de presentación comparten estética con las publicaciones comerciales. */
 #app #productos .cc169-example{border:1px solid #315568!important}
 #app #productos .cc169-example-disabled{opacity:1!important;background:#183e4b!important;color:#e5f6fa!important;border:1px solid #426e7c!important;cursor:not-allowed!important}
+
+/* V239: corregir ficha cortada en iPhone y accesos flotantes redundantes. */
+@media(max-width:600px){
+ html body.view-store #app #productos .cc169-demo-grid{grid-template-columns:minmax(0,1fr)!important;width:100%!important;max-width:100%!important}
+ html body.view-store #app #productos .cc169-demo-grid>.cc169-offer{width:100%!important;max-width:100%!important;min-width:0!important}
+ html body.view-store #app #productos .cc169-demo-grid .cc169-offer-cover{min-height:165px!important;padding:20px 14px!important}
+ html body.view-store #app #productos .cc169-demo-grid .cc169-cover-title{font-size:clamp(20px,6vw,28px)!important;line-height:1.2!important;overflow-wrap:normal!important;word-break:normal!important;text-align:center!important}
+ html body.view-store #app #productos .cc169-demo-grid .cc169-offer-title{font-size:17px!important;line-height:1.35!important}
+ html body.view-store #app #productos .cc169-demo-grid .product-preview{font-size:13px!important}
+}
+html body.view-store #app #productos .cc169-demo-grid{grid-template-columns:minmax(0,1fr)!important;max-width:560px!important}
+html body.view-store #app #productos .v23-filter-reset{display:none!important}
+html body.view-store #cc77back{display:none!important;visibility:hidden!important;pointer-events:none!important}
