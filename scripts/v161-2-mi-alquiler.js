@@ -10,6 +10,13 @@ const money=n=>'S/ '+Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:
 const isoToday=()=>{let p=new Intl.DateTimeFormat('en-US',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());let t=Object.fromEntries(p.map(x=>[x.type,x.value]));return t.year+'-'+t.month+'-'+t.day;};
 const api=(path,method,body)=>window.cc80.api(path,method,body);
 const rpc=(name,body)=>api('rpc/'+name,'POST',body||{});
+function withDeadline(promise,label,ms=15000){
+ let timer;
+ return Promise.race([
+  Promise.resolve(promise),
+  new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label+' tardó demasiado. Comprueba la conexión y pulsa Reintentar.')),ms);})
+ ]).finally(()=>clearTimeout(timer));
+}
 let account=null,properties=[],units=[],tenants=[],leases=[],events=[],area='inmuebles',loading=false,busy=false,uid=null;
 function reset(){account=null;properties=[];units=[];tenants=[];leases=[];events=[];uid=null;}
 const ucode=u=>u?.code||((u?.kind==='LOCAL'?'L-':'H-')+String(u?.serial||0).padStart(3,'0'));
@@ -22,7 +29,7 @@ function section(title,summary,content){return '<div class="ma1612-top"><div><sm
 async function refresh(){
  const s=session();if(!s?.jwt||!s.userId){reset();throw Error('Inicia sesión para acceder a MI ALQUILER');}
  uid=s.userId;
- const raw=await rpc('ma_ensure_account');
+ const raw=await withDeadline(rpc('ma_ensure_account'),'La verificación de tu cuenta');
  if(session()?.userId!==uid)throw Error('Cambió la sesión. Vuelve a ingresar.');
  account=Array.isArray(raw)?raw[0]:raw;
  if(!account||typeof account.active!=='boolean')throw Error('Respuesta de membresía no válida');
@@ -35,7 +42,7 @@ async function refresh(){
   'ma_leases?select=*&order=created_at.desc'+filter,
   'ma_lease_events?select=*&order=created_at.desc&limit=500'+filter
  ];
- const rows=await Promise.all(paths.map(p=>api(p)));
+ const rows=await withDeadline(Promise.all(paths.map(p=>api(p))),'La consulta de habitaciones y contratos');
  if(session()?.userId!==uid)throw Error('Sesión cambiada');
  [properties,units,tenants,leases,events]=rows.map(x=>Array.isArray(x)?x:[]);
 }
