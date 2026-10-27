@@ -104,22 +104,38 @@
     card.append(cover,body,actions);
     return card;
   }
-  function exampleCard(){
-    // Vista comercial de referencia, nunca conectada a inventario ni a pagos.
+  function exampleCard(item){
+    // Presentación visual sin inventario, vendedores, precios ni compras reales.
     const card=text('article','product lux v23-product-card cc169-offer cc169-example');
     const cover=text('div','product-visual cc169-offer-cover');
-    cover.append(text('span','cc169-cover-brand','STREAMBULLS'),text('strong','cc169-cover-title','Streaming Premium'),text('span','cc169-cover-status','CATÁLOGO STREAMBULLS'));
+    cover.append(text('span','cc169-cover-brand','STREAMBULLS'),text('strong','cc169-cover-title',item.service),text('span','cc169-cover-status',item.status));
     const body=text('div','product-body');
-    body.append(text('h3','cc169-offer-title','Streaming Premium · 30 días'));
-    body.append(text('p','product-preview','Acceso digital por 30 días, gestión de perfiles y atención personalizada.'));
+    body.append(text('h3','cc169-offer-title',item.title));
+    body.append(text('p','product-preview',item.description));
     const details=text('dl','cc169-product-facts');
-    for(const [label,value] of [['Vendedor','STREAMBULLS'],['Servicio','Streaming'],['Vigencia','30 días'],['Precio público','S/ 20.00'],['Precio distribuidor','S/ 15.00']]){
-      const item=text('div','cc169-product-fact');item.append(text('dt','',label),text('dd','',value));details.append(item);
+    for(const [label,value] of [['Modalidad',item.mode],['Vigencia','Según publicación'],['Atención',item.attention],['Disponibilidad',item.status],['Precio','Por confirmar']]){
+      const row=text('div','cc169-product-fact');row.append(text('dt','',label),text('dd','',value));details.append(row);
     }
     body.append(details);
     const actions=text('div','product-actions cc117-one-action');
-    const unavailable=text('button','btn cc169-example-disabled','Consultar disponibilidad');unavailable.type='button';unavailable.disabled=true;
+    const unavailable=text('button','btn cc169-example-disabled','No disponible para compra');unavailable.type='button';unavailable.disabled=true;
     actions.append(unavailable);card.append(cover,body,actions);return card;
+  }
+  const showcase=[
+    {service:'Netflix',title:'Netflix · Perfil Premium',status:'Disponible',mode:'Entrega inmediata',attention:'Dentro del horario publicado',description:'Perfil digital. Acceso, renovación y condiciones según el vendedor.'},
+    {service:'Disney+',title:'Disney+ · Perfil Premium',status:'A pedido',mode:'Activación a pedido',attention:'Confirmación del vendedor',description:'Solicitud de perfil digital con entrega sujeta a confirmación.'},
+    {service:'Spotify',title:'Spotify · Plan Premium',status:'Sin stock',mode:'Sin entrega inmediata',attention:'Próxima reposición por confirmar',description:'Presentación de un servicio temporalmente agotado.'},
+    {service:'YouTube Premium',title:'YouTube Premium · 30 días',status:'Fuera de horario',mode:'Según disponibilidad',attention:'Horario del vendedor pendiente',description:'Servicio sujeto al horario de atención publicado por su vendedor.'},
+    {service:'HBO Max',title:'HBO Max · Perfil',status:'Ausente',mode:'Atención pausada',attention:'Regreso por confirmar',description:'El vendedor podrá indicar su ausencia temporal y la hora de regreso.'},
+    {service:'Canva',title:'Canva · Acceso digital',status:'Renovable',mode:'Renovación según condiciones',attention:'Confirmación del vendedor',description:'Ejemplo de publicación con vigencia y renovación informadas.'}
+  ];
+  function showcaseMatches(item){
+    const chosen=(typeof ui!=='undefined'&&ui.storeCategory)||'Todos';
+    const streaming=['Netflix','Disney+','Spotify','YouTube Premium','HBO Max'].includes(item.service);
+    if(chosen==='Streaming'&&!streaming)return false;
+    if(chosen==='Recursos'&&streaming)return false;
+    const term=String(el('cc117-search')?.value??(typeof ui!=='undefined'?ui.storeSearch:'')).trim().toLocaleLowerCase('es');
+    return !term||[item.service,item.title,item.description,item.status].some(v=>v.toLocaleLowerCase('es').includes(term));
   }
   function unifyProfileLink(){
     const link=document.querySelector('#app .cc117-header .cc117-actions-top .cc117-register');
@@ -240,7 +256,7 @@
         'No encontramos servicios publicados para esta búsqueda.':
         'Todavía no hay productos publicados y verificados. Vuelve pronto para consultar los servicios disponibles.'));
       // La muestra es visual y no pertenece a la lista de productos reales.
-      if(!rows.length&&!error&&!loading){const demo=text('div','cc169-verified-grid cc169-demo-grid');demo.append(exampleCard());holder.append(demo);}
+      if(!rows.length&&!error&&!loading){const demo=text('div','cc169-verified-grid cc169-demo-grid');showcase.filter(showcaseMatches).forEach(item=>demo.append(exampleCard(item)));holder.append(demo);}
     } else {
       const grid=text('div','products v6-grid v23-product-grid cc169-verified-grid');
       grid.dataset.cc169Source='verified';matches.forEach(p=>grid.append(buildCard(p)));holder.append(grid);
