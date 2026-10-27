@@ -3,7 +3,7 @@
  */
 (function(){
  'use strict';
- const valid=/^(CLAN|COBRA|BULL|COCHERA|ALQUILER)[1-9][0-9]{0,14}$/;
+ const valid=/^CLAN[1-9][0-9]{0,14}$/;
  function setup(){
    const params=new URLSearchParams(window.location.search);
    const code=String(params.get('ref')||'').trim().toUpperCase();
