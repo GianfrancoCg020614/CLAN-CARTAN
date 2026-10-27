@@ -12,7 +12,7 @@ const readme=fs.readFileSync('docs/CONTINUIDAD-V157-LEMON-PRIMERO-ESTADO-PRESERV
 function required(content,needle){assert.ok(content.includes(needle),'Missing: '+needle);}
 assert.match(html,/V(?:158|160|161)-20261021/);required(html,'cc158-cochera-card');
 required(html,'Ingresar a Mi Cochera');
-required(html,'scripts/v158-mi-cochera.js?v=158');
+assert.match(html,/scripts\/v158-mi-cochera\.js\?v=\d+/, 'MI COCHERA: falta carga del módulo versionado');
 required(html,'styles/v158-mi-cochera.css?v=158');
 required(html,'<option value="MI_COCHERA">MI COCHERA</option>');
 required(html,"const rpc='cc_clan_validate_code';");
