@@ -160,3 +160,22 @@ html[data-cc-theme="light"] #ma1611layer button:not(.active){background:#eaf3f7;
 @media(max-width:590px){
 #cc77home .cc77cards > .cc77card .cc158-cochera-mark{width:195px!important;height:195px!important;min-width:195px!important;max-width:195px!important;min-height:195px!important;max-height:195px!important;flex-basis:195px!important}
 }
+
+
+/* V214 — Portada comercial limpia: se conservan intactos todos los botones y eventos. */
+#cc77home .cc77wrap{max-width:1280px!important;padding-inline:clamp(16px,3vw,38px)}
+#cc77home .cc77intro{max-width:780px!important;padding:24px 0 26px!important}
+#cc77home .cc77intro h1{font-size:clamp(28px,3.6vw,48px)!important;line-height:1.12!important;letter-spacing:-.035em!important}
+#cc77home .cc77intro p{max-width:670px!important;font-size:clamp(14px,1.2vw,16px)!important;line-height:1.6!important}
+#cc77home .cc77cards{gap:16px!important}
+#cc77home .cc77cards>.cc77card,#cc77home .cc77cards>.ma1611-card{min-height:0!important;padding:19px!important;gap:10px!important;border:1px solid rgba(212,170,81,.46)!important;border-radius:22px!important;background:linear-gradient(165deg,rgba(14,28,43,.97),rgba(5,13,25,.98))!important;box-shadow:0 15px 36px #0007!important}
+#cc77home .cc77cards>.cc77card .cc77tag,#cc77home .cc77cards>.ma1611-card .ma1611-card-copy small{min-height:0!important;padding:0!important;border:0!important;background:transparent!important;color:#d9ba77!important;font-size:10px!important;letter-spacing:.045em!important}
+#cc77home .cc77cards>.cc77card h2,#cc77home .cc77cards>.ma1611-card h2{font-size:clamp(19px,1.6vw,25px)!important;line-height:1.18!important;color:#f5f8ff!important}
+#cc77home .cc77cards>.cc77card p,#cc77home .cc77cards>.ma1611-card p{font-size:13px!important;line-height:1.55!important;color:#c7d4e2!important;display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:3!important;overflow:hidden!important;max-height:4.7em!important}
+#cc77home .cc77cards>.cc77card .cc77actions{margin-top:auto!important;gap:9px!important}
+#cc77home .cc77cards>.cc77card .cc77actions button,#cc77home .cc77cards>.ma1611-card button{min-height:47px!important;border-radius:12px!important}
+#cc77home .cc77cards>.cc77card .cc78service-logo,#cc77home .cc77cards>.ma1611-card .ma1611-card-icon{filter:drop-shadow(0 6px 14px #0008)}
+#cc77home .cc77cards>.cc77card .cc78service{gap:7px!important}
+#cc77home .cc77cards>.ma1611-card .ma1611-chip{font-size:10px!important}
+@media(max-width:1130px){#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:590px){#cc77home .cc77cards{grid-template-columns:1fr!important;gap:13px!important}#cc77home .cc77cards>.cc77card,#cc77home .cc77cards>.ma1611-card{padding:17px!important}#cc77home .cc77intro{padding-top:15px!important}}
