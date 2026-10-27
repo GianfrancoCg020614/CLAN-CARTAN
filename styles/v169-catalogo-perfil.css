@@ -92,3 +92,15 @@ html body.view-store #app .cc117-header .cc117-actions-top .cc169-admin-shortcut
 /* V229 · Contacto oficial, accesible y sin superposición. */
 html body.view-store #app .cc117-header .cc117-actions-top #cc169-whatsapp-admin{background:#128c63!important;color:#fff!important;border:1px solid #48d4a3!important;text-decoration:none!important;position:static!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:40px!important;padding:9px 13px!important;border-radius:10px!important;white-space:normal!important;font:750 12px/1.3 system-ui,sans-serif!important;box-shadow:none!important}
 @media(max-width:760px){html body.view-store #app .cc117-header .cc117-actions-top #cc169-whatsapp-admin{flex:1 1 145px!important}}
+
+/* V230 · No presentar inventario ficticio, incluso antes del render asíncrono. */
+html body.view-store #app #productos .v23-product-grid:not(.cc169-verified-grid){display:none!important}
+html body.view-store #app #productos .cc169-showcase{display:none!important}
+html body.view-store #app #productos .cc169-result .cc169-showcase{display:none!important}
+html body.view-store #app #productos .cc169-verified-grid{display:grid!important}
+@media(max-width:760px){
+ html body.view-store #app .cc117-header{isolation:isolate}
+ html body.view-store #app .cc117-header .cc117-actions-top{min-height:44px;align-content:flex-start}
+ html body.view-store #app .cc117-header .cc117-category-strip{z-index:2!important}
+ html body.view-store #app #productos .cc169-result .cc169-status{font:500 14px/1.6 system-ui,sans-serif}
+}
