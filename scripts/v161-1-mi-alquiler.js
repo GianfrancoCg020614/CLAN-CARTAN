@@ -38,6 +38,7 @@
       event.preventDefault();
       event.stopImmediatePropagation();
       lastPointerOpen = Date.now();
+      window.ma1611LastPointerOpen = lastPointerOpen;
       open();
     }, { capture: true });
     enter.addEventListener('click', event => {
@@ -175,7 +176,7 @@
       if (!e.target.closest('#ma1611open')) return;
       e.preventDefault();
       e.stopImmediatePropagation();
-      open();
+      if (Date.now() - (window.ma1611LastPointerOpen || 0) > 1200) open();
     }, true);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
