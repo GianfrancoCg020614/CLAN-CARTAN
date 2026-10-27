@@ -168,8 +168,14 @@
       if (changes.some(change => change.type === 'childList' && change.addedNodes.length)) scheduleMount();
     });
     observer.observe(document.body, { childList: true, subtree: true });
+    // Captura delegada: funciona incluso si la portada reemplaza el botón
+    // después del primer toque (Safari/iOS y re-render de tarjetas).
     document.addEventListener('click', e => {
-      if (e.target.closest('#cc54logout')) close();
+      if (e.target.closest('#cc54logout')) { close(); return; }
+      if (!e.target.closest('#ma1611open')) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      open();
     }, true);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
