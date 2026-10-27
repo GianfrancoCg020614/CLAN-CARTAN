@@ -1,5 +1,5 @@
 /* CLAN CARTAN V246: directorio compacto. No oculta permisos ni cambia datos. */
-#cc166-panel .cc246-user{
+#cc166-panel .cc171-person.cc246-user{
  display:grid;
  grid-template-columns:minmax(0,2fr) minmax(140px,1fr) 48px;
  align-items:center;
@@ -56,7 +56,7 @@
 #cc166-panel .cc246-field strong{overflow-wrap:anywhere;font-size:13px;font-weight:600}
 #cc166-panel .cc246-expanded .cc171-person-actions{grid-column:auto;justify-content:flex-start}
 @media(max-width:640px){
- #cc166-panel .cc246-user{grid-template-columns:minmax(0,1fr) 46px;gap:9px}
+ #cc166-panel .cc171-person.cc246-user{grid-template-columns:minmax(0,1fr) 46px;gap:9px}
  #cc166-panel .cc246-user .cc171-person-id{grid-column:1}
  #cc166-panel .cc246-user .cc171-person-role{grid-column:1;padding-left:48px}
  #cc166-panel .cc246-user .cc246-user-details{grid-column:2;grid-row:1/3}
