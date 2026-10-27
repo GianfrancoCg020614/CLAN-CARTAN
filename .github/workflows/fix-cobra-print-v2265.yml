@@ -1,0 +1,40 @@
+name: Reparar cronograma COBRAYA V226.5
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/fix-cobra-print-v2265.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  corregir-impresion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reparar exactamente la etiqueta incorrecta
+        run: node scripts/fix-cobra-print-v2265.mjs
+      - name: Comprobar COBRAYA y MI ALQUILER sin tocar datos
+        run: |
+          node scripts/check-v138-cobra-ui.mjs
+          node scripts/check-v2264-mi-alquiler.mjs
+      - name: Publicar corrección verificada en main
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No hay cambios pendientes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "fix(cobraya): restaurar HTML de impresión y JavaScript de cronograma"
+          git push origin HEAD:main
