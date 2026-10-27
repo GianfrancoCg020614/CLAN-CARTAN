@@ -168,3 +168,32 @@ html[data-cc-theme="light"] #cc-real-login #cc86-forgot{color:#846014!important}
  html[data-cc-theme="light"] #cc77home .cc77cards>article.cc77card:hover,
  html[data-cc-theme="light"] #cc77home .cc77cards>article.ma1611-card:hover{transform:none!important}
 }
+
+
+/* V226 · MI ALQUILER: modo día coherente, sin alterar lógica ni modo noche. */
+html[data-cc-theme="light"] #ma1611layer{color:#19364a;background:linear-gradient(160deg,#f8fcff,#eaf4f7 65%,#fff9ed)}
+html[data-cc-theme="light"] #ma1611layer .ma1611-head{background:linear-gradient(125deg,#fffdf8,#e9f5f7);border-color:#d5b877;box-shadow:0 8px 26px #173e5214}
+html[data-cc-theme="light"] #ma1611layer h2,
+html[data-cc-theme="light"] #ma1611layer h3,
+html[data-cc-theme="light"] #ma1611layer h4,
+html[data-cc-theme="light"] #ma1611layer .ma1612-stats b,
+html[data-cc-theme="light"] #ma1611layer .ma3-stats b,
+html[data-cc-theme="light"] #ma1611layer .ma4-stats b{color:#214c60}
+html[data-cc-theme="light"] #ma1611layer p,
+html[data-cc-theme="light"] #ma1611layer .ma1611-head p,
+html[data-cc-theme="light"] #ma1611layer .ma1612-top p,
+html[data-cc-theme="light"] #ma1611layer .ma3-header p,
+html[data-cc-theme="light"] #ma1611layer .ma4-head p,
+html[data-cc-theme="light"] #ma1611layer .ma3-card p,
+html[data-cc-theme="light"] #ma1611layer .ma4-row small{color:#496778}
+html[data-cc-theme="light"] #ma1611layer :is(.ma1612-box,.ma1612-line,.ma1612-stats div,.ma1612-locked,.ma3-card,.ma3-stats>div,.ma4-row,.ma4-stats div){background:#fff;border-color:#c8dce3;color:#19364a;box-shadow:0 3px 14px #19364a0a}
+html[data-cc-theme="light"] #ma1611layer :is(.ma1612-box,.ma1612-line,.ma3-card,.ma4-row) :is(small,strong){color:#31566b}
+html[data-cc-theme="light"] #ma1611layer :is(input,select,textarea){background:#fff;color:#19364a;border-color:#9dbcc9}
+html[data-cc-theme="light"] #ma1611layer :is(input,select,textarea)::placeholder{color:#657d89}
+html[data-cc-theme="light"] #ma1611layer button{background:#e8f3f6;color:#164b60;border-color:#8bb8c6}
+html[data-cc-theme="light"] #ma1611layer button:hover{background:#d5edf2}
+html[data-cc-theme="light"] #ma1611layer :is(button,input,select,textarea):focus-visible{outline:3px solid #087e94;outline-offset:2px}
+html[data-cc-theme="light"] .ma1612-dialog>section{background:#fff;color:#19364a}
+html[data-cc-theme="light"] .ma1612-dialog :is(input,select){background:#fff;color:#19364a;border-color:#9dbcc9}
+html[data-cc-theme="light"] .ma1612-dialog h3{color:#214c60}
+@media(max-width:600px){html[data-cc-theme="light"] #ma1611layer .ma1611-head{padding:14px}html[data-cc-theme="light"] #ma1611layer :is(.ma1612-box,.ma3-card,.ma4-row){padding:12px}}
