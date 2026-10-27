@@ -87,8 +87,8 @@ function enhance(which,target){
  area=which;
  if(!target)return;
  if(!session()?.jwt){target.innerHTML=section('Sesión requerida','Inicia sesión en CLAN CARTAN para continuar.','');return;}
- if(loading){target.innerHTML='<p>Cargando datos protegidos de MI ALQUILER…</p>';return;}
- if(!account){target.innerHTML='<p>Preparando acceso…</p>';return;}
+ if(loading){target.innerHTML=section('Cargando información','Consultando tus datos protegidos.','<p role="status">Cargando… Si el servidor no responde, aparecerá una opción para reintentar.</p>');return;}
+ if(!account){target.innerHTML=section('Acceso a Mi Alquiler','No se ha podido completar la carga de tu cuenta.','<p>Selecciona Reintentar para consultar nuevamente tus inmuebles y contratos.</p>');return;}
  if(!account.active){target.innerHTML=locked();return;}
  if(typeof window.ma1613Enhance==='function' && window.ma1613Enhance(area,target,{account,leases,units,tenants,properties,sessionId:uid})) return;
  if(typeof window.ma1614Enhance==='function' && window.ma1614Enhance(area,target,{account,leases,units,tenants,properties,sessionId:uid})) return;
