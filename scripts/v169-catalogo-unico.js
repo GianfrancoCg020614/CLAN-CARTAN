@@ -151,7 +151,7 @@
     for(const other of document.querySelectorAll('a[href*="wa.me/51923319637"]')){
       if(other===link||other.closest('.cc169-offer'))continue;
       if(other.matches('.cc169-whatsapp-admin')||other.id==='cc169-whatsapp-admin')continue;
-      if(other.classList.contains('floating-whatsapp')||other.classList.contains('whatsapp-float'))other.hidden=true;
+      other.hidden=true;other.style.setProperty('display','none','important');
     }
   }
   function tidyCatalogBack(){
@@ -220,7 +220,7 @@
     if(oldBanner)oldBanner.style.display='none'; // Estado de venta ya figura en el catálogo.
     const chosen=(typeof ui!=='undefined'?ui.storeCategory:'Todos');
     const term=el('cc117-search')?.value??(typeof ui!=='undefined'?ui.storeSearch:'');
-    const state=revision+'|'+chosen+'|'+term+'|'+!!window.CC_V53_SESSION?.jwt;
+    const state=revision+'|'+chosen+'|'+term+'|'+!!window.CC_V53_SESSION?.jwt+'|'+section.querySelectorAll('.cc169-result').length;
     if(section.dataset.cc169State===state)return;
     section.dataset.cc169State=state;
     // El contenido de demostración NO es inventario: reemplazarlo, nunca combinarlo.
@@ -250,6 +250,8 @@
     holder.append(controls);
     const note=section.querySelector('.v23-shop-note');
     if(note)note.replaceWith(holder);else section.append(holder);
+    // Si un render antiguo reemplaza la sección, la siguiente observación reconstruye el catálogo.
+    section.dataset.cc169State=state;
   }
   function schedule(){
     if(scheduled)return;scheduled=true;
