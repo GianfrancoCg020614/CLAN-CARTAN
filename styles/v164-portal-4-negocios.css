@@ -196,3 +196,44 @@ html[data-cc-theme="light"] #ma1611layer button:not(.active){background:#eaf3f7;
 #cc77home .cc77cards .cc77actions button{min-height:47px!important}
 @media(max-width:1100px){#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:600px){#cc77home .cc77cards{grid-template-columns:1fr!important}#cc77home .cc77cards .cc78service-logo{width:160px!important;height:160px!important}}
+
+
+/* V226.1 — Sistema visual interior compartido. No afecta portada, pagos ni permisos. */
+:is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user){
+ --cc226-radius:16px;--cc226-focus:#41d6cd;
+}
+:is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(button,input,select,textarea){
+ font-family:inherit;box-sizing:border-box;max-width:100%;
+}
+:is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(button,[role="button"]){
+ border-radius:11px;min-height:40px;transition:filter .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+:is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(button,[role="button"]):not(:disabled):hover{filter:brightness(1.08)}
+:is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(button,input,select,textarea,a):focus-visible{
+ outline:3px solid var(--cc226-focus);outline-offset:3px;
+}
+:is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(input,select,textarea){
+ min-height:40px;border-radius:10px;font-size:max(14px,1em);
+}
+:is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(table){
+ width:100%;border-collapse:collapse;
+}
+:is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(th,td){
+ vertical-align:middle;overflow-wrap:anywhere;
+}
+:is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(h2,h3,h4){
+ line-height:1.25;letter-spacing:-.015em;text-wrap:balance;
+}
+html[data-cc-theme="light"] :is(#cc166-panel,#cc166-content,#cc95-user){
+ --cc226-focus:#087e94;color-scheme:light;
+}
+html[data-cc-theme="light"] :is(#cc166-panel,#cc166-content,#cc95-user) :is(input,select,textarea){
+ color:#19364a;background:#fff;border-color:#9dbcc9;
+}
+@media(max-width:640px){
+ :is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(button,input,select,textarea){min-height:44px}
+ :is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(th,td){padding:8px 6px}
+}
+@media(prefers-reduced-motion:reduce){
+ :is(#cc166-panel,#cc166-content,#ma1611layer,#cc95-user) :is(button,[role="button"]){transition:none}
+}
