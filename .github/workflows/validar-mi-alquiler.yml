@@ -10,6 +10,7 @@ on:
       - 'scripts/v161-3-mi-alquiler.js'
       - 'scripts/v161-4-mi-alquiler.js'
       - 'scripts/check-v2264-mi-alquiler.mjs'
+      - 'scripts/test-mi-alquiler-mobile-browser.mjs'
       - '.github/workflows/validar-mi-alquiler.yml'
   pull_request:
     branches: [main]
@@ -20,6 +21,7 @@ on:
       - 'scripts/v161-3-mi-alquiler.js'
       - 'scripts/v161-4-mi-alquiler.js'
       - 'scripts/check-v2264-mi-alquiler.mjs'
+      - 'scripts/test-mi-alquiler-mobile-browser.mjs'
       - '.github/workflows/validar-mi-alquiler.yml'
   workflow_dispatch:
 
@@ -40,3 +42,5 @@ jobs:
           node-version: '22'
       - name: Ejecutar regresiones sin modificar datos
         run: node scripts/check-v2264-mi-alquiler.mjs
+      - name: Navegación móvil Chrome 390px y 320px sin datos reales
+        run: node scripts/test-mi-alquiler-mobile-browser.mjs
