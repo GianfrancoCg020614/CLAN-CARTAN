@@ -55,3 +55,35 @@ function init(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
 })();
+
+/* V215: descripciones públicas; no se tocan botones, eventos, sesión ni navegación. */
+(function(){
+ 'use strict';
+ function update(){
+  const home=document.getElementById('cc77home');
+  const grid=home?.querySelector('.cc77cards');if(!grid)return;
+  const data=[
+   ['Control de préstamos','Administra tus préstamos, registra pagos, controla vencimientos y mantén tus cobranzas organizadas.'],
+   ['Gestión de vehículos','Controla el ingreso, salida y permanencia de autos, motos y carritos, con registros organizados.'],
+   ['Administración de habitaciones','Gestiona tus cuartos, inquilinos, mensualidades y pagos pendientes desde un solo lugar.']
+  ];
+  const cards=[...grid.querySelectorAll(':scope > .cc77card')];
+  cards.slice(0,3).forEach((card,i)=>{
+   const heading=card.querySelector('.cc77tag');
+   const desc=card.querySelector('p');
+   if(heading&&heading.textContent!==data[i][0])heading.textContent=data[i][0];
+   if(desc&&desc.textContent!==data[i][1])desc.textContent=data[i][1];
+  });
+  const rental=grid.querySelector('.ma1611-card');
+  if(rental){
+   const heading=rental.querySelector('.ma1611-card-copy small');
+   const desc=rental.querySelector('.ma1611-card-copy p');
+   if(heading)heading.textContent='Administración de habitaciones';
+   if(desc)desc.textContent=data[2][1];
+  }
+ }
+ function init(){update();const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
+  let pending=false;new MutationObserver(()=>{if(pending)return;pending=true;queueMicrotask(()=>{pending=false;update()})}).observe(grid,{childList:true,subtree:true});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
