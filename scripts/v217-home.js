@@ -58,9 +58,41 @@ function apply(){
  const actual=[...grid.children].filter(c=>ordered.includes(c));
  if(ordered.length>=3&&!ordered.every((node,i)=>actual[i]===node))ordered.forEach(node=>grid.appendChild(node));
 }
+
+// Ajustes móviles del catálogo público: sólo se activan si la vista está presente.
+function polishStreamCatalog(){
+ const roots=[...document.querySelectorAll('main,section,article,div')].filter(el=>
+  el.children.length>0 && el.children.length<18 &&
+  /CATÁLOGO PÚBLICO|BUSCA TU PRODUCTO/i.test(el.textContent||'') &&
+  el.querySelector('input'));
+ const search=roots.sort((a,b)=>(a.textContent||'').length-(b.textContent||'').length)[0];
+ if(!search)return;
+ const scope=search.closest('main')||search.parentElement?.parentElement;
+ if(!scope||scope.id==='cc77home')return;
+ scope.classList.add('cc217-stream-catalog');
+ const fakeNotice=[...scope.querySelectorAll('p,div,span')].find(el=>
+  el.children.length===0 && /estas imágenes son SOLO ejemplos|aún no hay publicaciones activas verificadas/i.test(el.textContent||''));
+ if(fakeNotice)fakeNotice.closest('article')?.classList.add('cc217-example-notice');
+}
+function installCatalogPolish(){
+ if(document.getElementById('cc217-catalog-style'))return;
+ const style=document.createElement('style');
+ style.id='cc217-catalog-style';
+ style.textContent=`
+@media(max-width:700px){
+.cc217-stream-catalog{max-width:100%;overflow-x:clip}
+.cc217-stream-catalog button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.cc217-stream-catalog input{min-width:0;max-width:100%;box-sizing:border-box}
+.cc217-stream-catalog .cc217-example-notice{border-radius:14px;box-shadow:none}
+.cc217-stream-catalog h1,.cc217-stream-catalog h2{overflow-wrap:anywhere}
+}`;
+ document.head.appendChild(style);
+}
+
 function init(){
  const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
  apply();
+ installCatalogPolish();polishStreamCatalog();
  const obs=new MutationObserver(()=>{if(busy)return;busy=true;queueMicrotask(()=>{try{apply();}finally{busy=false;}})});
  obs.observe(grid,{childList:true,subtree:true});
 }
