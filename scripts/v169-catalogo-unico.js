@@ -145,7 +145,7 @@
     }
     link.href=officialWhatsApp;
     link.title='Contactar por WhatsApp';
-    if(link.parentElement!==actions)actions.append(link);
+    if(link.parentElement!==document.body)document.body.append(link);
     // Evitar accesos flotantes de WhatsApp duplicados en la vista de tienda.
     for(const other of document.querySelectorAll('a[href*="wa.me/51923319637"]')){
       if(other===link||other.closest('.cc169-offer'))continue;
@@ -170,7 +170,7 @@
     for(const node of document.querySelectorAll('a,button')){
       if(node===back||!node.isConnected||node.closest('#cc166-panel'))continue;
       const label=(node.textContent||'').trim();
-      if(/^(←\\s*)?CLAN CARTAN$/i.test(label)&&node.closest('.cc117-header')!==header){
+      if(/^(←\s*)?CLAN CARTAN$/i.test(label)&&node.closest('.cc117-header')!==header){
         node.hidden=true;node.style.setProperty('display','none','important');
       }
     }
