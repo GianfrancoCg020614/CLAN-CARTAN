@@ -167,3 +167,7 @@ html body.view-store #cy54adminShortcut{display:none!important;visibility:hidden
 html body.view-store #app #productos .v23-shop-note{display:none!important}
 html body.view-store #app #productos .v23-filter-reset{display:none!important}
 html body.view-store #cc77back{display:none!important}
+
+/* V243: tarjetas responsivas de situaciones comerciales. */
+@media(min-width:700px){html body.view-store #app #productos .cc169-demo-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:none!important}}
+@media(max-width:699px){html body.view-store #app #productos .cc169-demo-grid{grid-template-columns:minmax(0,1fr)!important}}
