@@ -47,3 +47,9 @@ html[data-cc-theme="light"] #cc77home .cc77intro h1{color:transparent!important}
 html[data-cc-theme="light"] #cc77home .cc77cards>.cc77card,html[data-cc-theme="light"] #cc77home .cc77cards>.ma1611-card{background:linear-gradient(150deg,#f9fcff,#e7f2f8)!important;border-color:#c49b4b!important;box-shadow:0 10px 24px #29475922!important}
 html[data-cc-theme="light"] #cc77home .cc77cards>.cc77card p,html[data-cc-theme="light"] #cc77home .cc77cards>.ma1611-card p{color:#264256!important}
 html[data-cc-theme="light"] #cc77home .cc77cards>.cc77card h2,html[data-cc-theme="light"] #cc77home .cc77cards>.ma1611-card h2{color:#102a39!important}
+
+/* V218 — precedencia definitiva de imágenes: las reglas históricas v159/v160/v213 eran más específicas. */
+#cc77home .cc77cards>.cc77card .cc78service-logo.cc78stream{background-image:url('../assets/stream-bulls-logo.svg?v=218')!important;background-size:contain!important}
+#cc77home .cc77cards>.cc77card .cc78service-logo.cc78cobra{background-image:url('../assets/cobra-ya-premium.svg?v=218')!important;background-size:contain!important}
+#cc77home .cc77cards>.cc77card .cc158-cochera-mark{background-image:url('../assets/mi-cochera-logo.svg?v=218')!important;background-size:contain!important;background-position:center!important}
+#cc77home .cc77cards>.ma1611-card .ma1611-card-icon img{object-fit:contain!important;max-width:100%!important;max-height:100%!important}
