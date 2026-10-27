@@ -160,3 +160,10 @@ html body.view-store #cc77back{display:none!important;visibility:hidden!importan
 html body.view-store #cc169-whatsapp-admin{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;border-radius:50%!important;box-shadow:0 5px 16px #0005!important;transform:none!important;background:#20c766!important;border:2px solid #e8fff2!important;isolation:isolate!important}
 html body.view-store #cc169-whatsapp-admin::after{content:none!important;display:none!important}
 html body.view-store #cc169-whatsapp-admin::before{flex:0 0 31px!important}
+
+/* V241: controles administrativos no deben flotar sobre el catálogo público. */
+html body.view-store #cy53open,
+html body.view-store #cy54adminShortcut{display:none!important;visibility:hidden!important;pointer-events:none!important}
+html body.view-store #app #productos .v23-shop-note{display:none!important}
+html body.view-store #app #productos .v23-filter-reset{display:none!important}
+html body.view-store #cc77back{display:none!important}
