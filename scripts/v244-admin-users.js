@@ -10,9 +10,9 @@ function mount(){
  const section=document.createElement('section');section.id='cc-admin-users-real';
  section.style.cssText='margin:18px 0;padding:18px;border:1px solid var(--border,#64748b55);border-radius:16px';
  section.innerHTML='<h3>Usuarios registrados</h3><p id="cc-users-status">Comprobando permisos…</p><div id="cc-users-body"></div>';
- root.append(section);
+ root.parentNode.insertBefore(section,root);
  window.cc80.api('rpc/cc_admin_users_compact_v1','POST',{}).then(data=>{
-  if(!section.isConnected||window.CC_V53_SESSION?.userId!==session.userId)return;
+  if(!section.isConnected||window.CC_V53_SESSION?.userId!==session.userId){section.remove();return;}
   rows=Array.isArray(data)?data:[];
   section.querySelector('#cc-users-status').textContent=rows.length+' cuentas · Código CLAN único';
   const body=section.querySelector('#cc-users-body');
