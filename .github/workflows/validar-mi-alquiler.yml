@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/v161-1-mi-alquiler.js'
+      - 'styles/v161-1-mi-alquiler.css'
       - 'scripts/v161-2-mi-alquiler.js'
       - 'scripts/v161-3-mi-alquiler.js'
       - 'scripts/v161-4-mi-alquiler.js'
@@ -14,6 +15,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/v161-1-mi-alquiler.js'
+      - 'styles/v161-1-mi-alquiler.css'
       - 'scripts/v161-2-mi-alquiler.js'
       - 'scripts/v161-3-mi-alquiler.js'
       - 'scripts/v161-4-mi-alquiler.js'
