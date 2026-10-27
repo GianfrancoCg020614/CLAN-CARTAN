@@ -78,3 +78,13 @@
  #app #productos .cc169-catalog-controls{align-items:stretch}
  #app #productos .cc169-refresh{min-height:44px}
 }
+
+/* V228 · Atajos administrativos dentro de la barra, nunca flotando sobre filtros. */
+html body.view-store #app .cc117-header .cc117-actions-top .cc169-admin-shortcut{position:static!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;float:none!important;z-index:auto!important;box-shadow:none!important;display:inline-flex!important;align-items:center;justify-content:center;white-space:normal!important;max-width:100%;font:700 12px/1.35 system-ui,sans-serif!important;padding:9px 11px!important;margin:0!important;border-radius:10px!important;min-height:40px!important}
+@media(max-width:760px){
+ html body.view-store #app .cc117-header .cc117-nav-main{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important}
+ html body.view-store #app .cc117-header .cc117-actions-top{display:flex!important;position:static!important;width:100%!important;flex-wrap:wrap!important;justify-content:flex-start!important;gap:7px!important}
+ html body.view-store #app .cc117-header .cc117-actions-top .cc169-admin-shortcut{flex:1 1 145px!important;font-size:11px!important}
+ html body.view-store #app .cc117-category-strip{position:relative!important;z-index:1!important;clear:both!important}
+ html body.view-store #app #productos .v23-catalog-section{padding-inline:clamp(12px,3vw,22px)!important}
+}
