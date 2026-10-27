@@ -56,26 +56,3 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 else init();
 })();
 
-/* V216: textos correctos por negocio, nunca por posición. */
-(function(){
-'use strict';
-const records=[
- {test:/stream\s*bull/i,tag:'Entretenimiento digital',desc:'Netflix, HBO, Disney+, YouTube, ChatGPT y más plataformas en un solo catálogo.'},
- {test:/cobra\s*ya|cobraya/i,tag:'Control de préstamos',desc:'Administra préstamos, pagos, vencimientos y cobranzas de forma organizada.'},
- {test:/mi\s*cochera/i,tag:'Control de vehículos',desc:'Registra y controla autos, motos y carritos, sus ingresos y salidas.'},
- {test:/mi\s*alquiler/i,tag:'Gestión de habitaciones',desc:'Administra cuartos, inquilinos, mensualidades y pagos pendientes.'}
-];
-function update(){
- const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
- for(const card of grid.children){
-  const h=card.querySelector('h2');const name=h?.textContent||'';
-  const record=records.find(r=>r.test.test(name));if(!record)continue;
-  const tag=card.querySelector('.cc77tag,.ma1611-card-copy small');
-  const p=card.querySelector('.cc77card > p,.ma1611-card-copy p,.cc77service-desc');
-  if(tag&&tag.textContent!==record.tag)tag.textContent=record.tag;
-  if(p&&p.textContent!==record.desc)p.textContent=record.desc;
- }
-}
-function init(){update();const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;let pending=false;new MutationObserver(()=>{if(pending)return;pending=true;queueMicrotask(()=>{pending=false;update()})}).observe(grid,{childList:true,subtree:true});}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-})();
