@@ -62,3 +62,45 @@ html[data-cc-theme="light"] #cc77home .cc77cards>.cc77card h2,html[data-cc-theme
 #cc77home .cc77cards>article.ma1611-card .ma1611-card-icon img{opacity:0!important}
 #cc77home .cc77cards>article.cc77card.cc217-stream .cc78service-logo.cc78stream{position:relative!important}
 #cc77home .cc77cards>article.cc77card.cc217-stream .cc78service-logo.cc78stream::after{content:'CLAN CARTAN';display:block;position:absolute;left:19%;right:19%;bottom:12px;min-height:18px;padding:2px 1px;background:linear-gradient(#040c16,#000);color:#00f0ed;text-shadow:0 0 5px #09e8f6;font:950 clamp(10px,1.05vw,13px)/1.12 system-ui;text-align:center;letter-spacing:.025em;border-radius:2px}
+
+
+/* V221 — imágenes originales HD del titular y cabecera cinematográfica aprobada. */
+#cc77home .cc77intro{
+ height:clamp(225px,20.8vw,325px)!important;
+ background-image:url('../assets/cc-home-cinematic-hero.avif?v=221')!important;
+ background-position:center center!important;
+ background-size:cover!important;
+ background-repeat:no-repeat!important;
+}
+#cc77home .cc77intro::before{background:none!important;opacity:0!important}
+#cc77home .cc77intro h1,
+#cc77home .cc77intro p{
+ position:absolute!important;
+ width:1px!important;height:1px!important;
+ overflow:hidden!important;
+ clip-path:inset(50%)!important;
+ white-space:nowrap!important;
+ margin:0!important;padding:0!important;
+}
+#cc77home .cc77cards>article.cc77card.cc217-cobra .cc78service-logo.cc78cobra{
+ background-image:url('../assets/cc-logo-cobraya-hd.avif?v=221')!important
+}
+#cc77home .cc77cards>article.cc77card.cc217-cochera .cc158-cochera-mark{
+ background-image:url('../assets/cc-logo-cochera-hd.avif?v=221')!important
+}
+#cc77home .cc77cards>article.ma1611-card .ma1611-card-icon{
+ background-image:url('../assets/cc-logo-alquiler-hd.avif?v=221')!important
+}
+#cc77home .cc77cards>article.cc77card.cc217-stream .cc78service-logo.cc78stream{
+ background-image:url('../assets/cc-logo-streambulls-hd.avif?v=221')!important
+}
+#cc77home .cc77cards>article.cc77card.cc217-stream .cc78service-logo.cc78stream::after{
+ display:none!important;content:none!important
+}
+@media(max-width:590px){
+ #cc77home .cc77intro{
+   height:185px!important;
+   background-position:center!important;
+   background-size:100% 100%!important;
+ }
+}
