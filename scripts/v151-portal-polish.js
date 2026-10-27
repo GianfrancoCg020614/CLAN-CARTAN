@@ -191,4 +191,4 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 /* V196 · presentación consistente de las cuatro tarjetas de negocio. */
-(function(){if(document.getElementById('cc196-style'))return;const l=document.createElement('link');l.id='cc196-style';l.rel='stylesheet';l.href='styles/v196-business-unified.css?v=196';document.head.append(l);})();
+(function(){if(document.getElementById('cc196-style'))return;const l=document.createElement('link');l.id='cc196-style';l.rel='stylesheet';l.href='styles/v196-business-unified.css?v=215';document.head.append(l);})();
