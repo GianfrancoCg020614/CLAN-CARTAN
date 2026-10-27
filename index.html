@@ -5916,16 +5916,19 @@ function cc79Cobra(){
  else {alert('No se pudo abrir Cobra Ya. Vuelve a intentar.');cc77Home();}
 }
 function cc79StreamBenefits(){
- // V173 · Abrir el plan REAL de STREAM BULL’S dentro del único panel.
- // Nunca mostrar afiliaciones ficticias ni solicitar recargas de prueba.
+ // La suscripción y el precio reseller se verifican exclusivamente en el panel real.
+ // Cerrar cualquier diálogo de alquiler que pueda cubrir el panel de membresías.
  if(!window.CC_V53_SESSION?.jwt){cc77Auth(false);return;}
+ if(typeof window.ma1611MiAlquiler?.close==='function')window.ma1611MiAlquiler.close();
  if(typeof window.cc166OpenStreamMembership==='function'){
-  window.cc166OpenStreamMembership();return;
+  window.cc166OpenStreamMembership();
+  return;
  }
  if(typeof window.cc166OpenPanel==='function'){
-  window.cc166OpenPanel();return;
+  window.cc166OpenPanel();
+  return;
  }
- alert('El panel de membresías está cargando. Actualiza la página y vuelve a intentar.');
+ alert('No se pudo abrir la membresía. Recarga la página e inténtalo nuevamente.');
 }
 </script>
 
@@ -6098,7 +6101,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <!-- V163.5: UI recuperada sobre main actual, sin modificar sistema financiero ni Auth -->
 <link rel="stylesheet" href="styles/v161-1-mi-alquiler.css?v=1636">
 <link rel="stylesheet" href="styles/v164-portal-4-negocios.css?v=216">
-<script src="scripts/v161-1-mi-alquiler.js?v=2273" defer></script>
+<script src="scripts/v161-1-mi-alquiler.js?v=2274" defer></script>
 <link rel="stylesheet" href="styles/v161-2-mi-alquiler.css?v=202">
 <script src="scripts/v161-2-mi-alquiler.js?v=2269" defer></script>
 <link rel="stylesheet" href="styles/v161-3-mi-alquiler.css?v=2267">
