@@ -132,3 +132,9 @@ html body.view-store #app .cc117-header #cc169-back-home{display:inline-flex!imp
 
 /* V235: navegación legible en móviles sin ocultar etiquetas de acciones. */
 @media(max-width:480px){html body.view-store #app .cc117-header .cc117-actions-top .cc117-link span{display:inline!important}html body.view-store #app .cc117-header .cc117-actions-top .cc117-link{font-size:12px!important;gap:6px!important}html body.view-store #app .cc117-header .cc117-actions-top{gap:7px!important}html body.view-store #app .cc117-header .cc117-actions-top>button:not(#cc169-back-home){min-width:0!important;white-space:normal!important}}
+
+/* V236: catalogo publico sin acciones administrativas superpuestas. */
+html body.view-store #app .cc117-header .cc117-actions-top .cc169-admin-shortcut:not(#cc169-whatsapp-admin){display:none!important;visibility:hidden!important;pointer-events:none!important}
+html body.view-store #app .cc117-header .cc117-actions-top #cc169-back-home{display:inline-flex!important;visibility:visible!important}
+html body.view-store #cc169-whatsapp-admin{position:fixed!important;right:16px!important;bottom:calc(20px + env(safe-area-inset-bottom,0px))!important;left:auto!important;top:auto!important;display:flex!important;z-index:1100!important}
+html body.view-store #cc177-return-panel,html body.view-store #cc166-open-button{display:none!important;visibility:hidden!important;pointer-events:none!important}
