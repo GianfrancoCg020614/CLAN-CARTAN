@@ -123,6 +123,21 @@
       else window.cc77Home?.();
     });
   }
+  // Ordenar acciones existentes sin sustituir sus eventos ni permisos.
+  function tidyMobileHeader(){
+    if(!document.body.classList.contains('view-store'))return;
+    const header=document.querySelector('#app #productos .cc117-header, #app .cc117-header');
+    if(!header)return;
+    const nav=header.querySelector('.cc117-actions-top');
+    if(!nav)return;
+    for(const node of document.querySelectorAll('button,a')){
+      if(!node.isConnected||node.closest('.cc169-catalog-controls'))continue;
+      const label=(node.textContent||'').trim().replace(/^[^\\p{L}]+/u,'').trim();
+      if(!/^(Abrir COBRA YA|SOLICITUDES RESELLER)$/i.test(label))continue;
+      if(!nav.contains(node))nav.appendChild(node);
+      node.classList.add('cc169-admin-shortcut');
+    }
+  }
   function render(){
     // Nunca conservar tarifas de distribuidor en pantalla después de cerrar sesión.
     if(activeJwt!==jwtNow()){
@@ -130,6 +145,7 @@
       void refresh();
     }
     unifyProfileLink();
+    tidyMobileHeader();
     const section=document.querySelector('#productos .v23-catalog-section');
     if(!section)return;
     const oldBanner=el('cc77demobanner');
