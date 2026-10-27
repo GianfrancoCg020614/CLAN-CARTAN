@@ -144,7 +144,14 @@
       link.setAttribute('aria-label','Contactar al administrador de STREAMBULLS por WhatsApp');
     }
     link.href=officialWhatsApp;
+    link.title='Contactar por WhatsApp';
     if(link.parentElement!==actions)actions.append(link);
+    // Evitar accesos flotantes de WhatsApp duplicados en la vista de tienda.
+    for(const other of document.querySelectorAll('a[href*="wa.me/51923319637"]')){
+      if(other===link||other.closest('.cc169-offer'))continue;
+      if(other.matches('.cc169-whatsapp-admin')||other.id==='cc169-whatsapp-admin')continue;
+      if(other.classList.contains('floating-whatsapp')||other.classList.contains('whatsapp-float'))other.hidden=true;
+    }
   }
   function tidyMobileHeader(){
     if(!document.body.classList.contains('view-store'))return;
