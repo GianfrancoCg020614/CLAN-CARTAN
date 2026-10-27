@@ -16,7 +16,7 @@ const ucode=u=>u?.code||((u?.kind==='LOCAL'?'L-':'H-')+String(u?.serial||0).padS
 const tenancy=id=>tenants.find(t=>t.id===id)||{};
 const unit=id=>units.find(u=>Number(u.id)===Number(id))||{};
 const prop=id=>properties.find(p=>Number(p.id)===Number(id))||{};
-const currentLease=id=>leases.find(l=>l.unit_id===id&&l.state==='ACTIVE');
+const currentLease=id=>leases.find(l=>Number(l.unit_id)===Number(id)&&l.state==='ACTIVE');
 function note(msg,error){const el=$('ma1612notice');if(el){el.textContent=String(msg);el.classList.toggle('error',!!error);}else if(error)console.warn('MI ALQUILER: '+msg);}
 function section(title,summary,content){return '<div class="ma1612-top"><div><small>MI ALQUILER · V161.2</small><h3>'+title+'</h3><p>'+summary+'</p></div><button type="button" data-ma-action="reload">↻ Actualizar</button></div><p id="ma1612notice" role="status"></p>'+content;}
 async function refresh(){
@@ -50,7 +50,7 @@ function renderProperties(){
  const occupied=units.filter(u=>currentLease(u.id)).length;
  const stats='<div class="ma1612-stats"><div><b>'+properties.length+'</b> Inmuebles</div><div><b>'+units.length+'</b> Habitaciones y locales</div><div><b>'+occupied+'</b> Ocupados</div><div><b>'+Math.max(0,units.length-occupied)+'</b> Registrados no ocupados</div></div>';
  const blocks=properties.map(p=>{
-  const within=units.filter(u=>u.property_id===p.id);
+  const within=units.filter(u=>Number(u.property_id)===Number(p.id));
   return '<article class="ma1612-box"><header><div><h4>'+esc(p.name)+'</h4><small>'+esc(p.address||'Sin dirección')+'</small></div>'+actionButton('new-unit','＋ Cuarto/local','data-property="'+p.id+'"')+'</header>'+
   (within.length?'<div class="ma1612-list">'+within.map(u=>{
    const l=currentLease(u.id),t=l?tenancy(l.tenant_id):{};
@@ -82,9 +82,9 @@ function enhance(which,target){
  if(!session()?.jwt){target.innerHTML=section('Sesión requerida','Inicia sesión en CLAN CARTAN para continuar.','');return;}
  if(loading){target.innerHTML='<p>Cargando datos protegidos de MI ALQUILER…</p>';return;}
  if(!account){target.innerHTML='<p>Preparando acceso…</p>';return;}
+ if(!account.active){target.innerHTML=locked();return;}
  if(typeof window.ma1613Enhance==='function' && window.ma1613Enhance(area,target,{account,leases,units,tenants,properties,sessionId:uid})) return;
  if(typeof window.ma1614Enhance==='function' && window.ma1614Enhance(area,target,{account,leases,units,tenants,properties,sessionId:uid})) return;
- if(!account.active){target.innerHTML=locked();return;}
  target.innerHTML=area==='inmuebles'?renderProperties():area==='inquilinos'?renderTenants():area==='contratos'?renderLeases():pending(area);
 }
 function rerender(){enhance(area,$('ma1611content'));}
