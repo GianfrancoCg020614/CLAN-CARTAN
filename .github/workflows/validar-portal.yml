@@ -26,6 +26,10 @@ jobs:
         run: node scripts/check-v130.mjs
       - name: Comprobar MI ALQUILER V226.4 sin datos reales
         run: node scripts/check-v2264-mi-alquiler.mjs
+      - name: Confirmar integridad del cronograma COBRAYA V226.5
+        run: |
+          node scripts/check-v138-cobra-ui.mjs
+          node --check scripts/v161-2-mi-alquiler.js
       - name: Validar tarjetas COBRA YA V138 y confirmación de pagos
         run: node scripts/check-v138-cobra-ui.mjs
       - name: Verificar ampliaciones y mensajes WhatsApp V140
