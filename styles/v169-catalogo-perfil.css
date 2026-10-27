@@ -113,3 +113,8 @@ html body.view-store #app #productos .cc169-verified-grid{display:grid!important
 #app #productos .cc169-example-disabled{opacity:.65!important;cursor:not-allowed!important;width:100%}
 body.view-store #cc177-return-panel{display:none!important}
 body.view-store #cc166-open-button{display:none!important}
+
+/* Catalogo: acciones en la cabecera, sin controles flotantes duplicados. */
+html body.view-store #cc177-return-panel,html body.view-store #cc166-open-button{display:none!important;pointer-events:none!important}
+html body.view-store #app .cc117-header .cc117-actions-top{position:static!important;transform:none!important;inset:auto!important;float:none!important}
+html body.view-store #app .cc117-header .cc117-actions-top>a,html body.view-store #app .cc117-header .cc117-actions-top>button{position:static!important;transform:none!important;inset:auto!important;float:none!important}
