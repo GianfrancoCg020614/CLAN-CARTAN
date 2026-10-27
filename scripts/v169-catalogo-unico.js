@@ -148,16 +148,12 @@
   }
   function tidyMobileHeader(){
     if(!document.body.classList.contains('view-store'))return;
-    const header=document.querySelector('#app #productos .cc117-header, #app .cc117-header');
-    if(!header)return;
-    const nav=header.querySelector('.cc117-actions-top');
-    if(!nav)return;
-    for(const node of document.querySelectorAll('button,a')){
-      if(!node.isConnected||node.closest('.cc169-catalog-controls'))continue;
-      const label=(node.textContent||'').trim().replace(/^[^A-Za-zÁÉÍÓÚÑáéíóúñ]+/,'').trim();
-      if(!/^(Abrir COBRA YA|SOLICITUDES RESELLER)$/i.test(label))continue;
-      if(!nav.contains(node))nav.appendChild(node);
-      node.classList.add('cc169-admin-shortcut');
+    // Las acciones administrativas conservan sus eventos y permisos en el panel.
+    // No trasladarlas a la cabecera del catálogo público.
+    for(const node of document.querySelectorAll('.cc117-actions-top .cc169-admin-shortcut')){
+      if(node.id==='cc169-whatsapp-admin')continue;
+      const label=(node.textContent||'').trim();
+      if(/Abrir COBRA YA|SOLICITUDES RESELLER/i.test(label))node.hidden=true;
     }
   }
   function render(){
