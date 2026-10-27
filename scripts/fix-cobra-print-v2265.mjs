@@ -12,3 +12,5 @@ const updated=html.replace(bad,good);
 if(updated.length!==html.length+good.length-bad.length)throw Error('Cambio inesperado');
 writeFileSync(path,updated);
 console.log('Cronograma de COBRAYA reparado; cambio único verificado');
+
+// Ejecutar reparación mediante CI después de registrar el workflow.
