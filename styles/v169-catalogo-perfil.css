@@ -104,3 +104,12 @@ html body.view-store #app #productos .cc169-verified-grid{display:grid!important
  html body.view-store #app .cc117-header .cc117-category-strip{z-index:2!important}
  html body.view-store #app #productos .cc169-result .cc169-status{font:500 14px/1.6 system-ui,sans-serif}
 }
+
+/* V232 · Fichas de ejemplo claramente separadas de la venta real. */
+#app #productos .cc169-product-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0;padding:10px;border:1px solid #315568;border-radius:10px}
+#app #productos .cc169-product-fact dt{font-size:10px;color:#a8c7d4}
+#app #productos .cc169-product-fact dd{margin:3px 0 0;font-weight:700;font-size:12px;overflow-wrap:anywhere}
+#app #productos .cc169-example{border:1px dashed #b49c55!important}
+#app #productos .cc169-example-disabled{opacity:.65!important;cursor:not-allowed!important;width:100%}
+body.view-store #cc177-return-panel{display:none!important}
+body.view-store #cc166-open-button{display:none!important}
