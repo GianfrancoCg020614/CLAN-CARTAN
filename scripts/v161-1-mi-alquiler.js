@@ -29,7 +29,11 @@
       '<h2>MI ALQUILER</h2><p>Habitaciones y locales · alquiler diario y mensual</p>' +
       '<span class="ma1611-chip">Gestión de habitaciones y locales</span></div>' +
       '<button id="ma1611open" type="button">Ingresar a MI ALQUILER</button>';
-    card.querySelector('button').addEventListener('click', event => {\n      event.preventDefault();\n      event.stopPropagation();\n      open();\n    });
+    card.querySelector('button').addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      open();
+    });
     return card;
   }
   function mount() {
