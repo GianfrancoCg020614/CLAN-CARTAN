@@ -118,3 +118,10 @@ body.view-store #cc166-open-button{display:none!important}
 html body.view-store #cc177-return-panel,html body.view-store #cc166-open-button{display:none!important;pointer-events:none!important}
 html body.view-store #app .cc117-header .cc117-actions-top{position:static!important;transform:none!important;inset:auto!important;float:none!important}
 html body.view-store #app .cc117-header .cc117-actions-top>a,html body.view-store #app .cc117-header .cc117-actions-top>button{position:static!important;transform:none!important;inset:auto!important;float:none!important}
+
+/* V233: mobile public catalog navigation and WhatsApp icon. */
+body.view-store .cc117-actions-top .cc169-admin-shortcut:not(#cc169-whatsapp-admin){display:none!important}
+body.view-store #cc169-whatsapp-admin{position:fixed!important;right:16px!important;bottom:90px!important;left:auto!important;top:auto!important;width:58px!important;height:58px!important;min-height:58px!important;min-width:58px!important;padding:0!important;border-radius:50%!important;background:#13c66b!important;border:2px solid #b1ffdb!important;box-shadow:0 6px 22px #0007!important;z-index:1000!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:0!important;overflow:hidden!important}
+body.view-store #cc169-whatsapp-admin::before{content:'☎';font-size:29px!important;color:#fff!important;line-height:1!important}
+body.view-store #cc169-whatsapp-admin[hidden]{display:none!important}
+@media(min-width:761px){body.view-store #cc169-whatsapp-admin{bottom:24px!important}}
