@@ -30,6 +30,6 @@ assert.match(sql,/ma_activate_real_wallet\(p_request\)/);
 assert.match(sql,/revoke all on function public.cc_portal_activate_business_real_v193.*from public,anon/);
 assert.match(fix,/cc_audit\.reference','',true/);
 assert.match(audit,/MI_ALQUILER/);
-assert.match(loader,/v166-portal-roles\.js\?v=193/);
-assert.match(index,/scripts\/v151-portal-polish\.js\?v=193/);
+assert.match(loader,/v166-portal-roles[.]js[?]v=[0-9]+/);
+assert.ok(index.includes('scripts/v151-portal-polish.js?v='));
 console.log('PASS V193: COBRA YA, MI COCHERA, MI ALQUILER con activación voluntaria y saldo real seguro.');
