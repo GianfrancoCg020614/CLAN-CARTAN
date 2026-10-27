@@ -29,7 +29,7 @@
       '<h2>MI ALQUILER</h2><p>Habitaciones y locales · alquiler diario y mensual</p>' +
       '<span class="ma1611-chip">Gestión de habitaciones y locales</span></div>' +
       '<button id="ma1611open" type="button">Ingresar a MI ALQUILER</button>';
-    card.querySelector('button').addEventListener('click', open);
+    card.querySelector('button').addEventListener('click', event => {\n      event.preventDefault();\n      event.stopPropagation();\n      open();\n    });
     return card;
   }
   function mount() {
@@ -113,6 +113,10 @@
       let layer = $('ma1611layer');
       if (!layer) { layer = layout(); document.body.append(layer); }
       layer.hidden = false;
+      layer.style.setProperty('display', 'block', 'important');
+      layer.style.setProperty('visibility', 'visible', 'important');
+      layer.style.setProperty('z-index', '2147483000', 'important');
+      layer.scrollTop = 0;
       accessNotice('');
       renderArea('inmuebles');
       if (typeof window.ma1612OnOpen === 'function') {
@@ -132,7 +136,7 @@
     }
   }
   function close() {
-    const layer = $('ma1611layer'); if (layer) layer.hidden = true;
+    const layer = $('ma1611layer'); if (layer) { layer.hidden = true; layer.style.removeProperty('display'); layer.style.removeProperty('visibility'); }
     const dialog = $('ma1612dialog'); if (dialog) dialog.remove();
     if ($('ma1611card')) $('ma1611open').focus();
   }
