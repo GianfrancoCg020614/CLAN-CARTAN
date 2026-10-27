@@ -65,3 +65,16 @@
 #cc166-panel #cc166-publish-form input[name=distributor]:focus-visible{
  outline:2px solid #50d9d5;outline-offset:2px;
 }
+
+/* V227 · Catálogo real: cabecera y navegación compactas en móviles. */
+@media(max-width:700px){
+ #app #productos{max-width:100%;min-width:0;overflow-x:clip}
+ #app #productos .cc117-header{position:relative;max-width:100%;padding:12px;box-sizing:border-box}
+ #app #productos .cc117-actions-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start;position:static!important;transform:none!important;max-width:100%}
+ #app #productos .cc117-actions-top>a,#app #productos .cc117-actions-top>button{position:static!important;transform:none!important;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+ #app #productos .v23-catalog-section{max-width:100%;min-width:0;box-sizing:border-box}
+ #app #productos .cc169-result{width:100%;box-sizing:border-box}
+ #app #productos .cc169-status{border-radius:14px;padding:20px 16px;line-height:1.6}
+ #app #productos .cc169-catalog-controls{align-items:stretch}
+ #app #productos .cc169-refresh{min-height:44px}
+}
