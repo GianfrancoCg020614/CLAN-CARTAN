@@ -1,20 +1,22 @@
-// Corrige exclusivamente el HTML imprimible que interrumpe el script de COBRAYA.
-// No modifica saldos, contratos, datos de clientes ni endpoints.
+// Repara únicamente el cierre del documento imprimible COBRAYA.
+// Conserva contratos, pagos, historial y demás lógica.
 import {readFileSync,writeFileSync} from 'node:fs';
 const path='index.html';
 const html=readFileSync(path,'utf8');
-const bad=`+node.innerHTML+'<script src="scripts/v207-session-inactivity.js?v=207" defer></script>`;
-const good=`+node.innerHTML+'</body></html>`;
-const matches=html.split(bad).length-1;
-if(matches===0 && html.includes(good)){console.log('Corrección ya aplicada');process.exit(0)}
-if(matches!==1)throw Error('Se esperaba exactamente una ocurrencia; encontradas: '+matches);
-const updated=html.replace(bad,good);
-if(updated.length!==html.length+good.length-bad.length)throw Error('Cambio inesperado');
+const start=`+node.innerHTML+'<script src="scripts/v207-session-inactivity.js?v=207" defer></script>`;
+const end="');w.document.close();";
+const replacement=`+node.innerHTML+'</body></html>');w.document.close();`;
+const at=html.indexOf(start);
+if(at<0){
+ if(html.includes(replacement)){console.log('Corrección ya aplicada');process.exit(0)}
+ throw Error('No se encontró el segmento original; no se modifica el archivo');
+}
+if(html.indexOf(start,at+1)>=0)throw Error('Segmento duplicado; abortado');
+const endAt=html.indexOf(end,at+start.length);
+if(endAt<0 || endAt-at>300)throw Error('Cierre esperado ausente o demasiado distante; abortado');
+const segment=html.slice(at,endAt+end.length);
+if(!segment.includes('</body></html>'))throw Error('El segmento no contiene cierre HTML; abortado');
+const updated=html.slice(0,at)+replacement+html.slice(endAt+end.length);
+if(!updated.includes("node.innerHTML+'</body></html>'"))throw Error('No quedó cierre de impresión');
 writeFileSync(path,updated);
-const scriptStart=updated.indexOf('<script>',updated.indexOf('id="cy63detail"'));
-const scriptEnd=updated.indexOf('</script>',scriptStart);
-const extracted=updated.slice(scriptStart+8,scriptEnd);
-console.log('Diagnóstico impresión',JSON.stringify({scriptStart,scriptEnd,goodAt:updated.indexOf(good),insideScript:extracted.includes("node.innerHTML+'</body></html>'")}));
-console.log('Cronograma de COBRAYA reparado; cambio único verificado');
-
-// Ejecutar reparación mediante CI después de registrar el workflow.
+console.log('Segmento de impresión COBRAYA reparado y delimitado, caracteres retirados:',segment.length-replacement.length);
