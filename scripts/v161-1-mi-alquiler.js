@@ -87,35 +87,63 @@
     if (typeof window.ma1612Enhance === 'function') window.ma1612Enhance(area.id, target);
   }
   let opening = false;
+  function accessNotice(message) {
+    const button = $('ma1611open');
+    if (!button) return;
+    let notice = $('ma1611-access-notice');
+    if (!notice) {
+      notice = document.createElement('p');
+      notice.id = 'ma1611-access-notice';
+      notice.setAttribute('role', 'alert');
+      notice.style.cssText = 'flex-basis:100%;margin:0;color:#ffe1a1;font-size:13px;overflow-wrap:anywhere';
+      button.insertAdjacentElement('afterend', notice);
+    }
+    notice.textContent = message;
+  }
   async function open() {
-    if (!session()?.jwt) {
+    if (opening) return;
+    const current = session();
+    if (!current?.jwt || !current?.userId) {
+      accessNotice('Debes iniciar sesión con tu cuenta ADMIN o con una membresía vigente antes de ingresar.');
       if (typeof window.cc77Auth === 'function') window.cc77Auth(false);
       return;
     }
-    if (opening) return;
     opening = true;
-    const originalUser = session()?.userId;
+    const button = $('ma1611open');
+    const originalUser = current.userId;
+    if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
+    accessNotice('Verificando tu acceso a MI ALQUILER…');
+    let timeout;
     try {
-      // El servidor, no el botón, decide si ADMIN o la membresía vigente permite gestionar.
-      const authorized = await window.cc80.api('rpc/ma_can_use', 'POST', {});
-      if (!session()?.jwt || session()?.userId !== originalUser) return;
-      if (authorized !== true) {
-        window.alert('MI ALQUILER requiere una membresía vigente. Entra a Panel de control → Negocios → MI ALQUILER para activarla con tu billetera CLAN CARTAN.');
+      if (typeof window.cc80?.api !== 'function') throw Error('Servicio de acceso no disponible');
+      const authorized = await Promise.race([
+        window.cc80.api('rpc/ma_can_use', 'POST', {}),
+        new Promise((_, reject) => { timeout = setTimeout(() => reject(Error('Tiempo de espera agotado')), 12000); })
+      ]);
+      if (!session()?.jwt || session()?.userId !== originalUser) {
+        accessNotice('Tu sesión cambió. Inicia sesión nuevamente.');
         return;
       }
-    } catch (_) {
-      window.alert('No se pudo verificar tu membresía de MI ALQUILER. Inténtalo nuevamente.');
-      return;
+      if (authorized !== true) {
+        accessNotice('Tu cuenta no tiene acceso autorizado a MI ALQUILER. ADMIN: revisa tu sesión; RESELLER: revisa tu membresía vigente.');
+        return;
+      }
+      mountStyles();
+      let layer = $('ma1611layer');
+      if (!layer) { layer = layout(); document.body.append(layer); }
+      layer.hidden = false;
+      accessNotice('');
+      renderArea('inmuebles');
+      if (typeof window.ma1612OnOpen === 'function') window.ma1612OnOpen();
+      layer.querySelector('#ma1611close').focus();
+    } catch (error) {
+      console.warn('MI ALQUILER: no se pudo abrir el módulo', error);
+      accessNotice('No se pudo verificar el acceso a MI ALQUILER. Comprueba tu conexión, vuelve a iniciar sesión e inténtalo otra vez.');
     } finally {
+      clearTimeout(timeout);
       opening = false;
+      if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
     }
-    mountStyles();
-    let layer = $('ma1611layer');
-    if (!layer) { layer = layout(); document.body.append(layer); }
-    layer.hidden = false;
-    renderArea('inmuebles');
-    if (typeof window.ma1612OnOpen === 'function') window.ma1612OnOpen();
-    layer.querySelector('#ma1611close').focus();
   }
   function close() {
     const layer = $('ma1611layer'); if (layer) layer.hidden = true;
