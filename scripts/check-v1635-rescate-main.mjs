@@ -10,7 +10,7 @@ for(const needed of [
  'Cuatro negocios, una sola cuenta',
  'Una cuenta para cuatro negocios',
  'STREAM BULL', 'COBRA YA', 'MI COCHERA', 'MI ALQUILER',
- 'scripts/v161-1-mi-alquiler.js?v=1636',
+ 'scripts/v161-1-mi-alquiler.js?v=',
  'scripts/v1635-rescate-ui.js',
  'styles/v164-portal-4-negocios.css',
  'scripts/v172-clan-referrals.js?v=172',
@@ -23,6 +23,7 @@ for(const needed of [
 // Su acceso y los RPC esenciales se verifican en la prueba V226.4.
 assert.ok(html.includes('scripts/v161-2-mi-alquiler.js?'), 'Módulo de alquiler debe estar cargado');
 assert.ok(html.includes('scripts/v161-4-mi-alquiler.js?'), 'Módulo de alquiler debe estar cargado');
+assert.ok(html.includes('scripts/v161-3-mi-alquiler.js?'), 'Módulo de cobros y membresías debe estar cargado');
 assert.ok(!html.includes('Tres plataformas, una sola cuenta.'),'Texto anterior sin actualizar');
 assert.ok(!html.includes('transfiere de una billetera a otra fácilmente'),'No anunciar billetera antigua como unica');
 assert.ok(alquiler.includes("third.insertAdjacentElement('afterend', card)"));
