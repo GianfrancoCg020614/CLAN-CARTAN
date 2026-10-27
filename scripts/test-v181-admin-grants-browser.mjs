@@ -44,7 +44,7 @@ const probe=[
  'setTimeout(()=>{try{',
  'const accountSelected=$("#cc166-content .cc181-assist-fields select")?.value==="22222222-2222-4222-8222-222222222222";',
  'const noNameQuestion=!$("#cc166-content .cc181-assist-fields input[name=full_name]")&&!$("#cc166-content .cc181-assist-fields input[name=payer_name]");',
- 'const bankerDisabled=$("#cc166-content")?.textContent.includes("NO está habilitada actualmente");',
+ 'const bankerDisabled=$("#cc166-content")?.textContent.includes("Aprobación manual no disponible en el servidor");',
  'const form=$("#cc166-content .cc181-assist-fields");form?.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));',
  'setTimeout(()=>{try{',
  'const call=window.__calls.find(x=>x.p==="rpc/cc_admin_create_manual_recharge_for_user");',
