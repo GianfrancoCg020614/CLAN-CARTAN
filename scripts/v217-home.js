@@ -38,9 +38,14 @@ function apply(){
     buttons[1].onclick=function(event){
      event.preventDefault();
      event.stopPropagation();
-     if(typeof window.cc79StreamBenefits==='function')window.cc79StreamBenefits();
-     else if(!window.CC_V53_SESSION?.jwt)window.cc77Auth?.(false);
-     else if(typeof window.cc166OpenStreamMembership==='function')window.cc166OpenStreamMembership();
+     // Priorizar el panel de membresía real; no abrir el modal informativo.
+     if(typeof window.cc166OpenStreamMembership==='function'){
+      window.cc166OpenStreamMembership();
+     }else if(!window.CC_V53_SESSION?.jwt){
+      window.cc77Auth?.(false);
+     }else{
+      window.cc79StreamBenefits?.();
+     }
     };
    }
   }else{
