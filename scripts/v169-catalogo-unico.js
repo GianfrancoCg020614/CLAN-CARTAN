@@ -155,12 +155,13 @@
   }
   function tidyMobileHeader(){
     if(!document.body.classList.contains('view-store'))return;
-    // Las acciones administrativas conservan sus eventos y permisos en el panel.
-    // No trasladarlas a la cabecera del catálogo público.
-    for(const node of document.querySelectorAll('.cc117-actions-top .cc169-admin-shortcut')){
-      if(node.id==='cc169-whatsapp-admin')continue;
-      const label=(node.textContent||'').trim();
-      if(/Abrir COBRA YA|SOLICITUDES RESELLER/i.test(label))node.hidden=true;
+    // El catálogo es público: los accesos administrativos no pertenecen a esta vista.
+    for(const node of document.querySelectorAll('button,a')){
+      if(!node.isConnected||node.id==='cc169-whatsapp-admin')continue;
+      const label=(node.textContent||'').trim().replace(/^[^A-Za-zÁÉÍÓÚÑáéíóúñ]+/,'').trim();
+      if(/^(Abrir COBRA YA|SOLICITUDES RESELLER)$/i.test(label)){
+        node.hidden=true;node.style.setProperty('display','none','important');
+      }
     }
   }
   function render(){
