@@ -129,3 +129,6 @@ body.view-store #cc169-whatsapp-admin[hidden]{display:none!important}
 /* V234 · Regreso compacto integrado en la cabecera del catálogo. */
 html body.view-store #app .cc117-header #cc169-back-home{display:inline-flex!important;position:static!important;inset:auto!important;transform:none!important;align-items:center!important;justify-content:center!important;padding:9px 12px!important;min-height:40px!important;border:1px solid #42677a!important;border-radius:10px!important;background:#132c3c!important;color:#e5f5f9!important;font:700 12px/1.3 system-ui,sans-serif!important;box-shadow:none!important;white-space:normal!important}
 @media(max-width:760px){html body.view-store #app .cc117-header #cc169-back-home{flex:1 1 145px!important}}
+
+/* V235: navegación legible en móviles sin ocultar etiquetas de acciones. */
+@media(max-width:480px){html body.view-store #app .cc117-header .cc117-actions-top .cc117-link span{display:inline!important}html body.view-store #app .cc117-header .cc117-actions-top .cc117-link{font-size:12px!important;gap:6px!important}html body.view-store #app .cc117-header .cc117-actions-top{gap:7px!important}html body.view-store #app .cc117-header .cc117-actions-top>button:not(#cc169-back-home){min-width:0!important;white-space:normal!important}}
