@@ -1,0 +1,170 @@
+/* V224 — Modo día premium. No altera el modo nocturno ni la lógica de negocio.
+   Se activa exclusivamente con el selector existente html[data-cc-theme="light"]. */
+html[data-cc-theme="light"]{color-scheme:light}
+html[data-cc-theme="light"] #cc77home{
+  color:#142c40!important;
+  background-color:#f2f9fc!important;
+  background-image:
+    radial-gradient(ellipse 54% 35% at 50% 0%,rgba(251,213,136,.36) 0%,transparent 95%),
+    radial-gradient(ellipse 75% 55% at 0% 60%,rgba(85,191,209,.13),transparent 100%),
+    radial-gradient(ellipse 65% 42% at 100% 85%,rgba(242,197,104,.13),transparent 100%),
+    linear-gradient(165deg,#fcfdff 0%,#e7f3f9 55%,#fdf9f1 100%)!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77top{
+  border-bottom:1px solid #a9c9d5!important;
+  background:linear-gradient(90deg,rgba(255,255,255,.75),rgba(237,247,250,.6))!important;
+  padding:17px 12px 14px!important;
+  border-radius:0 0 16px 16px!important;
+  box-shadow:0 8px 28px rgba(36,95,128,.07)!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77brand{
+  color:#17344c!important;text-shadow:none!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77brand small{
+  color:#4a7185!important;text-shadow:none!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77top .cc77actions button{
+  background:linear-gradient(180deg,#fff,#f0f7fa)!important;
+  color:#173e52!important;
+  border:1px solid #abc8d4!important;
+  box-shadow:0 3px 10px #4f87a018!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77top .cc77actions button.primary{
+  background:linear-gradient(105deg,#0b8598,#0476a0)!important;
+  border:1px solid #126b87!important;color:#fff!important;
+  box-shadow:0 5px 15px #138da524!important;
+}
+html[data-cc-theme="light"] #cc77home #cc164-theme-toggle{
+  border:1px solid #d1aa5c!important;
+  background:linear-gradient(115deg,#fffae8,#ffe9ac)!important;
+  color:#67440b!important;box-shadow:0 5px 16px #f4c97840!important;
+}
+/* Paisaje diurno creado exclusivamente con CSS: cielo, sol de amanecer y montañas. */
+html[data-cc-theme="light"] #cc77home .cc77intro{
+  position:relative!important;isolation:isolate!important;
+  border:1px solid #bed7db!important;
+  border-radius:22px!important;
+  background-color:#d5eef3!important;
+  background-image:
+    radial-gradient(circle 88px at 79% 26%,rgba(255,253,232,.99) 0%,rgba(255,245,198,.92) 38%,rgba(255,224,151,.35) 65%,transparent 100%),
+    radial-gradient(ellipse 65% 75% at 80% 45%,rgba(255,238,196,.65),transparent 100%),
+    linear-gradient(180deg,#9bdae9 0%,#d6f0f5 55%,#fdf9e7 100%)!important;
+  box-shadow:inset 0 1px 0 #ffffffcc,0 16px 40px #376e8a24!important;
+  overflow:hidden!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77intro::before{
+  content:''!important;display:block!important;
+  position:absolute!important;inset:auto 0 0!important;
+  height:72%!important;z-index:-1!important;
+  background:linear-gradient(180deg,rgba(168,203,208,.42),rgba(102,158,173,.42))!important;
+  clip-path:polygon(0 79%,10% 55%,18% 71%,31% 19%,42% 64%,53% 41%,63% 70%,75% 27%,84% 65%,92% 47%,100% 73%,100% 100%,0 100%)!important;
+  opacity:.75!important;pointer-events:none!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77intro::after{
+  content:''!important;position:absolute!important;left:0!important;right:0!important;bottom:0!important;
+  height:30%!important;z-index:-1!important;
+  background:linear-gradient(180deg,rgba(178,218,223,.57),rgba(223,239,234,.77))!important;
+  clip-path:polygon(0 72%,13% 27%,24% 69%,38% 36%,50% 76%,64% 23%,76% 66%,90% 31%,100% 67%,100% 100%,0 100%)!important;
+  pointer-events:none!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77intro h1{
+  display:block!important;position:relative!important;
+  width:auto!important;height:auto!important;max-width:100%!important;
+  overflow:visible!important;clip-path:none!important;white-space:normal!important;
+  margin:0 0 13px!important;padding:0!important;
+  font:1000 clamp(39px,6.5vw,90px)/1 system-ui,-apple-system,sans-serif!important;
+  letter-spacing:-.064em!important;
+  background:linear-gradient(180deg,#172f48 0%,#2f6685 47%,#0e273c 82%,#956d36 100%)!important;
+  background-clip:text!important;-webkit-background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;color:transparent!important;
+  filter:drop-shadow(0 2px 0 #ffffffbb) drop-shadow(0 8px 13px #315a7040)!important;
+  text-shadow:none!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77intro p{
+  display:block!important;position:relative!important;
+  width:auto!important;height:auto!important;max-width:760px!important;
+  overflow:visible!important;clip-path:none!important;white-space:normal!important;
+  margin:0!important;padding:0!important;
+  font:800 clamp(12px,1.15vw,16px)/1.55 system-ui,sans-serif!important;
+  letter-spacing:.12em!important;text-transform:uppercase!important;
+  color:#174d62!important;text-shadow:0 2px 3px #ffffffc4!important;
+}
+/* Las mismas cuatro marcas, pero tarjetas claras con ribete dorado. */
+html[data-cc-theme="light"] #cc77home .cc77cards>article.cc77card,
+html[data-cc-theme="light"] #cc77home .cc77cards>article.ma1611-card{
+  background:linear-gradient(155deg,#fffefd 0%,#f5fafc 65%,#eff8fb 100%)!important;
+  color:#1a4055!important;
+  border:2px solid #c89d49!important;
+  box-shadow:inset 0 0 0 1px #ffefbb,0 12px 28px #57768d20,0 3px 10px #e5bc5a20!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77cards>article.cc77card:hover,
+html[data-cc-theme="light"] #cc77home .cc77cards>article.ma1611-card:hover{
+  box-shadow:inset 0 0 0 1px #fff4c7,0 18px 35px #52788e2d,0 0 20px #e9b44f2e!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77cards .cc78service-logo,
+html[data-cc-theme="light"] #cc77home .cc77cards .cc158-cochera-mark,
+html[data-cc-theme="light"] #cc77home .cc77cards .ma1611-card-icon{
+  background-color:#0a1725!important;
+  border:1px solid #d6af60!important;border-radius:17px!important;
+  box-shadow:0 7px 18px rgba(3,23,41,.18)!important;
+  background-size:contain!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77cards>article.cc77card h2,
+html[data-cc-theme="light"] #cc77home .cc77cards>article.ma1611-card h2{
+  color:#173348!important;text-shadow:none!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77cards>article.cc77card .cc77tag,
+html[data-cc-theme="light"] #cc77home .cc77cards>article.ma1611-card .ma1611-card-copy small{
+  color:#906016!important;text-shadow:none!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77cards>article.cc77card p,
+html[data-cc-theme="light"] #cc77home .cc77cards>article.ma1611-card p{
+  color:#35566a!important;text-shadow:none!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77cards>article.cc77card .cc77actions button,
+html[data-cc-theme="light"] #cc77home .cc77cards>article.ma1611-card button{
+  background:linear-gradient(110deg,#0d8291,#0579a6)!important;
+  border:1px solid #0d6988!important;
+  color:#fff!important;box-shadow:0 6px 16px #0d84962b!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77cards>article.cc77card .cc77actions button:hover,
+html[data-cc-theme="light"] #cc77home .cc77cards>article.ma1611-card button:hover{
+  filter:brightness(1.07)!important;
+}
+html[data-cc-theme="light"] #cc77home .cc77foot,
+html[data-cc-theme="light"] #cc77home .cc77foot a{color:#4c6878!important;opacity:1!important;}
+/* Login en versión día; no modifica credenciales ni controles. */
+html[data-cc-theme="light"] #cc-real-login{
+  background:linear-gradient(165deg,rgba(215,238,246,.985),rgba(251,248,238,.995))!important;
+  color:#1b4057!important;
+}
+html[data-cc-theme="light"] #cc-real-login .cc-authbox{
+  background:linear-gradient(155deg,#ffffff,#f1f8fa)!important;
+  color:#183d51!important;border:1px solid #bfdbdf!important;
+  box-shadow:0 20px 70px #3a657343!important;
+}
+html[data-cc-theme="light"] #cc-real-login .cc-authbox h2{color:#18354c!important}
+html[data-cc-theme="light"] #cc-real-login .cc-authbox p{color:#3b5e70!important}
+html[data-cc-theme="light"] #cc-real-login #cc223-auth-close{
+  background:#e7f2f7!important;border-color:#9ebfcc!important;color:#244e64!important;
+}
+html[data-cc-theme="light"] #cc-real-login #cc-register-toggle{
+  background:transparent!important;color:#0e6b83!important;border-color:#79b6c7!important;
+}
+html[data-cc-theme="light"] #cc-real-login #cc86-forgot{color:#846014!important}
+/* Móvil: título visible y montaña sin cortar contenido. */
+@media(max-width:590px){
+  html[data-cc-theme="light"] #cc77home .cc77intro{
+    height:194px!important;margin:0 -14px 14px!important;
+    padding:15px 12px!important;background-position:center!important;
+    border-radius:0 0 16px 16px!important;
+  }
+  html[data-cc-theme="light"] #cc77home .cc77intro h1{font-size:clamp(30px,8.3vw,39px)!important;line-height:1!important}
+  html[data-cc-theme="light"] #cc77home .cc77intro p{font-size:10px!important;line-height:1.45!important;letter-spacing:.05em!important}
+  html[data-cc-theme="light"] #cc77home .cc77intro::before{height:50%!important}
+  html[data-cc-theme="light"] #cc77home .cc77intro::after{height:22%!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-cc-theme="light"] #cc77home .cc77cards>article.cc77card:hover,
+ html[data-cc-theme="light"] #cc77home .cc77cards>article.ma1611-card:hover{transform:none!important}
+}
