@@ -103,19 +103,20 @@
     return card;
   }
   function exampleCard(){
+    // Vista comercial de referencia, nunca conectada a inventario ni a pagos.
     const card=text('article','product lux v23-product-card cc169-offer cc169-example');
     const cover=text('div','product-visual cc169-offer-cover');
-    cover.append(text('span','cc169-cover-brand','STREAMBULLS'),text('strong','cc169-cover-title','Servicio de demostración'),text('span','cc169-cover-status','EJEMPLO · NO DISPONIBLE'));
+    cover.append(text('span','cc169-cover-brand','STREAMBULLS'),text('strong','cc169-cover-title','Streaming Premium'),text('span','cc169-cover-status','CATÁLOGO STREAMBULLS'));
     const body=text('div','product-body');
-    body.append(text('h3','cc169-offer-title','Publicación de ejemplo'));
-    body.append(text('p','product-preview','Ficha de referencia: los mismos campos que publica un Super Reseller, incluido flyer, descripción, inventario, contacto y dos tarifas.'));
+    body.append(text('h3','cc169-offer-title','Streaming Premium · 30 días'));
+    body.append(text('p','product-preview','Acceso digital por 30 días, gestión de perfiles y atención personalizada.'));
     const details=text('dl','cc169-product-facts');
-    for(const [label,value] of [['Vendedor','Vendedor de ejemplo'],['Stock','5 unidades (simuladas)'],['Servicio','Streaming (ejemplo)'],['Vigencia','30 días (ejemplo)'],['Precio público','S/ 20.00 (simulado)'],['Precio distribuidor','S/ 15.00 (solo reseller activo)'],['Imagen','Flyer del vendedor (ejemplo)'],['Contacto','WhatsApp del vendedor (ejemplo)']]){
+    for(const [label,value] of [['Vendedor','STREAMBULLS'],['Servicio','Streaming'],['Vigencia','30 días'],['Precio público','S/ 20.00'],['Precio distribuidor','S/ 15.00']]){
       const item=text('div','cc169-product-fact');item.append(text('dt','',label),text('dd','',value));details.append(item);
     }
     body.append(details);
     const actions=text('div','product-actions cc117-one-action');
-    const unavailable=text('button','btn cc169-example-disabled','Solo demostración');unavailable.type='button';unavailable.disabled=true;
+    const unavailable=text('button','btn cc169-example-disabled','Consultar disponibilidad');unavailable.type='button';unavailable.disabled=true;
     actions.append(unavailable);card.append(cover,body,actions);return card;
   }
   function unifyProfileLink(){
