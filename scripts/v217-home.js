@@ -70,6 +70,11 @@ function polishStreamCatalog(){
  const scope=search.closest('main')||search.parentElement?.parentElement;
  if(!scope||scope.id==='cc77home')return;
  scope.classList.add('cc217-stream-catalog');
+ // En móviles, los accesos administrativos no deben tapar el catálogo.
+ for(const btn of scope.querySelectorAll('button,a')){
+  const label=(btn.textContent||'').trim();
+  if(/^(abrir cobra ya|solicitudes reseller)$/i.test(label))btn.classList.add('cc217-catalog-admin-action');
+ }
  const fakeNotice=[...scope.querySelectorAll('p,div,span')].find(el=>
   el.children.length===0 && /estas imágenes son SOLO ejemplos|aún no hay publicaciones activas verificadas/i.test(el.textContent||''));
  if(fakeNotice){
@@ -95,6 +100,8 @@ function installCatalogPolish(){
 .cc217-stream-catalog .cc217-empty-catalog{max-width:100%;min-width:0}
 .cc217-stream-catalog .cc217-empty-catalog button{min-height:42px}
 .cc217-stream-catalog .cc217-empty-catalog img{max-width:100%;height:auto}
+.cc217-stream-catalog .cc217-catalog-admin-action{position:static!important;inset:auto!important;transform:none!important;display:inline-flex!important;align-items:center;justify-content:center;width:auto!important;max-width:100%;font-size:clamp(12px,3.2vw,15px)!important;padding:10px 14px!important;margin:4px!important;line-height:1.3!important;vertical-align:middle}
+.cc217-stream-catalog .cc217-catalog-admin-action:focus-visible{outline:2px solid #13b9ad;outline-offset:3px}
 }`;
  document.head.appendChild(style);
 }
