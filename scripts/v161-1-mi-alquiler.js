@@ -27,7 +27,7 @@
     card.innerHTML = '<div class="ma1611-card-icon"><img src="assets/mi-alquiler-logo.svg" alt="Logo oficial de MI ALQUILER CLAN CARTAN" width="76" height="76" loading="lazy" decoding="async"></div>' +
       '<div class="ma1611-card-copy"><small>CLAN CARTAN · CUARTA PLATAFORMA</small>' +
       '<h2>MI ALQUILER</h2><p>Habitaciones y locales · alquiler diario y mensual</p>' +
-      '<span class="ma1611-chip">V163.5 · Integración progresiva</span></div>' +
+      '<span class="ma1611-chip">Gestión de habitaciones y locales</span></div>' +
       '<button id="ma1611open" type="button">Ingresar a MI ALQUILER</button>';
     card.querySelector('button').addEventListener('click', open);
     return card;
@@ -46,13 +46,13 @@
     const layer = document.createElement('section');
     layer.id = 'ma1611layer'; layer.setAttribute('role', 'dialog');
     layer.setAttribute('aria-modal', 'true');
-    layer.setAttribute('aria-label', 'MI ALQUILER: vista previa de integración V163.5');
+    layer.setAttribute('aria-label', 'MI ALQUILER: gestión de habitaciones y locales');
     layer.innerHTML = '<div class="ma1611-wrap">' +
       '<header class="ma1611-head"><div class="ma1611-brand"><img class="ma1611-brand-logo" src="assets/mi-alquiler-logo.svg" alt="MI ALQUILER" width="70" height="70" decoding="async">' +
       '<div><small>CLAN CARTAN · MI ALQUILER</small><h2>Gestión de habitaciones y locales</h2>' +
       '<p>Un acceso · datos independientes de los otros negocios</p></div></div>' +
       '<button type="button" id="ma1611close" class="ma1611-close">← Volver a CLAN CARTAN</button></header>' +
-      '<section class="ma1611-notice" role="status"><strong>MI ALQUILER:</strong> módulos en integración y pruebas. ' +
+      '<section class="ma1611-notice" role="status"><strong>MI ALQUILER:</strong> gestión protegida por membresía vigente. ' +
       'Habitaciones, locales, inquilinos y contratos se guardan con acceso restringido en Supabase. ' +
       'Cobros, medidores, garantías y bonos protegidos; avisos al WhatsApp del inquilino, búsqueda y Excel. La consulta DNI usa el backend y respeta la autorización disponible.</section>' +
       '<nav class="ma1611-nav" aria-label="Secciones de Mi Alquiler"></nav>' +
@@ -82,8 +82,8 @@
     // Solo texto estático: nunca mostrar cifras o personas inventadas.
     target.innerHTML = '<div class="ma1611-summary"><div class="ma1611-hero-icon" aria-hidden="true">' + area.emoji + '</div>' +
       '<div><small>MI ALQUILER</small><h3>' + area.title + '</h3><p>' + area.summary + '</p></div></div>' +
-      '<div class="ma1611-placeholder"><span aria-hidden="true">🔐</span><div><strong>Activación de datos pendiente</strong>' +
-      '<p>La siguiente integración se habilitará únicamente con los permisos del servidor.</p></div></div>';
+      '<div class="ma1611-placeholder"><span aria-hidden="true">🔐</span><div><strong>Verificando acceso a los datos</strong>' +
+      '<p>El servidor determina qué información puedes consultar y administrar.</p></div></div>';
     if (typeof window.ma1612Enhance === 'function') window.ma1612Enhance(area.id, target);
   }
   let opening = false;
