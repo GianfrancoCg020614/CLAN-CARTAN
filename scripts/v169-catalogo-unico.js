@@ -192,7 +192,7 @@
     // La tienda antigua genera estos elementos fuera de la barra de acciones.
     for(const node of document.querySelectorAll('#app button,#app a')){
       if(node.id==='cc169-whatsapp-admin'||node.id==='cc169-back-home')continue;
-      const label=(node.innerText||node.textContent||'').replace(/[^\\p{L}\\p{N} ]/gu,' ').replace(/\\s+/g,' ').trim().toUpperCase();
+      const label=(node.innerText||node.textContent||'').replace(/[^\p{L}\p{N} ]/gu,' ').replace(/\s+/g,' ').trim().toUpperCase();
       if(/^(ABRIR COBRA YA|SOLICITUDES RESELLER|CLAN CARTAN)$/.test(label)){
         if(!node.hidden)node.hidden=true;
         if(node.style.display!=='none')node.style.setProperty('display','none','important');
