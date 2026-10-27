@@ -63,11 +63,15 @@ async function fetchMore(context,rerender){
   const q='&reseller_id=eq.'+encodeURIComponent(context.sessionId);
   const urls=['ma_ledger?select=*&order=created_at.desc&limit=3000'+q,'ma_meter_readings?select=*&order=created_at.desc&limit=1500'+q,'ma_guarantee_events?select=*&order=created_at.desc&limit=1500'+q,'ma_expenses?select=*&order=created_at.desc&limit=1500'+q,'ma_subscription_events?select=*&order=created_at.desc&limit=100'+q];
   if(context.account.role==='ADMIN')urls.push('ma_accounts?select=user_id,invite_code,bonus_pen,subscription_until,suspended&order=created_at.desc&limit=200');
-  const items=await Promise.all(urls.map(api));
+  const [items,clanUsers]=await Promise.all([
+   Promise.all(urls.map(api)),
+   context.account.role==='ADMIN'?rpc('cc_admin_users_compact_v1').catch(()=>[]):Promise.resolve([])
+  ]);
   if(ss()?.userId!==context.sessionId){reset();return;}
   if(version!==started){state.loaded=false;return;}
   [state.ledger,state.meters,state.guarantees,state.expenses,state.subscriptions]=items.slice(0,5).map(i=>Array.isArray(i)?i:[]);
-  state.adminAccounts=Array.isArray(items[5])?items[5]:[];state.loaded=true;state.error=null;
+  const names=new Map((Array.isArray(clanUsers)?clanUsers:[]).map(u=>[u.id,u.code]));
+  state.adminAccounts=Array.isArray(items[5])?items[5].map(a=>({...a,invite_code:names.get(a.user_id)||'CLAN pendiente'})):[];state.loaded=true;state.error=null;
  }catch(e){state.loaded=false;state.error='No se pudo cargar contabilidad: '+String(e.message||e);}
  finally{state.loading=false;rerender?.();}
 }
