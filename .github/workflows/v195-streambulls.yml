@@ -2,8 +2,17 @@ name: V195 STREAM BULL'S - Atención de hoy
 on:
   push:
     branches:
-      - feature/v195-streambulls-atencion-produccion
+      - main
+    paths:
+      - 'scripts/v195-streambulls-live.js'
+      - 'styles/v195-streambulls-live.css'
+      - 'scripts/v151-portal-polish.js'
+      - 'scripts/v194-sales.js'
+      - 'supabase/migrations/*v195_streambulls*'
+      - '.github/workflows/v195-streambulls.yml'
   pull_request:
+    branches:
+      - main
     paths:
       - scripts/v195-streambulls-live.js
       - styles/v195-streambulls-live.css
