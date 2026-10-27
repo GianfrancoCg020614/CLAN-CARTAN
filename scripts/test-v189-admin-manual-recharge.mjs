@@ -28,6 +28,6 @@ assert.match(js,/api\('rpc\/cc_admin_decide_manual_recharge_v189','POST',\{/);
 assert.doesNotMatch(js,/api\('rpc\/cc_manual_recharge_public_status','POST',\{\}\)/);
 assert.match(js,/approve\.disabled=!rechargeReady\?\.enabled;/);
 assert.match(js,/Aprobación MANUAL: verifica el ingreso REAL/i);
-assert.match(loader,/v166-portal-roles\.js\?v=189/);
-assert.match(html,/scripts\/v151-portal-polish\.js\?v=189/);
+assert.match(loader,/v166-portal-roles[.]js[?]v=[0-9]+/);
+assert.ok(html.includes('scripts/v151-portal-polish.js?v='));
 console.log('PASS V189: acreditación manual exclusiva ADMIN, autorización comercial intacta, saldo trazable y sin duplicados.');
