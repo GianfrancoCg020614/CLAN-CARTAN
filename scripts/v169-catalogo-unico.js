@@ -97,7 +97,7 @@
     }
     priceBox.append(amount);body.append(priceBox);
     const actions=text('div','product-actions cc117-one-action');
-    actions.append(button(window.CC_V53_SESSION?.jwt?'Comprar con billetera':'Ingresar para comprar',
+    actions.append(button(window.CC_V53_SESSION?.jwt?'Comprar con billetera':'Regístrate gratis para comprar',
       function(){purchase(product,this)},'btn primary cc169-buy'));
     card.append(cover,body,actions);
     return card;
