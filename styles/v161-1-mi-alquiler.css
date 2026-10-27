@@ -42,3 +42,9 @@
 #cc77home .ma1611-card-icon img{width:100%;height:100%;display:block;object-fit:contain;border-radius:10px}
 #ma1611layer .ma1611-brand-logo{width:70px;height:70px;flex:0 0 70px;display:block;object-fit:contain;border-radius:11px;background:#0d1824}
 @media(max-width:620px){#ma1611layer .ma1611-brand-logo{width:55px;height:55px;flex-basis:55px}}
+
+/* V226.6 — evitar desbordes horizontales del encabezado en pantallas estrechas. */
+#ma1611layer .ma1611-brand{min-width:0;max-width:100%}
+#ma1611layer .ma1611-brand>div{min-width:0;overflow-wrap:anywhere}
+#ma1611layer .ma1611-wrap,#ma1611layer .ma1611-content{min-width:0;max-width:100%}
+@media(max-width:620px){#ma1611layer .ma1611-head{gap:12px}#ma1611layer .ma1611-close{width:100%}#ma1611layer .ma1611-summary{min-width:0}#ma1611layer .ma1611-summary>div:last-child{min-width:0;overflow-wrap:anywhere}}
