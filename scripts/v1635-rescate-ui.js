@@ -22,9 +22,9 @@ function theme(){
  }
  function paint(){
   document.documentElement.dataset.ccTheme=setting;
-  button.textContent=setting==='dark'?'☀️ Modo claro':'🌙 Modo oscuro';
+  button.textContent=setting==='dark'?'☀️ Modo día':'🌙 Modo noche';
   button.setAttribute('aria-pressed',String(setting==='light'));
-  button.setAttribute('aria-label','Cambiar a modo '+(setting==='dark'?'claro':'oscuro'));
+  button.setAttribute('aria-label','Cambiar a modo '+(setting==='dark'?'día':'noche'));
  }
  if(!existing)button.addEventListener('click',()=>{
   setting=setting==='dark'?'light':'dark';
