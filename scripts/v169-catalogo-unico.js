@@ -82,9 +82,10 @@
     const details=text('dl','cc169-product-facts');
     const fact=(label,value)=>{const item=text('div','cc169-product-fact');item.append(text('dt','',label),text('dd','',value));details.append(item);};
     fact('Stock disponible',String(product.stock)+' unidad'+(Number(product.stock)===1?'':'es'));
-    fact('Vendedor',String(product.seller_name||product.seller_display_name||'No informado').trim());
+    fact('Vendedor',String(product.seller_name||product.seller_display_name||'Vendedor verificado').trim());
     fact('Servicio',product.service);
     fact('Vigencia',product.duration_days+' días');
+    fact('Precio aplicable',product.price_tier==='DISTRIBUTOR'?'Distribuidor · membresía activa':'Público · afiliados y visitantes');
     body.append(details);
     const priceBox=text('div','v23-card-price');
     const tier=product.price_tier==='DISTRIBUTOR';
@@ -107,9 +108,9 @@
     cover.append(text('span','cc169-cover-brand','STREAMBULLS'),text('strong','cc169-cover-title','Servicio de demostración'),text('span','cc169-cover-status','EJEMPLO · NO DISPONIBLE'));
     const body=text('div','product-body');
     body.append(text('h3','cc169-offer-title','Publicación de ejemplo'));
-    body.append(text('p','product-preview','Ficha de referencia para revisar el diseño antes de publicar servicios reales.'));
+    body.append(text('p','product-preview','Ficha de referencia: los mismos campos que publica un Super Reseller, incluido flyer, descripción, inventario, contacto y dos tarifas.'));
     const details=text('dl','cc169-product-facts');
-    for(const [label,value] of [['Vendedor','Vendedor de ejemplo'],['Stock','5 unidades (simuladas)'],['Servicio','Streaming (ejemplo)'],['Vigencia','30 días (ejemplo)'],['Precio','S/ 15.00 (simulado)'],['Contacto','No disponible en la demostración']]){
+    for(const [label,value] of [['Vendedor','Vendedor de ejemplo'],['Stock','5 unidades (simuladas)'],['Servicio','Streaming (ejemplo)'],['Vigencia','30 días (ejemplo)'],['Precio público','S/ 20.00 (simulado)'],['Precio distribuidor','S/ 15.00 (solo reseller activo)'],['Imagen','Flyer del vendedor (ejemplo)'],['Contacto','WhatsApp del vendedor (ejemplo)']]){
       const item=text('div','cc169-product-fact');item.append(text('dt','',label),text('dd','',value));details.append(item);
     }
     body.append(details);
