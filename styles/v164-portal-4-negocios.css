@@ -288,3 +288,37 @@ html[data-cc-theme="light"] #sb195-attention .sb195-btn:not(.primary){
 @media(prefers-reduced-motion:reduce){
  #mc158layer button,#sb195-attention button{transition:none}
 }
+
+
+/* V226.3 — COBRAYA!: lenguaje visual compartido, sin cambiar la lógica financiera. */
+#cy53layer{
+ --cc226-focus:#40d6ce;--cc226-radius:16px;
+}
+#cy53layer :is(button,input,select,textarea){font-family:inherit;box-sizing:border-box;max-width:100%}
+#cy53layer :is(button,input,select,textarea,a):focus-visible{
+ outline:3px solid var(--cc226-focus);outline-offset:3px;
+}
+#cy53layer :is(button,input,select,textarea){min-height:42px;border-radius:11px}
+#cy53layer :is(h2,h3,h4){line-height:1.25;letter-spacing:-.015em;text-wrap:balance}
+#cy53layer table{width:100%;border-collapse:collapse}
+#cy53layer :is(th,td){vertical-align:middle;overflow-wrap:anywhere}
+html[data-cc-theme="light"] #cy53layer{
+ --cc226-focus:#087e94;color-scheme:light;
+ color:#19364a;background:linear-gradient(160deg,#f8fcff,#eaf4f7 70%,#fff9ed);
+}
+html[data-cc-theme="light"] #cy53layer :is(input,select,textarea){
+ background:#fff;color:#19364a;border-color:#9dbcc9;
+}
+html[data-cc-theme="light"] #cy53layer :is(input,select,textarea)::placeholder{color:#657d89}
+html[data-cc-theme="light"] #cy53layer .cywrap>.cyrow{
+ background:linear-gradient(125deg,#fffdf8,#e9f5f7);color:#19364a;
+ border-color:#b6d1d8;box-shadow:0 8px 26px #173e5214;
+}
+html[data-cc-theme="light"] #cy53layer .cc127-cobra-brand h2{color:#214c60}
+html[data-cc-theme="light"] #cy53layer .cc127-cobra-brand small{color:#496778}
+@media(max-width:640px){
+ #cy53layer{padding:12px}
+ #cy53layer :is(button,input,select,textarea){min-height:44px}
+ #cy53layer :is(th,td){padding:8px 6px}
+}
+@media(prefers-reduced-motion:reduce){#cy53layer button{transition:none}}
