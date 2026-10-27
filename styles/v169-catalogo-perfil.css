@@ -138,3 +138,7 @@ html body.view-store #app .cc117-header .cc117-actions-top .cc169-admin-shortcut
 html body.view-store #app .cc117-header .cc117-actions-top #cc169-back-home{display:inline-flex!important;visibility:visible!important}
 html body.view-store #cc169-whatsapp-admin{position:fixed!important;right:16px!important;bottom:calc(20px + env(safe-area-inset-bottom,0px))!important;left:auto!important;top:auto!important;display:flex!important;z-index:1100!important}
 html body.view-store #cc177-return-panel,html body.view-store #cc166-open-button{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+/* V237: las fichas de presentación comparten estética con las publicaciones comerciales. */
+#app #productos .cc169-example{border:1px solid #315568!important}
+#app #productos .cc169-example-disabled{opacity:1!important;background:#183e4b!important;color:#e5f6fa!important;border:1px solid #426e7c!important;cursor:not-allowed!important}
