@@ -56,34 +56,26 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 else init();
 })();
 
-/* V215: descripciones públicas; no se tocan botones, eventos, sesión ni navegación. */
+/* V216: textos correctos por negocio, nunca por posición. */
 (function(){
- 'use strict';
- function update(){
-  const home=document.getElementById('cc77home');
-  const grid=home?.querySelector('.cc77cards');if(!grid)return;
-  const data=[
-   ['Control de préstamos','Administra tus préstamos, registra pagos, controla vencimientos y mantén tus cobranzas organizadas.'],
-   ['Gestión de vehículos','Controla el ingreso, salida y permanencia de autos, motos y carritos, con registros organizados.'],
-   ['Administración de habitaciones','Gestiona tus cuartos, inquilinos, mensualidades y pagos pendientes desde un solo lugar.']
-  ];
-  const cards=[...grid.querySelectorAll(':scope > .cc77card')];
-  cards.slice(0,3).forEach((card,i)=>{
-   const heading=card.querySelector('.cc77tag');
-   const desc=card.querySelector('p');
-   if(heading&&heading.textContent!==data[i][0])heading.textContent=data[i][0];
-   if(desc&&desc.textContent!==data[i][1])desc.textContent=data[i][1];
-  });
-  const rental=grid.querySelector('.ma1611-card');
-  if(rental){
-   const heading=rental.querySelector('.ma1611-card-copy small');
-   const desc=rental.querySelector('.ma1611-card-copy p');
-   if(heading)heading.textContent='Administración de habitaciones';
-   if(desc)desc.textContent=data[2][1];
-  }
+'use strict';
+const records=[
+ {test:/stream\s*bull/i,tag:'Entretenimiento digital',desc:'Netflix, HBO, Disney+, YouTube, ChatGPT y más plataformas en un solo catálogo.'},
+ {test:/cobra\s*ya|cobraya/i,tag:'Control de préstamos',desc:'Administra préstamos, pagos, vencimientos y cobranzas de forma organizada.'},
+ {test:/mi\s*cochera/i,tag:'Control de vehículos',desc:'Registra y controla autos, motos y carritos, sus ingresos y salidas.'},
+ {test:/mi\s*alquiler/i,tag:'Gestión de habitaciones',desc:'Administra cuartos, inquilinos, mensualidades y pagos pendientes.'}
+];
+function update(){
+ const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
+ for(const card of grid.children){
+  const h=card.querySelector('h2');const name=h?.textContent||'';
+  const record=records.find(r=>r.test.test(name));if(!record)continue;
+  const tag=card.querySelector('.cc77tag,.ma1611-card-copy small');
+  const p=card.querySelector('.cc77card > p,.ma1611-card-copy p,.cc77service-desc');
+  if(tag&&tag.textContent!==record.tag)tag.textContent=record.tag;
+  if(p&&p.textContent!==record.desc)p.textContent=record.desc;
  }
- function init(){update();const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
-  let pending=false;new MutationObserver(()=>{if(pending)return;pending=true;queueMicrotask(()=>{pending=false;update()})}).observe(grid,{childList:true,subtree:true});
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+}
+function init(){update();const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;let pending=false;new MutationObserver(()=>{if(pending)return;pending=true;queueMicrotask(()=>{pending=false;update()})}).observe(grid,{childList:true,subtree:true});}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
