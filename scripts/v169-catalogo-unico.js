@@ -35,7 +35,7 @@
   function purchase(product,btn){
     if(!window.CC_V53_SESSION?.jwt){
       if(typeof window.cc77Auth==='function')window.cc77Auth(false);
-      else window.alert('Inicia sesión con tu cuenta CLAN CARTAN para comprar.');
+      else window.alert('Regístrate como afiliado o inicia sesión para comprar. No se ha realizado ningún cargo.');
       return;
     }
     if(typeof window.cc166PurchaseProductFromCatalog!=='function'){
