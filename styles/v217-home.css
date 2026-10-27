@@ -53,3 +53,12 @@ html[data-cc-theme="light"] #cc77home .cc77cards>.cc77card h2,html[data-cc-theme
 #cc77home .cc77cards>.cc77card .cc78service-logo.cc78cobra{background-image:url('../assets/cobra-ya-premium.svg?v=218')!important;background-size:contain!important}
 #cc77home .cc77cards>.cc77card .cc158-cochera-mark{background-image:url('../assets/mi-cochera-logo.svg?v=218')!important;background-size:contain!important;background-position:center!important}
 #cc77home .cc77cards>.ma1611-card .ma1611-card-icon img{object-fit:contain!important;max-width:100%!important;max-height:100%!important}
+
+/* V220: evitar fondos legados y restaurar iconos sin rutas rotas. */
+#cc77home .cc77cards>article.cc77card.cc217-cochera,
+#cc77home .cc77cards>article.cc77card.cc217-stream,
+#cc77home .cc77cards>article.cc77card.cc217-cobra{background:linear-gradient(160deg,#091320,#010910 90%)!important}
+#cc77home .cc77cards>article.ma1611-card .ma1611-card-icon{background-image:url('../assets/mi-alquiler-logo.svg?v=220')!important;background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important}
+#cc77home .cc77cards>article.ma1611-card .ma1611-card-icon img{opacity:0!important}
+#cc77home .cc77cards>article.cc77card.cc217-stream .cc78service-logo.cc78stream{position:relative!important}
+#cc77home .cc77cards>article.cc77card.cc217-stream .cc78service-logo.cc78stream::after{content:'CLAN CARTAN';display:block;position:absolute;left:19%;right:19%;bottom:12px;min-height:18px;padding:2px 1px;background:linear-gradient(#040c16,#000);color:#00f0ed;text-shadow:0 0 5px #09e8f6;font:950 clamp(10px,1.05vw,13px)/1.12 system-ui;text-align:center;letter-spacing:.025em;border-radius:2px}
