@@ -1,0 +1,515 @@
+/** CLAN CARTAN · STREAM BULL'S · contrato puro V163.5+ (24 OCT 2026).
+ * Sin credenciales, llamadas de red ni operaciones sobre fondos.
+ * Las reglas deben replicarse y verificarse en el servidor antes de habilitar ventas.
+ */
+export const STREAM_BULLS_ANNUAL_PEN_CENTS = 2500;
+export const STREAM_BULLS_ANNUAL_DAYS = 365;
+export const OTHER_BUSINESS_DAYS = 30;
+export const DEFAULT_CONTRACTED_SERVICE_DAYS = 30;
+export const EXTERNAL_ACCOUNT_ADDON_PEN_CENTS = 1000;
+export const DEFAULT_SUPER_RESELLER_COMMISSION_BPS = 2000; // 20 % de margen.
+export const SERVICE_CATEGORIES = Object.freeze([
+  'NETFLIX', 'HBO_MAX', 'YOUTUBE', 'CHATGPT', 'PARAMOUNT_PLUS',
+  'PRIME_VIDEO', 'CANVA', 'CRUNCHYROLL', 'OTROS'
+]);
+export const CORE_SERVICES = Object.freeze([
+  'STREAM_BULLS', 'COBRA_YA', 'MI_COCHERA', 'MI_ALQUILER'
+]);
+
+function integer(value, label, max = Number.MAX_SAFE_INTEGER) {
+  if (!Number.isSafeInteger(value) || value < 0 || value > max) {
+    throw new RangeError(label + ' inválido');
+  }
+  return value;
+}
+export function parsePenCents(value) {
+  const match = /^(0|[1-9]\d{0,11})(?:\.(\d{1,2}))?$/.exec(String(value));
+  if (!match) throw new TypeError('Importe PEN inválido, admite máximo 2 decimales');
+  const cents = Number(match[1]) * 100 + Number((match[2] || '').padEnd(2, '0'));
+  return integer(cents, 'Importe');
+}
+export function formatPen(cents) {
+  return 'S/ ' + (integer(cents, 'Saldo') / 100)
+    .toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+export function addCalendarDays(startISO, extraDays) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startISO)) throw new TypeError('Fecha YYYY-MM-DD obligatoria');
+  const [year, month, day] = startISO.split('-').map(Number);
+  if (year < 2000 || year > 2099 || month < 1 || month > 12) throw new RangeError('Fecha inválida');
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.toISOString().slice(0, 10) !== startISO) throw new RangeError('Fecha inexistente');
+  date.setUTCDate(date.getUTCDate() + integer(extraDays, 'Días', 100000));
+  return date.toISOString().slice(0, 10);
+}
+
+/** Día de inicio = 1, cierre día N a las 23:59:59 hora Perú (America/Lima).
+ * La fecha siguiente a las 00:00 es el límite EXCLUSIVO para el backend.
+ */
+export function activationWindow(startISO, durationDays) {
+  const days = integer(durationDays, 'Duración', 3660);
+  if (days === 0) throw new RangeError('Duración debe ser mayor que cero');
+  const endDate = addCalendarDays(startISO, days - 1);
+  return Object.freeze({
+    startDate: startISO,
+    endDate,
+    displayEndsAt: endDate + ' 23:59:59',
+    expiresAtExclusiveLima: addCalendarDays(startISO, days) + ' 00:00',
+    durationDays: days,
+    timezone: 'America/Lima'
+  });
+}
+/** Contratos de cuentas/perfiles/servicios digitales. Por defecto duran 30
+ * DÍAS CALENDARIO; cada venta puede fijar su propia cantidad de días.
+ *
+ * La hora de alta NO cambia cuál es el día 1, ni adelanta el vencimiento.
+ * Datos temporales explícitos: en fecha/hora con zona usa la FECHA de Lima,
+ * no la fecha UTC ni la zona local del teléfono.
+ *
+ * La membresía empresarial STREAM BULL'S de 365 días es OTRA vigencia y
+ * nunca se modifica al variar la duración de un perfil o producto vendido.
+ */
+export function limaCalendarDate(instant) {
+  if (typeof instant !== 'string') throw new TypeError('Fecha de inicio no válida');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(instant)) {
+    // Si es sólo fecha se presupone que el usuario eligió la fecha de Perú.
+    return addCalendarDays(instant, 0);
+  }
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/.test(instant)) {
+    throw new TypeError('Se requiere instante ISO con zona horaria');
+  }
+  const parsed = new Date(instant);
+  if (!Number.isFinite(parsed.getTime())) throw new RangeError('Fecha de inicio imposible');
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit'
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(parsed).map(p => [p.type, p.value]));
+  return addCalendarDays(parts.year + '-' + parts.month + '-' + parts.day, 0);
+}
+export function contractedServiceWindow(activatedAt, durationDays = DEFAULT_CONTRACTED_SERVICE_DAYS) {
+  const startDate = limaCalendarDate(activatedAt);
+  return Object.freeze({
+    ...activationWindow(startDate, durationDays),
+    // El último segundo está incluido; el instante inicial del día siguiente no.
+    cutoffSecondLima: addCalendarDays(startDate, durationDays - 1) + ' 23:59:59',
+    startDayCountsAsOne: true,
+    originalActivationAt: activatedAt
+  });
+}
+/** Calcula el estado desde fecha/hora real de la zona de Perú. Una renovación
+ * crea otra ventana; no mantiene vigente artificialmente una vencida.
+ */
+export function contractedServiceStatus(window, now) {
+  if (!window?.endDate || !window?.startDate) throw new TypeError('Ventana inválida');
+  const nowDate = limaCalendarDate(now);
+  // Si las fechas tienen segundos de zona horaria, comprobamos también el
+  // instante real: antes de la activación todavía no debe aparecer activo.
+  if (nowDate < window.startDate ||
+      (typeof window.originalActivationAt === 'string' &&
+       window.originalActivationAt.includes('T') &&
+       typeof now === 'string' && now.includes('T') &&
+       new Date(now).getTime() < new Date(window.originalActivationAt).getTime())) {
+    return 'PENDIENTE';
+  }
+  return nowDate > window.endDate ? 'VENCIDO' : 'VIGENTE';
+}
+
+export function serviceActivationWindow(service, startISO) {
+  if (!CORE_SERVICES.includes(service)) throw new RangeError('Negocio desconocido');
+  return activationWindow(startISO, service === 'STREAM_BULLS'
+    ? STREAM_BULLS_ANNUAL_DAYS : OTHER_BUSINESS_DAYS);
+}
+
+/** Solo ADMIN puede marcar el nombramiento: este helper no sustituye la
+ * autorización del servidor ni el chequeo de afiliación vigente.
+ */
+export function canAutoPublish({ assignedByAdmin, role, membershipStart, referenceDay, suspended = false }) {
+  if (role !== 'SUPER_RESELLER' || assignedByAdmin !== true || suspended) return false;
+  if (!membershipStart || !referenceDay) return false;
+  const validity = serviceActivationWindow('STREAM_BULLS', membershipStart);
+  return referenceDay >= validity.startDate && referenceDay <= validity.endDate;
+}
+export function allowedSelfRegistrationRoles() {
+  return Object.freeze(['AFFILIATE', 'RESELLER']);
+}
+
+/** Comisión sobre GANANCIA / margen, no sobre el cobro bruto.
+ * Lo recibe todo ADMIN; el vendedor recibe costo recuperado + 80% de margen.
+ * Cada orden debe guardar tasa, precio y costo como snapshot firmado por backend.
+ */
+export function calculateSaleSettlement({
+  unitPriceCents, unitCostCents, quantity = 1,
+  commissionBps = DEFAULT_SUPER_RESELLER_COMMISSION_BPS
+}) {
+  integer(unitPriceCents, 'Precio por unidad');
+  integer(unitCostCents, 'Costo por unidad');
+  integer(quantity, 'Cantidad', 1_000_000);
+  integer(commissionBps, 'Comisión (bps)', 10_000);
+  if (unitPriceCents === 0 || quantity === 0 || unitCostCents > unitPriceCents) {
+    throw new RangeError('Precio/costo/cantidad incompatible');
+  }
+  const gross = unitPriceCents * quantity, expense = unitCostCents * quantity;
+  if (!Number.isSafeInteger(gross) || !Number.isSafeInteger(expense)) {
+    throw new RangeError('Monto total fuera del rango seguro');
+  }
+  const profit = gross - expense;
+  // Céntimos redondeados al más cercano, medio hacia arriba; BigInt evita
+  // decimales binarios al calcular tasas configuradas por ADMIN.
+  const adminCommission = Number((BigInt(profit) * BigInt(commissionBps) + 5000n) / 10000n);
+  const sellerPayable = gross - adminCommission;
+  return Object.freeze({
+    grossCents: gross,
+    supplierCostCents: expense,
+    grossProfitCents: profit,
+    adminCommissionCents: adminCommission,
+    sellerNetProfitCents: profit - adminCommission,
+    sellerPayableCents: sellerPayable,
+    commissionBps,
+    quantity
+  });
+}
+
+/** En inventario real la reserva y su liberación son transacciones SQL
+ * atómicas: jamás confirmar una venta restando stock solo en el navegador.
+ */
+export function reserveAvailableStock(availableUnits, quantity) {
+  integer(availableUnits, 'Stock');
+  integer(quantity, 'Cantidad');
+  if (quantity === 0 || quantity > availableUnits) throw new RangeError('Stock insuficiente');
+  return availableUnits - quantity;
+}
+
+/** El WhatsApp pertenece al perfil comercial, NO queda fijado en cada producto.
+ * Consultar al vendedor resuelve siempre el contacto actual del perfil.
+ */
+export function whatsappSellerLink(contact, productTitle = '') {
+  let digits = String(contact ?? '').replace(/[+\s().-]/g, '');
+  if (/^9\d{8}$/.test(digits)) digits = '51' + digits;
+  if (!/^[1-9]\d{9,14}$/.test(digits)) throw new TypeError('WhatsApp debe incluir un número válido');
+  const text = 'Hola, deseo consultar sobre ' + String(productTitle).trim().slice(0, 140);
+  return 'https://wa.me/' + digits + '?text=' + encodeURIComponent(text);
+}
+
+/** Visibilidad de liquidaciones y solicitud de pagos: ningún resultado de este
+ * helper autoriza movimientos financieros. Realizar pagos solo en backend.
+ * Se evita doble cuenta de órdenes y de desembolsos mediante ID único.
+ */
+export function summarizeSellerEarnings(orders, payouts, sellerId) {
+  if (!sellerId || !Array.isArray(orders) || !Array.isArray(payouts)) {
+    throw new TypeError('Vendedor, órdenes y liquidaciones son obligatorios');
+  }
+  const seenOrders = new Set(), seenPayments = new Set();
+  let revenueCents = 0, commissionCents = 0, payableEarnedCents = 0, heldCents = 0, paidOutCents = 0;
+  for (const order of orders) {
+    if (order.sellerId !== sellerId) continue;
+    if (!order.id || seenOrders.has(order.id)) throw new Error('Orden duplicada o sin ID');
+    seenOrders.add(order.id);
+    if (order.status === 'PAID_AWAITING_DELIVERY') {
+      heldCents += integer(order.grossCents, 'Cobro pendiente de entrega');
+    } else if (order.status === 'DELIVERED_VERIFIED') {
+      revenueCents += integer(order.grossCents, 'Venta');
+      commissionCents += integer(order.adminCommissionCents, 'Comisión');
+      payableEarnedCents += integer(order.sellerPayableCents, 'Por liquidar');
+    } else if (!['CANCELLED', 'REFUNDED', 'CHARGEBACK', 'PENDING_PAYMENT'].includes(order.status)) {
+      throw new RangeError('Estado de orden inválido');
+    }
+  }
+  for (const payment of payouts) {
+    if (payment.sellerId !== sellerId) continue;
+    if (!payment.id || seenPayments.has(payment.id)) throw new Error('Liquidación duplicada o sin ID');
+    seenPayments.add(payment.id);
+    if (payment.status === 'EXECUTED_VERIFIED') {
+      paidOutCents += integer(payment.amountCents, 'Monto liquidado');
+    } else if (!['REQUESTED', 'PENDING', 'REJECTED'].includes(payment.status)) {
+      throw new RangeError('Estado de liquidación inválido');
+    }
+  }
+  const balance = payableEarnedCents - paidOutCents;
+  return Object.freeze({
+    sellerId, revenueCents, commissionCents, heldCents, payableEarnedCents,
+    paidOutCents,
+    availableForPayoutCents: Math.max(0, balance),
+    amountToRecoverCents: Math.max(0, -balance)
+  });
+}
+
+export function normalizeSmartSearch(value) {
+  return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim();
+}
+export function matchesSmartSearch(query, searchableFields) {
+  const terms = normalizeSmartSearch(query).split(' ').filter(Boolean);
+  const content = normalizeSmartSearch(Array.isArray(searchableFields)
+    ? searchableFields.join(' ') : searchableFields);
+  return terms.every(term => content.includes(term));
+}
+
+
+/** División comercial:
+ * - SUPER_RESELLER: ventas y clientes del catálogo propio dentro del portal.
+ * - RESELLER: compra en catálogo y revende por su cuenta FUERA del portal.
+ * - Control externo privado de RESELLER requiere un complemento independiente.
+ * Estos indicadores son presentación. Los permisos reales son de Supabase/RLS.
+ */
+export function streamBullsRoleCapabilities(role) {
+  return Object.freeze({
+    canPurchaseInMarketplace: ['AFFILIATE', 'RESELLER', 'SUPER_RESELLER'].includes(role),
+    canPublishMarketplaceProducts: role === 'SUPER_RESELLER',
+    canTrackOwnMarketplaceBuyers: role === 'SUPER_RESELLER',
+    canResellPrivatelyOutsidePortal: role === 'RESELLER',
+    canOfferPrivateExternalAccountAddon: role === 'RESELLER'
+  });
+}
+
+/** Política de la pestaña separada RESELLER: S/10 por 30 días.
+ * Día de autorización confirmada = día 1 y fin día 30 a las 23:59 Lima.
+ * Renovar antes de expirar suma 30 días sin quitar los vigentes.
+ * Backend calcula hoy con America/Lima, nunca confía en fecha del navegador.
+ */
+export function externalAddonRenewalWindow(today, currentAddonEndOn = null) {
+  const todayChecked = addCalendarDays(today, 0);
+  const oldEnd = currentAddonEndOn ? addCalendarDays(currentAddonEndOn, 0) : null;
+  const start = oldEnd && oldEnd >= todayChecked
+    ? addCalendarDays(oldEnd, 1) : todayChecked;
+  return activationWindow(start, OTHER_BUSINESS_DAYS);
+}
+
+/** Si está vencido, se muestra SOLO CTA de reactivación, SIN datos privados.
+ * Servidor DEBE denegar lectura/escritura/exportación de perfiles al estar vencido.
+ * Ni siquiera exponemos el recuento de clientes como "preview" bloqueado.
+ */
+export function externalAddonAccessState({
+  role, addonStartsOn, addonEndsOn, today, suspended = false
+}) {
+  let active = false;
+  if (role === 'RESELLER' && !suspended && addonStartsOn && addonEndsOn && today) {
+    const start = addCalendarDays(addonStartsOn, 0);
+    const end = addCalendarDays(addonEndsOn, 0);
+    const now = addCalendarDays(today, 0);
+    active = start <= now && now <= end;
+  }
+  return Object.freeze({
+    active, showPrivateExternalRecords: active,
+    showActivationCard: role === 'RESELLER',
+    canReadExternalRecords: active,
+    canWriteExternalRecords: active,
+    canExportExternalRecords: active,
+    // La eliminación de datos JAMÁS se ejecuta por vencimiento de membresía.
+    shouldDeleteStoredRecords: false
+  });
+}
+
+/** PREVALIDACIÓN, NO un cargo efectivo. En backend, un RPC transaccional:
+ * 1) comprueba sesión/rol, consentimiento explícito por intento y saldo REAL,
+ * 2) utiliza un request_id único para impedir doble cargo al reintentar,
+ * 3) debita S/10 y guarda/extiende vigencia atómicamente;
+ * 4) si falla no realiza cargo ni cambia el permiso.
+ * Nunca usar saldo de bonos para este add-on.
+ */
+export function externalAddonActivationQuote({
+  role, mainMembershipActive, walletRealBalanceCents,
+  consentedForThisPurchase, today, currentAddonEndOn = null,
+  suspended = false
+}) {
+  const amountCents = EXTERNAL_ACCOUNT_ADDON_PEN_CENTS;
+  if (role !== 'RESELLER' || !mainMembershipActive || suspended) {
+    return Object.freeze({ permitted: false, reason: 'NOT_ELIGIBLE', amountCents });
+  }
+  integer(walletRealBalanceCents, 'Saldo REAL');
+  if (consentedForThisPurchase !== true) {
+    return Object.freeze({ permitted: false, reason: 'CONFIRMATION_REQUIRED', amountCents });
+  }
+  if (walletRealBalanceCents < amountCents) {
+    return Object.freeze({ permitted: false, reason: 'INSUFFICIENT_REAL_BALANCE', amountCents });
+  }
+  return Object.freeze({
+    permitted: true, reason: 'READY_FOR_SECURE_SERVER_CHARGE',
+    amountCents, entitlementPeriod: externalAddonRenewalWindow(today, currentAddonEndOn),
+    automaticRecurringCharge: false
+  });
+}
+
+
+/** Control PRIVADO de cuentas de servicios digitales (SÚPER RESELLER y,
+ * con add-on vigente, RESELLER externo). Modelo reutilizable en Netflix,
+ * HBO, Prime, YouTube, Spotify, ChatGPT y categorías nuevas.
+ *
+ * Estado de slot NO es el estado de pago del cliente.
+ * FREE: asignable; ASSIGNED: ocupado; RESERVED: apartado;
+ * DISABLED: eliminado lógicamente, no disponible, auditable;
+ * DISABLED_PENDING_RELEASE: ocupado y marcado para eliminarse tras
+ * terminar el servicio del cliente, sin interrumpir su contrato.
+ */
+export const ACCOUNT_SLOT_STATES = Object.freeze([
+  'FREE', 'ASSIGNED', 'RESERVED', 'DISABLED', 'DISABLED_PENDING_RELEASE'
+]);
+export const CONNECTION_DEVICE_TYPES = Object.freeze([
+  'CELULAR', 'LAPTOP', 'TV', 'TABLET', 'COMPUTADORA', 'OTRO'
+]);
+export const PROFILE_PAYMENT_STATES = Object.freeze(['PAGADO', 'DEBE', 'PARCIAL']);
+
+function validSlot(slot) {
+  if (!slot || typeof slot !== 'object' || !slot.id ||
+      !ACCOUNT_SLOT_STATES.includes(slot.status)) {
+    throw new TypeError('Slot inválido');
+  }
+  return slot;
+}
+function uniqueSlots(slots) {
+  if (!Array.isArray(slots)) throw new TypeError('Slots deben ser un arreglo');
+  const ids = new Set();
+  for (const item of slots) {
+    const slot = validSlot(item), key = String(slot.id);
+    if (ids.has(key)) throw new Error('Identificador de slot duplicado');
+    ids.add(key);
+  }
+  return slots;
+}
+export function accountSlotSummary(slots) {
+  const items = uniqueSlots(slots);
+  const count = state => items.filter(s => s.status === state).length;
+  const free = count('FREE'), assigned = count('ASSIGNED'),
+    reserved = count('RESERVED'), disabled = count('DISABLED'),
+    pendingDisable = count('DISABLED_PENDING_RELEASE');
+  const capacity = free + assigned + reserved + pendingDisable;
+  return Object.freeze({
+    totalRegistered: items.length,
+    activeCapacity: capacity,
+    free, occupied: assigned + pendingDisable, reserved,
+    disabled, pendingDisable,
+    availableForAssignment: free,
+    // Si todos se deshabilitaron la cuenta NO debe parecer llena por clientes.
+    label: free > 0 ? 'DISPONIBLE'
+      : capacity === 0 ? 'SIN_CUPOS_ACTIVOS' : 'SIN_ESPACIOS_LIBRES'
+  });
+}
+/** Alta de un nuevo perfil/slot de capacidad, no de un cliente.
+ * Identificador estable generado fuera (DB UUID recomendado).
+ */
+export function addAccountSlot(slots, id) {
+  uniqueSlots(slots);
+  if (!id || slots.some(s => String(s.id) === String(id))) {
+    throw new RangeError('Identificador de slot requerido y único');
+  }
+  return Object.freeze([...slots, Object.freeze({id, status: 'FREE'})]);
+}
+/** Eliminación LÓGICA: no borrar ID ni historial.
+ * Si ocupado, no desalojar automáticamente al cliente.
+ */
+export function disableAccountSlot(slots, slotId) {
+  uniqueSlots(slots);
+  let matched = false;
+  const updated = slots.map(s => {
+    if (String(s.id) !== String(slotId)) return s;
+    matched = true;
+    if (s.status === 'DISABLED' || s.status === 'DISABLED_PENDING_RELEASE') return s;
+    if (s.status === 'RESERVED') throw new Error('Cancelar reserva antes de eliminar el cupo');
+    return Object.freeze({
+      ...s,
+      status: s.status === 'ASSIGNED' ? 'DISABLED_PENDING_RELEASE' : 'DISABLED'
+    });
+  });
+  if (!matched) throw new RangeError('No existe el slot');
+  return Object.freeze(updated);
+}
+export function allocateAccountSlot(slots, slotId) {
+  uniqueSlots(slots);
+  let found = false;
+  const updated = slots.map(s => {
+    if (String(s.id) !== String(slotId)) return s;
+    found = true;
+    if (s.status !== 'FREE') throw new Error('Slot no disponible para asignar');
+    return Object.freeze({...s, status: 'ASSIGNED'});
+  });
+  if (!found) throw new RangeError('Slot no encontrado');
+  return Object.freeze(updated);
+}
+export function releaseAccountSlot(slots, slotId) {
+  uniqueSlots(slots);
+  let found = false;
+  const updated = slots.map(s => {
+    if (String(s.id) !== String(slotId)) return s;
+    found = true;
+    if (!['ASSIGNED', 'DISABLED_PENDING_RELEASE'].includes(s.status)) {
+      throw new Error('No hay asignación actual que liberar');
+    }
+    return Object.freeze({...s, status:
+      s.status === 'DISABLED_PENDING_RELEASE' ? 'DISABLED' : 'FREE'});
+  });
+  if (!found) throw new RangeError('Slot no encontrado');
+  return Object.freeze(updated);
+}
+export function restoreAccountSlot(slots, slotId) {
+  uniqueSlots(slots);
+  let found = false;
+  const updated = slots.map(s => {
+    if (String(s.id) !== String(slotId)) return s;
+    found = true;
+    if (s.status !== 'DISABLED') throw new Error('Restaurar requiere slot desactivado sin cliente');
+    return Object.freeze({...s, status: 'FREE'});
+  });
+  if (!found) throw new RangeError('Slot no encontrado');
+  return Object.freeze(updated);
+}
+
+/** Fecha/hora de conexión registrable por evento sin deducirla de login:
+ * distingue CELULAR, LAPTOP, TV, TABLET, COMPUTADORA y OTRO.
+ * Las fechas se escriben con zona horaria; el servidor guarda timestamptz.
+ */
+export function connectionEvent({
+  deviceType, connectedAt, deviceName = '', note = ''
+}) {
+  if (!CONNECTION_DEVICE_TYPES.includes(deviceType)) throw new RangeError('Tipo de equipo inválido');
+  if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d)?(?:Z|[+-]\d\d:\d\d)$/.test(connectedAt) ||
+      !Number.isFinite(Date.parse(connectedAt))) throw new RangeError('Fecha y hora de conexión inválidas');
+  const stamp = new Date(connectedAt).toISOString();
+  if (Number.isNaN(Date.parse(stamp))) throw new RangeError('Conexión no válida');
+  if (String(deviceName).length > 120 || String(note).length > 1000) throw new RangeError('Detalle demasiado largo');
+  return Object.freeze({
+    deviceType, connectedAt: stamp, deviceName: String(deviceName).trim(),
+    note: String(note).trim()
+  });
+}
+
+/** Contador a minuto real: una hora restante = 60 min, nunca redondea
+ * días de 24h para esconder el tiempo exacto del cliente.
+ * endExclusiveISO debe representar el instante real posterior al final
+ * contractual (día N 23:59:59.999; límite del día siguiente a las 00:00).
+ */
+export function profileTimeCounter(startISO, endExclusiveISO, nowISO) {
+  const parse = value => {
+    if (typeof value !== 'string' ||
+        !/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d)?(?:Z|[+-]\d\d:\d\d)$/.test(value)) {
+      throw new TypeError('Instante ISO con zona horaria obligatorio');
+    }
+    const ms = Date.parse(value);
+    if (!Number.isFinite(ms)) throw new RangeError('Instante inválido');
+    return ms;
+  };
+  const start = parse(startISO), end = parse(endExclusiveISO), now = parse(nowISO);
+  if (end <= start) throw new RangeError('Fin debe ser posterior al inicio');
+  const remainingMinutes = Math.max(0, Math.ceil((end - now) / 60_000));
+  const consumedMinutes = Math.min(
+    Math.ceil((end - start) / 60_000),
+    Math.max(0, Math.floor((now - start) / 60_000))
+  );
+  return Object.freeze({
+    status: now < start ? 'PENDIENTE' : now >= end ? 'VENCIDO' : 'VIGENTE',
+    remainingMinutes, remainingDays: Math.floor(remainingMinutes / 1440),
+    remainingHours: Math.floor((remainingMinutes % 1440) / 60),
+    remainingExtraMinutes: remainingMinutes % 60,
+    consumedMinutes,
+    expired: now >= end
+  });
+}
+/** Estado de cobro sin modificar la ocupación del slot.
+ * PAGADO o DEBE es una clasificación manual, no un cargo real.
+ */
+export function profilePaymentLabel(state) {
+  if (!PROFILE_PAYMENT_STATES.includes(state)) throw new RangeError('Pago inválido');
+  return Object.freeze({
+    state, color: state === 'PAGADO' ? 'green' : state === 'DEBE' ? 'red' : 'amber',
+    // Un cliente DEBE puede continuar ocupando slot aunque no haya pagado.
+    freesSlot: false
+  });
+}
