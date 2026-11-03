@@ -1,6 +1,6 @@
 // V112: pruebas HTTP contra API PUBLICA. SOLO LECTURA. No crea usuarios ni toca saldos.
-// Alias comprobados en cc_clan_legacy_aliases de producción el 24/10/2026:
-// COBRA2/BULL1 vigentes; COBRA1 no registrado. No inventar invitaciones.
+// El código principal CLAN1 existe en producción. Los alias de octubre
+// pueden retirarse: no usarlos como fixtures permanentes de la API pública.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const html = readFileSync(new URL('../index.html',import.meta.url),'utf8');
@@ -17,8 +17,8 @@ async function rpc(name,payload){
   return {status:response.status,ok:response.ok,data};
 }
 for(const [code,want] of [
-  ['COBRA2',true],['cobra2',true],['BULL1',true],['bull1',true],['COBRA1',false],
-  ['BULL999999999999',false],['COBRA1 OR 1=1',false],['',false]
+  ['CLAN1',true],['clan1',true],[' CLAN1 ',true],['CLAN0',false],['CLAN01',false],
+  ['CLAN999999999999999999999',false],['CLAN1 OR 1=1',false],['',false]
 ]){
   const r=await rpc('cc_validate_invitation_code',{p_code:code});
   assert.equal(r.status,200,'Falló la validación pública de '+code+' (HTTP '+r.status+')');
@@ -29,3 +29,4 @@ for(const [code,want] of [
 const own=await rpc('cc_my_invitation_codes',{});
 assert.ok(!own.ok,'La API deja leer códigos privados sin sesión');
 console.log('V116: 8 comprobaciones públicas y restricción de códigos personales verificadas; sin crear datos.');
+

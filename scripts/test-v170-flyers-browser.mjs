@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {spawnSync} from 'node:child_process';
+import {runChromeFixture} from './chrome-fixture.mjs';
 const chrome=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(fs.existsSync);
 assert.ok(chrome,'Chrome requerido para verificar uploader');
 const js=fs.readFileSync('scripts/v170-flyers-stream.js','utf8');
@@ -61,12 +61,10 @@ const html=['<!doctype html><html><head><meta name="viewport" content="width=dev
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'cc170-upload-'));
 try{
  const file=path.join(dir,'uploader.html');fs.writeFileSync(file,html);
- const run=spawnSync(chrome,['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
- '--window-size=390,844','--virtual-time-budget=20000','--dump-dom','file://'+file],
- {encoding:'utf8',timeout:45000,maxBuffer:12*1024*1024});
- assert.equal(run.status,0,'Chrome terminó con error: '+String(run.stderr).slice(-600));
- const marker=run.stdout.match(/<output id="flyer-smoke" data-status="(pass|fail)">([^<]*)<\/output>/);
- assert.ok(marker,'La prueba del flyer no produjo resultado: '+(run.stdout.match(/<output id="flyer-step"[^>]*>[^<]*/)?.[0]||'Sin marcador')+' / '+run.stdout.slice(-1400));
+ const result=await runChromeFixture(chrome,file,'flyer-smoke');
+ const marker=result.match(/<output id="flyer-smoke" data-status="(pass|fail)">([^<]*)<\/output>/);
+ assert.ok(marker,'La prueba del flyer no produjo resultado: '+result);
  assert.equal(marker[1],'pass','Falló el flujo del flyer: '+marker[2]);
  console.log('PASS V170 · formato real PNG, bloqueo SVG, foto local, Storage firmado, RPC, miniatura y ampliar.');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+
