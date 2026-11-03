@@ -11,7 +11,7 @@ function host(){let root=$("mc158layer");if(root)return root;root=document.creat
  root.innerHTML='<div class="mc158wrap"><header class="mc158head"><div><small>CLAN CARTAN · MI COCHERA</small><h2><img src="assets/mi-cochera-logo.svg" alt="Logotipo original MI COCHERA"> MI COCHERA</h2><p>Carritos, alquiler diario, hielo, deudas e historial.</p></div><button type="button" id="mc158close">← Volver a CLAN CARTAN</button></header><div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';
  document.body.append(root);$("mc158close").onclick=close;
  root.addEventListener("click",click);root.addEventListener("submit",submit);
- root.addEventListener("click",e=>{const button=e.target.closest("[data-mc-verify]");if(!button)return;const form=button.closest("form");const input=form?.querySelector('[data-mc-dni="'+button.dataset.mcVerify+'"]');if(input){button.disabled=true;Promise.resolve(lookupDni(input)).finally(()=>{button.disabled=false;});}});
+ root.addEventListener("click",dniClick);
  return root;
 }
 function close(){$("mc158dialog")?.remove();let layer=$("mc158layer");if(layer)layer.style.display="none";if($("cc77home"))$("cc77home").style.display="block";}
@@ -68,28 +68,42 @@ function renderList(){
  }).join("")+'</div></section>';
  $("mc158search").addEventListener("input",e=>{filter=e.target.value;renderList();const input=$("mc158search");input.focus();input.setSelectionRange(input.value.length,input.value.length);});
 }
-function drawer(title,body){$("mc158dialog")?.remove();const d=document.createElement("div");d.id="mc158dialog";d.className="mc158dialog";d.innerHTML='<section role="dialog" aria-modal="true"><header><h3>'+esc(title)+'</h3><button type="button" data-action="close-dialog">✕</button></header>'+body+'<p id="mc158dialogStatus" role="status"></p></section>';d.addEventListener("click",click);d.addEventListener("submit",submit);document.body.append(d);}
+function drawer(title,body){$("mc158dialog")?.remove();const d=document.createElement("div");d.id="mc158dialog";d.className="mc158dialog";d.innerHTML='<section role="dialog" aria-modal="true"><header><h3>'+esc(title)+'</h3><button type="button" data-action="close-dialog">✕</button></header>'+body+'<p id="mc158dialogStatus" role="status"></p></section>';d.addEventListener("click",click);d.addEventListener("click",dniClick);d.addEventListener("submit",submit);document.body.append(d);}
 function fields(prefix,title,optional){
  const name=prefix+"Name",doc=prefix+"Doc",kind=prefix+"Kind",phone=prefix+"Phone";
  return '<fieldset><legend>'+title+(optional?" (opcional)":"")+'</legend><label>Documento primero<select name="'+kind+'"><option value="DNI">DNI peruano</option><option value="CE">Carné de extranjería</option><option value="PASSPORT">Pasaporte</option><option value="CEDULA">Cédula extranjera</option><option value="OTHER">Otro</option></select></label><label>Número de documento<input name="'+doc+'" data-mc-dni="'+prefix+'" '+(optional?"":"required")+' maxlength="40" autocomplete="off"></label><button type="button" data-mc-verify="'+prefix+'">Buscar DNI</button><p id="mc158lookup'+prefix+'" class="mc158look" aria-live="polite">Ingresa 8 dígitos y pulsa Buscar DNI.</p><label>Nombres y apellidos<input name="'+name+'" '+(optional?"":"required")+' maxlength="160"></label><label>Celular<input name="'+phone+'" type="tel" maxlength="30"></label></fieldset>';
 }
 function newCart(){drawer("Registrar carrito · DNI primero",'<form id="mc158new">'+fields("owner","Propietario",false)+fields("worker","Trabajador",true)+'<label>Alias / apodo<input name="alias" maxlength="80" placeholder="El Paisa"></label><label>Tipo de negocio<input name="business" required maxlength="100" placeholder="Emoliente, anticuchos, frutera…"></label><label>Tarifa por día ('+esc(account.currency)+')<input type="number" name="rate" min=".01" step=".01" required></label><button type="submit">Guardar carrito</button></form>');}
-async function lookupDni(input){
- const form=input.closest("form"),prefix=input.dataset.mcDni,kind=form.elements.namedItem(prefix+"Kind").value,dni=input.value.trim();
- if(kind!=="DNI"||!/^\d{8}$/.test(dni))return;
- const info=$("mc158lookup"+prefix);info.textContent="Buscando DNI…";
- const dest=form.elements.namedItem(prefix+"Name");
- try{
-  const matches=await window.cc80.api("mc_people?select=full_name,phone,verification_source&document_type=eq.DNI&document_number=eq."+dni+"&limit=1");
-  if(input.value.trim()!==dni)return;
-  if(matches.length){dest.value=matches[0].full_name;const phone=form.elements.namedItem(prefix+"Phone");if(!phone.value)phone.value=matches[0].phone||"";info.textContent="Datos encontrados en tu cartera.";}
-  if(matches[0]?.verification_source==="API_PERU")return;
-  const s=ses();const res=await fetch(s.root+"/functions/v1/mc-verify-dni",{method:"POST",headers:{"apikey":s.key,Authorization:"Bearer "+s.jwt,"Content-Type":"application/json"},body:JSON.stringify({dni})});
-  const data=await res.json();if(input.value.trim()!==dni)return;
-  if(res.ok&&(data.status==="found"||data.status==="saved")){dest.value=data.full_name;info.textContent="Identidad completada desde API Perú.";}
-  else info.textContent=matches.length?"Datos internos disponibles; verificación oficial no disponible.":"Sin cupo o autorización API: completa nombre manualmente.";
- }catch(_){info.textContent="Consulta externa no disponible; ingresa el nombre manualmente.";}
+function dniClick(event){
+ const button=event.target.closest('[data-mc-verify]');if(!button||button.disabled)return;
+ const form=button.closest('form'),input=form?.querySelector('[data-mc-dni="'+button.dataset.mcVerify+'"]');if(!input)return;
+ button.disabled=true;Promise.resolve(lookupDni(input)).finally(()=>{button.disabled=false;});
 }
+async function lookupDni(input){
+ const form=input.closest('form'),prefix=input.dataset.mcDni,kind=form.elements.namedItem(prefix+'Kind').value,dni=input.value.trim();
+ const info=form.querySelector('#mc158lookup'+prefix),dest=form.elements.namedItem(prefix+'Name');if(!info||!dest)return;
+ if(kind!=='DNI'||!/^\d{8}$/.test(dni)){info.textContent='Para consultar, selecciona DNI e ingresa exactamente 8 dígitos. Otros documentos se registran manualmente.';return;}
+ const s=ses(),uid=s?.userId,jwt=s?.jwt;
+ if(!uid||!jwt){info.textContent='Inicia sesión para consultar el DNI.';return;}
+ const current=()=>form.isConnected&&ses()?.userId===uid&&ses()?.jwt===jwt&&input.value.trim()===dni&&form.elements.namedItem(prefix+'Kind').value===kind;
+ let expectedName=dest.value;info.textContent='Buscando DNI…';
+ const fillName=name=>{if(dest.value!==expectedName){info.textContent='Consulta recibida. Se conserva el nombre que editaste; revísalo antes de guardar.';return false;}dest.value=String(name).slice(0,160);expectedName=dest.value;return true;};
+ try{
+  const matches=await window.cc80.api('mc_people?select=full_name,phone,verification_source&document_type=eq.DNI&document_number=eq.'+dni+'&limit=1');
+  if(!current())return;
+  if(matches.length){
+   const filled=fillName(matches[0].full_name);const phone=form.elements.namedItem(prefix+'Phone');if(!phone.value)phone.value=matches[0].phone||'';
+   if(filled)info.textContent='Datos encontrados en tu cartera.';
+  }
+  if(matches[0]?.verification_source==='API_PERU')return;
+  if(!s.root||!s.key){info.textContent='Consulta externa no disponible; puedes completar el nombre manualmente.';return;}
+  const res=await fetch(s.root+'/functions/v1/mc-verify-dni',{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+jwt,'Content-Type':'application/json'},body:JSON.stringify({dni})});
+  const data=await res.json();if(!current())return;
+  if(res.ok&&(data.status==='found'||data.status==='saved')&&data.full_name){if(fillName(data.full_name))info.textContent='Identidad completada desde API Perú. Revisa los datos antes de guardar.';}
+  else info.textContent=matches.length?'Datos internos disponibles; verificación oficial no disponible.':'Consulta no disponible. Completa el nombre manualmente.';
+ }catch(_){if(current())info.textContent='Consulta externa no disponible; ingresa el nombre manualmente.';}
+}
+
 async function submit(e){
  if(!e.target.id?.startsWith("mc158"))return;
  e.preventDefault();if(busy)return;busy=true;let button=e.target.querySelector('button[type="submit"]');if(button)button.disabled=true;

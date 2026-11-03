@@ -71,19 +71,20 @@ function enhance(area,target,c){if(area!=='avisos')return false;if(!c?.account||
  if(!loaded){target.innerHTML='<div class="ma4-wrap"><p>Consultando vencimientos de tu cartera…</p></div>';void load(c);return true;}
  target.innerHTML=panel(c);return true;
 }
-async function lookupDni(button){const form=button.closest('form[data-ma-form="tenant"]');if(!form)return;
+async function lookupDni(button){if(button.disabled)return;const form=button.closest('form[data-ma-form="tenant"]');if(!form)return;
  const dni=form.elements.namedItem('document')?.value?.trim(),kind=form.elements.namedItem('kind')?.value;
  const info=form.querySelector('#ma4-dni-status'),name=form.elements.namedItem('name');if(!info||!name)return;
  if(kind!=='DNI'||!/^\d{8}$/.test(dni)){info.textContent='Para consultar API Perú selecciona DNI e ingresa exactamente 8 dígitos.';return;}
  const s=ss();if(!s?.jwt||!s?.root||!s?.key){info.textContent='Necesitas iniciar sesión en CLAN CARTAN.';return;}
- button.disabled=true;info.textContent='Consultando tu cartera y servicio de DNI…';const previous=dni;
+ button.disabled=true;info.textContent='Consultando tu cartera y servicio de DNI…';const previous=dni,uid=s.userId,jwt=s.jwt,previousName=name.value;
+ const current=()=>form.isConnected&&ss()?.userId===uid&&ss()?.jwt===jwt&&form.elements.namedItem('document')?.value?.trim()===previous&&form.elements.namedItem('kind')?.value===kind;
  try{
   const res=await fetch(s.root+'/functions/v1/ma-verify-dni',{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+s.jwt,'Content-Type':'application/json'},body:JSON.stringify({dni})});
   const data=await res.json().catch(()=>({}));
-  if(!form.isConnected||form.elements.namedItem('document')?.value?.trim()!==previous)return;
-  if(res.ok&&(data.status==='found'||data.status==='saved')&&data.full_name){name.value=String(data.full_name).slice(0,160);info.textContent=data.status==='saved'?'Identidad verificada guardada (sin consumir cupo).':'Nombre consultado mediante API Perú. Revisa los datos antes de guardar.';}
+  if(!current())return;
+  if(res.ok&&(data.status==='found'||data.status==='saved')&&data.full_name){if(name.value!==previousName){info.textContent='Consulta recibida. Se conserva el nombre que editaste; revísalo antes de guardar.';return;}name.value=String(data.full_name).slice(0,160);info.textContent=data.status==='saved'?'Identidad verificada guardada (sin consumir cupo).':'Nombre consultado mediante API Perú. Revisa los datos antes de guardar.';}
   else{const reasons={operator_not_approved:'Sin autorización vigente para consulta externa.',quota_exhausted:'Cupo API Perú agotado.',provider_not_configured:'Token API Perú no configurado.',subscription_inactive:'Membresía no activa.',not_found:'No se encontró el DNI.',provider_unavailable:'Proveedor no disponible.',membership_unavailable:'No se pudo validar la membresía.'};info.textContent=(reasons[data.reason]||'Consulta no disponible.')+' Puedes registrar manualmente.';}
- }catch(_){info.textContent='No se pudo conectar con API Perú. Puedes registrar manualmente.';}finally{button.disabled=false;}
+ }catch(_){if(current())info.textContent='No se pudo conectar con API Perú. Puedes registrar manualmente.';}finally{button.disabled=false;}
 }
 // Hojas de cálculo OOXML completas, sin librerías remotas ni fórmulas inyectables.
 const xml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c])).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,'');
