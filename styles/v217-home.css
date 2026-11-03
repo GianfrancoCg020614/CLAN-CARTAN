@@ -1,3 +1,4 @@
+@import url('./v265-hide-duplicate-panels.css?v=288');
 /* V217 · portada fiel al diseño aprobado. Solo capa pública; no toca lógica de negocio. */
 #cc77home{background:#030d1b!important;background-image:radial-gradient(ellipse at 50% 60%,#0c2946 0,#030d1b 68%)!important;color:#f7fbff;min-height:100vh}
 #cc77home .cc77wrap{max-width:1740px!important;margin-inline:auto!important;padding:0 clamp(14px,3vw,56px) 32px!important}
