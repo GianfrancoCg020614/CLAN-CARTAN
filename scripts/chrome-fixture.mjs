@@ -25,7 +25,7 @@ export async function runChromeFixture(chrome,file,marker,{timeout=25000}={}){
    });
   });
   const debug=new URL(endpoint);
-  const targetResponse=await fetch('http://'+debug.host+'/json/new?'+encodeURIComponent(pathToFileURL(file).href),
+  const targetResponse=await fetch('http://'+debug.host+'/json/new?'+pathToFileURL(file).href,
    {method:'PUT',signal:AbortSignal.timeout(5000)});
   if(!targetResponse.ok)throw Error('Cannot open Chrome fixture: '+targetResponse.status);
   const target=await targetResponse.json();
