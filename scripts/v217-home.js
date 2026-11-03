@@ -215,6 +215,23 @@ function init(){
    box-shadow:0 0 17px #00edff78,0 15px 25px #000a!important;
    overflow:hidden!important;
   }
+
+  /* V300: logo artwork contains dark matte; blend removes visible rectangular blocks. */
+  html body #cc77home#cc77home .cc77cards>article .cc78service-logo,
+  html body #cc77home#cc77home .cc77cards>article .cc158-cochera-mark,
+  html body #cc77home#cc77home .cc77cards>article .ma1611-card-icon{
+   mix-blend-mode:screen!important;
+   background-color:transparent!important;
+   filter:drop-shadow(0 5px 7px #00121a99)!important;
+  }
+  /* Keep one cyan perimeter instead of stacked outlines, also when hovered. */
+  html body #cc77home#cc77home .cc77cards>article:hover{
+   outline:0!important;border-color:#72faff!important;
+   box-shadow:0 0 19px #10eaff91,0 15px 30px #000b!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article .cc77tag{
+   max-width:100%!important;overflow-wrap:anywhere!important;
+  }
   html body #cc77home#cc77home .cc77cards>article::before,
   html body #cc77home#cc77home .cc77cards>article::after{content:none!important;display:none!important}
   html body #cc77home#cc77home .cc77cards>article .cc77actions{border:0!important;box-shadow:none!important;background:transparent!important}
