@@ -121,6 +121,7 @@ jobs:
           run_check node --check scripts/v169-catalogo-unico.js
           run_check node --check scripts/v170-flyers-stream.js
           run_check node scripts/test-v307-captcha-lifecycle-browser.mjs
+          run_check node scripts/test-v308-panel-browser.mjs
           run_check node scripts/test-v166-three-roles-browser.mjs
           run_check node scripts/test-v167-checkout-browser.mjs
           run_check node scripts/test-v167-financial-integrity.mjs

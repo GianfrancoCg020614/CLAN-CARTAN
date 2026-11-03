@@ -12,6 +12,8 @@ let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
 let walletTab='summary',rechargeMode='manual';
 let renderedLocation='';
+let adminDirectoryQuery='';
+const adminOpenFiles=new Set();
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
 let ownPending=null,ownPendingState='idle',ownPendingError='',ownPendingBusy=false;
@@ -61,6 +63,7 @@ function reset(){
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
+ adminDirectoryQuery='';adminOpenFiles.clear();
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
  ownPending=null;ownPendingState='idle';ownPendingError='';ownPendingBusy=false;
  rechargeQueueBusy=false;adminLastQueueFetch=0;ownBalancePollBusy=false;
@@ -74,7 +77,13 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V307 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V308 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
+   closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
+  }
+ });
+ app.addEventListener('click',event=>{if(!event.target.closest('.cc166-sidebar'))closePanelMenu();});
  document.body.append(app);return app;
 }
 function access(code){
@@ -124,7 +133,12 @@ function openCatalog(){
  if(typeof window.cc77Store==='function'){app.hidden=true;window.cc77Store();addReturnControl();return;}
  notice('El catálogo público está temporalmente inaccesible.');
 }
+function closePanelMenu(){
+ app?.classList.remove('cc308-menu-open');
+ el('cc308-more')?.setAttribute('aria-expanded','false');
+}
 function nav(to){
+ closePanelMenu();
  if(to==='back'){
   const prior=navigationHistory.pop();
   if(prior){view=prior.view;walletTab=prior.walletTab;render(true);return;}
@@ -172,15 +186,30 @@ function renderNav(){
    ['wallet','▤','Billetera']]],
   ['MI CUENTA',[['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
  ];
+ const primaryIds=admin?['home','admin','wallet']:superRole?['home','shop','sales']:['home','shop','wallet'];
+ const primary=make('div','cc308-nav-primary');
+ const secondary=make('div','cc308-nav-secondary');secondary.id='cc308-secondary-nav';
  for(const [heading,items] of groups){
-  menu.append(make('p','cc176-nav-heading',heading));
+  const others=items.filter(([id])=>!primaryIds.includes(id));
+  if(others.length)secondary.append(make('p','cc176-nav-heading',heading));
   for(const [id,icon,labelText] of items){
    const selected=view===id||(id==='businesses'&&view.startsWith('business:'));
    const b=button('',()=>nav(id),'cc166-navitem'+(selected?' selected':''));
    b.setAttribute('aria-current',selected?'page':'false');
-   b.append(make('span','',icon),make('span','',labelText));menu.append(b);
+   b.setAttribute('aria-label',labelText);b.title=labelText;
+   b.append(make('span','',icon),make('span','',labelText));
+   (primaryIds.includes(id)?primary:secondary).append(b);
   }
  }
+ const more=button('',()=>{
+  const open=app.classList.toggle('cc308-menu-open');
+  more.setAttribute('aria-expanded',String(open));
+ },'cc308-more-button'+(!primaryIds.includes(view)?' selected':''));
+ more.id='cc308-more';more.setAttribute('aria-label','Más opciones del panel');
+ more.setAttribute('aria-expanded',String(app.classList.contains('cc308-menu-open')));
+ more.setAttribute('aria-controls',secondary.id);
+ more.append(make('span','','☰'),make('span','','Más'));
+ menu.append(primary,secondary,more);
  const aside=el('cc166-aside-foot');aside.replaceChildren();
  aside.append(make('p','cc176-side-note',
   admin?'ADMIN · Validación y supervisión':superRole?'Súper reseller · Publicaciones y ventas':
@@ -301,7 +330,7 @@ function adminAttention(page){
  page.append(wrap);
  page.append(make('p','cc166-note','Las cifras de pedidos y publicaciones reflejan los registros consultados. Las recargas no modifican saldos hasta su verificación bancaria.'));
 }
-function finance(tab){if(view!=='wallet'||walletTab!==tab)navigationHistory.push({view,walletTab});walletTab=tab;view='wallet';render(true);}
+function finance(tab){closePanelMenu();if(view!=='wallet'||walletTab!==tab)navigationHistory.push({view,walletTab});walletTab=tab;view='wallet';render(true);}
 function overview(page){
  if(data.admin){adminHome(page);return;}
  const balance=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
@@ -1547,11 +1576,14 @@ function adminAccountRow(person){
   'cc171-status-active':'cc171-status-pending',accessLabel(person)));
  wrap.append(state);
  const detail=make('details','cc246-user-details');
- const toggle=make('summary','cc246-eye','Ver ficha');
+ const fileKey=String(person.registry_code||person.user_id||person.email);
+ detail.open=adminOpenFiles.has(fileKey);
+ const toggle=make('summary','cc246-eye',detail.open?'Ocultar ficha':'Ver ficha');
  toggle.title='Ver datos y acciones de '+(person.registry_code||'usuario');
  toggle.setAttribute('aria-label',toggle.title);
  detail.append(toggle);
  detail.addEventListener('toggle',()=>{
+  if(detail.open)adminOpenFiles.add(fileKey);else adminOpenFiles.delete(fileKey);
   toggle.textContent=detail.open?'Ocultar ficha':'Ver ficha';
   toggle.setAttribute('aria-label',(detail.open?'Ocultar':'Ver')+' datos y acciones de '+(person.registry_code||'usuario'));
  });
@@ -1764,6 +1796,7 @@ function admin(page){
   const input=document.createElement('input');
   input.type='search';input.placeholder='Buscar CLAN, nombre, correo o celular…';
   input.setAttribute('aria-label','Buscar cuenta');
+  input.value=adminDirectoryQuery;
   heading.append(input,button('↻ Actualizar',()=>void loadAdminAccounts(true),'cc166-secondary'));
   box.append(heading);
   const rows=make('div','cc171-users');
@@ -1773,17 +1806,25 @@ function admin(page){
    row.dataset.search=(person.email+' '+(person.display_name||'')+' '+(person.registry_code||'')+' '+(person.registry_alias||'')+' '+(person.phone||'')+' '+(person.document_number||'')).toLowerCase();
    rows.append(row);
   }
-  input.addEventListener('input',()=>{
-   const term=input.value.trim().toLowerCase();
+  const resultCount=make('p','cc308-search-count');resultCount.setAttribute('role','status');
+  const empty=make('p','cc166-empty','No hay coincidencias. Prueba otro nombre, número CLAN, correo o celular.');
+  const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const filter=()=>{
+   adminDirectoryQuery=input.value;
+   const term=normalize(adminDirectoryQuery.trim());let count=0;
    rows.querySelectorAll('.cc171-person').forEach(row=>{
-    row.hidden=!row.dataset.search.includes(term);
+    row.hidden=!normalize(row.dataset.search).includes(term);if(!row.hidden)count++;
    });
-  });
+   resultCount.textContent=count+' de '+adminAccounts.length+' cuentas';
+   empty.hidden=count>0||adminAccounts.length===0;
+  };
+  input.addEventListener('input',filter);filter();
+  box.append(resultCount,empty);
   box.append(rows);
  }
  page.append(box);
  const help=make('p','cc171-help');
- help.textContent='Pulsa el ojo de cada usuario para ver sus datos y las acciones autorizadas. El reseller obtiene precio distribuidor al pagar la membresía anual; ADMIN autoriza Súper reseller solo después de ese pago. Los días y saldos se conservan al retirar el permiso especial.';
+ help.textContent='Pulsa «Ver ficha» para consultar los datos y las acciones autorizadas de cada usuario. El reseller obtiene precio distribuidor al pagar la membresía anual; ADMIN autoriza Súper reseller solo después de ese pago. Los días y saldos se conservan al retirar el permiso especial.';
  page.append(help);
 
 }
