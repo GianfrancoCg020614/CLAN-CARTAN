@@ -137,7 +137,7 @@ function init(){
   style.id='cc296-final-style';
   style.textContent=String.raw`
   html body #cc77home#cc77home{
-   background:#020d1e url('assets/clan-neon-landscape-v256.svg') center top / cover no-repeat!important;
+   background:#020d1e url('assets/clan-neon-landscape-v256.svg?v=301') center top / cover no-repeat!important;
    overflow-x:hidden!important;overscroll-behavior-x:none!important;
   }
 
@@ -241,7 +241,7 @@ function init(){
   }
   html body #cc77home#cc77home .cc77foot{position:relative!important;min-height:auto!important}
   html[data-cc-theme="light"] body #cc77home#cc77home{
-   color:#17364a!important;background:#e8f6fb url('assets/clan-neon-landscape-v256.svg') center top / cover no-repeat!important;
+   color:#17364a!important;background:#e8f6fb url('assets/clan-neon-landscape-v256.svg?v=301') center top / cover no-repeat!important;
   }
   html[data-cc-theme="light"] body #cc77home#cc77home .cc77top{background:linear-gradient(110deg,#e5fbffed,#b7e9f5f0,#e7f9ffee)!important}
   html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article{
