@@ -396,3 +396,9 @@ html body #cc77home#cc77home .cc77cards>article.ma1611-card>button{
  html body #cc77home#cc77home .cc77intro{height:190px!important;background-image:url('../assets/cc-home-cinematic-mobile.avif')!important}
  html body #cc77home#cc77home .cc77cards>article.cc77card,html body #cc77home#cc77home .cc77cards>article.ma1611-card{min-height:0!important}
 }
+
+/* V291: one scrolling surface only on homepage; preserve scrolling in business modules. */
+html:has(#cc77home:not([style*="display: none"]):not([style*="display:none"])) {overflow:hidden!important;height:100%!important}
+body:has(#cc77home:not([style*="display: none"]):not([style*="display:none"])) {overflow:hidden!important;height:100dvh!important;max-height:100dvh!important}
+html body #cc77home#cc77home{overflow-y:auto!important;overflow-x:hidden!important;scrollbar-gutter:auto!important;overscroll-behavior-y:contain!important}
+html body #cc77home#cc77home .cc283-home-currency{display:none!important}
