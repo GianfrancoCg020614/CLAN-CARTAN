@@ -14,7 +14,7 @@ function host(){let root=$("mc158layer");if(root)return root;root=document.creat
  root.addEventListener("click",e=>{const button=e.target.closest("[data-mc-verify]");if(!button)return;const form=button.closest("form");const input=form?.querySelector('[data-mc-dni="'+button.dataset.mcVerify+'"]');if(input){button.disabled=true;Promise.resolve(lookupDni(input)).finally(()=>{button.disabled=false;});}});
  return root;
 }
-function close(){let layer=$("mc158layer");if(layer)layer.style.display="none";if($("cc77home"))$("cc77home").style.display="block";}
+function close(){$("mc158dialog")?.remove();let layer=$("mc158layer");if(layer)layer.style.display="none";if($("cc77home"))$("cc77home").style.display="block";}
 function note(msg){let el=$("mc158notice");if(el)el.textContent=msg;else alert(msg);}
 function active(){return ses()?.isAdmin || account && !account.suspended && new Date(account.subscription_until)>new Date();}
 function header(){let date=account?.subscription_until?new Date(account.subscription_until).toLocaleDateString("es-PE"):"Sin activar"; const real=num(realWallets.find(w=>w.service==="MI_COCHERA")?.balance_pen); const bonus=num(account?.bonus_pen);
