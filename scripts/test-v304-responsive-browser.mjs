@@ -55,6 +55,13 @@ try{
   await evaluate("document.querySelector('#cc223-auth-close').click()");await pause(80);
   assert.equal(await evaluate("getComputedStyle(document.querySelector('#cc77home')).display!=='none'"),true,'Volver portada '+action);
  }
+ await evaluate("cc77Auth(true)");
+ for(const type of ['terms','privacy']){
+  const legal=await evaluate(`(()=>{document.querySelector('#cc-real-login a[onclick*="${type}"]').click();const m=document.querySelector('#cc82-legal-modal'),r=m.getBoundingClientRect();return m.contains(document.elementFromPoint(r.width/2,r.height/2))&&document.querySelector('#cc82-legal-body').textContent.length>100})()`);
+  assert.equal(legal,true,'Documento legal visible sobre registro '+type);
+  await evaluate("document.querySelector('#cc82-legal-modal button').click()");
+ }
+ await evaluate("document.querySelector('#cc223-auth-close').click()");
  await evaluate("cc77Auth(false);document.querySelector('#cc-real-email').value='correo-invalido'");
  assert.equal(await evaluate("document.querySelector('#cc-real-email').checkValidity()"),false,'Correo inválido');
  await evaluate("document.querySelector('#cc223-auth-close').click();document.querySelector('.cc217-stream button').click()");await pause(350);

@@ -147,7 +147,7 @@ by('cy113transferGo').addEventListener('click',async e=>{
  finally{button.disabled=false;}
 });
 const pop=by('cc93-affiliate');
-if(pop){
+if(pop&&by('cc93-message')){
  const m=by('cc93-message'),badge=document.createElement('div');
  badge.className='cc113-stream-wallet';
  badge.innerHTML='<span>Mi billetera STREAM BULL’S<br><small>Saldo de prueba</small></span><strong id="cc113sbBalance">S/ 0.00</strong><button type="button" id="cc115streamRefresh" class="cc115-sb-refresh" aria-label="Actualizar billetera Stream Bull’s" title="Actualizar saldo">↻</button>';
