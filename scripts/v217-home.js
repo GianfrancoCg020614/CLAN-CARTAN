@@ -130,7 +130,8 @@ function ensureHomeCurrency(){
 }
 
 function init(){
- ensureHomeCurrency();
+ // V291: no second header currency control; keep the existing global selector.
+ document.querySelector('#cc77home .cc283-home-currency')?.remove();
  const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
  apply();
  installCatalogPolish();polishStreamCatalog();
