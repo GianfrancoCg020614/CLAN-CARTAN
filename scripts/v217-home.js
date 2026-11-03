@@ -131,6 +131,13 @@ function ensureHomeCurrency(){
 
 function init(){
 
+ const fields=document.getElementById('cc-v81-fields');
+ const updateAuthHeading=()=>{
+  const signup=fields&&getComputedStyle(fields).display!=='none';
+  const heading=document.querySelector('#cc-real-login h2');
+  if(heading)heading.textContent=signup?'Crear tu cuenta':'Iniciar sesión';
+ };
+ if(fields){new MutationObserver(updateAuthHeading).observe(fields,{attributes:true,attributeFilter:['style']});updateAuthHeading();}
  const passwordToggle=document.getElementById('cc305-password-toggle');
  if(passwordToggle&&!passwordToggle.dataset.bound){
   passwordToggle.dataset.bound='true';
