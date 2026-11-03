@@ -119,8 +119,7 @@
  #cc166-panel .cc166-top h1{font-size:19px}
  #cc166-panel .cc166-top small{font-size:9px}
  #cc166-panel #cc166-top-actions{gap:4px}
- #cc166-panel #cc166-top-actions button:first-child{font-size:0;width:38px;height:38px;padding:0}
- #cc166-panel #cc166-top-actions button:first-child::before{content:'↻';font-size:18px}
+ #cc166-panel #cc166-top-actions .cc177-back{font-size:12px;width:auto;min-width:80px;min-height:44px;height:auto;padding:9px 11px;white-space:nowrap}
  #cc166-panel #cc166-content{padding:15px 12px}
  #cc166-panel .cc166-section-title h2{font-size:19px}
  #cc166-panel .cc166-businesses{grid-template-columns:1fr 1fr;gap:8px}
