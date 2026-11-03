@@ -4779,8 +4779,8 @@ function lnDownloadPdf(id){const l=lnLoan(id);if(!l)return notify('No autorizado
 <input id="cc110-invite" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="Ej.: CLAN1 (o tu código anterior)" aria-describedby="cc110-invite-hint">
 <span id="cc110-invite-hint" style="display:block;font-size:12px;font-weight:400;color:#b5c6d8;margin-top:5px">Puedes registrarte sin código. Recibirás un único código CLAN para los cuatro negocios. Los códigos anteriores siguen siendo válidos. El código no entrega dinero por registrarte.</span>
 </label></div>
-<label class="ccp1-consent"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0" required> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a>.</span></label>
-<label class="ccp1-consent"><input id="cc164-privacy" type="checkbox" style="width:auto;margin:3px 0" required> <span>Autorizo el tratamiento de mis datos personales necesarios para crear y administrar mi cuenta, conforme a la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a>.</span></label>
+<label class="ccp1-consent"><input id="cc-v81-terms" type="checkbox" style="width:auto;margin:3px 0"> <span>He leído y acepto los <a href="#" onclick="cc82legal('terms');return false">Términos de uso</a>.</span></label>
+<label class="ccp1-consent"><input id="cc164-privacy" type="checkbox" style="width:auto;margin:3px 0"> <span>Autorizo el tratamiento de mis datos personales necesarios para crear y administrar mi cuenta, conforme a la <a href="#" onclick="cc82legal('privacy');return false">Política de privacidad</a>.</span></label>
 <label class="ccp1-consent"><input id="cc161-marketing" type="checkbox" style="width:auto;margin:3px 0"> <span>Autorizo comunicaciones publicitarias de CLAN CARTAN por correo y WhatsApp.</span></label>
 <p class="ccp1-consent-note">Puedes modificar o retirar la autorización publicitaria desde tu perfil.</p>
 <p style="font-size:11px;color:#a6b6c9">Tu correo electrónico requerirá confirmación para proteger el acceso.</p>
@@ -5056,6 +5056,8 @@ if(invitationInUrl&&/^CLAN[1-9][0-9]{0,14}$/i.test(invitationInUrl)){
 
 function setRegisterMode(next){
  registering=next;
+ // Los consentimientos solo son obligatorios al crear una cuenta.
+ for(const id of ['cc-v81-terms','cc164-privacy'])document.getElementById(id).required=next;
  document.getElementById('cc-real-button').textContent=next?'Registrar mi cuenta':'Ingresar a CLAN CARTAN';
  toggle.textContent=next?'Ya tengo cuenta · Ingresar':'Crear cuenta nueva';
  help.style.display=next?'block':'none';
@@ -5134,7 +5136,10 @@ form.noValidate=true;
 form.addEventListener('submit',event=>{
  event.preventDefault();
  if(registering){void register(event);return;}
- if(!document.getElementById('cc-real-email').value.trim()||!document.getElementById('cc-real-pass').value){status.textContent='Escribe tu correo y contraseña para ingresar.';return;}
+ const emailInput=document.getElementById('cc-real-email');
+ emailInput.value=emailInput.value.trim();
+ if(!emailInput.value||!document.getElementById('cc-real-pass').value){status.textContent='Escribe tu correo y contraseña para ingresar.';return;}
+ if(!emailInput.checkValidity()){status.textContent='Escribe un correo electrónico válido para ingresar.';emailInput.focus();return;}
  void signIn(event);
 });
 // Disable demo credential paths: no one may bypass verified admin login.
@@ -6125,7 +6130,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <script src="scripts/v223-contacto-portada.js?v=223" defer></script>
 <!-- STREAMBULLS: catálogo unificado y estilos de navegación (carga efectiva). -->
 <link rel="stylesheet" href="styles/v169-catalogo-perfil.css?v=243">
-<script src="scripts/v169-catalogo-unico.js?v=243" defer></script>
+<script src="scripts/v169-catalogo-unico.js?v=249" defer></script>
 
 </body>
 </html>
