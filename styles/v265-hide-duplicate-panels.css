@@ -44,3 +44,48 @@ html body #cc77home .cc77cards>article button,html body #cc77home .cc77cards>art
 html body #cc77home .cc77foot,html body #cc77home #cc79logged{position:relative!important;inset:auto!important}
 html body #cc77home .cc77top #cc95-user:not([style*="display: none"]),html body #cc77home .cc77top #cc92-admin-button:not([style*="display: none"]){position:relative!important;inset:auto!important;opacity:1!important;pointer-events:auto!important}
 }
+
+/* V286 · Fix buttons only: real click targets, equal height, no vertical/overflow buttons. */
+#cc77home .cc77cards>article.cc77card>.cc77actions,
+#cc77home .cc77cards>article.cc77card .cc77actions{
+ display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
+ align-items:stretch!important;justify-content:center!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ height:auto!important;min-height:54px!important;gap:9px!important;
+ margin:auto 0 0!important;padding:0!important;position:relative!important;
+ inset:auto!important;transform:none!important;overflow:visible!important;
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+}
+#cc77home .cc77cards>article.cc77card .cc77actions>button,
+#cc77home .cc77cards>article.ma1611-card>button,
+#cc77home .cc77cards>article.ma1611-card .ma1611-card-copy>button{
+ box-sizing:border-box!important;display:inline-flex!important;
+ flex:1 1 120px!important;align-self:stretch!important;
+ align-items:center!important;justify-content:center!important;
+ position:relative!important;inset:auto!important;transform:none!important;
+ width:auto!important;max-width:100%!important;min-width:0!important;
+ height:auto!important;min-height:54px!important;max-height:none!important;
+ margin:0!important;padding:11px 13px!important;
+ writing-mode:horizontal-tb!important;text-orientation:mixed!important;
+ white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;
+ line-height:1.25!important;letter-spacing:0!important;
+ font:800 clamp(12px,.95vw,15px)/1.25 system-ui,-apple-system,'Segoe UI',sans-serif!important;
+ text-align:center!important;vertical-align:middle!important;
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+ background:linear-gradient(110deg,#00ebde,#1dbcf0)!important;
+ color:#032334!important;border:1px solid #92ffff!important;
+ border-radius:999px!important;box-shadow:0 4px 14px #00d8e755!important;
+ cursor:pointer!important;touch-action:manipulation!important;
+}
+#cc77home .cc77cards>article.ma1611-card>button{
+ flex:0 0 auto!important;width:100%!important;margin-top:auto!important;
+}
+#cc77home .cc77cards>article.cc77card .cc77actions>button:hover,
+#cc77home .cc77cards>article.ma1611-card>button:hover{filter:brightness(1.08)!important}
+#cc77home .cc77cards>article.cc77card .cc77actions>button:focus-visible,
+#cc77home .cc77cards>article.ma1611-card>button:focus-visible{outline:3px solid white!important;outline-offset:3px!important}
+#cc77home .cc77cards>article button:disabled{opacity:.55!important;cursor:not-allowed!important}
+@media(max-width:650px){
+ #cc77home .cc77cards>article.cc77card .cc77actions{gap:10px!important}
+ #cc77home .cc77cards>article.cc77card .cc77actions>button{flex:1 1 125px!important;min-height:52px!important;font-size:13px!important}
+}
