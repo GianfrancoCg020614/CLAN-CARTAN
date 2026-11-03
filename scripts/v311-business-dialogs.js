@@ -23,13 +23,13 @@ function scan(){
   (field||focusable(panel)[0]||panel).focus({preventScroll:true});
  }
  if(restore&&!current()){
-  const target=visible(restore.opener)?restore.opener:document.getElementById(restore.fallback);
+  const target=visible(restore.opener)&&restore.opener!==document.body&&restore.opener!==document.documentElement?restore.opener:document.getElementById(restore.fallback);
   if(visible(target))target.focus({preventScroll:true});
  }
 }
 function init(){
  const style=document.createElement('style');style.id='cc311-dialog-style';
- style.textContent='[data-cc311-close]{min-width:44px;min-height:44px}[data-cc311-close]:focus-visible{outline:2px solid #55d3d2;outline-offset:3px}';document.head.append(style);
+ style.textContent='#cy152modal [data-cc311-close],#mc158dialog [data-cc311-close],#ma1612dialog [data-cc311-close]{min-width:44px;min-height:44px}[data-cc311-close]:focus-visible{outline:2px solid #55d3d2;outline-offset:3px}';document.head.append(style);
  document.addEventListener('click',event=>{const button=event.target.closest('button,a[href]');if(button){trigger=button;triggerAt=Date.now();}},true);
  document.addEventListener('keydown',event=>{
   const node=current();if(!node||!['Escape','Tab'].includes(event.key))return;

@@ -31,7 +31,10 @@ export function businessDialogFixture(kind='alquiler',before=false){
  if(${JSON.stringify(kind)}==='cochera'){
   if(document.getElementById(id))document.getElementById(id).remove();opener.click();await wait(30);window.mc158Close();await wait(30);checks.closingModuleRemovesForm=!q('#mc158dialog');
  }
- if(${JSON.stringify(kind)}==='cobra'){window.CC_V53_SESSION.isReseller=false;opener.click();await wait(30);checks.accessStillBlocked=!q('#cy152modal');}
+ if(${JSON.stringify(kind)}==='cobra'){
+  opener.click();await wait(40);[...q('#cy152modal').querySelectorAll('button')].find(b=>b.textContent==='Editar alias').click();await wait(40);
+  q('#cy152modal input').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));await wait(40);checks.replacedDialogReturns=q('#cy53close')===document.activeElement;
+  window.CC_V53_SESSION.isReseller=false;opener.click();await wait(30);checks.accessStillBlocked=!q('#cy152modal');}
  else if(${JSON.stringify(kind)}==='cochera'){window.__locked=true;await window.mc158Open();checks.accessStillBlocked=!q('[data-action=\"new\"]');}
  else{window.__locked=true;window.ma1611MiAlquiler.close();window.ma1611MiAlquiler.open();await wait(180);checks.accessStillBlocked=!q('[data-ma-action=\"new-property\"]');}
  checks.noWrites=__writes.length===0;checks.noErrors=__errors.length===0;checks.noOverflow=document.documentElement.scrollWidth<=innerWidth+1;
