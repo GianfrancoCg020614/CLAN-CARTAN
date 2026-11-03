@@ -130,36 +130,85 @@ function ensureHomeCurrency(){
 }
 
 function init(){
- // V293: load final visual rules after all legacy inline styles.
- if(!document.getElementById('cc293-final-style')){
+
+ // V296: one final responsive theme layer, without image overlays or duplicate borders.
+ if(!document.getElementById('cc296-final-style')){
   const style=document.createElement('style');
-  style.id='cc293-final-style';
-  style.textContent=`
-  html body #cc77home#cc77home{background-color:#010b19!important;background-image:url('assets/clan-neon-landscape-v256.svg')!important;background-size:cover!important;background-position:center top!important;background-repeat:no-repeat!important}
-  html body #cc77home#cc77home .cc77intro{background-image:url('assets/cc-home-cinematic-hero.avif')!important;background-size:contain!important;background-position:center!important}
-  html body #cc77home#cc77home .cc77intro::before,html body #cc77home#cc77home .cc77intro::after{content:none!important;display:none!important}
-  html body #cc77home#cc77home .cc77cards>article{outline:0!important;outline-offset:0!important;border-width:2px!important;box-shadow:0 0 14px #00eaff88,inset 0 0 16px #00eaff12!important}
-  html body #cc77home#cc77home .cc77cards>article::before,html body #cc77home#cc77home .cc77cards>article::after{box-shadow:none!important}
-  html body #cc77home#cc77home .cc77cards>article .cc77actions{border:0!important;outline:0!important}
-  @media(max-width:650px){html body #cc77home#cc77home .cc77intro{background-image:url('assets/cc-home-cinematic-mobile.avif')!important}}
-  #cc77home{background:#010b19 url('assets/clan-neon-landscape-v256.svg') center top/cover no-repeat!important}
-  #cc77home .cc77top{background:linear-gradient(105deg,#00101df5,#022a40f5 48%,#00121ff5)!important;border-radius:0 0 36px 36px!important;border-bottom:2px solid #00ecf7aa!important;box-shadow:0 8px 25px #001d32a8,0 0 20px #00d8ed40!important}
-  #cc77home .cc77intro{background:transparent url('assets/cc-home-cinematic-hero.avif') center/contain no-repeat!important;border:0!important;box-shadow:none!important}
-  #cc77home .cc77cards{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:clamp(12px,1.1vw,20px)!important}
-  #cc77home .cc77cards>article{border:2px solid #42f4ff!important;border-radius:40px!important;background:linear-gradient(170deg,rgba(2,35,56,.95),rgba(0,14,31,.98) 70%)!important;box-shadow:inset 0 0 26px #00eaff1a,0 0 14px #00eaff99,0 16px 30px #000b!important}
-  #cc77home .cc77cards>article button{border-radius:999px!important;background:linear-gradient(100deg,#00f5e4,#22c9f6)!important;color:#001923!important}
-  #cc77home .cc77foot{position:relative!important}
-  @media(max-width:1100px){#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
-  @media(max-width:650px){#cc77home .cc77cards{grid-template-columns:1fr!important}#cc77home .cc77intro{background-image:url('assets/cc-home-cinematic-mobile.avif')!important}}
+  style.id='cc296-final-style';
+  style.textContent=String.raw`
+  html body #cc77home#cc77home{
+   background:#020d1e url('assets/clan-neon-landscape-v256.svg') center top / cover no-repeat!important;
+   overflow-x:hidden!important;overscroll-behavior-x:none!important;
+  }
+  html body #cc77home#cc77home .cc77top{
+   background:linear-gradient(115deg,rgba(0,13,27,.97),rgba(0,44,65,.94),rgba(0,16,33,.97))!important;
+   border:0!important;border-bottom:2px solid #26e8f5!important;border-radius:0 0 36px 36px!important;
+   box-shadow:0 8px 30px #00121fbf,0 0 16px #00eaff55!important;
+  }
+  html body #cc77home#cc77home .cc77intro{
+   background:transparent url('assets/cc-home-cinematic-hero.avif') center center / contain no-repeat!important;
+   border:0!important;outline:0!important;box-shadow:none!important;
+   margin-top:6px!important;margin-bottom:12px!important;
+  }
+  html body #cc77home#cc77home .cc77intro::before,
+  html body #cc77home#cc77home .cc77intro::after{content:none!important;display:none!important}
+  html body #cc77home#cc77home .cc77cards{
+   display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+   gap:clamp(12px,1.1vw,20px)!important;align-items:stretch!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article{
+   position:relative!important;box-sizing:border-box!important;outline:none!important;
+   border:2px solid #41f4ff!important;border-radius:40px!important;
+   background:linear-gradient(170deg,rgba(3,37,56,.96),rgba(0,13,30,.97))!important;
+   box-shadow:0 0 17px #00edff78,0 15px 25px #000a!important;
+   overflow:hidden!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article::before,
+  html body #cc77home#cc77home .cc77cards>article::after{content:none!important;display:none!important}
+  html body #cc77home#cc77home .cc77cards>article .cc77actions{border:0!important;box-shadow:none!important;background:transparent!important}
+  html body #cc77home#cc77home .cc77cards>article button{
+   border-radius:999px!important;background:linear-gradient(110deg,#00f5e4,#25c9f6)!important;
+   color:#001c2a!important;cursor:pointer!important;
+  }
+  html body #cc77home#cc77home .cc77foot{position:relative!important;min-height:auto!important}
+  html[data-cc-theme="light"] body #cc77home#cc77home{
+   color:#17364a!important;background:#e8f6fb url('assets/clan-neon-landscape-v256.svg') center top / cover no-repeat!important;
+  }
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77top{background:linear-gradient(110deg,#e5fbffed,#b7e9f5f0,#e7f9ffee)!important}
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article{
+   color:#13364a!important;background:linear-gradient(160deg,#f7fffff2,#c5ebf7f4)!important;
+   box-shadow:0 0 17px #008dac65,0 15px 25px #22547c26!important;
+  }
+  @media(max-width:1100px){
+   html body #cc77home#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  }
+  @media(max-width:650px){
+   html body #cc77home#cc77home .cc77cards{grid-template-columns:minmax(0,1fr)!important}
+   html body #cc77home#cc77home .cc77intro{
+    height:clamp(165px,45vw,220px)!important;
+    background-image:url('assets/cc-home-cinematic-mobile.avif')!important;
+   }
+   html body #cc77home#cc77home .cc77cards>article{border-radius:28px!important;min-height:0!important}
+   html body #cc77home#cc77home .cc77top{border-radius:0 0 22px 22px!important}
+  }
   `;
   document.body.appendChild(style);
  }
- ensureHomeCurrency();
- // V295: keep one mounted currency control in the homepage header.
- const currencyControls=[...document.querySelectorAll('#cc77home .cc77top [data-cc-currency-selector]')];
- currencyControls.slice(1).forEach(node=>node.remove());
+ // One real currency control, never inject a competing second select.
+ const top=document.querySelector('#cc77home .cc77top');
+ if(top){
+  const existing=top.querySelectorAll('select');
+  const currencySelects=[...existing].filter(sel=>
+   [...sel.options].some(opt=>opt.value==='PEN')&&
+   [...sel.options].some(opt=>opt.value==='USD'));
+  if(currencySelects.length===0)ensureHomeCurrency();
+  else {
+   const added=top.querySelector('.cc283-home-currency');
+   if(added && !added.contains(currencySelects[0]))added.remove();
+  }
+ }
  const footer=document.querySelector('#cc77home .cc77foot');
- if(footer && !footer.querySelector('.cc295-credit')){
+ if(footer&&!footer.querySelector('.cc295-credit')){
   const credit=document.createElement('div');
   credit.className='cc295-credit';
   credit.textContent='Creado por CLAN CARTAN';
