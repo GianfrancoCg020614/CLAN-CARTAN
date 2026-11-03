@@ -40,9 +40,11 @@ const probe=[
  'const row=[...$$(".cc171-person")].find(x=>x.textContent.includes("CLAN2"));',
  'const userActions=row?.querySelectorAll(".cc181-user-actions button")||[];',
  'const buttonsOk=userActions.length===2;',
+ 'const workspace=$(".cc166-workspace");row.style.marginTop="1400px";workspace.scrollTop=workspace.scrollHeight;const startedScrolled=workspace.scrollTop>0;',
  'userActions[0]?.click();',
  'setTimeout(()=>{try{',
  'const accountSelected=$("#cc166-content .cc181-assist-fields select")?.value==="22222222-2222-4222-8222-222222222222";',
+ 'const rechargeStartsAtTop=workspace.scrollTop===0;',
  'const noNameQuestion=!$("#cc166-content .cc181-assist-fields input[name=full_name]")&&!$("#cc166-content .cc181-assist-fields input[name=payer_name]");',
  'const bankerDisabled=$("#cc166-content")?.textContent.includes("Aprobación manual no disponible en el servidor");',
  'const form=$("#cc166-content .cc181-assist-fields");form?.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));',
@@ -54,7 +56,7 @@ const probe=[
  'const row2=[...$$(".cc171-person")].find(x=>x.textContent.includes("CLAN2"));',
  '[...row2.querySelectorAll(".cc181-user-actions button")].find(x=>x.textContent.includes("Otorgar bono"))?.click();',
  'const bonusSelected=$("#cc166-content .cc177-bonus-form select")?.value==="clan@test.local";',
- 'done({admin,homeGrants,noAdminShop,rows,buttonsOk,accountSelected,noNameQuestion,bankerDisabled,correctRequest,noCashCredit,bonusSelected});',
+ 'done({admin,homeGrants,noAdminShop,rows,buttonsOk,startedScrolled,rechargeStartsAtTop,accountSelected,noNameQuestion,bankerDisabled,correctRequest,noCashCredit,bonusSelected});',
  '}catch(e){fail(e)}},250);',
  '}catch(e){fail(e)}},260);',
  '}catch(e){fail(e)}},500);'
@@ -72,3 +74,4 @@ try{
  assert.equal(m[1],'pass',m[2]);
  console.log('PASS V181: botones de ADMIN, cuenta preseleccionada, recarga pendiente, bono sin dinero ficticio.');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+
