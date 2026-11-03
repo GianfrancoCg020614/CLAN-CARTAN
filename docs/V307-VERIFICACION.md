@@ -5,7 +5,7 @@ Sitio: https://www.clancartan.com/
 
 ## Diagnóstico
 
-Los registros de Supabase Auth confirman rechazos captcha_failed con invalid-input-response. Ese código puede corresponder a un proveedor o una clave que no coinciden con el widget; no prueba por sí solo que el token haya caducado. El widget público es Cloudflare Turnstile, por lo que el proveedor de Supabase debe ser Turnstile. El propietario indicó que seleccionó Turnstile y guardó el cambio. Falta confirmar un ingreso real correcto después de ese ajuste, sin revelar secretos. El conector no permite editar Auth config.
+Los registros de Supabase Auth confirman rechazos captcha_failed con invalid-input-response. Ese código puede corresponder a un proveedor o una clave que no coinciden con el widget; no prueba por sí solo que el token haya caducado. El widget público es Cloudflare Turnstile, por lo que el proveedor de Supabase debe ser Turnstile. El propietario indicó que seleccionó Turnstile y guardó el cambio. Después de ese ajuste, el propietario confirmó que ya puede ingresar. No se solicitaron ni revelaron secretos. El conector no permite editar Auth config.
 
 La prueba anterior de V306 confirmó que CAPTCHA era obligatorio, pero no validó un token legítimo ni identificó por sí sola el proveedor configurado.
 
@@ -27,4 +27,4 @@ La prueba anterior de V306 confirmó que CAPTCHA era obligatorio, pero no valid�
 - Regresión de regreso a portada: cerrar cada acceso debe dejar scrollTop=0.
 - Fixture sin red del ciclo del token: ausente, primer uso, segundo uso, caducidad, discrepancia del SDK y callbacks de error/expiración. Estos tokens de prueba solo se usan en un archivo temporal de la prueba, nunca en producción.
 
-El acceso con un token real y la confirmación de la configuración del proveedor requieren la prueba interactiva del propietario. No debe declararse resuelto el rechazo de su cuenta hasta confirmarlo. No se desactiva CAPTCHA ni se crean widgets/proyectos duplicados. No se modifican saldos, cuentas, membresías ni esquema.
+El propietario confirmó un ingreso real correcto tras seleccionar Turnstile. Esa comprobación es una confirmación manual del propietario; no un inicio de sesión ejecutado por el agente. La reutilización de un token real no se probó en el servidor; su rechazo en cliente se cubre con el fixture sin red. No se desactiva CAPTCHA ni se crean widgets/proyectos duplicados. No se modifican saldos, cuentas, membresías ni esquema.

@@ -5058,7 +5058,7 @@ if(invitationInUrl&&/^CLAN[1-9][0-9]{0,14}$/i.test(invitationInUrl)){
 }
 
 function setRegisterMode(next){
- registering=next;
+ registering=next;status.dataset.kind='neutral';
  // Los consentimientos solo son obligatorios al crear una cuenta.
  for(const id of ['cc-v81-terms','cc164-privacy'])document.getElementById(id).required=next;
  document.getElementById('cc-real-button').textContent=next?'Registrar mi cuenta':'Ingresar a CLAN CARTAN';
@@ -5080,7 +5080,7 @@ async function register(event){
  if(registrationPending)return;
  if(!ccParte1LegalReady()){ccParte1SyncRegisterButton();return;}
  registrationPending=true;ccParte1SyncRegisterButton();
- toggle.disabled=true;status.textContent='Registrando cuenta en Supabase…';
+ toggle.disabled=true;status.dataset.kind='loading';status.textContent='Creando tu cuenta…';
  try{
   const email=document.getElementById('cc-real-email').value.trim().toLowerCase();
   const password=document.getElementById('cc-real-pass').value;
@@ -5131,8 +5131,8 @@ async function register(event){
    document.getElementById('cc90-resend').style.display='block';
    status.textContent='Registro recibido. Escribe los 8 dígitos enviados a tu correo para confirmar tu cuenta.';
   }
- }catch(e){status.textContent=e.message||'No se pudo crear la cuenta. Revisa tus datos.';}
- finally{registrationPending=false;toggle.disabled=false;ccParte1SyncRegisterButton();window.cc123ResetCaptcha?.();}
+ }catch(e){status.dataset.kind='error';status.textContent=e.message||'No se pudo crear la cuenta. Revisa tus datos.';}
+ finally{registrationPending=false;toggle.disabled=false;ccParte1SyncRegisterButton();window.cc123ResetCaptcha?.('auth');}
 }
 // Login: los campos requeridos del registro permanecen ocultos y no deben bloquear el acceso.
 form.noValidate=true;
