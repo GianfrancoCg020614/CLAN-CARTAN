@@ -141,6 +141,26 @@ function init(){
    overflow-x:hidden!important;overscroll-behavior-x:none!important;
   }
 
+
+  #cc77home .cc299-mobile-hero-title{display:none!important}
+  @media(max-width:650px){
+   html body #cc77home#cc77home .cc77intro .cc299-mobile-hero-title{
+    position:absolute!important;z-index:3!important;inset:auto 8px 12px!important;
+    display:flex!important;flex-direction:column!important;gap:3px!important;
+    align-items:center!important;justify-content:center!important;
+    pointer-events:none!important;text-align:center!important;
+    text-shadow:0 3px 6px #000,0 0 15px #00baf7!important;
+   }
+   #cc77home .cc299-mobile-hero-title strong{
+    font-size:clamp(23px,7vw,34px)!important;font-weight:1000!important;
+    letter-spacing:.04em!important;color:white!important;line-height:1.05!important;
+   }
+   #cc77home .cc299-mobile-hero-title strong span{color:#35faff!important}
+   #cc77home .cc299-mobile-hero-title small{
+    color:#fff!important;font-weight:800!important;font-size:clamp(8px,2.5vw,11px)!important;
+    letter-spacing:.09em!important;
+   }
+  }
   /* V298: remove the global currency clone only while public homepage is visible. */
   body:has(#cc77home:not([style*="display: none"]):not([style*="display:none"])) [data-cc-currency-selector]:not(.cc283-home-currency){display:none!important}
   html body #cc77home#cc77home .cc77top{
@@ -242,6 +262,12 @@ function init(){
   picture.append(mobile,img);
   picture.style.cssText='position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;z-index:2!important;pointer-events:none!important;opacity:1!important';
   hero.prepend(picture);
+  const mobileTitle=document.createElement('div');
+  mobileTitle.className='cc299-mobile-hero-title';
+  mobileTitle.innerHTML='<strong>CLAN <span>CARTAN</span></strong><small>SOLUCIONES DIGITALES PARA TU DÍA A DÍA</small>';
+  mobileTitle.setAttribute('aria-hidden','true');
+  hero.appendChild(mobileTitle);
+
   img.addEventListener('load',()=>{
    hero.classList.add('cc297-hero-loaded');
   });
