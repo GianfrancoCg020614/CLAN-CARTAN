@@ -40,6 +40,7 @@ assert.ok(!sql.includes('balance_pen'),'Invitation must never move money');
 has(old,'USDT');
 has(html,'scripts/v145-commerce-guard.js?v=145b');
 assert.match(html,/scripts\/v158-mi-cochera\.js\?v=\d+/, 'MI COCHERA: debe estar cargado el módulo');
-has(html,'scripts/v127-wallet-switch.js?v=1583');
+assert.ok(!html.includes('scripts/v127-wallet-switch.js'),'No volver a cargar la interfaz de tres billeteras retirada');
 console.log('PASS V160: STREAM BULLS brand, personalized signup links, attribution, old financial protections intact.');
+
 

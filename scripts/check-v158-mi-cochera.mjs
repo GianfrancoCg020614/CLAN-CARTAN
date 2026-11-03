@@ -24,10 +24,12 @@ required(script,'rpc/mc_ensure_account');
 required(script,'rpc/mc_sync_rents');
 required(script,'rpc/mc_create_cart');
 required(script,'rpc/mc_change_cart_state');
-required(script,'rpc/mc_admin_grant_bonus');
+required(fs.readFileSync('scripts/v166-portal-roles.js','utf8'),'rpc/mc_admin_grant_bonus');
+assert.ok(!script.includes('mc158grant'),'No duplicar el formulario de bonos ADMIN');
 required(script,'rpc/mc_activate_with_bonus');
 required(script,'mc-verify-dni');
-required(script,'mc_transfer_real_balance');
+assert.ok(!script.includes('mc_transfer_real_balance'),'MI COCHERA no debe ofrecer transferencias manuales');
+required(script,'Billetera única');
 required(script,'mc_configure_currency');
 required(script,'mi-cochera-logo.svg');
 required(xfer,"'MI_COCHERA'");required(xfer,"p_request uuid");
@@ -49,3 +51,4 @@ assert.ok(!/document\.(?:cookie|write)/.test(script),'No accidental session mani
 const cardCount=(html.match(/cc158-cochera-card/g)||[]).length;
 assert.equal(cardCount,1,'Only one new service card');
 console.log('PASS V158: portal, 3 modules, migration RLS, bonus protections, DNI, V157.1 preserved');
+

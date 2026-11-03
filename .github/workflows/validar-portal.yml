@@ -46,9 +46,9 @@ jobs:
         run: |
           node --check scripts/v158-mi-cochera.js
           node scripts/check-v158-mi-cochera.mjs
-      - name: Verificar transferencias reales entre tres billeteras sin bonos
+      - name: Billetera única y trazabilidad contable histórica
         run: |
-          node --check scripts/v127-wallet-switch.js
+          node --check scripts/v166-portal-roles.js
           node scripts/check-v158-three-wallet-transfers.mjs
       - name: Verificar identidad COBRA YA y códigos de referido COCHERA V159
         run: node scripts/check-v159-cobra-and-codes.mjs
@@ -125,6 +125,7 @@ jobs:
           run_check node scripts/test-v309-operations-browser.mjs
           run_check node scripts/test-v310-seller-browser.mjs
           run_check node scripts/test-v311-business-dialogs-browser.mjs
+          run_check node scripts/test-v312-cleanup-browser.mjs
           run_check node scripts/test-v166-three-roles-browser.mjs
           run_check node scripts/test-v167-checkout-browser.mjs
           run_check node scripts/test-v167-financial-integrity.mjs

@@ -8,8 +8,8 @@ const sql=read("supabase/migrations/20261018221000_v132_wallet_movements.sql");
 const html=read("index.html");
 new Script(js,{filename:"v132-wallet-movements.js"});
 assert.match(html,/content="V[0-9]+-20[0-9]{6}"/);
-assert.ok(html.includes('scripts/v132-wallet-movements.js?v=135'));
-assert.ok(html.includes('styles/v132-wallet-movements.css?v=135'));
+assert.match(html,/scripts\/v132-wallet-movements\.js\?v=\d+/);
+assert.match(html,/styles\/v132-wallet-movements\.css\?v=\d+/);
 for(const id of ["cc132search","cc132service","cc132perpage","cc132pdf","cc132excel","cc132tbody","cc132state","cc132reload"]){
  assert.ok(js.includes(id),"Falta un control de historial "+id);
 }

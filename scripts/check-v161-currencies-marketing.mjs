@@ -16,7 +16,7 @@ test(html,'scripts/v161-global-currency-flags.js?v=161');
 test(html,'scripts/v161-marketing-account.js?v=161');
 test(html,'cc161MountMarketingConsent?.()');
 assert.match(html,/scripts\/v160-invitation-register\.js\?v=\d+/, 'El script de invitaciones debe estar cargado con una versión de caché');
-test(html,'scripts/v127-wallet-switch.js?v=1583');
+assert.ok(!html.includes('scripts/v127-wallet-switch.js'),'No volver a cargar la interfaz de tres billeteras retirada');
 test(html,'scripts/v145-commerce-guard.js?v=145b');
 test(html,'id="cc-v81-terms"');
 test(html,'cc110-invite');

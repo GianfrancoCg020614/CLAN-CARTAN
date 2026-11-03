@@ -9,7 +9,7 @@ const $=id=>document.getElementById(id);
 const types={RECHARGE:'Recarga',TRANSFER:'Transferencia',PURCHASE:'Compra',SUBSCRIPTION:'Suscripción',REFUND:'Reembolso'};
 const statuses={CREDITED:'Acreditada',COMPLETED:'Liberado',PENDING:'Pendiente',
  EXPIRED:'Expirada',FAILED:'Fallida',REJECTED:'Rechazada',DISPUTED:'En disputa',VERIFIED:'Verificada'};
-const services={COBRA_YA:'COBRA YA',STREAM_BULLS:'STREAM BULL’S'};
+const services={COBRA_YA:'COBRA YA',STREAM_BULLS:'STREAM BULL’S',MI_COCHERA:'MI COCHERA',MI_ALQUILER:'MI ALQUILER'};
 const fmt=n=>'S/ '+Math.abs(Number(n||0)).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const datetime=s=>{
  const d=new Date(s);
@@ -231,10 +231,10 @@ function mount(){
  if($('cc132movements'))return;
  const host=$('cc80wallet')||$('cc77home');
  if(!host)return;
- const sec=document.createElement('section');sec.id='cc132movements';sec.className='cc132-movements';
+ const sec=document.createElement('dialog');sec.id='cc132movements';sec.className='cc132-movements';sec.hidden=true;sec.setAttribute('aria-label','Movimientos y exportaciones de la billetera');
  sec.innerHTML=
  '<div class="cc132-head"><div><span class="cc132-label">CLAN CARTAN · HISTORIAL VERIFICADO</span>'+
- '<h3>Movimientos</h3><p>Recargas, reembolsos, transferencias y gastos de tus billeteras reales.</p></div>'+
+ '<h3>Movimientos</h3><p>Recargas, reembolsos y consumos de tu billetera única. El historial conserva las transferencias anteriores.</p></div>'+
  '<div class="cc132-exports"><button id="cc132pdf" type="button">PDF</button>'+
  '<button id="cc132excel" type="button">Excel (CSV)</button></div></div>'+
  '<div class="cc135-summary" aria-label="Resumen de movimientos filtrados">'+
@@ -244,8 +244,8 @@ function mount(){
  '<div><small>Neto de movimientos</small><strong id="cc135net">S/ 0.00</strong></div></div>'+
  '<p id="cc135summaryNote" class="cc135-sum-note">Resumen del historial cargado; no es el saldo disponible.</p>'+
  '<div class="cc132-tools"><label>Buscar movimientos<input id="cc132search" type="search" placeholder="Fecha, importe, descripción o referencia"></label>'+
- '<label>Billetera<select id="cc132service"><option value="ALL">Ambas billeteras</option><option value="COBRA_YA">COBRA YA</option>'+
- '<option value="STREAM_BULLS">STREAM BULL’S</option></select></label>'+
+ '<label>Negocio de origen<select id="cc132service"><option value="ALL">Todos los negocios</option><option value="COBRA_YA">COBRA YA</option>'+
+ '<option value="STREAM_BULLS">STREAM BULL’S</option><option value="MI_COCHERA">MI COCHERA</option><option value="MI_ALQUILER">MI ALQUILER</option></select></label>'+
  '<label>Tipo<select id="cc135type"><option value="ALL">Todos</option>'+
  '<option value="RECHARGE">Recargas</option><option value="PURCHASE">Compras</option>'+
  '<option value="SUBSCRIPTION">Suscripciones</option><option value="REFUND">Reembolsos</option>'+
@@ -261,10 +261,15 @@ function mount(){
  '<div class="cc132-pages"><button id="cc132prev" type="button">Anterior</button><span id="cc132pageInfo"></span>'+
  '<button id="cc132next" type="button">Siguiente</button></div></div>'+
  '<small class="cc132-note">Solo movimientos reales. Los depósitos pendientes no aumentan el saldo. '+
- 'Las compras y suscripciones de prueba se mantienen separadas. El banco emisor solo aparece si fue verificado por el proveedor. '+
+ 'Los bonos promocionales se gestionan por separado. El banco emisor solo aparece si fue verificado por el proveedor. '+
  'Los reembolsos son saldo interno, no retiros. Ver genera una constancia interna, no una factura SUNAT. '+
  'PDF abre impresión del navegador; Excel descarga CSV compatible.</small>';
- host.appendChild(sec);
+ document.body.appendChild(sec);
+ const close=document.createElement('button');close.id='cc132close';close.type='button';close.textContent='← Volver a mi billetera';
+ sec.prepend(close);
+ close.addEventListener('click',()=>sec.close());
+ sec.addEventListener('cancel',event=>{event.preventDefault();sec.close();});
+ sec.addEventListener('close',()=>{sec.hidden=true;window.cc166OpenWallet?.('movements');});
  const balance=$('cc123realBalances');
  if(balance){
   const b=document.createElement('button');b.type='button';b.id='cc132jump';b.textContent='Ver movimientos';
@@ -289,9 +294,9 @@ function mount(){
 }
 function open(service){
  if(!mine()){if(typeof window.cc77Auth==='function')window.cc77Auth(false);return;}
- if(window.cc80?.open)window.cc80.open();
  if(!$('cc132movements'))mount();
  if(!$('cc132movements'))return;
+ const view=$('cc132movements');view.hidden=false;if(!view.open)view.showModal();$('cc132close')?.focus();
  $('cc132service').value=permitted(service)?service:'ALL';
  if(loadedUser!==currentUser()){loadedRows=[];requested=false;}
  page=1;render();
