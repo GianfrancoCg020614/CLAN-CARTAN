@@ -123,6 +123,7 @@ jobs:
           run_check node scripts/test-v307-captcha-lifecycle-browser.mjs
           run_check node scripts/test-v308-panel-browser.mjs
           run_check node scripts/test-v309-operations-browser.mjs
+          run_check node scripts/test-v310-seller-browser.mjs
           run_check node scripts/test-v166-three-roles-browser.mjs
           run_check node scripts/test-v167-checkout-browser.mjs
           run_check node scripts/test-v167-financial-integrity.mjs
