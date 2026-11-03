@@ -1,0 +1,13 @@
+/* V265: imagen original SIN capas superpuestas.
+   El DOM conserva los eventos; sus superficies visuales no se pintan. */
+@media(min-width:1200px){
+html body #cc77home .cc77wrap{background:url('../assets/Panel%20Ne%C3%B3n%20de%20Soluciones%20Digitales.png') center top/100% 100% no-repeat!important;isolation:isolate!important}
+html body #cc77home .cc77wrap::before,html body #cc77home .cc77wrap::after{display:none!important;content:none!important}
+html body #cc77home .cc77top{opacity:0!important;background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;pointer-events:none!important}
+html body #cc77home .cc77top .cc77actions,html body #cc77home .cc77top .cc98-guest-action,html body #cc77home .cc77top #cc95-user,html body #cc77home .cc77top #cc92-admin-button{pointer-events:auto!important}
+html body #cc77home .cc77intro{opacity:0!important;background:transparent!important;border:0!important;box-shadow:none!important;pointer-events:none!important}
+html body #cc77home .cc77cards{background:transparent!important;border:0!important;box-shadow:none!important;pointer-events:none!important}
+html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{opacity:0!important;visibility:visible!important;pointer-events:none!important}
+html body #cc77home .cc77cards>article .cc77actions,html body #cc77home .cc77cards>article button{pointer-events:auto!important;visibility:visible!important}
+html body #cc77home .cc77cards>article button:focus-visible{outline:3px solid #fff!important}
+}
