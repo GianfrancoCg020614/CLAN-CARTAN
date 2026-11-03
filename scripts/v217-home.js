@@ -150,6 +150,9 @@ function init(){
    border:0!important;outline:0!important;box-shadow:none!important;
    margin-top:6px!important;margin-bottom:12px!important;
   }
+  html body #cc77home#cc77home .cc77intro{position:relative!important;overflow:hidden!important;isolation:isolate!important}
+  html body #cc77home#cc77home .cc77intro.cc297-hero-loaded>h1,
+  html body #cc77home#cc77home .cc77intro.cc297-hero-loaded>p{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
   html body #cc77home#cc77home .cc77intro::before,
   html body #cc77home#cc77home .cc77intro::after{content:none!important;display:none!important}
   html body #cc77home#cc77home .cc77cards{
@@ -193,6 +196,27 @@ function init(){
   }
   `;
   document.body.appendChild(style);
+ }
+ // V297: render the real hero artwork as an image, not a fragile CSS background.
+ const hero=document.querySelector('#cc77home .cc77intro');
+ if(hero&&!hero.querySelector('.cc297-hero-picture')){
+  const picture=document.createElement('picture');
+  picture.className='cc297-hero-picture';
+  const mobile=document.createElement('source');
+  mobile.media='(max-width:650px)';
+  mobile.srcset='assets/cc-home-cinematic-mobile.avif';
+  const img=document.createElement('img');
+  img.src='assets/cc-home-cinematic-hero.avif';
+  img.alt='CLAN CARTAN — soluciones digitales para tu día a día';
+  img.decoding='async';
+  img.style.cssText='display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;opacity:1!important;visibility:visible!important';
+  picture.append(mobile,img);
+  picture.style.cssText='position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;z-index:2!important;pointer-events:none!important;opacity:1!important';
+  hero.prepend(picture);
+  img.addEventListener('load',()=>{
+   hero.classList.add('cc297-hero-loaded');
+  });
+  if(img.complete&&img.naturalWidth)hero.classList.add('cc297-hero-loaded');
  }
  // One real currency control, never inject a competing second select.
  const top=document.querySelector('#cc77home .cc77top');
