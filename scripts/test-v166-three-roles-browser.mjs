@@ -57,9 +57,21 @@ try{
    'const checks={rendered,zIndex,launcherInstalled,closes,reopens,oldHome,actualBalance,businessCount,scopedBusiness,controlsOK,movementMenuCount,noLegacyAdmin,noGlobalTabs,roleDashboardValid:'+ (mode==='super'?'superCenter':mode==='pending-super'?'pendingSuperNotice':'!superCenter&&!pendingSuperNotice')+',limitedRoleMenus:' + (mode==='affiliate'?'minimalAffiliateMenu':mode.startsWith('pending')?'pendingNoAdvanced':'true')+',roleValid:',
    mode==='admin'?'role.includes("ADMIN"),adminValid:menuAdmin,superValid:!menuPublish':mode==='super'?'role.includes("SÚPER"),adminValid:!menuAdmin,superValid:menuPublish':mode==='reseller'?'role.includes("RESELLER"),adminValid:!menuAdmin,superValid:!menuPublish':mode==='pending-super'?'role.includes("SÚPER RESELLER")&&role.includes("MEMBRESÍA PENDIENTE"),adminValid:!menuAdmin,superValid:!menuPublish':mode==='pending-reseller'?'role.includes("RESELLER")&&role.includes("MEMBRESÍA PENDIENTE"),adminValid:!menuAdmin,superValid:!menuPublish':'role.includes("AFILIADO"),adminValid:!menuAdmin,superValid:!menuPublish',
    ',mobileWidth:document.documentElement.scrollWidth<=innerWidth+3};',
+   "const workspace=document.querySelector(\".cc166-workspace\"),content=x(\"cc166-content\");content.style.minHeight=\"2200px\";",
+   "function startsAtTop(action){workspace.scrollTop=500;const scrolled=workspace.scrollTop>0;action();return scrolled&&workspace.scrollTop===0;}",
+   "const labels=[...document.querySelectorAll(\".cc166-navitem\")].map(b=>b.textContent).filter(label=>!label.includes(\"Catálogo\"));",
+   "checks.navigationStartsAtTop=labels.every(label=>startsAtTop(()=>[...document.querySelectorAll(\".cc166-navitem\")].find(b=>b.textContent===label).click()));",
+   "[...document.querySelectorAll(\".cc166-navitem\")].find(b=>b.textContent.includes(\"Billetera\"))?.click();",
+   "const tabs=[...document.querySelectorAll(\".cc175-tab\")].map(b=>b.textContent);checks.walletTabsStartAtTop=tabs.length>0&&tabs.every(label=>startsAtTop(()=>[...document.querySelectorAll(\".cc175-tab\")].find(b=>b.textContent===label).click()));",
+   "[...document.querySelectorAll(\".cc166-navitem\")].find(b=>b.textContent.includes(\"Negocios\"))?.click();",
+   "checks.businessTabsStartAtTop=[0,1,2,3].every(index=>startsAtTop(()=>document.querySelectorAll(\".cc167-tab\")[index].click()));",
+   "checks.backStartsAtTop=startsAtTop(()=>document.querySelector(\".cc177-back\").click());",
+   "[...document.querySelectorAll(\".cc166-navitem\")].find(b=>b.textContent.includes(\"Inicio\")||b.textContent.includes(\"Resumen\"))?.click();",
+   "workspace.scrollTop=400;const refreshPosition=workspace.scrollTop;window.cc166RefreshPanel();",
+   "setTimeout(()=>{checks.refreshKeepsScroll=refreshPosition>0&&workspace.scrollTop===refreshPosition;",
    'const n=document.createElement("output");n.id="cc166-smoke";',
    'n.dataset.status=Object.values(checks).every(Boolean)?"pass":"fail";n.textContent=JSON.stringify(checks);document.body.append(n);',
-   '},700);'
+   '},160);},700);'
   ].join('\n');
   const html=['<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">','<style>',css,'</style></head><body>',home,'<script>',setup,'</script>','<script>',js,'</script>','<script>',check,'</script></body></html>'].join('\n');
   const file=path.join(dir,mode+'.html');fs.writeFileSync(file,html);
