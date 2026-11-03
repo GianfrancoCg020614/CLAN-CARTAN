@@ -47,3 +47,5 @@
 /* V309: filtro único de pedidos; no añade otra barra de acciones. */
 #cc166-panel .cc309-sales-filter{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:13px;margin:16px 0}
 #cc166-panel .cc309-sales-filter select{min-height:44px;max-width:100%;border:1px solid #3e6878;border-radius:9px;background:#102331;color:#e9faff;padding:9px 12px;font:inherit}
+#cc166-panel .cc167-order-row>div{min-width:0;display:grid;gap:6px}
+#cc166-panel .cc167-order-row strong,#cc166-panel .cc167-order-row small{overflow-wrap:anywhere}
