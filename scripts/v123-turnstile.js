@@ -46,7 +46,7 @@ function mount(){
  const widget={id:undefined,token:'',wrap};widgets.set(dest.key,widget);
  load().then(()=>{
   if(!target.isConnected)return;
-  widget.id=window.turnstile.render(target,{sitekey,language:'es',theme:'auto',
+  widget.id=window.turnstile.render(target,{sitekey,language:'es',theme:document.documentElement.dataset.ccTheme==='light'?'light':'dark',
    size:wrap.clientWidth<300?'compact':'flexible',
    callback:token=>{widget.token=token;note.textContent='Verificación de seguridad';},
    'expired-callback':()=>{widget.token='';note.textContent='La verificación venció. Complétala nuevamente.';},
