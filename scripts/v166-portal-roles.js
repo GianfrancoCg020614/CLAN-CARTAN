@@ -37,16 +37,21 @@ function restorePanelState(uid){
   if(saved?.uid!==uid)return null;
   const allowed=['home','attention','approvals','bonuses','wallet','businesses','movements',
    'orders','publish','sales','admin','profile','shop'];
-  const v=String(saved.view||'');
-  if(!allowed.includes(v)&&!/^business:(STREAM_BULLS|COBRA_YA|MI_COCHERA|MI_ALQUILER)$/.test(v))return null;
   const tabs=['summary','manual','automatic','movements','recharges','audit'];
-  return {view:v,walletTab:tabs.includes(saved.walletTab)?saved.walletTab:'summary',open:!!saved.open};
+  const normalize=state=>{
+   const v=String(state?.view||'');
+   if(!allowed.includes(v)&&!/^business:(STREAM_BULLS|COBRA_YA|MI_COCHERA|MI_ALQUILER)$/.test(v))return null;
+   return {view:v,walletTab:tabs.includes(state.walletTab)?state.walletTab:'summary'};
+  };
+  const current=normalize(saved);if(!current)return null;
+  const history=Array.isArray(saved.history)?saved.history.slice(-30).map(normalize).filter(Boolean):[];
+  return {...current,open:!!saved.open,history};
  }catch(_){return null}
 }
 function savePanelState(){
  if(!user||!app||!session()?.jwt)return;
  try{sessionStorage.setItem(PANEL_CONTEXT,JSON.stringify({
-  uid:user,view,walletTab,open:!app.hidden
+  uid:user,view,walletTab,open:!app.hidden,history:navigationHistory.slice(-30)
  }))}catch(_){}
 }
 function reset(){
@@ -299,7 +304,7 @@ function adminAttention(page){
  page.append(wrap);
  page.append(make('p','cc166-note','Las cifras de pedidos y publicaciones reflejan los registros consultados. Las recargas no modifican saldos hasta su verificación bancaria.'));
 }
-function finance(tab){walletTab=tab;view='wallet';render(true);}
+function finance(tab){if(view!=='wallet'||walletTab!==tab)navigationHistory.push({view,walletTab});walletTab=tab;view='wallet';render(true);}
 function overview(page){
  if(data.admin){adminHome(page);return;}
  const balance=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
@@ -2039,7 +2044,7 @@ function sync(){
  const sameUser=s.userId===user,previouslyHidden=app?.hidden===true;
  const previous=restorePanelState(s.userId);
  reset();user=s.userId;token=s.jwt;shell();
- if(previous){view=previous.view;walletTab=previous.walletTab;app.hidden=!previous.open;}
+ if(previous){view=previous.view;walletTab=previous.walletTab;navigationHistory=previous.history;app.hidden=!previous.open;}
  else app.hidden=!!(sameUser&&previouslyHidden);
  render();void load();
 }
