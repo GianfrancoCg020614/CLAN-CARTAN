@@ -131,6 +131,22 @@ function ensureHomeCurrency(){
 
 function init(){
 
+ const fields=document.getElementById('cc-v81-fields');
+ const updateAuthHeading=()=>{
+  const signup=fields&&getComputedStyle(fields).display!=='none';
+  const heading=document.querySelector('#cc-real-login h2');
+  if(heading)heading.textContent=signup?'Crear tu cuenta':'Iniciar sesión';
+ };
+ if(fields){new MutationObserver(updateAuthHeading).observe(fields,{attributes:true,attributeFilter:['style']});updateAuthHeading();}
+ const passwordToggle=document.getElementById('cc305-password-toggle');
+ if(passwordToggle&&!passwordToggle.dataset.bound){
+  passwordToggle.dataset.bound='true';
+  passwordToggle.addEventListener('click',()=>{
+   const input=document.getElementById('cc-real-pass');const show=input.type==='password';
+   input.type=show?'text':'password';passwordToggle.textContent=show?'Ocultar':'Mostrar';
+   passwordToggle.setAttribute('aria-pressed',String(show));
+  });
+ }
  // V304: visual rules live in styles/v217-home.css.
  // V303: two-tone live header typography, without replacing login or navigation controls.
  const brandText=document.querySelector('#cc77home .cc77brand > span:last-child');
