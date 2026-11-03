@@ -1,4 +1,5 @@
 // Pruebas aisladas: todas las escrituras se simulan en memoria, sin Supabase.
+import fs from 'node:fs';
 import {panelFixture} from './fixture-v308-panel.mjs';
 export function operationsFixture(){
  const html=panelFixture('admin'),last=html.lastIndexOf('<script>');
@@ -44,7 +45,10 @@ export function operationsFixture(){
  const review=q('.cc176-review');review.open=true;review.querySelector('input[aria-label="ID del depósito bancario verificado"]').value='FIXTURE-ONLY-123';review.querySelector('input[type=checkbox]').checked=true;all('.cc176-review button').find(x=>x.textContent==='Aprobar y acreditar').click();await wait(100);
  checks.decisionMessageSurvivesRefresh=q('#cc166-content').textContent.includes('Recarga verificada y acreditada por el servidor.');
  checks.queueUpdated=!q('.cc176-recharge-record');
- go('Supervisar pedidos');const filter=q('[aria-label="Filtrar pedidos por estado"]');checks.ordersTranslated=q('#cc166-content').textContent.includes('Pendiente de entrega')&&!q('#cc166-content').textContent.includes('PAID_AWAITING_DELIVERY');
+ go('Supervisar pedidos');await wait(50);
+ checks.reportsCollapsed=q('#cc194-liquidaciones')?.open===false;
+ checks.menuNameStable=all('.cc166-navitem').some(x=>x.textContent.includes('Supervisar pedidos'));
+ const filter=q('[aria-label="Filtrar pedidos por estado"]');checks.ordersTranslated=q('#cc166-content').textContent.includes('Pendiente de entrega')&&!q('#cc166-content').textContent.includes('PAID_AWAITING_DELIVERY');
  filter.value='FULFILLED';filter.dispatchEvent(new Event('change'));
  checks.orderFilter=all('.cc167-order-row').length===1&&q('.cc167-order-row').textContent.includes('fixture-done');
  window.cc166RefreshPanel();await wait(150);checks.filterPreserved=q('[aria-label="Filtrar pedidos por estado"]').value==='FULFILLED'&&all('.cc167-order-row').length===1;
@@ -54,5 +58,5 @@ export function operationsFixture(){
  }catch(e){checks.error=String(e.stack||e)}
  const output=document.createElement('output');output.id='cc309-result';output.dataset.status=Object.values(checks).every(x=>x===true)?'pass':'fail';output.textContent=JSON.stringify(checks);document.body.append(output);
 })();`;
- return html.slice(0,last)+'<script>'+setup+'</script><script>'+probe+'</script></body></html>';
+ return html.slice(0,last)+'<script>'+setup+'</script><script>'+fs.readFileSync('scripts/v194-sales.js','utf8')+'</script><script>'+probe+'</script></body></html>';
 }

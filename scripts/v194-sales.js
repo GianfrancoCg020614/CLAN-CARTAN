@@ -16,10 +16,11 @@ function mount(){
  const heading=container.querySelector('.cc166-section-title h2')?.textContent||'';
  if(!/^(Supervisión de pedidos|Ventas y entregas|Liquidación de ventas|Mis ventas)/.test(heading))return;
  const admin=heading.includes('Supervisión')||heading.includes('Liquidación de ventas');
- const node=dom('section');node.id='cc194-liquidaciones';node.className='cc166-card cc194-card';
+ const node=dom('details');node.id='cc194-liquidaciones';node.className='cc166-card cc194-card';
  const heading2=dom('h2',admin?'Liquidación de ventas por SÚPER RESELLER':'Detalle y control de mis ventas');
  const sub=dom('p',admin?'ADMIN: filtra por vendedor, registra liquidaciones y pagos reales ya efectuados.':'Consulta solo tus ventas y los pagos que el ADMIN ha registrado.');
- node.append(heading2,sub);
+ const summary=dom('summary',admin?'Liquidaciones y reportes':'Reporte de ventas');
+ node.append(summary,heading2,sub);
  const form=dom('div');form.className='cc194-form';
  let sellers=dom('select'),selected=session.userId;
  if(admin){const label=dom('label','SÚPER RESELLER');sellers.setAttribute('aria-label','Vendedor');label.append(sellers);form.append(label);sellers.append(dom('option','Cargando vendedores…'));}
@@ -36,12 +37,7 @@ function mount(){
  actions.append(loadButton);node.append(form,actions,message,results);
  const oldLabel=[...container.querySelectorAll('.cc166-metric small')].find(e=>e.textContent.includes('Comisión ADMIN sobre ganancia'));
  if(oldLabel)oldLabel.textContent='Comisión ADMIN sobre venta';
- const navigation=by('cc166-nav');
- for(const button of navigation?.querySelectorAll('button')||[]){
-  const text=[...button.querySelectorAll('span')].find(e=>e.textContent==='Supervisar pedidos');
-  if(text)text.textContent='Liquidación de ventas';
- }
- container.insertBefore(node,container.children[1]||null);
+ container.append(node);
  function accountSelected(){return admin?sellers.value:session.userId;}
  const alive=()=>node.isConnected&&window.CC_V53_SESSION?.userId===session.userId;
  const datesOK=()=>start.value&&end.value&&end.value>=start.value&&
@@ -138,7 +134,7 @@ function download(rows,seller){
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
 function init(){
- const style=dom('style');style.textContent='.cc194-card{margin-top:20px}.cc194-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:12px 0}.cc194-form label{display:flex;flex-direction:column;gap:6px;font-size:13px}.cc194-form input,.cc194-form select{width:100%;padding:10px;border-radius:8px}.cc194-actions{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}.cc194-stats{display:grid;gap:9px;margin:12px 0}.cc194-line{display:flex;justify-content:space-between;gap:12px}.cc194-sale{border-top:1px solid #7775;padding:12px 2px}.cc194-sale p{margin:6px 0}.cc194-sale small{display:block;overflow-wrap:anywhere}@media print{body *{visibility:hidden!important}#cc194-liquidaciones,#cc194-liquidaciones *{visibility:visible!important}#cc194-liquidaciones{position:absolute;top:0;left:0;width:100%;background:white;color:black}#cc194-liquidaciones button,#cc194-liquidaciones input,#cc194-liquidaciones select{display:none!important}}';
+ const style=dom('style');style.textContent='.cc194-card{margin-top:20px}.cc194-card>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700}.cc194-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:12px 0}.cc194-form label{display:flex;flex-direction:column;gap:6px;font-size:13px}.cc194-form input,.cc194-form select{width:100%;padding:10px;border-radius:8px}.cc194-actions{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}.cc194-stats{display:grid;gap:9px;margin:12px 0}.cc194-line{display:flex;justify-content:space-between;gap:12px}.cc194-sale{border-top:1px solid #7775;padding:12px 2px}.cc194-sale p{margin:6px 0}.cc194-sale small{display:block;overflow-wrap:anywhere}@media print{body *{visibility:hidden!important}#cc194-liquidaciones,#cc194-liquidaciones *{visibility:visible!important}#cc194-liquidaciones{position:absolute;top:0;left:0;width:100%;background:white;color:black}#cc194-liquidaciones button,#cc194-liquidaciones input,#cc194-liquidaciones select{display:none!important}}';
  document.head.append(style);
  new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;mount();});}).observe(document.body,{subtree:true,childList:true});
  mount();

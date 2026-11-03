@@ -9,6 +9,7 @@ Sitio: https://www.clancartan.com/
 - El formulario de bonos conserva destinatario, negocio, importe y motivo durante actualizaciones. La recarga conserva incluso un importe incompleto mientras se escribe.
 - Ambos formularios muestran el estado de procesamiento y mantienen el bloqueo de envío durante un redibujado; al terminar desbloquean el botón actual, incluso si el elemento original fue sustituido.
 - El resultado de aprobar/rechazar una recarga se muestra después de actualizar la cola, evitando que la actualización lo borre.
+- El módulo de liquidaciones conserva «Supervisar pedidos» en el menú y sus reportes quedan en un desplegable al final, después de los pedidos. No se eliminan exportaciones ni controles de liquidación.
 - La referencia opcional de recarga comunica su longitud válida (4–120 caracteres) en lugar de mostrar un error de importe.
 - Pedidos muestra estados en español y un único selector Todos/Pendientes/Entregados/Reembolsados. El filtro permanece durante actualizaciones. Las métricas conservan su alcance total y no se modifican reglas contables.
 

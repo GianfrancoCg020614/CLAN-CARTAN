@@ -175,7 +175,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  if(document.getElementById('cc194-liquidation-script'))return;
  const script=document.createElement('script');
  script.id='cc194-liquidation-script';
- script.src='scripts/v194-sales.js?v=1941';
+ script.src='scripts/v194-sales.js?v=309';
  script.async=false;
  document.head.append(script);
 })();
