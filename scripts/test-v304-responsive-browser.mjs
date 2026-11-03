@@ -77,4 +77,4 @@ try{
  assert.deepEqual(badResources,[],'Recursos locales rotos');assert.deepEqual(errors,[],'Excepciones JavaScript');
  fs.writeFileSync('artifacts/v304/results.json',JSON.stringify({results,publicFlows:6,themePersistence:true,currencyPersistence:true,invalidEmail:true,badResources,errors},null,2));
  console.log('PASS V304: 10 vistas reales, persistencia, 6 accesos protegidos, catálogo y consola; sin escrituras financieras.');
-}finally{ws?.close();browser.kill('SIGTERM');server.close();for(let i=0;i<20&&browser.exitCode===null;i++)await pause(50);if(browser.exitCode===null)browser.kill('SIGKILL');fs.rmSync(profile,{recursive:true,force:true});}
+}finally{ws?.close();browser.kill('SIGTERM');server.close();for(let i=0;i<20&&browser.exitCode===null;i++)await pause(50);if(browser.exitCode===null)browser.kill('SIGKILL');fs.rmSync(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100});}
