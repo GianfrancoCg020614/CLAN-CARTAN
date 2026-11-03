@@ -7,7 +7,7 @@ Sitio oficial: https://www.clancartan.com/
 ## Cambios
 
 - Una hoja de estilos para la portada y sus dos temas, retirando capas históricas de V217–V303 e inyección visual desde JavaScript.
-- Título y subtítulo visibles en HTML; ilustración panorámica sin texto incrustado y marcas con transparencia real.
+- Título y subtítulo visibles en HTML; ilustración panorámica sin texto incrustado, paisaje nocturno de montañas y pinos y marcas con transparencia real.
 - Cuatro tarjetas funcionales: cuatro columnas en escritorio, dos en tablet y una en móvil. Un selector de moneda visible.
 - Cabecera adaptable sin solapamientos y botones uniformes; contraste corregido en modo día.
 - Panel sin accesos duplicados en Resumen; tareas solo cuando existen pendientes; acciones por usuario conservadas.

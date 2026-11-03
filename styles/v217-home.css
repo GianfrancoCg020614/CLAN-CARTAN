@@ -1,7 +1,7 @@
 @layer cc-public-home {
 /* V304: one public-home stylesheet. Important declarations bridge existing business
    styles; theme tokens and two breakpoints replace the former appended patches. */
-#cc77home.cc304-home{--text:#f4fbff;--muted:#e2f0f8;--accent:#ffdc36;--surface:linear-gradient(165deg,#043148f5,#001325fa 75%);--header:linear-gradient(110deg,#00101cf5,#023045f5,#00101cf5);--landscape:url('../assets/clan-neon-landscape-v256.svg');--hero:url('../assets/hero-v304.avif');position:fixed!important;inset:0!important;z-index:2147483638;width:100%!important;max-width:100%!important;min-height:100dvh!important;overflow-x:clip!important;overflow-y:auto!important;overscroll-behavior:contain;background:#020d1e var(--landscape) center/cover no-repeat!important;color:var(--text)!important;font-family:Arial,system-ui,sans-serif;scrollbar-width:thin;scrollbar-color:#16cfdd transparent}
+#cc77home.cc304-home{--text:#f4fbff;--muted:#e2f0f8;--accent:#ffdc36;--surface:linear-gradient(165deg,#043148f5,#001325fa 75%);--header:linear-gradient(110deg,#00101cf5,#023045f5,#00101cf5);--landscape:url('../assets/night-landscape-v304.avif');--hero:url('../assets/hero-v304.avif');position:fixed!important;inset:0!important;z-index:2147483638;width:100%!important;max-width:100%!important;min-height:100dvh!important;overflow-x:clip!important;overflow-y:auto!important;overscroll-behavior:contain;background:#020d1e var(--landscape) center/cover no-repeat!important;color:var(--text)!important;font-family:Arial,system-ui,sans-serif;scrollbar-width:thin;scrollbar-color:#16cfdd transparent}
 #cc77home.cc304-home *{box-sizing:border-box}
 body:has(#cc77home.cc304-home:not([style*="display: none"]):not([style*="display:none"])){overflow:hidden!important}
 body:has(#cc77home.cc304-home:not([style*="display: none"]):not([style*="display:none"])) [data-cc-currency-selector]:not(.cc283-home-currency){display:none!important}
@@ -14,6 +14,7 @@ body:has(#cc77home.cc304-home:not([style*="display: none"]):not([style*="display
 #cc77home.cc304-home .cc77brand small{display:block!important;margin-top:5px;color:var(--muted)!important;font-size:clamp(10px,.85vw,14px)!important;letter-spacing:0!important;font-weight:500!important}
 #cc77home.cc304-home .cc78main-logo{display:block!important;flex:0 0 76px!important;width:76px!important;height:76px!important;border:1px solid #70faff!important;border-radius:17px!important;background-size:cover!important;box-shadow:0 0 12px #13e7f7!important}
 #cc77home.cc304-home .cc283-home-currency{grid-area:currency;justify-self:end;max-width:100%;min-width:0;color:var(--text);font-size:14px}
+#cc77home.cc304-home .cc283-home-currency label>span{white-space:nowrap}
 #cc77home.cc304-home .cc283-home-currency label{display:flex;align-items:center;gap:8px;flex-wrap:nowrap!important}
 #cc77home.cc304-home .cc283-home-currency select{max-width:260px;min-width:0!important;padding:7px 12px;border:1px solid #9bbfcf;border-radius:18px;background:#03121e;color:white;font:inherit}
 #cc77home.cc304-home .cc77top>.cc77actions{grid-area:actions;position:relative!important;inset:auto!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:flex-end!important;gap:12px!important;width:auto!important;height:auto!important;margin:0!important}
