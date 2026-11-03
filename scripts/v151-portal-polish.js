@@ -166,7 +166,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  if(document.getElementById('cc177-shared-panel-css'))return;
  const link=document.createElement('link');link.id='cc177-shared-panel-css';
- link.rel='stylesheet';link.href='styles/v177-panel-unico.css?v=193';
+ link.rel='stylesheet';link.href='styles/v177-panel-unico.css?v=250';
  document.head.append(link);
 })();
 
