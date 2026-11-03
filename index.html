@@ -5686,6 +5686,20 @@ html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card butto
 #cc77home .cc77foot{text-align:center!important;line-height:1.7!important}
 @media(max-width:700px){#cc77home .cc77cards>article .cc77actions button{flex:1 1 100%!important}#cc77home .cc77top{flex-wrap:wrap!important}}
 </style>
+
+<style id="cc-v275-responsive-fixes">
+/* La portada conserva su arte; elimina el marco oscuro y permite desplazamiento. */
+html,body{overflow-y:auto!important;overflow-x:hidden!important;max-width:100%!important;height:auto!important;scrollbar-width:auto!important}
+html::-webkit-scrollbar,body::-webkit-scrollbar{width:11px!important;display:block!important}
+html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb{background:#10b8d3!important;border-radius:12px!important}
+html body #cc77home{width:100%!important;max-width:100%!important;min-height:100vh!important;overflow:visible!important;margin:0!important;background-color:#02162b!important;background-size:cover!important;background-position:center top!important;background-attachment:scroll!important}
+html body #cc77home .cc77wrap{box-sizing:border-box!important;width:100%!important;max-width:100%!important;padding:0 clamp(12px,2vw,30px) 80px!important;overflow:visible!important}
+html body #cc77home .cc77intro{box-sizing:border-box!important;max-width:100%!important}
+html body #cc77home .cc77cards{box-sizing:border-box!important;max-width:1500px!important;gap:clamp(12px,1vw,20px)!important}
+html body #cc77home .cc77top{max-width:100%!important;box-sizing:border-box!important}
+@media(max-width:900px){html body #cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #cc77home .cc77top{gap:12px!important}}
+@media(max-width:620px){html body #cc77home .cc77cards{grid-template-columns:1fr!important}html body #cc77home .cc77intro{background-size:cover!important;background-position:center!important}html body #cc77home .cc77wrap{padding:0 10px 65px!important}html body #cc77home .cc77top{flex-wrap:wrap!important}html body #cc77home .cc77actions{flex-wrap:wrap!important}}
+</style>
 </body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
 function open(){session();document.getElementById('cy53layer').style.display='block';cy54.refreshAuth();if(session().isAdmin||session().isReseller)refresh()}
 function close(){document.getElementById('cy53layer').style.display='none'}
