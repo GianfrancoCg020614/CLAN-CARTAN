@@ -25,7 +25,7 @@ const unit=id=>units.find(u=>Number(u.id)===Number(id))||{};
 const prop=id=>properties.find(p=>Number(p.id)===Number(id))||{};
 const currentLease=id=>leases.find(l=>Number(l.unit_id)===Number(id)&&l.state==='ACTIVE');
 function note(msg,error){const el=$('ma1612notice');if(el){el.textContent=String(msg);el.classList.toggle('error',!!error);}else if(error)console.warn('MI ALQUILER: '+msg);}
-function section(title,summary,content){return '<div class="ma1612-top"><div><small>MI ALQUILER · V161.2</small><h3>'+title+'</h3><p>'+summary+'</p></div><button type="button" data-ma-action="reload">↻ Actualizar</button></div><p id="ma1612notice" role="status"></p>'+content;}
+function section(title,summary,content){return '<div class="ma1612-top"><div><small>MI ALQUILER</small><h3>'+title+'</h3><p>'+summary+'</p></div><button type="button" data-ma-action="reload">↻ Actualizar</button></div><p id="ma1612notice" role="status"></p>'+content;}
 async function refresh(){
  const s=session();if(!s?.jwt||!s.userId){reset();throw Error('Inicia sesión para acceder a MI ALQUILER');}
  uid=s.userId;
@@ -81,8 +81,9 @@ function renderLeases(){
  return section('Contratos y vencimientos','Se registran contratos diarios o mensuales; los cobros y medidores se consultan en «Cobros y servicios».',
  '<div class="ma1612-actions">'+actionButton('new-lease','＋ Alquilar habitación/local')+'</div>'+ (leases.length?rows:'<p>No existen contratos registrados.</p>')+recent);
 }
-function pending(area){const isMoney=area==='finanzas';return section(isMoney?'Cobros y servicios':'Avisos y reportes','Los datos de habitaciones, locales e inquilinos ya están protegidos en Supabase.',
- '<div class="ma1612-locked"><strong>'+ (isMoney?'V161.3 · Integración financiera':'V161.4 · Avisos y exportaciones')+'</strong><p>'+ (isMoney?'Se incorporarán abonos, consumos, medidores, garantías, gastos y suscripción sin activar cobros externos no comprobados.':'Los mensajes utilizarán el WhatsApp registrado por el RESELLER a cada inquilino. Las consultas API Perú se validarán desde el backend.')+'</p></div>');}
+function pending(area){return section(area==='finanzas'?'Cobros y servicios':'Avisos y reportes',
+ 'No se pudo cargar esta sección.',
+ '<div class="ma1612-locked"><strong>Recarga la página para volver a cargar el módulo.</strong><p>Tu información permanece guardada.</p></div>');}
 function enhance(which,target){
  area=which;
  if(!target)return;

@@ -67,3 +67,10 @@
 @media(max-width:1040px){.cc132-tools{grid-template-columns:repeat(3,minmax(0,1fr))}.cc132-tools label:first-child{grid-column:1/-1}}
 @media(max-width:660px){.cc135-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.cc132-tools{grid-template-columns:1fr 1fr}}
 @media(max-width:420px){.cc132-tools{grid-template-columns:1fr}.cc132-tools label:first-child{grid-column:1}}
+
+
+/* Historial vigente: conserva filtros y exportaciones fuera de la antigua billetera. */
+#cc132movements[hidden]{display:none!important}
+#cc132movements{width:min(1200px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:auto;margin:auto}
+#cc132movements::backdrop{background:#020a14cc}
+#cc132close{min-height:44px;margin-bottom:16px}

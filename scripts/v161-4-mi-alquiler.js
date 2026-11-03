@@ -1,4 +1,4 @@
-/* CLAN CARTAN · MI ALQUILER V161.4
+/* CLAN CARTAN · MI ALQUILER
    Avisos operativos al teléfono del inquilino (NO envíos automáticos), búsqueda, Excel y PDF.
    No modifica saldos, token de API Perú ni otros módulos. */
 (function(){
@@ -58,7 +58,7 @@ function rowHTML(a){const [label,level]=status(a.days);const can=a.permit&&a.tel
 }
 function renderList(items){const el=$('ma4-results');if(!el)return;el.innerHTML=items.length?items.slice(0,250).map(rowHTML).join(''):'<p>No hay contratos activos que coincidan con la búsqueda.</p>';const n=$('ma4-count');if(n)n.textContent=items.length+' contrato(s) encontrados'+(items.length>250?' · mostrando 250':'');}
 function panel(c){alerts=generated(c);const urgent=alerts.filter(a=>a.days!==null&&a.days<=5).length;
- return '<section class="ma4-wrap"><header class="ma4-head"><div><small>CLAN CARTAN · MI ALQUILER V161.4</small><h3>🔔 Alertas y reportes</h3><p>Recordatorios al WhatsApp que cada RESELLER registró para su inquilino.</p></div><button type="button" data-ma4-action="refresh">↻ Actualizar</button></header>'+
+ return '<section class="ma4-wrap"><header class="ma4-head"><div><small>CLAN CARTAN · MI ALQUILER</small><h3>🔔 Alertas y reportes</h3><p>Recordatorios al WhatsApp que cada RESELLER registró para su inquilino.</p></div><button type="button" data-ma4-action="refresh">↻ Actualizar</button></header>'+
  '<div class="ma4-stats"><div><b>'+alerts.length+'</b><small>Contratos activos</small></div><div><b>'+urgent+'</b><small>Vencidos o próximos (5 días)</small></div><div><b>'+alerts.filter(a=>a.permit&&a.tel).length+'</b><small>Contactos habilitados</small></div></div>'+
  '<div class="ma4-toolbar"><label>Buscar por nombre, DNI, código, teléfono o local<input id="ma4-search" type="search" autocomplete="off" placeholder="Ej. H-001, Juan, 987..." aria-label="Buscar contratos"></label><div class="ma4-actions"><button type="button" data-ma4-action="urgent">Solo vencimientos</button><button type="button" data-ma4-action="all">Todos</button><button type="button" data-ma4-action="xlsx">Exportar Excel .xlsx</button><button type="button" data-ma4-action="pdf">Imprimir / PDF</button></div></div>'+
  '<p id="ma4-status" role="status">Avisos a 5, 3, 1 días y el vencimiento. Los enlaces se abren manualmente; no se envían mensajes sin tu intervención.</p><small id="ma4-count"></small><div id="ma4-results">'+alerts.slice(0,250).map(rowHTML).join('')+'</div>'+

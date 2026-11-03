@@ -12,7 +12,7 @@ const readme = read("README.md");
 assert.match(html, /<meta name="cc-deploy-version" content="V\d+-\d{8}">/, "Falta version de despliegue");
 assert.match(html, /<link rel="canonical" href="https:\/\/www\.clancartan\.com\/">/, "Dominio canonico no valido");
 assert.ok(readme.includes("CONTINUIDAD-V130-2026-10-18.md"), "Falta continuidad V130");
-for (const file of ["scripts/v113-wallet.js","scripts/v116-account.js","scripts/v119-clients.js","scripts/v122-recharges.js","scripts/v123-turnstile.js","scripts/v127-wallet-switch.js"]) {
+for (const file of ["scripts/v113-wallet.js","scripts/v116-account.js","scripts/v119-clients.js","scripts/v122-recharges.js","scripts/v123-turnstile.js","scripts/v311-business-dialogs.js"]) {
   const code = read(file);
   new Script(code, { filename:file });
   assert.ok(html.includes(file), "Recurso JS no cargado: " + file);
@@ -42,3 +42,4 @@ for(const legacyId of ["#cy113topup","#cc113sbTopup","#cc80wallet .cc113-central
 assert.ok(old.includes("cc_request_test_topup"), "Falta traza del flujo de prueba para auditabilidad");
 assert.ok(css.includes("display:none!important"), "Bloqueo visual heredado retirado");
 console.log("V130: sintaxis, marca, formularios, billeteras y recargas solo automaticas conservadas.");
+

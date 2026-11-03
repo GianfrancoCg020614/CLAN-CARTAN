@@ -7,9 +7,8 @@ const money=n=>'S/ '+Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:
 const cards=[
 '<div class="cy113-head"><div><span class="cy113-label">COBRA YA · MI CUENTA</span><h3>Mi acceso y billetera</h3></div><span class="cy113-badge" id="cy55state" role="status" aria-live="polite">Consultando...</span></div>',
 '<div class="cy113-stats"><div><small>Saldo COBRA YA <button id="cy115refresh" type="button" class="cy115-inline-refresh" title="Actualizar saldo y suscripción" aria-label="Actualizar saldo y suscripción">↻ Actualizar</button></small><strong id="cy55balance">S/ 0.00</strong></div><div><small>Plan mensual</small><strong>S/ 15.00 <em>/ 30 días</em></strong></div><div><small>Vence</small><strong id="cy113due">Sin activar</strong></div></div>',
-'<div class="cy113-buttons"><button class="cy113-pay" id="cy55pay" type="button">Activar por S/ 15</button><button class="cy113-secondary" id="cy113recharge" type="button">＋ Recargar</button><button class="cy113-secondary" id="cy113transfer" type="button">⇄ Transferir</button></div>',
+'<div class="cy113-buttons"><button class="cy113-pay" id="cy55pay" type="button">Activar por S/ 15</button><button class="cy113-secondary" id="cy113recharge" type="button">＋ Recargar</button></div>',
 '<div class="cy113-extra" id="cy113topup" hidden><label for="cy113amount">Solicitar saldo de prueba (S/)</label><div class="cy113-action"><input type="number" id="cy113amount" min="1" max="1000" step="0.01" value="30" inputmode="decimal"><button type="button" id="cy113topupGo">Solicitar recarga</button></div><small>Solo simulación. La recarga necesita aprobación antes de acreditarse; no envíes dinero real.</small></div>',
-'<div class="cy113-extra" id="cy113transferArea" hidden><label for="cy113transferAmount">Desde STREAM BULL’S <span id="cy113streamBalance">(saldo: S/ 0.00)</span></label><div class="cy113-action"><input type="number" id="cy113transferAmount" min="0.01" step="0.01" value="15" inputmode="decimal"><button type="button" id="cy113transferGo">Transferir a COBRA YA</button></div><small>Únicamente entre tus billeteras. No permite retiros ni transferencias a otras personas.</small></div>',
 '<p id="cy55msg" class="cy113-message" role="status" aria-live="polite"></p><small class="cy113-note">Saldo de prueba · Sin cobros automáticos · El pago activa el plan sin aprobación del ADMIN.</small>'
 ];
 const sub=by('cy55subscription');
@@ -107,9 +106,7 @@ function show(id){
 by('cy55pay').addEventListener('click',()=>cy55.pay());
 by('cy115refresh').addEventListener('click',async e=>{const button=e.currentTarget;button.disabled=true;try{await Promise.all([cy55.status(),refreshStream()]);}finally{button.disabled=false;}});
 by('cy113recharge').setAttribute('aria-controls','cy113topup');by('cy113recharge').setAttribute('aria-expanded','false');
-by('cy113transfer').setAttribute('aria-controls','cy113transferArea');by('cy113transfer').setAttribute('aria-expanded','false');
 by('cy113recharge').addEventListener('click',()=>show('cy113topup'));
-by('cy113transfer').addEventListener('click',()=>show('cy113transferArea'));
 const validAmount=(num,min,max)=>Number.isFinite(num)&&num>=min&&num<=max&&Math.abs(Math.round(num*100)-num*100)<0.000001;
 async function recharge(service,inputId,messageId,button){
  const amount=Number(by(inputId)?.value),output=by(messageId);
@@ -134,18 +131,6 @@ async function refreshStream(){
   if(fields[1])fields[1].textContent=v;
  }catch(e){console.warn('Saldo Stream Bull no disponible',e.message);}
 }
-by('cy113transferGo').addEventListener('click',async e=>{
- const amount=Number(by('cy113transferAmount').value),message=by('cy55msg'),button=e.currentTarget;
- if(!validAmount(amount,0.01,100000)){message.textContent='Importe no válido.';return;}
- if(!confirm('¿Transferir '+money(amount)+' desde tu propia billetera Stream Bull’s a COBRA YA?'))return;
- button.disabled=true;message.textContent='Realizando transferencia...';
- try{
-  await cc80.api('rpc/cc_transfer_test_balance','POST',{p_from:'STREAM_BULLS',p_to:'COBRA_YA',p_amount:amount});
-  await Promise.all([cy55.status(),refreshStream()]);
-  message.textContent='✓ Transferencia entre tus billeteras realizada.';message.dataset.done='yes';
- }catch(err){message.textContent='Transferencia no realizada: '+(err.message||'Error de red');}
- finally{button.disabled=false;}
-});
 const pop=by('cc93-affiliate');
 if(pop&&by('cc93-message')){
  const m=by('cc93-message'),badge=document.createElement('div');
@@ -169,17 +154,6 @@ if(pop&&by('cc93-message')){
  const oldPay=window.cc93PayAffiliation;
  if(typeof oldPay==='function')window.cc93PayAffiliation=async function(){await oldPay();await refreshStream();try{const rows=await cc80.api('rpc/sb_my_affiliation_test','POST',{});if(rows?.[0]?.is_affiliated&&window.CC_V53_SESSION&&!window.CC_V53_SESSION.commercialRole)window.CC_V53_SESSION.commercialRole='AFFILIATE';}catch(e){console.warn('No se pudo refrescar afiliación',e.message);}if(typeof cc95RenderUser==='function')cc95RenderUser();};
  pop.addEventListener('keydown',e=>{if(e.key==='Escape'){pop.style.display='none';e.preventDefault();}});
-}
-const wallet=by('cc80wallet');
-if(wallet){
- const details=document.createElement('details');details.className='cc113-central-topup';
- details.innerHTML='<summary>＋ Recargar una billetera (prueba)</summary><label for="cc113centralService">Billetera</label><select id="cc113centralService"><option value="COBRA_YA">COBRA YA</option><option value="STREAM_BULLS">STREAM BULL’S</option></select><label for="cc113centralAmount">Importe en soles</label><input id="cc113centralAmount" type="number" min="1" max="1000" step="0.01" value="30"><button type="button" id="cc113centralSend">Solicitar recarga</button><small>La solicitud es ficticia y necesita validación para acreditar el saldo.</small>';
- by('cc80refresh').after(details);
- const back=document.createElement('button');back.type='button';back.textContent='← Volver a CLAN CARTAN';back.className='cc113-back';details.after(back);
- back.addEventListener('click',()=>{if(typeof cc77Home==='function')cc77Home();});
- by('cc113centralSend').addEventListener('click',e=>{
-  recharge(by('cc113centralService').value,'cc113centralAmount','cc80status',e.currentTarget);
- });
 }
 window.cc113={refreshStream};
 })();

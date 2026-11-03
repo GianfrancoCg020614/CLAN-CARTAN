@@ -80,7 +80,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V311 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V312 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -2197,6 +2197,15 @@ function init(){
    if(data.admin)void loadAdminRecharges(true,true);
    else if(view==='wallet'&&walletTab==='manual')void loadOwnPendingRequest(true,true);
   }
+ };
+ window.cc166OpenAdminBonuses=()=>{
+  sync();if(!verified||!data.admin||!app)return;
+  app.hidden=false;nav('bonuses');
+ };
+ window.cc166OpenWallet=(tab='summary')=>{
+  sync();if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
+  const legacy=el('cc80wallet');if(legacy){legacy.hidden=true;legacy.style.display='none';}
+  app.hidden=false;finance(tab==='manual'?(data.admin?'recharges':'manual'):tab==='movements'?'movements':'summary');
  };
  window.cc166OpenStreamMembership=()=>{
   sync();
