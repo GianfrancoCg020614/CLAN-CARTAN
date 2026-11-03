@@ -103,6 +103,15 @@ jobs:
           grep -q 'id="cc170-stream-flyers-script"' /tmp/clan-dom.html
           grep -q 'id="cc170-stream-flyers-style"' /tmp/clan-dom.html
           grep -q 'id="cc171-admin-simple-css"' /tmp/clan-dom.html
+      - name: Portada V304 en diez escenarios reales de Chrome
+        run: node scripts/test-v304-responsive-browser.mjs
+      - name: Guardar capturas y resultados V304
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v304-responsive-chrome
+          path: artifacts/v304
+          if-no-files-found: ignore
       - name: Panel único de tres roles y membresías · V166
         run: |
           checks_failed=0
