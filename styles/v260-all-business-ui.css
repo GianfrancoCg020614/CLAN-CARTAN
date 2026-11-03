@@ -1,0 +1,21 @@
+/* V260 — Interfaz unificada en cuatro negocios, sin cambios de lógica ni datos. */
+:root{--cc-ui-cyan:#20e6f2;--cc-ui-border:#2cbfd3;--cc-ui-ink:#e9faff;--cc-ui-bg:#06192b;--cc-ui-panel:#0a2940}
+body:not(.light) :is(#ma1611layer,#mc158layer,#cy53layer,#cy55subscription,#cy54membership,#cy54admin,#cy54requests,#cy53clients,#cy60loanrecords,#cy63detail,#sb195-attention){color:var(--cc-ui-ink)!important;background-color:#041626!important}
+body:not(.light) :is(#ma1611layer,#mc158layer){background-image:radial-gradient(ellipse at 50% 0%,#0a527477,transparent 65%),linear-gradient(#04172a,#020b1c)!important}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(.ma1611-head,.mc158head,.ma1612-top,.ma3-header,.ma4-head){background:linear-gradient(110deg,#07344d,#041728)!important;border:1px solid #2ad7e6!important;border-radius:22px!important;box-shadow:0 8px 26px #0005!important;padding:clamp(12px,2vw,20px)!important}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(.ma1612-box,.ma3-card,.ma4-card,.mc158box,.mc158status,.ma1612-stats>div,.ma3-stats>div,.ma4-stats>div){background:linear-gradient(150deg,#0a3048,#061b30)!important;border:1px solid #258da6!important;border-radius:18px!important;box-shadow:0 7px 22px #0004!important;color:#e9faff!important}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(h2,h3,.ma1612-stats b,.ma3-stats b,.ma4-stats b){color:#b4faff!important}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(button){border-radius:12px!important;min-height:40px!important}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(button:not(:disabled)){background:linear-gradient(105deg,#00d7d6,#1ab7e6)!important;border:1px solid #8efaff!important;color:#052739!important;font-weight:750!important}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(input,select,textarea){background:#061e32!important;color:#f0fcff!important;border:1px solid #357d96!important;border-radius:11px!important;max-width:100%}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(input,select,textarea,button):focus-visible{outline:2px solid #6cffff!important;outline-offset:2px!important}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(table){width:100%;border-collapse:collapse}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(th){background:#0a405a!important;color:#c8fbff!important}
+body:not(.light) :is(#ma1611layer,#mc158layer) :is(td){border-bottom:1px solid #22647b!important}
+body:not(.light) #sb195-attention{--sb-bg:#061b2d;--sb-line:#258da6;--sb-ink:#e9faff;--sb-soft:#b5d5e1;--sb-mint:#29e6ee;background:linear-gradient(150deg,#082c44,#041425)!important;border:1px solid #28cfe1!important;border-radius:23px!important;box-shadow:0 8px 25px #0006!important}
+body:not(.light) #sb195-attention :is(.sb195-tile,.sb195-btn){border-radius:14px!important}
+body:not(.light) #sb195-attention .sb195-btn.primary{background:linear-gradient(110deg,#00e9dc,#2bbdf0)!important;color:#032537!important}
+body:not(.light) :is(#cy53layer,#cy55subscription,#cy54membership,#cy54admin,#cy54requests,#cy53clients,#cy60loanrecords,#cy63detail) :is(.card,.panel,.box,.modal,.table-wrap){background:linear-gradient(155deg,#0b3048,#06182c)!important;border:1px solid #238da6!important;border-radius:18px!important;color:#e9faff!important}
+body:not(.light) :is(#cy53layer,#cy55subscription,#cy54membership,#cy54admin,#cy54requests,#cy53clients,#cy60loanrecords,#cy63detail) :is(button.primary,.primary){background:linear-gradient(110deg,#00e9dc,#2bbdf0)!important;color:#042838!important;border-radius:12px!important}
+@media(max-width:650px){body:not(.light) :is(#ma1611layer,#mc158layer){padding:10px!important}body:not(.light) :is(#ma1611layer,#mc158layer) :is(.ma1611-head,.mc158head){border-radius:15px!important}body:not(.light) :is(#ma1611layer,#mc158layer) :is(table){display:block;overflow-x:auto}}
+@media(prefers-reduced-motion:reduce){body:not(.light) :is(#ma1611layer,#mc158layer,#sb195-attention) *{transition:none!important}}
