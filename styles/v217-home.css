@@ -159,3 +159,82 @@ html[data-cc-theme="light"] #cc77home .cc77cards>.cc77card h2,html[data-cc-theme
   text-shadow:0 2px 3px #000!important;
  }
 }
+
+/* V250 — refinamiento premium de portada nocturna aprobado: superficies curvas,
+   turquesa CLAN CARTAN, botones alineados. Solo CSS; no altera eventos ni datos. */
+html:not([data-cc-theme="light"]) #cc77home{
+ background-color:#020d1e!important;
+ background-image:
+  radial-gradient(circle at 15% 18%,rgba(24,182,242,.13) 0 1px,transparent 2px),
+  radial-gradient(circle at 82% 9%,rgba(105,218,255,.19) 0 1px,transparent 2px),
+  radial-gradient(ellipse 85% 34% at 50% 25%,rgba(7,79,130,.35),transparent 85%),
+  radial-gradient(ellipse 90% 45% at 50% 94%,rgba(0,145,184,.17),transparent 80%),
+  linear-gradient(180deg,#020b1c 0%,#061a31 45%,#020b1a 100%)!important;
+ background-size:117px 137px,193px 181px,auto,auto,auto!important;
+}
+html:not([data-cc-theme="light"]) #cc77home .cc77top{
+ background:linear-gradient(115deg,rgba(2,15,29,.92),rgba(5,32,50,.78))!important;
+ border:1px solid rgba(41,223,239,.22)!important;
+ border-top:0!important;
+ border-radius:0 0 32px 32px!important;
+ padding:16px 20px!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.22),0 1px 0 rgba(0,240,240,.2)!important;
+}
+html:not([data-cc-theme="light"]) #cc77home .cc77brand{color:#eafaff!important}
+html:not([data-cc-theme="light"]) #cc77home .cc77brand small{color:#a5dfe8!important}
+html:not([data-cc-theme="light"]) #cc77home .cc77intro{
+ margin-top:6px!important;
+ margin-bottom:18px!important;
+ border-radius:22px!important;
+ box-shadow:0 10px 38px #0007,0 0 0 1px rgba(45,222,237,.22)!important;
+}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards{gap:clamp(12px,1.2vw,22px)!important}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card{
+ min-height:410px!important;
+ padding:17px clamp(12px,1.3vw,21px) 20px!important;
+ border:1px solid rgba(62,233,246,.8)!important;
+ border-radius:34px!important;
+ background:linear-gradient(155deg,rgba(8,42,65,.93),rgba(2,15,32,.97) 75%)!important;
+ box-shadow:inset 0 1px 0 rgba(211,252,255,.26),0 0 15px rgba(4,210,234,.18),0 16px 35px rgba(0,0,0,.32)!important;
+ transition:transform .2s ease,box-shadow .2s ease!important;
+}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card:hover,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card:hover{
+ transform:translateY(-3px)!important;
+ box-shadow:inset 0 1px 0 #d3fcff66,0 0 24px #0ce4f855,0 22px 40px #0007!important;
+}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards .cc78service-logo,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards .cc158-cochera-mark,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards .ma1611-card-icon{
+ border-radius:22px!important;
+ filter:drop-shadow(0 5px 10px #0006)!important;
+}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card .cc77tag,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card .ma1611-card-copy small{
+ color:#ffe17d!important;
+}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card .cc77actions,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card .cc77actions{
+ margin-top:auto!important;
+}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card .cc77actions button,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card button{
+ min-height:52px!important;
+ border-radius:999px!important;
+ background:linear-gradient(105deg,#04eadb,#19d5f1)!important;
+ border:1px solid #85ffff!important;
+ box-shadow:inset 0 1px 0 #d4ffff88,0 5px 15px #00bcd43b!important;
+ font-size:clamp(11px,.85vw,14px)!important;
+}
+html:not([data-cc-theme="light"]) #cc77home .cc77top>.cc77actions button{border-radius:14px!important}
+@media(max-width:590px){
+ html:not([data-cc-theme="light"]) #cc77home .cc77top{border-radius:0 0 22px 22px!important;padding:13px 10px!important}
+ html:not([data-cc-theme="light"]) #cc77home .cc77intro{border-radius:12px!important;margin-top:8px!important}
+ html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card,
+ html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card{min-height:0!important;border-radius:26px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card,
+ html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card{transition:none!important}
+}
