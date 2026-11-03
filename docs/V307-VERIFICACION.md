@@ -5,7 +5,7 @@ Sitio: https://www.clancartan.com/
 
 ## Diagnóstico
 
-Los registros de Supabase Auth confirman rechazos captcha_failed con invalid-input-response. Ese código puede corresponder a un proveedor o una clave que no coinciden con el widget; no prueba por sí solo que el token haya caducado. El widget público es Cloudflare Turnstile, por lo que el proveedor de Supabase debe ser Turnstile. Se pidió al propietario comprobar el selector sin revelar secretos. El conector no permite editar Auth config.
+Los registros de Supabase Auth confirman rechazos captcha_failed con invalid-input-response. Ese código puede corresponder a un proveedor o una clave que no coinciden con el widget; no prueba por sí solo que el token haya caducado. El widget público es Cloudflare Turnstile, por lo que el proveedor de Supabase debe ser Turnstile. El propietario indicó que seleccionó Turnstile y guardó el cambio. Falta confirmar un ingreso real correcto después de ese ajuste, sin revelar secretos. El conector no permite editar Auth config.
 
 La prueba anterior de V306 confirmó que CAPTCHA era obligatorio, pero no validó un token legítimo ni identificó por sí sola el proveedor configurado.
 
@@ -17,6 +17,8 @@ La prueba anterior de V306 confirmó que CAPTCHA era obligatorio, pero no valid�
 - El error de acceso tiene contraste y espacio legibles; desaparece el bloque vacío que generaba un hueco innecesario.
 - Al volver desde acceso, negocio o panel, la portada comienza arriba. La reproducción previa conservaba scrollTop=100 y dejaba la cabecera en y=-100.
 - Al abrir acceso se reinicia la posición del formulario para evitar una vista cortada.
+- Los fondos decorativos de cabecera y paisaje se funden por sus cuatro lados; se eliminan la línea inferior y el marco añadido al logotipo, manteniendo bordes y focos de los controles interactivos.
+- En tablet se ajusta el tamaño de la ilustración para no mostrar las bandas del archivo panorámico.
 - Funciones, botones, diseño y datos de V305/V306 conservados; versión V307 y cachés relevantes actualizados.
 
 ## Verificación

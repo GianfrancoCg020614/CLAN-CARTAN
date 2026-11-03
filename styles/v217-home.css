@@ -1,5 +1,5 @@
 @layer cc-public-home {
-/* V305: one public-home stylesheet. Important declarations bridge existing business
+/* V307: one public-home stylesheet. Important declarations bridge existing business
    styles; theme tokens and two breakpoints replace the former appended patches. */
 #cc77home.cc304-home{--text:#f4fbff;--muted:#e2f0f8;--accent:#ffdc36;--surface:linear-gradient(165deg,#043148f5,#001325fa 75%);--header:linear-gradient(110deg,#00101cf5,#023045f5,#00101cf5);--landscape:url('../assets/night-landscape-v304.avif');--hero:url('../assets/hero-v304.avif');position:fixed!important;inset:0!important;margin:0!important;padding:0!important;border:0!important;box-sizing:border-box!important;z-index:2147483638;width:100%!important;max-width:100%!important;min-height:100dvh!important;overflow-x:clip!important;overflow-y:auto!important;overscroll-behavior:contain;background:#020d1e var(--landscape) center/cover no-repeat!important;color:var(--text)!important;font-family:Arial,system-ui,sans-serif;scrollbar-width:thin;scrollbar-color:#16cfdd transparent}
 #cc77home.cc304-home *{box-sizing:border-box}
@@ -7,12 +7,13 @@ body:has(#cc77home.cc304-home:not([style*="display: none"]):not([style*="display
 body:has(#cc77home.cc304-home:not([style*="display: none"]):not([style*="display:none"])) [data-cc-currency-selector]:not(.cc283-home-currency){display:none!important}
 #cc77home.cc304-home .cc77wrap{width:100%!important;max-width:1857px!important;min-height:100dvh!important;aspect-ratio:auto!important;margin:auto!important;padding:0 clamp(14px,5.2vw,98px) 26px!important;background:none!important;overflow:visible!important}
 #cc77home.cc304-home .cc77wrap::before,#cc77home.cc304-home .cc77wrap::after{content:none!important}
-#cc77home.cc304-home .cc77top{position:relative!important;inset:auto!important;display:grid!important;grid-template-columns:minmax(260px,1fr) auto;grid-template-areas:'brand currency' 'brand actions';align-items:center!important;gap:7px 20px!important;width:100%!important;min-height:110px!important;margin:0!important;padding:8px 28px!important;border:0!important;border-bottom:1px solid #7fc8db33!important;border-radius:0!important;background:var(--header)!important;box-shadow:none!important;z-index:3!important}
+#cc77home.cc304-home .cc77top{position:relative!important;inset:auto!important;display:grid!important;grid-template-columns:minmax(260px,1fr) auto;grid-template-areas:'brand currency' 'brand actions';align-items:center!important;gap:7px 20px!important;width:100%!important;min-height:110px!important;margin:0!important;padding:8px 28px!important;border:0!important;border-bottom:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;isolation:isolate!important;z-index:3!important}
+#cc77home.cc304-home .cc77top::before{content:'';position:absolute;inset:0 -24px;z-index:-1;background:var(--header);-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent),linear-gradient(180deg,transparent,#000 20%,#000 75%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent),linear-gradient(180deg,transparent,#000 20%,#000 75%,transparent);mask-composite:intersect;pointer-events:none}
 #cc77home.cc304-home .cc77brand{grid-area:brand;display:flex!important;align-items:center!important;gap:15px!important;color:var(--text)!important;font-size:clamp(23px,2vw,36px)!important;font-weight:900!important;letter-spacing:0!important;line-height:1.1!important}
 #cc77home.cc304-home .cc303-name{display:block;white-space:nowrap}
 #cc77home.cc304-home .cc303-name em{font-style:normal;color:#16edf0}
 #cc77home.cc304-home .cc77brand small{display:block!important;margin-top:5px;color:var(--muted)!important;font-size:clamp(10px,.85vw,14px)!important;letter-spacing:0!important;font-weight:500!important}
-#cc77home.cc304-home .cc78main-logo{display:block!important;flex:0 0 76px!important;width:76px!important;height:76px!important;border:1px solid #82aeba66!important;border-radius:17px!important;background-size:cover!important;box-shadow:0 4px 14px #0003!important}
+#cc77home.cc304-home .cc78main-logo{display:block!important;flex:0 0 76px!important;width:76px!important;height:76px!important;border:0!important;border-radius:12px!important;background-size:cover!important;box-shadow:none!important}
 #cc77home.cc304-home .cc283-home-currency{grid-area:currency;justify-self:end;max-width:100%;min-width:0;color:var(--text);font-size:14px}
 #cc77home.cc304-home .cc283-home-currency label>span{white-space:nowrap}
 #cc77home.cc304-home .cc283-home-currency label{display:flex;align-items:center;gap:8px;flex-wrap:nowrap!important}
@@ -21,7 +22,7 @@ body:has(#cc77home.cc304-home:not([style*="display: none"]):not([style*="display
 #cc77home.cc304-home .cc77top>.cc77actions button{min-height:44px!important;padding:8px 18px!important;border:1px solid #79b5ce!important;border-radius:20px!important;background:linear-gradient(#11314b,#061825)!important;color:var(--text)!important;font-size:14px!important;font-weight:800!important;cursor:pointer}
 #cc77home.cc304-home .cc77top>.cc77actions button.primary{background:linear-gradient(110deg,#00f2e0,#1bcafa)!important;color:#001926!important}
 #cc77home.cc304-home .cc77intro{position:relative!important;inset:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;isolation:isolate;width:100%!important;max-width:none!important;height:clamp(210px,14.7vw,295px)!important;min-height:0!important;margin:0 0 12px!important;padding:0 22%!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;text-align:center!important}
-#cc77home.cc304-home .cc77intro::before{content:''!important;position:absolute!important;inset:0!important;z-index:-1!important;background:var(--hero) center/100% auto no-repeat!important;mask-image:radial-gradient(ellipse at center,#000 65%,transparent 99%);pointer-events:none!important}
+#cc77home.cc304-home .cc77intro::before{content:''!important;position:absolute!important;inset:0!important;z-index:-1!important;background:var(--hero) center/100% auto no-repeat!important;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent),linear-gradient(180deg,transparent,#000 12%,#000 78%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent),linear-gradient(180deg,transparent,#000 12%,#000 78%,transparent);mask-composite:intersect;pointer-events:none!important}
 #cc77home.cc304-home .cc77intro::after{content:none!important}
 #cc77home.cc304-home .cc77intro h1{position:relative!important;display:block!important;width:auto!important;height:auto!important;max-width:100%!important;overflow:visible!important;clip-path:none!important;white-space:normal!important;margin:0!important;padding:0!important;background:none!important;color:#eafbff!important;-webkit-text-fill-color:initial!important;font:1000 italic clamp(42px,5.3vw,98px)/.87 Arial,system-ui,sans-serif!important;letter-spacing:-.025em!important;filter:drop-shadow(0 4px 1px #001524)!important;text-shadow:0 1px #fff,0 3px #7597a8,0 5px #203b4b!important}
 #cc77home.cc304-home .cc77intro h1 span{display:block}
@@ -76,11 +77,13 @@ html[data-cc-theme='light'] #cc77home.cc304-home .cc295-credit{color:#173f54!imp
  #cc77home.cc304-home .cc77top>.cc77actions{justify-content:center!important}
  #cc77home.cc304-home .cc78main-logo{width:60px!important;height:60px!important;flex-basis:60px!important}
  #cc77home.cc304-home .cc77intro{height:205px!important;padding-inline:18%!important;background-size:auto 380px!important}
+ #cc77home.cc304-home .cc77intro::before{background-size:auto 380px!important}
  #cc77home.cc304-home .cc77intro h1{font-size:56px!important}
 }
 @media(max-width:650px){
  #cc77home.cc304-home .cc77wrap{padding:0 16px calc(28px + env(safe-area-inset-bottom,0px))!important}
  #cc77home.cc304-home .cc77top{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:'brand' 'currency' 'actions'!important;gap:12px!important;padding:14px 0!important;border-radius:0!important;min-height:0!important;background:transparent!important}
+ #cc77home.cc304-home .cc77top::before{content:none!important}
  #cc77home.cc304-home .cc77brand{justify-self:start!important;gap:11px!important;font-size:23px!important}
  #cc77home.cc304-home .cc77brand small{font-size:10px!important;line-height:1.4!important;max-width:240px}
  #cc77home.cc304-home .cc78main-logo{width:46px!important;height:46px!important;flex-basis:46px!important;border-radius:11px!important}
@@ -94,7 +97,7 @@ html[data-cc-theme='light'] #cc77home.cc304-home .cc295-credit{color:#173f54!imp
  #cc77home.cc304-home .cc77top>.cc77actions button{width:100%!important;min-width:0!important;min-height:44px!important;font-size:11px!important;padding:8px 5px!important;border-radius:11px!important;white-space:nowrap!important}
  #cc77home.cc304-home .cc77top>.cc77actions #cc95-user{grid-column:1/-1;max-width:100%}
  #cc77home.cc304-home .cc77intro{height:166px!important;padding:0 0 12px!important;margin:8px 0 18px!important;justify-content:flex-end!important}
- #cc77home.cc304-home .cc77intro::before{inset:4px 0 auto!important;height:auto!important;aspect-ratio:5.9;background-size:100% auto!important;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+ #cc77home.cc304-home .cc77intro::before{inset:4px 0 auto!important;height:auto!important;aspect-ratio:5.9;background-size:100% auto!important;-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent),linear-gradient(180deg,transparent,#000 12%,#000 84%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent),linear-gradient(180deg,transparent,#000 12%,#000 84%,transparent);mask-composite:intersect}
  #cc77home.cc304-home .cc77intro h1{font-size:clamp(30px,8.8vw,38px)!important;line-height:1.12!important;letter-spacing:-.035em!important}
  #cc77home.cc304-home .cc77intro h1 span{display:inline}
  #cc77home.cc304-home .cc77intro p{margin:9px 0 0!important;font-size:10px!important;max-width:100%!important;letter-spacing:.065em!important}
