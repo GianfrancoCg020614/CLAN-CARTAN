@@ -126,6 +126,7 @@ jobs:
           run_check node scripts/test-v310-seller-browser.mjs
           run_check node scripts/test-v311-business-dialogs-browser.mjs
           run_check node scripts/test-v312-cleanup-browser.mjs
+          run_check node scripts/test-v313-dni-browser.mjs
           run_check node scripts/test-v166-three-roles-browser.mjs
           run_check node scripts/test-v167-checkout-browser.mjs
           run_check node scripts/test-v167-financial-integrity.mjs

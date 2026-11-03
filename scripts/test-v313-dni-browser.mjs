@@ -1,0 +1,4 @@
+import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import assert from 'node:assert/strict';import {dniFixture} from './fixture-v313-dni.mjs';import {runChromeFixture} from './chrome-fixture.mjs';
+const chrome=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(fs.existsSync);assert.ok(chrome,'Chrome requerido');const dir=fs.mkdtempSync(path.join(os.tmpdir(),'cc313-'));
+try{for(const kind of ['cochera','alquiler']){const file=path.join(dir,kind+'.html');fs.writeFileSync(file,dniFixture(kind));const out=await runChromeFixture(chrome,file,'cc313-result');assert.match(out,/data-status="pass"/,out);console.log('PASS V313 '+kind+': DNI nativo, respuestas tardías, edición y sesión; consultas simuladas.');}}
+finally{fs.rmSync(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100});}
