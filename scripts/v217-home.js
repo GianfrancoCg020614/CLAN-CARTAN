@@ -279,8 +279,112 @@ function init(){
    html body #cc77home#cc77home .cc77cards>article{border-radius:28px!important;min-height:0!important}
    html body #cc77home#cc77home .cc77top{border-radius:0 0 22px 22px!important}
   }
+
+  /* V303 — cohesive visual polish: no duplicate layers and comfortable reading. */
+  html body #cc77home#cc77home .cc77top>.cc77brand{
+   display:flex!important;gap:14px!important;align-items:center!important;
+   font-size:clamp(23px,2vw,35px)!important;font-weight:900!important;
+   line-height:1.12!important;letter-spacing:.008em!important;
+  }
+  html body #cc77home#cc77home .cc77brand .cc303-name{
+   display:block!important;color:#f5fbff!important;
+   font-size:inherit!important;white-space:nowrap!important;
+  }
+  html body #cc77home#cc77home .cc77brand .cc303-name em{
+   font-style:normal!important;color:#18f2f4!important;text-shadow:0 0 15px #00e4f455!important;
+  }
+  html body #cc77home#cc77home .cc77brand small{
+   display:block!important;margin-top:5px!important;
+   color:#d6edf4!important;font-size:clamp(10px,.82vw,13px)!important;
+   line-height:1.3!important;font-weight:600!important;
+  }
+  html body #cc77home#cc77home .cc78main-logo{
+   width:64px!important;height:64px!important;flex:0 0 64px!important;
+   border-radius:15px!important;border:1px solid #70fbff!important;
+   box-shadow:0 0 13px #03e9f7ae,inset 0 0 10px #03e9f735!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article{
+   gap:8px!important;align-items:center!important;text-align:center!important;
+   padding:16px clamp(12px,1.25vw,23px) 20px!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article h2{
+   font-size:clamp(18px,1.5vw,24px)!important;
+   color:#f9fdff!important;font-weight:900!important;
+   line-height:1.15!important;text-shadow:0 2px 8px #000b!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article p{
+   font-size:clamp(13px,1vw,16px)!important;
+   color:#e5f2f9!important;line-height:1.55!important;
+   max-width:34ch!important;margin-inline:auto!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article .cc77tag{
+   color:#ffdb53!important;font-weight:800!important;
+   font-size:clamp(12px,.85vw,15px)!important;line-height:1.3!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article .cc77actions{
+   margin-top:auto!important;display:flex!important;align-items:stretch!important;
+   gap:10px!important;width:100%!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article button{
+   min-height:48px!important;padding:10px 14px!important;
+   font-size:clamp(12px,.88vw,15px)!important;line-height:1.22!important;
+   font-weight:850!important;box-shadow:0 4px 12px #00151f75!important;
+  }
+  html body #cc77home#cc77home .cc77cards>article button:focus-visible,
+  html body #cc77home#cc77home .cc77top button:focus-visible{
+   outline:3px solid #fff!important;outline-offset:3px!important;
+  }
+  html body #cc77home#cc77home .cc77foot{
+   max-width:100%!important;margin:22px auto!important;padding:15px 20px!important;
+   border:1px solid #17dcf65e!important;border-radius:18px!important;
+   background:#031526e9!important;color:#b9dae9!important;
+   box-shadow:0 5px 22px #0006!important;
+  }
+  html body #cc77home#cc77home .cc295-credit{
+   color:#41ecf7!important;font-weight:900!important;letter-spacing:.12em!important;
+  }
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77brand .cc303-name{
+   color:#13364b!important;text-shadow:none!important;
+  }
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77brand .cc303-name em{color:#007f9a!important;text-shadow:none!important}
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77brand small{color:#315c71!important}
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article h2,
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article p{
+   color:#173c52!important;text-shadow:none!important;
+  }
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77foot{
+   background:rgba(246,253,255,.96)!important;color:#2a5368!important;
+  }
+  @media(max-width:700px){
+   html body #cc77home#cc77home .cc77brand .cc303-name{
+    font-size:clamp(20px,5vw,29px)!important;
+   }
+   html body #cc77home#cc77home .cc78main-logo{
+    width:56px!important;height:56px!important;flex-basis:56px!important;
+   }
+   html body #cc77home#cc77home .cc77cards>article{
+    padding:14px 16px 20px!important;
+   }
+   html body #cc77home#cc77home .cc77cards>article p{
+    font-size:14px!important;max-width:34ch!important;
+   }
+   html body #cc77home#cc77home .cc77cards>article button{min-height:50px!important}
+  }
   `;
   document.body.appendChild(style);
+ }
+ // V303: two-tone live header typography, without replacing login or navigation controls.
+ const brandText=document.querySelector('#cc77home .cc77brand > span:last-child');
+ if(brandText && !brandText.querySelector('.cc303-name')){
+  const small=brandText.querySelector('small');
+  const name=document.createElement('strong');
+  name.className='cc303-name';
+  name.append('CLAN ');
+  const accent=document.createElement('em');
+  accent.textContent='CARTAN';
+  name.appendChild(accent);
+  [...brandText.childNodes].filter(node=>node!==small).forEach(node=>node.remove());
+  brandText.prepend(name);
  }
  // V297: render the real hero artwork as an image, not a fragile CSS background.
  const hero=document.querySelector('#cc77home .cc77intro');
