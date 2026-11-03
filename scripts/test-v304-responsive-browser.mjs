@@ -51,10 +51,11 @@ try{
  assert.equal(await evaluate("document.documentElement.dataset.ccTheme"),'light');
  assert.equal(await evaluate("document.querySelector('.cc283-home-currency select').value"),'USD');
  for(const action of ['login','signup','cobra','cochera','alquiler','distributor']){
+  await evaluate("document.querySelector('#cc77home').scrollTop=100");
   await evaluate(`(()=>{const h=document.querySelector('#cc77home');const actions={login:()=>h.querySelector('[onclick="cc77Auth(false)"]').click(),signup:()=>h.querySelector('[onclick="cc77Auth(true)"]').click(),cobra:()=>h.querySelector('.cc217-cobra button').click(),cochera:()=>h.querySelector('.cc217-cochera button').click(),alquiler:()=>h.querySelector('.cc217-alquiler button').click(),distributor:()=>h.querySelector('.cc217-stream button:last-child').click()};actions[${JSON.stringify(action)}]()})()`);await pause(160);
   assert.equal(await evaluate("getComputedStyle(document.querySelector('#cc-real-login')).display!=='none'"),true,'Acceso protegido '+action);
   await evaluate("document.querySelector('#cc223-auth-close').click()");await pause(80);
-  assert.equal(await evaluate("getComputedStyle(document.querySelector('#cc77home')).display!=='none'"),true,'Volver portada '+action);
+  assert.equal(await evaluate("getComputedStyle(document.querySelector('#cc77home')).display!=='none'"),true,'Volver portada '+action);assert.equal(await evaluate("document.querySelector('#cc77home').scrollTop"),0,'Cabecera visible al regresar '+action);
  }
  await evaluate("cc77Auth(false);document.querySelector('#cc305-password-toggle').click()");
  assert.equal(await evaluate("document.querySelector('#cc-real-pass').type"),'text');

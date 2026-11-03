@@ -1,4 +1,4 @@
-/* V305: real Cloudflare widget, reused by Supabase Auth; no secret in the browser.
+/* V307: real Cloudflare widget, reused by Supabase Auth; no secret in the browser.
  * Supabase CAPTCHA must also be enabled in Auth > Bot and Abuse Protection. */
 (function(){
 'use strict';
@@ -17,11 +17,20 @@ window.cc123CaptchaToken=function(){
  if(!sitekey)return undefined;
  const key=destination()?.key||'auth',widget=widgets.get(key);lastUsed=key;
  if(!widget?.token)throw Error('Completa la verificación de seguridad Cloudflare antes de continuar.');
+ if(widget.used)throw Error('La verificación ya se está utilizando. Espera a que termine el intento.');
+ if(Date.now()-widget.issuedAt>240000||window.turnstile?.isExpired?.(widget.id)){
+  window.cc123ResetCaptcha(key);throw Error('La verificación venció. Complétala nuevamente antes de continuar.');
+ }
+ const current=window.turnstile?.getResponse?.(widget.id);
+ if(current!==undefined&&current!==widget.token){
+  window.cc123ResetCaptcha(key);throw Error('Completa nuevamente la verificación de seguridad.');
+ }
+ widget.used=true;
  return widget.token;
 };
 window.cc123ResetCaptcha=function(key=lastUsed){
  const widget=widgets.get(key);if(!widget)return;
- widget.token='';
+ widget.token='';widget.used=false;widget.issuedAt=0;
  if(widget.id!==undefined&&window.turnstile?.reset)window.turnstile.reset(widget.id);
 };
 if(!sitekey)return;
@@ -43,14 +52,14 @@ function mount(){
  wrap.setAttribute('aria-label','Verificación de seguridad Cloudflare');
  const note=document.createElement('small');note.className='cc305-captcha-note';note.textContent='Verificación de seguridad';
  const target=document.createElement('div');wrap.append(note,target);dest.anchor.before(wrap);
- const widget={id:undefined,token:'',wrap};widgets.set(dest.key,widget);
+ const widget={id:undefined,token:'',used:false,issuedAt:0,wrap};widgets.set(dest.key,widget);
  load().then(()=>{
   if(!target.isConnected)return;
   widget.id=window.turnstile.render(target,{sitekey,language:'es',theme:document.documentElement.dataset.ccTheme==='light'?'light':'dark',
    size:wrap.clientWidth<300?'compact':'flexible',
-   callback:token=>{widget.token=token;note.textContent='Verificación de seguridad';},
-   'expired-callback':()=>{widget.token='';note.textContent='La verificación venció. Complétala nuevamente.';},
-   'error-callback':()=>{widget.token='';note.textContent='No se pudo verificar. Comprueba tu conexión y vuelve a intentarlo.';}
+   callback:token=>{widget.token=typeof token==='string'?token:'';widget.used=false;widget.issuedAt=Date.now();note.textContent='Verificación de seguridad';},
+   'expired-callback':()=>{widget.token='';widget.used=false;widget.issuedAt=0;note.textContent='La verificación venció. Complétala nuevamente.';},
+   'error-callback':()=>{widget.token='';widget.used=false;widget.issuedAt=0;note.textContent='No se pudo verificar. Comprueba tu conexión y vuelve a intentarlo.';}
   });
  }).catch(()=>{
   note.textContent='No se pudo cargar la verificación. Comprueba tu conexión.';

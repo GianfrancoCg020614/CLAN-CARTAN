@@ -6,7 +6,7 @@ Comprobación: 2026-11-03, 16:25 UTC.
 
 ## Resultado confirmado
 
-El propietario activó Cloudflare Turnstile en Supabase Auth usando el widget existente CLAN CARTAN Auth - Supabase. Dos solicitudes al endpoint real /auth/v1/token?grant_type=password con un correo reservado .invalid, inexistente, confirmaron:
+El propietario habilitó CAPTCHA en Supabase Auth. La prueba negativa de esta versión no confirmó por sí sola el proveedor seleccionado ni la aceptación de un token legítimo; véase la investigación posterior V307. Dos solicitudes al endpoint real /auth/v1/token?grant_type=password con un correo reservado .invalid, inexistente, confirmaron:
 
 | Caso | HTTP | Código | Respuesta |
 | --- | --- | --- | --- |
