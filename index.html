@@ -6269,5 +6269,31 @@ html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card .cc77act
 html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card button{border-radius:999px!important;min-height:52px!important;background:linear-gradient(110deg,#05e9d7,#18cfee)!important;border:1px solid #9affff!important;color:#032334!important;box-shadow:0 5px 15px #00e5e53b!important}
 @media(max-width:590px){html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card,html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card{border-radius:25px!important;min-height:0!important}}
 </style>
+<style id="cc-v258-unified-entire-home">
+/* V258: diseño integral de portada, no solo banner. Mantiene DOM y eventos originales. */
+html body #cc77home{background:#020c1d url('assets/clan-neon-landscape-v256.svg') center center/100% 100% no-repeat fixed!important;color:#e8faff!important;min-height:100vh!important}
+html body #cc77home .cc77wrap{width:100%!important;max-width:1760px!important;margin:auto!important;padding:0 clamp(12px,2.3vw,38px) 42px!important}
+html body #cc77home .cc77top{width:100%!important;margin:0 auto!important;min-height:94px!important;border:1px solid #12eaff88!important;border-top:0!important;border-radius:0 0 46px 46px!important;background:linear-gradient(120deg,#021225f2,#063b59df,#021225f2)!important;box-shadow:0 0 28px #00d8f55c!important;padding:15px 22px!important}
+html body #cc77home .cc77brand{font-size:clamp(21px,2.4vw,34px)!important;color:#b9fcff!important;text-shadow:0 0 12px #00dfff99!important}
+html body #cc77home .cc77brand small{color:#e1f8ff!important}
+html body #cc77home .cc77top button{border-radius:999px!important;border:1px solid #60f7ff!important;background:#08324c!important;color:#eaffff!important}
+html body #cc77home .cc77top button.primary{background:linear-gradient(90deg,#00eadd,#39c8ff)!important;color:#032432!important}
+html body #cc77home .cc77intro{height:clamp(210px,23vw,335px)!important;margin:0 auto 8px!important;padding:18px clamp(15px,3vw,40px)!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important}
+html body #cc77home .cc77intro::before{content:""!important;position:absolute!important;inset:12px 12%!important;z-index:-1!important;background:radial-gradient(ellipse at center,#001528ad,transparent 72%)!important}
+html body #cc77home .cc77intro::after{display:none!important}
+html body #cc77home .cc77intro h1{font-size:clamp(34px,5.3vw,78px)!important;letter-spacing:-.045em!important;line-height:1.03!important;background:linear-gradient(#fff,#a5ffff 40%,#00eaff 80%,#e7ffff)!important;background-clip:text!important;-webkit-background-clip:text!important;color:transparent!important;filter:drop-shadow(0 0 14px #00f0ff77)!important}
+html body #cc77home .cc77intro p{color:#cbfaff!important;text-shadow:0 2px 10px #000!important;letter-spacing:.05em!important;font-size:clamp(11px,1vw,15px)!important;line-height:1.45!important;max-width:850px!important}
+html body #cc77home .cc77cards{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:clamp(12px,1.25vw,22px)!important;align-items:stretch!important;width:100%!important;max-width:1640px!important;margin:0 auto!important;padding:0 4px!important}
+html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;gap:10px!important;min-height:465px!important;padding:22px clamp(12px,1.3vw,20px)!important;border:2px solid #33f1ff!important;border-radius:42px!important;background:linear-gradient(160deg,#052e4dc9,#010d22e8)!important;box-shadow:0 0 22px #00dfff75,inset 0 0 18px #19cfff18,0 20px 40px #0008!important;backdrop-filter:blur(16px)!important}
+html body #cc77home .cc77cards .cc78service-logo,html body #cc77home .cc77cards .cc158-cochera-mark,html body #cc77home .cc77cards .ma1611-card-icon{width:min(100%,200px)!important;height:190px!important;max-height:190px!important;flex:0 0 190px!important;max-width:200px!important;object-fit:contain!important;background-size:contain!important;filter:drop-shadow(0 0 12px #00dfff77)!important}
+html body #cc77home .cc77cards>article h2{color:#f3ffff!important;font-size:clamp(20px,1.5vw,26px)!important;text-shadow:0 0 7px #00eaff77!important}
+html body #cc77home .cc77cards>article .cc77tag,html body #cc77home .cc77cards>article .ma1611-card-copy small{color:#9bfaff!important;font-weight:800!important}
+html body #cc77home .cc77cards>article p{color:#e2f6ff!important;line-height:1.5!important;flex:1 1 auto!important}
+html body #cc77home .cc77cards>article .cc77actions{margin-top:auto!important;width:100%!important;display:flex!important;gap:8px!important}
+html body #cc77home .cc77cards>article button{min-height:52px!important;border-radius:999px!important;border:1px solid #a8ffff!important;background:linear-gradient(105deg,#00ebd9,#2fc8f6)!important;color:#002637!important;box-shadow:0 0 15px #00e7ff77!important;font-weight:850!important}
+html body #cc77home .cc77foot{color:#b9f7ff!important}
+@media(max-width:1100px){html body #cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:650px){html body #cc77home{background-size:auto 100%!important;background-attachment:scroll!important}html body #cc77home .cc77top{border-radius:0 0 25px 25px!important;padding:12px!important}html body #cc77home .cc77intro{height:auto!important;min-height:235px!important;padding:30px 10px!important}html body #cc77home .cc77cards{grid-template-columns:1fr!important}html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{min-height:0!important;border-radius:30px!important}}
+</style>
 </body>
 </html>
