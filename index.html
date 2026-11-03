@@ -5713,6 +5713,39 @@ html body #cc77home .cc77top{margin:0!important;width:100%!important;max-width:n
 html body #cc77home .cc77intro{max-width:100%!important}
 @media(max-width:650px){html body #cc77home .cc77wrap{padding:0 8px 75px!important}html body #cc77home .cc77cards{grid-template-columns:1fr!important}html body #cc77home .cc77top{flex-wrap:wrap!important}}
 </style>
+
+<style id="cc-v277-header-cleanup">
+/* Eliminar franja vacía de la capa superior y dar continuidad al paisaje. */
+html body{background:#03152a url('assets/cc-home-cinematic-hero.avif') center top/cover no-repeat fixed!important}
+html body #cc77home{top:0!important;left:0!important;right:0!important;bottom:0!important;margin:0!important;padding:0!important;transform:none!important;z-index:2147483640!important}
+html body #cc77home .cc77wrap{padding-top:0!important}
+html body #cc77home .cc77top{margin-top:0!important}
+@media(max-width:650px){html body{background-image:url('assets/cc-home-cinematic-mobile.avif')!important}}
+</style>
+<script id="cc-v277-currency-dedupe">
+(function(){
+ 'use strict';
+ const home=document.getElementById('cc77home');
+ if(!home)return;
+ const hidden=new Map();
+ function clean(){
+  const active=getComputedStyle(home).display!=='none';
+  if(!active){hidden.forEach((v,el)=>{if(el.isConnected)el.style.display=v});hidden.clear();return;}
+  document.querySelectorAll('select').forEach(sel=>{
+   if(home.contains(sel)||sel.closest('#cc-real-login,#cy53layer,#cc80wallet,#cc93-affiliate'))return;
+   const p=sel.closest('label')||sel.parentElement;
+   if(!p||home.contains(p))return;
+   const label=(p.textContent||'').slice(0,110);
+   if(!/moneda/i.test(label)||!sel.querySelector('option[value="PEN"]'))return;
+   if(!hidden.has(p))hidden.set(p,p.style.display);
+   p.style.display='none';
+  });
+ }
+ document.addEventListener('DOMContentLoaded',clean,{once:true});
+ new MutationObserver(clean).observe(home,{attributes:true,attributeFilter:['style','class']});
+ setTimeout(clean,100);
+})();
+</script>
 </body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
 function open(){session();document.getElementById('cy53layer').style.display='block';cy54.refreshAuth();if(session().isAdmin||session().isReseller)refresh()}
 function close(){document.getElementById('cy53layer').style.display='none'}
