@@ -5553,22 +5553,7 @@ function openDetail(id){
 }
 function closeDetail(){document.getElementById('cy63detail').style.display='none';state.selectedLoan=null}
 function printDetail(){if(!state.selectedLoan)return;const node=document.getElementById('cy63printable');if(!node)return;const w=window.open('','_blank','width=850,height=750');if(!w){alert('Activa las ventanas emergentes para imprimir.');return;}w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>COBRA YA - Cronograma</title><style>body{font-family:Arial,sans-serif;color:#1d2938;margin:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #777!important;padding:7px!important;text-align:left}h2,h3{color:#163b53}@page{size:A4;margin:16mm}</style></head><body>'+node.innerHTML+'
-<!-- V252: estilos críticos inline al final del documento para evitar caché y precedencias históricas. -->
-<style id="cc-v252-home-final">
-html:not([data-cc-theme="light"]) #cc77home{background:radial-gradient(ellipse at 50% 38%,#083456 0%,#041b34 42%,#020a19 100%)!important;color:#f5fcff!important}
-html:not([data-cc-theme="light"]) #cc77home .cc77top{background:linear-gradient(110deg,rgba(2,12,28,.95),rgba(5,38,55,.85))!important;border:0!important;border-bottom:1px solid #09d5e58a!important;border-radius:0 0 28px 28px!important;box-shadow:0 8px 25px #0007!important}
-html:not([data-cc-theme="light"]) #cc77home .cc77intro{border-radius:20px!important;overflow:hidden!important;margin-top:10px!important;box-shadow:0 0 0 1px #10d5e54d,0 15px 35px #0008!important}
-html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card,
-html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card{background:linear-gradient(155deg,rgba(6,41,64,.97),rgba(2,12,29,.98))!important;border:1.5px solid #2be7f0!important;border-radius:34px!important;box-shadow:inset 0 1px 0 #bbffff5c,0 0 18px #00d7e73b,0 15px 32px #0008!important;min-height:420px!important;padding:17px clamp(12px,1.4vw,22px) 20px!important}
-html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card:hover,
-html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card:hover{transform:translateY(-3px)!important;box-shadow:0 0 25px #00e5f566,0 20px 35px #0009!important}
-html:not([data-cc-theme="light"]) #cc77home .cc77cards .cc78service-logo,
-html:not([data-cc-theme="light"]) #cc77home .cc77cards .cc158-cochera-mark,
-html:not([data-cc-theme="light"]) #cc77home .cc77cards .ma1611-card-icon{border-radius:22px!important}
-html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card .cc77actions button,
-html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card button{border-radius:999px!important;min-height:52px!important;background:linear-gradient(110deg,#05e9d7,#18cfee)!important;border:1px solid #9affff!important;color:#032334!important;box-shadow:0 5px 15px #00e5e53b!important}
-@media(max-width:590px){html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card,html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card{border-radius:25px!important;min-height:0!important}}
-</style>
+
 </body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
 function open(){session();document.getElementById('cy53layer').style.display='block';cy54.refreshAuth();if(session().isAdmin||session().isReseller)refresh()}
 function close(){document.getElementById('cy53layer').style.display='none'}
@@ -6149,5 +6134,21 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <link rel="stylesheet" href="styles/v169-catalogo-perfil.css?v=243">
 <script src="scripts/v169-catalogo-unico.js?v=249" defer></script>
 
+<!-- V252: estilos críticos inline al final del documento para evitar caché y precedencias históricas. -->
+<style id="cc-v252-home-final">
+html:not([data-cc-theme="light"]) #cc77home{background:radial-gradient(ellipse at 50% 38%,#083456 0%,#041b34 42%,#020a19 100%)!important;color:#f5fcff!important}
+html:not([data-cc-theme="light"]) #cc77home .cc77top{background:linear-gradient(110deg,rgba(2,12,28,.95),rgba(5,38,55,.85))!important;border:0!important;border-bottom:1px solid #09d5e58a!important;border-radius:0 0 28px 28px!important;box-shadow:0 8px 25px #0007!important}
+html:not([data-cc-theme="light"]) #cc77home .cc77intro{border-radius:20px!important;overflow:hidden!important;margin-top:10px!important;box-shadow:0 0 0 1px #10d5e54d,0 15px 35px #0008!important}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card{background:linear-gradient(155deg,rgba(6,41,64,.97),rgba(2,12,29,.98))!important;border:1.5px solid #2be7f0!important;border-radius:34px!important;box-shadow:inset 0 1px 0 #bbffff5c,0 0 18px #00d7e73b,0 15px 32px #0008!important;min-height:420px!important;padding:17px clamp(12px,1.4vw,22px) 20px!important}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card:hover,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card:hover{transform:translateY(-3px)!important;box-shadow:0 0 25px #00e5f566,0 20px 35px #0009!important}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards .cc78service-logo,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards .cc158-cochera-mark,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards .ma1611-card-icon{border-radius:22px!important}
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card .cc77actions button,
+html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card button{border-radius:999px!important;min-height:52px!important;background:linear-gradient(110deg,#05e9d7,#18cfee)!important;border:1px solid #9affff!important;color:#032334!important;box-shadow:0 5px 15px #00e5e53b!important}
+@media(max-width:590px){html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card,html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card{border-radius:25px!important;min-height:0!important}}
+</style>
 </body>
 </html>
