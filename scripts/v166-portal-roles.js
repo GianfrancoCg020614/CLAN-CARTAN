@@ -16,6 +16,7 @@ let adminDirectoryQuery='';
 const adminOpenFiles=new Set();
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
+let adminRechargeFormOpen=false,salesFilter='all';
 let ownPending=null,ownPendingState='idle',ownPendingError='',ownPendingBusy=false;
 let rechargeQueueBusy=false,autoRefreshTimer=null,adminLastQueueFetch=0,ownBalancePollBusy=false;
 let ownRechargeIdentity=null,ownIdentityState='idle',ownIdentityError='';
@@ -65,6 +66,7 @@ function reset(){
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
  adminDirectoryQuery='';adminOpenFiles.clear();
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
+ adminRechargeFormOpen=false;salesFilter='all';
  ownPending=null;ownPendingState='idle';ownPendingError='';ownPendingBusy=false;
  rechargeQueueBusy=false;adminLastQueueFetch=0;ownBalancePollBusy=false;
  ownRechargeIdentity=null;ownIdentityState='idle';ownIdentityError='';
@@ -77,7 +79,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V308 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V309 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -468,13 +470,12 @@ async function adminDecideRecharge(row,approve,transaction,bank,confirmed,btn){
    p_confirmed_received:approve?true:false
   });
   if(user!==uid||session()?.jwt!==jwt)return;
-  if(result!==true){
-   notice('Solicitud ya procesada o sin cambio. Actualiza la cola para ver su estado.');
-  }else{
-   notice(approve?'Recarga verificada y acreditada por el servidor.':'Solicitud rechazada sin acreditar.');
-  }
+  const message=result!==true?
+   'Solicitud ya procesada o sin cambio. Actualiza la cola para ver su estado.':
+   approve?'Recarga verificada y acreditada por el servidor.':'Solicitud rechazada sin acreditar.';
   rechargeState='idle';auditState='idle';
   await loadAdminRecharges(true);
+  if(user===uid&&session()?.jwt===jwt&&view==='wallet'&&walletTab==='recharges')notice(message);
  }catch(e){
   if(user===uid&&session()?.jwt===jwt)notice('No se procesó la recarga: '+String(e?.message||e));
  }finally{rechargeSaving=false;btn.disabled=false;}
@@ -482,7 +483,7 @@ async function adminDecideRecharge(row,approve,transaction,bank,confirmed,btn){
 function openAdminGrantRecharge(person){
  if(!data.admin)return;
  chosenAdminRecipient=person?.user_id||null;
- finance('recharges');
+ adminRechargeFormOpen=true;finance('recharges');
 }
 function openAdminGrantBonus(person){
  if(!data.admin)return;
@@ -493,14 +494,14 @@ async function submitAdminAssistedRecharge(target,service,amount,reference,butto
  if(!data.admin||!verified||assistedRechargeSaving||!session()?.jwt)return;
  const recipient=adminAccounts.find(x=>x.user_id===target&&!x.is_admin);
  const value=Number(amount),ref=String(reference||'').trim();
+ if(ref&&(ref.length<4||ref.length>120)){notice('La referencia opcional debe tener entre 4 y 120 caracteres.');return;}
  if(!recipient||service!=='STREAM_BULLS'||
- !Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.00001||
- (ref&&(ref.length<4||ref.length>120))){
+ !Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.00001){
   notice('Selecciona un usuario no ADMIN, billetera compatible e importe entre S/ 1 y S/ 1000.');return;
  }
  if(!window.crypto?.randomUUID){notice('Es necesaria una conexión segura.');return;}
  if(!window.confirm('¿Registrar una recarga PENDIENTE de '+price(value)+' para '+recipient.registry_code+'? No se acreditará hasta validar el pago real.'))return;
- assistedRechargeSaving=true;buttonEl.disabled=true;
+ assistedRechargeSaving=true;buttonEl.disabled=true;syncAdminFormButtons();
  const uid=user,jwt=token,request=window.crypto.randomUUID();
  try{
   const result=await api('rpc/cc_admin_create_manual_recharge_for_user','POST',{
@@ -514,13 +515,14 @@ async function submitAdminAssistedRecharge(target,service,amount,reference,butto
   notice('Recarga de '+recipient.registry_code+' registrada como PENDIENTE, referencia '+request.slice(0,8)+'. Debes verificar el depósito real antes de acreditarla.');
  }catch(e){
   if(user===uid&&jwt===token)notice('No se registró la recarga: '+String(e?.message||e)+'. Comprueba las solicitudes antes de reintentar.');
- }finally{assistedRechargeSaving=false;buttonEl.disabled=false;}
+ }finally{assistedRechargeSaving=false;buttonEl.disabled=false;syncAdminFormButtons();}
 }
 function adminAssistedRechargeForm(page){
  if(adminAccountsState==='idle')void loadAdminAccounts();
  const box=card('Otorgar recarga','Selecciona al cliente registrado. Esta acción crea una solicitud manual; nunca acredita fondos sin comprobar el depósito real.');
  const details=make('details','cc181-grant-form');
- details.open=!!chosenAdminRecipient;
+ details.open=adminRechargeFormOpen||!!chosenAdminRecipient;
+ details.addEventListener('toggle',()=>{adminRechargeFormOpen=details.open;});
  details.append(make('summary','','+ Otorgar recarga a usuario'));
  if(adminAccountsState==='loading'||adminAccountsState==='idle'){
   details.append(make('p','cc166-note','Cargando cuentas registradas…'));
@@ -549,7 +551,7 @@ function adminAssistedRechargeForm(page){
    const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
    priceLabel.append(amount);form.append(priceLabel);
    const refLabel=make('label','','Referencia declarada (opcional)');
-   const reference=document.createElement('input');reference.maxLength=120;reference.placeholder='ID de depósito si existe';
+   const reference=document.createElement('input');reference.maxLength=120;reference.minLength=4;reference.placeholder='ID de depósito si existe';
    refLabel.append(reference);form.append(refLabel);
    const submit=make('button','cc166-primary','Registrar recarga pendiente');submit.type='submit';
    form.append(submit);
@@ -1289,6 +1291,9 @@ async function buyStreamMembership(amount){
  }catch(e){if(session()?.userId===uid)notice('No se activó la membresía: '+String(e.message||e));}
  finally{membershipPending=false;}
 }
+function orderStatusName(status){
+ return {PAID_AWAITING_DELIVERY:'Pendiente de entrega',FULFILLED:'Entregado',REFUNDED:'Reembolsado'}[status]||String(status||'Sin estado').replaceAll('_',' ');
+}
 function orders(page){
  title(page,'Mis compras','Cada pedido pagado conserva producto, importe, proveedor, estado y enlace de notificación.');
  const entries=data.orders.filter(o=>o.buyer_id===user);
@@ -1297,7 +1302,7 @@ function orders(page){
   const row=make('article','cc167-order-row');
   const summary=make('div','');
   summary.append(make('strong','',o.title));
-  summary.append(make('small','','Pedido: '+o.id+' · '+String(o.status).replaceAll('_',' ')));
+  summary.append(make('small','','Pedido: '+o.id+' · '+orderStatusName(o.status)));
   row.append(summary,make('strong','',price(o.price_pen)));
   row.append(button('Notificar vendedor',()=>notifySeller({...o,order_id:o.id}),'cc166-secondary'));
   page.append(row);
@@ -1325,11 +1330,21 @@ function sales(page){
  stats.append(metric('Comisión ADMIN sobre ganancia',price(totals.admin),'gold'));
  page.append(stats);
  if(!rows.length){page.append(make('p','cc166-empty','Sin ventas registradas todavía.'));return;}
- for(const o of rows){
+ const filter=make('label','cc309-sales-filter','Mostrar pedidos');
+ const select=document.createElement('select');select.setAttribute('aria-label','Filtrar pedidos por estado');
+ for(const [value,label] of [['all','Todos'],['PAID_AWAITING_DELIVERY','Pendientes de entrega'],['FULFILLED','Entregados'],['REFUNDED','Reembolsados']]){
+  const option=make('option','',label);option.value=value;select.append(option);
+ }
+ select.value=salesFilter;select.addEventListener('change',()=>{salesFilter=select.value;render(true);});
+ filter.append(select);page.append(filter);
+ const visibleRows=rows.filter(o=>salesFilter==='all'||o.status===salesFilter);
+ const count=make('p','cc166-note',visibleRows.length+' de '+rows.length+' pedidos');count.setAttribute('role','status');page.append(count);
+ if(!visibleRows.length)page.append(make('p','cc166-empty','No hay pedidos con este estado.'));
+ for(const o of visibleRows){
   const line=make('article','cc167-order-row');
   const info=make('div','');
   info.append(make('strong','',o.title));
-  info.append(make('small','','Pedido '+o.id+' · '+String(o.status).replaceAll('_',' ')));
+  info.append(make('small','','Pedido '+o.id+' · '+orderStatusName(o.status)));
   line.append(info,make('strong','',price(o.price_pen)));
   if(!data.admin){const b=button(o.status==='FULFILLED'?'Entregado':'Marcar entregado',()=>void markDelivered(o),'cc166-secondary');b.disabled=o.status!=='PAID_AWAITING_DELIVERY';line.append(b);}
   page.append(line);
@@ -1748,7 +1763,7 @@ async function adminGrantBonus(person,service,rawAmount,rawReason,btn){
  }
  if(!window.confirm('¿Otorgar BONO GRATUITO de '+price(amount)+' a '+person.registry_code+' en '+serviceName(service)+'? No es recarga de efectivo ni modifica su dinero real.'))return;
  if(!window.crypto?.randomUUID){notice('Conexión segura requerida para registrar el bono.');return;}
- bonusSaving=true;btn.disabled=true;const uid=user,jwt=token;const request=window.crypto.randomUUID();
+ bonusSaving=true;btn.disabled=true;syncAdminFormButtons();const uid=user,jwt=token;const request=window.crypto.randomUUID();
  try{
   const args=service==='COBRA_YA'?{
    path:'rpc/cc_admin_grant_welcome_balance',
@@ -1767,7 +1782,7 @@ async function adminGrantBonus(person,service,rawAmount,rawReason,btn){
   auditState='idle';
  }catch(e){
   if(user===uid&&jwt===token)notice('El bono no se confirmó: '+String(e?.message||e)+' · Referencia '+request+'. Comprueba historial antes de reintentarlo.');
- }finally{bonusSaving=false;btn.disabled=false;}
+ }finally{bonusSaving=false;btn.disabled=false;syncAdminFormButtons();}
 }
 function admin(page){
  if(!data.admin)return overview(page);
@@ -1918,6 +1933,29 @@ function other(page){
  box.append(button('Ver negocios',()=>nav('businesses'),'cc166-primary'));
  box.append(button('Volver al portal original',()=>{app.hidden=true;},'cc166-secondary'));page.append(box);
 }
+function syncAdminFormButtons(){
+ const page=el('cc166-content');
+ const recharge=page?.querySelector('.cc181-assist-fields button[type="submit"]');
+ if(recharge){recharge.disabled=assistedRechargeSaving;recharge.textContent=assistedRechargeSaving?'Registrando solicitud…':'Registrar recarga pendiente';}
+ const bonus=page?.querySelector('.cc177-bonus-form button[type="submit"]');
+ if(bonus){bonus.disabled=bonusSaving;bonus.textContent=bonusSaving?'Registrando bono…':'Otorgar bono gratuito';}
+}
+function saveAdminBonusDraft(){
+ if(!data.admin||view!=='bonuses')return null;
+ const form=el('cc166-content')?.querySelector('.cc177-bonus-form');
+ if(!form)return null;
+ return {recipient:form.querySelectorAll('select')[0]?.value,service:form.querySelectorAll('select')[1]?.value,
+  amount:form.querySelector('input[type="number"]')?.value,reason:form.querySelector('input[type="text"]')?.value};
+}
+function restoreAdminBonusDraft(draft){
+ if(!draft||view!=='bonuses')return;
+ const form=el('cc166-content')?.querySelector('.cc177-bonus-form');if(!form)return;
+ const selects=form.querySelectorAll('select');
+ for(const [field,value] of [[selects[0],draft.recipient],[selects[1],draft.service]])
+  if(field&&[...field.options].some(option=>option.value===value))field.value=value;
+ const amount=form.querySelector('input[type="number"]'),reason=form.querySelector('input[type="text"]');
+ if(amount)amount.value=draft.amount??'';if(reason)reason.value=draft.reason??'';
+}
 function saveAdminGrantDraft(){
  if(!data.admin||view!=='wallet'||walletTab!=='recharges')return null;
  const details=el('cc166-content')?.querySelector('details.cc181-grant-form');
@@ -1939,7 +1977,7 @@ function restoreAdminGrantDraft(draft){
  const reference=form.querySelector('input[placeholder="ID de depósito si existe"]');
  if(recipient&&[...recipient.options].some(opt=>opt.value===draft.recipient))
   recipient.value=draft.recipient;
- if(amount&&draft.amount)amount.value=draft.amount;
+ if(amount)amount.value=draft.amount;
  if(reference)reference.value=draft.reference;
 }
 function saveAdminReviewDrafts(){
@@ -1983,6 +2021,7 @@ function render(startAtTop=false){
  renderedLocation=location;
  const rechargeDrafts=saveAdminReviewDrafts();
  const grantDraft=saveAdminGrantDraft();
+ const bonusDraft=saveAdminBonusDraft();
  el('cc177-return-panel')?.remove();
  mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
  // Cuatro negocios, un selector: visible únicamente al gestionar negocios.
@@ -2007,6 +2046,7 @@ function render(startAtTop=false){
  }
  restoreAdminReviewDrafts(rechargeDrafts);
  restoreAdminGrantDraft(grantDraft);
+ restoreAdminBonusDraft(bonusDraft);syncAdminFormButtons();
  savePanelState();
 }
 async function read(path,required=false){try{const r=await api(path);if(!Array.isArray(r))throw Error('Respuesta inválida');return r;}catch(e){if(required)throw e;return[];}}

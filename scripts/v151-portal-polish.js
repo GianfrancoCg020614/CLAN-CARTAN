@@ -103,7 +103,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=308';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=309';script.async=false;document.head.append(script);
  }
 })();
 
@@ -198,6 +198,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (function(){
  if(document.getElementById('cc308-panel-nav-css'))return;
  const link=document.createElement('link');link.id='cc308-panel-nav-css';
- link.rel='stylesheet';link.href='styles/v308-panel-navigation.css?v=308';
+ link.rel='stylesheet';link.href='styles/v308-panel-navigation.css?v=309';
  document.head.append(link);
 })();
