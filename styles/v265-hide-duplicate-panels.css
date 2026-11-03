@@ -20,3 +20,10 @@
 #cc77home #cc79logged{position:relative!important;inset:auto!important}
 @media(max-width:1199px){#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}#cc77home .cc77intro{height:clamp(220px,30vw,350px)!important}}
 @media(max-width:650px){#cc77home{background-attachment:scroll!important}#cc77home .cc77wrap{padding:10px 12px 24px!important}#cc77home .cc77top{border-radius:18px!important;justify-content:center!important}#cc77home .cc77top>.cc77actions{width:100%!important;justify-content:center!important;margin:0!important}#cc77home .cc77intro{height:220px!important;background-image:url('../assets/cc-home-cinematic-mobile.avif')!important}#cc77home .cc77cards{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}#cc77home .cc77cards>article.cc77card,#cc77home .cc77cards>article.ma1611-card{min-height:0!important;padding:18px!important;border-radius:26px!important}}
+
+/* V283: selector de moneda integrado en la cabecera */
+#cc77home .cc77top .cc283-home-currency{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex:1 1 285px!important;min-width:0!important;color:#f5fcff!important;font-size:14px!important;opacity:1!important;visibility:visible!important}
+#cc77home .cc77top .cc283-home-currency label{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:9px!important;flex-wrap:wrap!important}
+#cc77home .cc77top .cc283-home-currency select{min-width:195px!important;max-width:100%!important;border:1px solid #8cdcf5!important;border-radius:16px!important;background:#061324!important;color:#fff!important;padding:9px 13px!important;cursor:pointer!important}
+#cc77home .cc77top .cc283-home-currency select:focus-visible{outline:3px solid #00efff!important;outline-offset:2px!important}
+@media(max-width:900px){#cc77home .cc77top .cc283-home-currency{flex-basis:100%!important;justify-content:center!important;order:2!important}#cc77home .cc77top>.cc77actions{order:3!important;margin:0 auto!important}}
