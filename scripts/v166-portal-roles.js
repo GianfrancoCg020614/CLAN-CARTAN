@@ -16,7 +16,8 @@ let adminDirectoryQuery='';
 const adminOpenFiles=new Set();
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
-let adminRechargeFormOpen=false,salesFilter='all';
+let adminRechargeFormOpen=false,salesFilter='all',purchaseFilter='all',publishing=false,discardPublishDraft=false;
+const deliveriesPending=new Set();
 let ownPending=null,ownPendingState='idle',ownPendingError='',ownPendingBusy=false;
 let rechargeQueueBusy=false,autoRefreshTimer=null,adminLastQueueFetch=0,ownBalancePollBusy=false;
 let ownRechargeIdentity=null,ownIdentityState='idle',ownIdentityError='';
@@ -66,7 +67,7 @@ function reset(){
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
  adminDirectoryQuery='';adminOpenFiles.clear();
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
- adminRechargeFormOpen=false;salesFilter='all';
+ adminRechargeFormOpen=false;salesFilter='all';purchaseFilter='all';publishing=false;discardPublishDraft=false;deliveriesPending.clear();
  ownPending=null;ownPendingState='idle';ownPendingError='';ownPendingBusy=false;
  rechargeQueueBusy=false;adminLastQueueFetch=0;ownBalancePollBusy=false;
  ownRechargeIdentity=null;ownIdentityState='idle';ownIdentityError='';
@@ -79,7 +80,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V309 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V310 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -1063,7 +1064,7 @@ function businessPayButtons(box,code,active){
   b.disabled=!verified||!!businessActivationPending;actions.append(b);
  }
  if(realBalance()<businessMonthlyPrice)actions.append(button('Saldo insuficiente · Recargar billetera',
-  ()=>{view='wallet';walletTab='manual';render();},'cc166-secondary'));
+  ()=>finance('manual'),'cc166-secondary'));
  box.append(actions);
 }
 async function activateBusiness(code,b){
@@ -1096,7 +1097,7 @@ function memberships(page){
  title(page,'Negocios · activar y pagar con billetera',
    'Activa COBRA YA, MI COCHERA y MI ALQUILER directamente con el saldo REAL que ADMIN ya acreditó.');
  const balance=card('Saldo real disponible',verified?price(realBalance()):'Consultando…');
- balance.append(button('Recargar billetera',()=>{view='wallet';walletTab='manual';render();},'cc166-secondary'));
+ balance.append(button('Recargar billetera',()=>finance('manual'),'cc166-secondary'));
  page.append(balance);
  const list=make('div','cc176-attention-grid');
  for(const [code] of services){
@@ -1107,7 +1108,7 @@ function memberships(page){
    cardEl.append(make('p','cc166-note','Plan 365 días · '+(cost>0?price(cost):'Precio no verificado')));
    if(verified&&cost>0&&!data.admin){
     cardEl.append(button(active?'Renovar suscripción · '+price(cost):'Pagar suscripción · '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary'));
-    if(realBalance()<cost)cardEl.append(button('Saldo insuficiente · Recargar billetera',()=>{view='wallet';walletTab='manual';render();},'cc166-secondary'));
+    if(realBalance()<cost)cardEl.append(button('Saldo insuficiente · Recargar billetera',()=>finance('manual'),'cc166-secondary'));
    }
   }else businessPayButtons(cardEl,code,active);
   cardEl.append(button(active?'Ingresar a '+serviceName(code):'Ver suscripción',()=>{view='business:'+code;render();},active?'cc166-primary':'cc166-secondary'));
@@ -1141,7 +1142,7 @@ function businessPage(page,code){
   if(info.ok){
    actions.append(button('Ingresar a STREAM BULL’S',()=>nav('stream-operations'),'cc166-primary'));
    if(data.super&&!data.admin)actions.append(button('Mis publicaciones',()=>nav('publish'),'cc166-secondary'));
-   else actions.append(button('Mi catálogo',()=>nav('shop'),'cc166-secondary'));
+
   }else{
    const cost=Number(data.plan?.price_pen);
    shell.append(metric('Membresía anual · 365 días',Number.isFinite(cost)&&cost>0?price(cost):'Precio no verificado','gold'));
@@ -1298,7 +1299,17 @@ function orders(page){
  title(page,'Mis compras','Cada pedido pagado conserva producto, importe, proveedor, estado y enlace de notificación.');
  const entries=data.orders.filter(o=>o.buyer_id===user);
  if(!entries.length){page.append(make('p','cc166-empty','Todavía no tienes compras registradas en el marketplace.'));return;}
- for(const o of entries){
+ const filter=make('label','cc309-sales-filter','Mostrar compras');
+ const select=document.createElement('select');select.setAttribute('aria-label','Filtrar mis compras por estado');
+ for(const [value,label] of [['all','Todas'],['PAID_AWAITING_DELIVERY','Pendientes de entrega'],['FULFILLED','Entregadas'],['REFUNDED','Reembolsadas']]){
+  const option=make('option','',label);option.value=value;select.append(option);
+ }
+ select.value=purchaseFilter;select.addEventListener('change',()=>{purchaseFilter=select.value;render(true);});
+ filter.append(select);page.append(filter);
+ const visibleEntries=entries.filter(o=>purchaseFilter==='all'||o.status===purchaseFilter);
+ const count=make('p','cc166-note',visibleEntries.length+' de '+entries.length+' compras');count.setAttribute('role','status');page.append(count);
+ if(!visibleEntries.length)page.append(make('p','cc166-empty','No hay compras con este estado.'));
+ for(const o of visibleEntries){
   const row=make('article','cc167-order-row');
   const summary=make('div','');
   summary.append(make('strong','',o.title));
@@ -1308,15 +1319,29 @@ function orders(page){
   page.append(row);
  }
 }
-async function markDelivered(order){
+function syncSellerButtons(){
+ const publishButton=el('cc166-publish-form')?.querySelector('button[type="submit"]');
+ if(publishButton){publishButton.disabled=publishing;publishButton.textContent=publishing?'Publicando…':'Publicar servicio';}
+ for(const b of el('cc166-content')?.querySelectorAll('[data-delivery-order]')||[]){
+  const pending=deliveriesPending.has(b.dataset.deliveryOrder);
+  b.disabled=pending||b.dataset.orderStatus!=='PAID_AWAITING_DELIVERY';
+  b.textContent=pending?'Confirmando entrega…':b.dataset.orderStatus==='FULFILLED'?'Entregado':'Marcar entregado';
+ }
+}
+async function markDelivered(order,b){
  if(data.admin){notice('Solo el vendedor puede marcar su pedido como entregado.');return;}
+ if(!verified||!data.super||order?.seller_id!==user||order.status!=='PAID_AWAITING_DELIVERY'||deliveriesPending.has(order.id))return;
  if(!window.confirm('¿Confirmas que entregaste el producto al comprador? Esta acción no transfiere ni libera dinero.'))return;
+ const uid=user,jwt=token;deliveriesPending.add(order.id);syncSellerButtons();
  try{
   const ok=await api('rpc/cc_portal_mark_stream_order_delivered','POST',{p_order_id:order.id});
+  if(session()?.userId!==uid||session()?.jwt!==jwt)return;
   if(ok){await load();view='sales';render();notice('Entrega marcada como completada.');}
   else notice('El pedido ya había sido atendido o no tienes permiso.');
- }catch(e){notice('No se pudo cambiar el estado: '+String(e.message||e));}
+ }catch(e){if(session()?.userId===uid)notice('No se pudo cambiar el estado: '+String(e.message||e));}
+ finally{deliveriesPending.delete(order.id);if(session()?.userId===uid)syncSellerButtons();}
 }
+
 function sales(page){
  if(!data.admin&&!data.super){nav('home');return;}
  title(page,data.admin?'Supervisión de pedidos':'Ventas y entregas','Cada compra se guarda con comisión ADMIN y pago pendiente al vendedor; sin liquidaciones automáticas.');
@@ -1346,7 +1371,7 @@ function sales(page){
   info.append(make('strong','',o.title));
   info.append(make('small','','Pedido '+o.id+' · '+orderStatusName(o.status)));
   line.append(info,make('strong','',price(o.price_pen)));
-  if(!data.admin){const b=button(o.status==='FULFILLED'?'Entregado':'Marcar entregado',()=>void markDelivered(o),'cc166-secondary');b.disabled=o.status!=='PAID_AWAITING_DELIVERY';line.append(b);}
+  if(!data.admin){const b=button(o.status==='FULFILLED'?'Entregado':'Marcar entregado',()=>void markDelivered(o,b),'cc166-secondary');b.dataset.deliveryOrder=o.id;b.dataset.orderStatus=o.status;b.disabled=o.status!=='PAID_AWAITING_DELIVERY';line.append(b);}
   page.append(line);
  }
 }
@@ -1455,12 +1480,14 @@ async function editProduct(p,kind){
  }catch(e){if(session()?.userId===uid)notice('No se actualizó: '+String(e?.message||e));}
 }
 async function publishSave(fd,b){
- if(!user||!verified)return;
+ if(!user||!verified||data.admin||!data.super||publishing)return;
  const s=session(),uid=user,jwt=token;
  const value=k=>String(fd.get(k)||'').trim(),days=Number(value('days')),stock=Number(value('stock')),p=Number(value('price')),d=Number(value('distributor')),c=Number(value('cost'));
  if(!(p>0&&d>0&&c>=0&&c<=d&&d<=p&&p<=10000&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1&&Math.abs(p*100-Math.round(p*100))<1e-7&&Math.abs(d*100-Math.round(d*100))<1e-7)){
   notice('Verifica que costo ≤ reseller ≤ público, con 2 decimales como máximo, además de stock y duración.');return;
  }
+ publishing=true;syncSellerButtons();
+ try{
  const flyer=fd.get('flyer');
  const hasFlyer=flyer instanceof Blob&&flyer.size>0;
  if(hasFlyer){
@@ -1470,7 +1497,6 @@ async function publishSave(fd,b){
   }catch(e){notice('Flyer inválido: '+String(e.message||e));return;}
  }
  b.disabled=true;b.textContent='Publicando…';
- try{
   // Conservar la RPC V167 y el MISMO id comercial: no crear un producto por cada imagen.
   const productId=await api('rpc/cc_portal_publish_stream_product_v2','POST',{
    p_service:value('service'),p_title:value('title'),p_duration_days:days,p_price_pen:p,
@@ -1486,13 +1512,14 @@ async function publishSave(fd,b){
    }catch(e){flyerError=String(e?.message||e);}
   }
   if(session()?.userId!==uid||session()?.jwt!==jwt)return;
-  await load();nav('publish');
+  discardPublishDraft=true;await load();nav('publish');
   if(flyerError)notice('Servicio publicado. El flyer quedó pendiente: '+flyerError+'. Puedes añadirlo desde Mis servicios, sin publicar de nuevo.');
   else notice(hasFlyer?'Servicio y flyer publicados en el catálogo público.':'Servicio publicado. Puedes agregarle un flyer cuando quieras.');
   window.cc169RefreshCatalog?.();
  }catch(e){if(session()?.userId===uid)notice('No se pudo publicar: '+String(e.message||e));}
- finally{b.disabled=false;if(b.isConnected)b.textContent='Publicar servicio';}
+ finally{publishing=false;discardPublishDraft=false;b.disabled=false;if(b.isConnected)b.textContent='Publicar servicio';syncSellerButtons();}
 }
+
 function trialDate(value){
  if(!value)return '—';
  try{return new Date(value).toLocaleDateString('es-PE',
@@ -2022,6 +2049,7 @@ function render(startAtTop=false){
  const rechargeDrafts=saveAdminReviewDrafts();
  const grantDraft=saveAdminGrantDraft();
  const bonusDraft=saveAdminBonusDraft();
+ const publishDraft=view==='publish'&&data.super&&!data.admin&&!discardPublishDraft?el('cc166-publish-form'):null;
  el('cc177-return-panel')?.remove();
  mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
  // Cuatro negocios, un selector: visible únicamente al gestionar negocios.
@@ -2047,6 +2075,8 @@ function render(startAtTop=false){
  restoreAdminReviewDrafts(rechargeDrafts);
  restoreAdminGrantDraft(grantDraft);
  restoreAdminBonusDraft(bonusDraft);syncAdminFormButtons();
+ if(publishDraft&&el('cc166-publish-form'))el('cc166-publish-form').replaceWith(publishDraft);
+ syncSellerButtons();
  savePanelState();
 }
 async function read(path,required=false){try{const r=await api(path);if(!Array.isArray(r))throw Error('Respuesta inválida');return r;}catch(e){if(required)throw e;return[];}}
