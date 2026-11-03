@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V161-20261021">
+<meta name="cc-deploy-version" content="V304-20261103">
 <meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="">
 <style>
@@ -2538,7 +2538,7 @@ body.light .ccc-v50-maker-divider{background:#d7dce2}
 #cy152adminReconcile .cc136entry{margin:10px 0;padding:10px;border:1px solid var(--line);border-radius:10px}
 @media(max-width:420px){#cy53layer .cy152-quick>button{font-size:11px;padding:7px 3px}.cy152-dialog{padding:13px}}
 </style>
-<link rel="stylesheet" href="styles/v246-admin-users.css?v=247">
+<link rel="stylesheet" href="styles/v246-admin-users.css?v=304">
 <link rel="stylesheet" href="styles/v260-all-business-ui.css?v=260">
 </head>
 <body>
@@ -5553,27 +5553,7 @@ function openDetail(id){
  state.selectedLoan=id;document.getElementById('cy63detailContent').innerHTML=data;document.getElementById('cy63detail').style.display='block';document.getElementById('cy63detail').scrollTop=0;
 }
 function closeDetail(){document.getElementById('cy63detail').style.display='none';state.selectedLoan=null}
-function printDetail(){if(!state.selectedLoan)return;const node=document.getElementById('cy63printable');if(!node)return;const w=window.open('','_blank','width=850,height=750');if(!w){alert('Activa las ventanas emergentes para imprimir.');return;}w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>COBRA YA - Cronograma</title><style>body{font-family:Arial,sans-serif;color:#1d2938;margin:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #777!important;padding:7px!important;text-align:left}h2,h3{color:#163b53}@page{size:A4;margin:16mm}</style></head><body>'+node.innerHTML+'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
+function printDetail(){if(!state.selectedLoan)return;const node=document.getElementById('cy63printable');if(!node)return;const w=window.open('','_blank','width=850,height=750');if(!w){alert('Activa las ventanas emergentes para imprimir.');return;}w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>COBRA YA - Cronograma</title><style>body{font-family:Arial,sans-serif;color:#1d2938;margin:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #777!important;padding:7px!important;text-align:left}h2,h3{color:#163b53}@page{size:A4;margin:16mm}</style></head><body>'+node.innerHTML+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
 function open(){session();document.getElementById('cy53layer').style.display='block';cy54.refreshAuth();if(session().isAdmin||session().isReseller)refresh()}
 function close(){document.getElementById('cy53layer').style.display='none'}
 // V105: el DNI solo recupera registros del prestamista autenticado, con RLS.
@@ -5833,7 +5813,7 @@ body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
 #cc77home .cc78cobra{background-image:var(--ccc-cobra-logo)}
 @media(max-width:520px){#cc77home .cc78service-logo{width:70px;height:70px;flex-basis:70px}#cc77home .cc77brand{font-size:21px}}
 </style>
-<section id="cc77home" aria-label="Página principal CLAN CARTAN">
+<section id="cc77home" class="cc304-home" aria-label="Página principal CLAN CARTAN">
  <div class="cc77wrap">
   <header class="cc77top"><div class="cc77brand"><span class="cc78main-logo" aria-label="Logo original de CLAN CARTAN"></span><span>CLAN CARTAN<small>EIRL. · Plataforma de negocios digitales</small></span></div><div class="cc77actions"><div id="cc95-user" style="display:none;align-items:center;gap:9px;background:#10253e;border:1px solid #345574;border-radius:30px;padding:6px 13px 6px 6px;color:#fff"><span id="cc95-avatar" style="width:35px;height:35px;display:grid;place-items:center;border-radius:50%;background:#159be2;font-weight:800">U</span><span style="display:flex;flex-direction:column;line-height:1.2"><strong id="cc95-name" style="font-size:13px">Usuario</strong><small id="cc95-role" style="color:#80def6">Usuario</small></span><div id="cc116-account-balances" class="cc116-account-balances" aria-label="Saldos de tus billeteras reales y de prueba"><span class="cc127-wallet-pill">COBRA · Real <b id="cc116-cobra">S/ --</b><small id="cc127-cobra-test">Prueba S/ --</small></span><span class="cc127-wallet-pill">BULL · Real <b id="cc116-bull">S/ --</b><small id="cc127-bull-test">Prueba S/ --</small></span><span class="cc127-wallet-pill">COCHERA · Total <b id="mc158-home-wallet">S/ --</b></span></div><button type="button" class="cc116-recharge" onclick="cc116OpenRecharge()">＋ Recargar</button><button type="button" class="cc118-logout cc118-profile-logout" onclick="cc54SwitchAccount()" aria-label="Cerrar sesión" title="Cerrar sesión"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button></div><button type="button" id="cc92-admin-button" style="display:none;background:#f0c76c;color:#111b2d;font-weight:900;border-color:#f0c76c" onclick="cc92OpenAdmin()">⚙ PANEL ADMIN</button><button type="button" class="cc98-guest-action" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="primary cc98-guest-action" onclick="cc77Auth(true)">Crear cuenta</button></div></header>
   <div class="cc77intro"><h1>CLAN CARTAN · Una cuenta, todos tus servicios</h1><p>Cuatro negocios, una sola cuenta. Explora STREAM BULL’S, organiza tus cobranzas en COBRA YA, administra cocheras y trabajadores en MI COCHERA, y gestiona habitaciones y locales en MI ALQUILER. Consulta la información de tus negocios desde una sola cuenta. La billetera REAL única se integrará cuando concluya la conciliación y las pruebas financieras.</p></div>
@@ -6142,12 +6122,12 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <link rel="stylesheet" href="styles/v161-4-mi-alquiler.css?v=204">
 <script src="scripts/v161-4-mi-alquiler.js?v=206" defer></script>
 <script src="scripts/v1635-rescate-ui.js?v=224" defer></script>
-<script src="scripts/v151-portal-polish.js?v=255"></script>
+<script src="scripts/v151-portal-polish.js?v=304"></script>
 
 <!-- V217: portada aprobada sobre el proyecto original. Funciones de botones intactas. -->
-<link rel="stylesheet" href="styles/v217-home.css?v=251">
-<script src="scripts/v217-home.js?v=2174" defer></script>
-<link rel="stylesheet" href="styles/v224-day.css?v=224">
+<link rel="stylesheet" href="styles/v217-home.css?v=304">
+<script src="scripts/v217-home.js?v=304" defer></script>
+<link rel="stylesheet" href="styles/v224-day.css?v=304">
 <script src="scripts/v223-contacto-portada.js?v=223" defer></script>
 <!-- STREAMBULLS: catálogo unificado y estilos de navegación (carga efectiva). -->
 <link rel="stylesheet" href="styles/v169-catalogo-perfil.css?v=243">
@@ -6177,29 +6157,6 @@ body:not(.light) .ccc-v14-panel .table tr:hover td{background:#0a344a55!importan
 
 
 
-<style id="cc-v278-real-interactive-home">
-/* V278: cuatro tarjetas reales, no una captura con zonas invisibles */
-html body #cc77home{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;scrollbar-gutter:stable!important;background:#031225 url('assets/clan-neon-landscape-v256.svg') center top/cover no-repeat!important;z-index:2147483638!important;scrollbar-width:thin!important;scrollbar-color:#13e6ef #041b30!important}
-html body #cc77home .cc77wrap{position:relative!important;display:block!important;box-sizing:border-box!important;aspect-ratio:auto!important;width:100%!important;max-width:1600px!important;min-height:100%!important;margin:0 auto!important;padding:16px clamp(12px,3vw,42px) 90px!important;overflow:visible!important;background:none!important;isolation:auto!important}
-html body #cc77home .cc77wrap::before,html body #cc77home .cc77wrap::after{display:none!important;content:none!important}
-html body #cc77home .cc77top{position:relative!important;inset:auto!important;z-index:10!important;display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:12px!important;width:100%!important;height:auto!important;min-height:82px!important;margin:0!important;padding:12px 20px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:linear-gradient(95deg,#041324f2,#053c50e9,#031222f2)!important;border:1px solid #26c8e3!important;border-radius:26px!important;box-shadow:0 0 20px #04e9f544!important}
-html body #cc77home .cc77top .cc77brand,html body #cc77home .cc77top .cc77brand *{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
-html body #cc77home .cc77top>.cc77actions{position:relative!important;inset:auto!important;width:auto!important;height:auto!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:9px!important;pointer-events:auto!important}
-html body #cc77home .cc77top .cc98-guest-action{position:relative!important;display:inline-flex!important;flex:auto!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;width:auto!important;min-height:42px!important;padding:8px 16px!important;border-radius:24px!important;cursor:pointer!important}
-html body #cc77home .cc77intro{position:relative!important;inset:auto!important;z-index:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-end!important;width:100%!important;height:clamp(190px,24vw,330px)!important;min-height:190px!important;margin:12px auto 14px!important;padding:18px!important;opacity:1!important;visibility:visible!important;pointer-events:none!important;background:linear-gradient(0deg,#031328cc,#03132800 75%),url('assets/cc-home-cinematic-hero.avif') center/cover no-repeat!important;border:1px solid #00d7ee66!important;border-radius:24px!important;box-shadow:0 12px 36px #0008!important;overflow:hidden!important}
-html body #cc77home .cc77intro h1{display:block!important;max-width:900px!important;margin:0 auto!important;font-size:clamp(20px,3.3vw,44px)!important;text-align:center!important;color:#e7ffff!important;text-shadow:0 3px 15px #001b33!important}
-html body #cc77home .cc77intro p{display:none!important}
-html body #cc77home .cc77cards{position:relative!important;inset:auto!important;z-index:3!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;width:100%!important;max-width:none!important;height:auto!important;margin:0!important;padding:0!important;pointer-events:auto!important}
-html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{position:relative!important;inset:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:10px!important;box-sizing:border-box!important;width:100%!important;height:auto!important;min-height:390px!important;margin:0!important;padding:20px 15px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:none!important;background:linear-gradient(160deg,#05263beF,#020e23f5)!important;border:2px solid #22e5f4!important;border-radius:28px!important;box-shadow:inset 0 0 14px #00eaff20,0 0 22px #00eaff6b!important;backdrop-filter:blur(8px)!important}
-html body #cc77home .cc77cards>article :is(.cc78service,.cc77tag,p,.ma1611-card-icon,.ma1611-card-copy,.ma1611-chip,h2){opacity:1!important;visibility:visible!important}
-html body #cc77home .cc77cards>article .cc77actions{position:relative!important;inset:auto!important;display:flex!important;flex-wrap:wrap!important;gap:8px!important;width:100%!important;height:auto!important;margin-top:auto!important;padding:0!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
-html body #cc77home .cc77cards>article button,html body #cc77home .cc77cards>article.ma1611-card>button{position:relative!important;inset:auto!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:1 1 125px!important;width:auto!important;min-height:47px!important;height:auto!important;margin-top:auto!important;padding:9px 12px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:linear-gradient(110deg,#00f4e7,#32c7fa)!important;border:1px solid #7bffff!important;border-radius:30px!important;box-shadow:0 0 12px #00eaff66!important;color:#002a37!important;font-weight:800!important;cursor:pointer!important}
-html body #cc77home .cc77cards>article .cc78service-logo{background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important}
-html body #cc77home .cc77cards>article p{font-size:13px!important;line-height:1.5!important}
-html body #cc77home .cc77cards>article h2{font-size:clamp(17px,1.6vw,24px)!important}
-html body #cc77home .cc77foot{position:relative!important;inset:auto!important;margin:22px auto!important;padding:18px!important;text-align:center!important;background:#021122cc!important;border-radius:16px!important}
-@media(max-width:1100px){html body #cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
-@media(max-width:650px){html body #cc77home .cc77wrap{padding:8px 10px 65px!important}html body #cc77home .cc77top{padding:12px!important;border-radius:18px!important}html body #cc77home .cc77top>.cc77actions{justify-content:center!important;width:100%!important}html body #cc77home .cc77intro{height:220px!important;min-height:220px!important;background-image:linear-gradient(0deg,#031328aa,transparent),url('assets/cc-home-cinematic-mobile.avif')!important}html body #cc77home .cc77cards{grid-template-columns:1fr!important}html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{min-height:0!important}}
-</style>
+
 </body>
 </html>

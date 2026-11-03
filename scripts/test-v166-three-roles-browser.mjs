@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 const chrome=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(fs.existsSync);
 assert.ok(chrome,'Es obligatorio Chrome / Chromium para verificar V166');
 const js=fs.readFileSync('scripts/v166-portal-roles.js','utf8');
-const css=fs.readFileSync('styles/v166-portal-roles.css','utf8');
+const css=['styles/v166-portal-roles.css','styles/v171-admin-simple.css','styles/v176-admin-console.css','styles/v177-panel-unico.css','styles/v246-admin-users.css'].map(p=>fs.readFileSync(p,'utf8')).join('\n');
 const home='<div id="cc77home"><div class="cc77top"><div class="cc77actions"></div></div><div class="cc77cards"><article class="cc77card"><button>STREAM</button></article><article class="cc77card"><button>COBRA</button></article></div></div>';
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'cc166-'));
 try{
@@ -46,6 +46,7 @@ try{
    'let noLegacyAdmin=[...document.querySelectorAll("#cc166-panel button")].every(b=>!b.textContent.includes("Administración anterior"));',
    'if(role.includes("ADMIN")){[...document.querySelectorAll(".cc166-navitem")].find(b=>b.textContent.includes("Usuarios"))?.click();noLegacyAdmin=noLegacyAdmin&&[...document.querySelectorAll("#cc166-panel button")].every(b=>!b.textContent.includes("Administración anterior"));[...document.querySelectorAll(".cc166-navitem")].find(b=>(b.textContent.includes("Inicio")||b.textContent.includes("Resumen")))?.click();}',
    'const oldHome=!!x("cc77home");',
+   'const simpleHome=!document.querySelector("#cc166-top-actions .cc177-back")&&document.querySelectorAll("#cc166-top-actions button").length===1;',
    'const actualBalance='+ (mode==='admin'?'true':'x("cc166-content")?.textContent.includes("S/ 12.50")')+';',
    'const businessCount=tabCount===4;',
    'const menuAdmin=[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes("Usuarios"));',
@@ -54,7 +55,7 @@ try{
    'const movementMenuCount=[...document.querySelectorAll(".cc166-navitem")].filter(b=>b.textContent.includes("Movimientos")).length===0;',
    'const minimalAffiliateMenu=!["Administración","Publicar","Mis ventas","Referidos","Control externo"].some(x=>[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes(x)));',
    'const pendingNoAdvanced=!["Publicar","Administración"].some(x=>[...document.querySelectorAll(".cc166-navitem")].some(b=>b.textContent.includes(x)));',
-   'const checks={rendered,zIndex,launcherInstalled,closes,reopens,oldHome,actualBalance,businessCount,scopedBusiness,controlsOK,movementMenuCount,noLegacyAdmin,noGlobalTabs,roleDashboardValid:'+ (mode==='super'?'superCenter':mode==='pending-super'?'pendingSuperNotice':'!superCenter&&!pendingSuperNotice')+',limitedRoleMenus:' + (mode==='affiliate'?'minimalAffiliateMenu':mode.startsWith('pending')?'pendingNoAdvanced':'true')+',roleValid:',
+   'const checks={simpleHome,rendered,zIndex,launcherInstalled,closes,reopens,oldHome,actualBalance,businessCount,scopedBusiness,controlsOK,movementMenuCount,noLegacyAdmin,noGlobalTabs,roleDashboardValid:'+ (mode==='super'?'superCenter':mode==='pending-super'?'pendingSuperNotice':'!superCenter&&!pendingSuperNotice')+',limitedRoleMenus:' + (mode==='affiliate'?'minimalAffiliateMenu':mode.startsWith('pending')?'pendingNoAdvanced':'true')+',roleValid:',
    mode==='admin'?'role.includes("ADMIN"),adminValid:menuAdmin,superValid:!menuPublish':mode==='super'?'role.includes("SÚPER"),adminValid:!menuAdmin,superValid:menuPublish':mode==='reseller'?'role.includes("RESELLER"),adminValid:!menuAdmin,superValid:!menuPublish':mode==='pending-super'?'role.includes("SÚPER RESELLER")&&role.includes("MEMBRESÍA PENDIENTE"),adminValid:!menuAdmin,superValid:!menuPublish':mode==='pending-reseller'?'role.includes("RESELLER")&&role.includes("MEMBRESÍA PENDIENTE"),adminValid:!menuAdmin,superValid:!menuPublish':'role.includes("AFILIADO"),adminValid:!menuAdmin,superValid:!menuPublish',
    ',mobileWidth:document.documentElement.scrollWidth<=innerWidth+3};',
    "const workspace=document.querySelector(\".cc166-workspace\"),content=x(\"cc166-content\");content.style.minHeight=\"2200px\";",
@@ -84,3 +85,4 @@ try{
   console.log('PASS rol '+mode+' en Chrome móvil; saldo real, navegación y módulos originales intactos.');
  }
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+

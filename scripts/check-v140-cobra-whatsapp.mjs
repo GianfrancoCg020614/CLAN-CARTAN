@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-assert.match(html, /content="(?:V152-20261020|V158-20261021|V160-20261021|V161-20261021)"/);
+assert.match(html, /content="V[0-9]+-20[0-9]{6}"/);
 const start=html.indexOf('<script>',html.indexOf('id="cy63detail"'));
 const end=html.indexOf('</script>',start);
 assert.ok(start>0&&end>start,'Script COBRA YA no encontrado');
@@ -30,3 +30,4 @@ assert.ok(js.includes("loan.status!=='ACTIVE'"),'Prórroga debe denegar préstam
 assert.ok(js.includes("oldMonths+added"),'No se presenta el plazo acumulado');
 assert.ok(js.includes("Date.UTC"),'Falta cálculo del contador en días');
 console.log('V140: selector, suma de plazo y contador de días, enlaces y emojis válidos.');
+

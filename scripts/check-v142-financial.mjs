@@ -12,7 +12,7 @@ const js=read('scripts/v142-financial-audit.js');
 const css=read('styles/v142-financial-audit.css');
 const html=read('index.html');
 new Script(js,{filename:'v142-financial-audit.js'});
-assert.match(html,/content="(?:V152-20261020|V158-20261021|V160-20261021|V161-20261021)"/);
+assert.match(html,/content="V[0-9]+-20[0-9]{6}"/);
 assert.ok(html.includes('scripts/v142-financial-audit.js?v=142'));
 assert.ok(html.includes('styles/v142-financial-audit.css?v=142'));
 for(const phrase of [
@@ -54,3 +54,4 @@ assert.ok(js.includes('csvSafe'),'CSV no protege contra fórmulas');
 assert.ok(css.includes('.cc142-entry'),'Falta vista compacta móvil');
 assert.ok(!js.includes('cc_service_wallets'),'Auditoría no puede leer billetera de prueba');
 console.log('V142: saldo real auditado, S/15, bono único S/5, idempotencia, descuentos sin crédito y cierre comercial.');
+

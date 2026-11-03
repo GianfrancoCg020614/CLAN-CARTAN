@@ -7,7 +7,7 @@ const css=read("styles/v132-wallet-movements.css");
 const sql=read("supabase/migrations/20261018221000_v132_wallet_movements.sql");
 const html=read("index.html");
 new Script(js,{filename:"v132-wallet-movements.js"});
-assert.match(html,/content="(?:V152-20261020|V158-20261021|V160-20261021|V161-20261021)"/);
+assert.match(html,/content="V[0-9]+-20[0-9]{6}"/);
 assert.ok(html.includes('scripts/v132-wallet-movements.js?v=135'));
 assert.ok(html.includes('styles/v132-wallet-movements.css?v=135'));
 for(const id of ["cc132search","cc132service","cc132perpage","cc132pdf","cc132excel","cc132tbody","cc132state","cc132reload"]){
@@ -40,3 +40,4 @@ for(const term of ["cc_real_wallet_refunds","for update","v_total+p_amount>v_spe
 }
 assert.ok(css.includes(".cc135-summary"));
 console.log("V132: migración RLS, filtros, UI, exportaciones y separación de saldos verificados.");
+

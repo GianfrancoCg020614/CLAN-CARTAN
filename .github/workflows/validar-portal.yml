@@ -23,7 +23,9 @@ jobs:
         with:
           node-version: '22'
       - name: Validar sintaxis y reglas de seguridad
-        run: node scripts/check-v130.mjs
+        run: |
+          node scripts/check-v130.mjs
+          node scripts/test-v304-inline-syntax.mjs
       - name: Comprobar MI ALQUILER V226.4 sin datos reales
         run: node scripts/check-v2264-mi-alquiler.mjs
       - name: Confirmar integridad del cronograma COBRAYA V226.5
@@ -140,3 +142,4 @@ jobs:
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
         run: node scripts/check-v112-live.mjs
+

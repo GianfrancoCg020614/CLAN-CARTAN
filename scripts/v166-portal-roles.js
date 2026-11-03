@@ -163,7 +163,7 @@ function renderNav(){
  app.classList.add('cc176-admin');
  const admin=!!data.admin,superRole=!admin&&!!data.super;
  const groups=[
-  ['GENERAL',[['home','◫',admin?'Resumen':'Inicio'],...(admin?[['attention','◷','Atención de hoy']]:[])]],
+  ['GENERAL',[['home','◫',admin?'Resumen':'Inicio']]],
   ['OPERACIONES',[
    ...(admin?[['admin','♙','Usuarios'],['approvals','✓','Súper reseller'],
      ['sales','◈','Supervisar pedidos'],['bonuses','◇','Bonos']]:[]),
@@ -185,14 +185,16 @@ function renderNav(){
  aside.append(make('p','cc176-side-note',
   admin?'ADMIN · Validación y supervisión':superRole?'Súper reseller · Publicaciones y ventas':
   'Cuenta CLAN CARTAN · Accesos según membresía'));
- aside.append(button('← Salir al portal',()=>{app.hidden=true;},'cc166-back'));
  const role=el('cc166-role');
  role.textContent=userRole()+' · '+(verified?'Cuenta verificada':'Verificando datos…');
  const heading=app.querySelector('.cc166-top h1');
  if(heading)heading.textContent='Panel CLAN CARTAN';
  const top=el('cc166-top-actions');top.replaceChildren();
- top.append(button('← Atrás',()=>nav('back'),'cc166-secondary cc177-back'));
- top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
+ if(view!=='home'&&navigationHistory.length)
+  top.append(button('← Atrás',()=>nav('back'),'cc166-secondary cc177-back'));
+ const localRefresh=view==='admin'||(view==='wallet'&&data.admin);
+ if(view!=='home'&&!localRefresh&&view!=='bonuses'&&view!=='profile')
+  top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
  top.append(button('✕ Cerrar',()=>{app.hidden=true;},'cc166-x'));
 }
 function businessTabs(page){
@@ -239,45 +241,33 @@ function adminHome(page){
  const tag=make('p','cc176-eyebrow','DIRECCIÓN / VISTA GENERAL');
  intro.append(tag);
  intro.append(make('h2','','Control de operaciones'));
- intro.append(make('p','','Una vista para decidir qué necesita atención. Sin módulos antiguos ni funciones duplicadas.'));
- const quick=make('div','cc166-actions');
- quick.append(button('Revisar pendientes',()=>nav('attention'),'cc166-primary'));
- quick.append(button('Administrar usuarios',()=>nav('admin'),'cc166-secondary'));
- quick.append(button('Otorgar recarga',()=>openAdminGrantRecharge(),'cc166-primary'));
- quick.append(button('Otorgar bono',()=>openAdminGrantBonus(),'cc166-secondary'));
- intro.append(quick);page.append(intro);
+ intro.append(make('p','','Revisa las tareas pendientes y la actividad de tus negocios.'));
+ page.append(intro);
  const stats=make('div','cc176-kpis');
  stats.append(metric('Usuarios registrados',adminAccountsState==='ready'?String(adminAccounts.length):'—','blue'));
  stats.append(metric('Publicaciones activas',String(k.activeProducts.length),'gold'));
  stats.append(metric('Entregas por atender',String(k.pendingDeliveries.length),'aqua'));
  stats.append(metric('Recargas por verificar',rechargeState==='ready'?String(rechargeRows.length):'—','purple'));
  page.append(stats);
- const section=make('div','cc176-dashboard-columns');
- const tasks=card('Prioridades de hoy','Pendientes actuales obtenidos del servidor, sin movimientos inventados.');
+ const section=make('div','cc176-dashboard-columns cc256-home-tasks');
+ const tasks=card('Pendientes','Aquí aparecen solo las tareas que necesitan revisión.');
  const items=[
   [rechargeState==='ready'?rechargeRows.length:'—','Recargas por verificar','Revisar recargas',()=>finance('recharges')],
   [k.pendingDeliveries.length,'Entregas de STREAM BULL’S','Abrir ventas',()=>nav('sales')],
   [adminAccountsState==='ready'?k.pendingPayments.length:'—','Membresías pendientes de pago','Ver usuarios',()=>nav('admin')]
  ];
+ let taskCount=0;
  for(const [num,heading,action,fn] of items){
+  if(typeof num!=='number'||num===0)continue;
+  taskCount++;
   const item=make('div','cc176-task');
   item.append(make('strong','cc176-task-count',num));
   const details=make('div','');details.append(make('strong','',heading));details.append(make('small','',num===0?'Sin pendientes':'Consulta para revisar el detalle'));
   item.append(details,button(action,fn,'cc166-secondary'));tasks.append(item);
  }
  section.append(tasks);
- const business=card('Áreas comerciales','Las aprobaciones manuales se aplican solo a Súper reseller.');
- const blocks=[
-  ['Súper reseller','Autoriza permisos especiales solo después de la membresía anual.',()=>nav('approvals')],
-  ['Bonos de bienvenida','Otorga bonos promocionales gratuitos a usuarios registrados.',()=>nav('bonuses')],
-  ['Supervisar pedidos','Revisa operaciones, sin publicar ni entregar como vendedor.',()=>nav('sales')],
-  ['Finanzas','Recargas verificadas y auditoría de todas las billeteras.',()=>finance('audit')]
- ];
- for(const [t,d,fn] of blocks){
-  const x=button('',fn,'cc176-resource');
-  x.append(make('strong','',t),make('small','',d));business.append(x);
- }
- section.append(business);page.append(section);
+ if(!taskCount)tasks.append(make('p','cc166-empty',adminAccountsState==='ready'&&rechargeState==='ready'?'No hay pendientes para revisar.':'Consultando pendientes…'));
+ page.append(section);
  const note=make('p','cc176-footnote',
  'STREAM BULL’S: membresía anual de 365 días. El reseller se activa al pagar con su billetera; ADMIN solo autoriza la categoría Súper reseller.');
  page.append(note);
@@ -360,17 +350,14 @@ function overview(page){
  if(data.super&&!data.admin){
   const center=card('Centro Súper reseller · STREAM BULL’S',
    'Publicaciones y ventas propias. Los precios y las comisiones se confirman en el servidor.');
-  center.append(button('Gestionar mis ventas',()=>nav('sales'),'cc166-secondary'));
   page.append(center);
  }else if(superAssigned){
   const pending=card(access('STREAM_BULLS').ok?'Súper reseller · aprobación ADMIN pendiente':'Súper reseller · membresía pendiente',
    access('STREAM_BULLS').ok?'Tu pago anual está vigente. Solo ADMIN puede habilitar publicaciones y ventas.':'Primero paga la membresía anual. Después ADMIN autorizará las funciones especiales.');
-  pending.append(button('Ver membresía',()=>nav('business:STREAM_BULLS'),'cc166-secondary'));
   page.append(pending);
  }else if(resellerPending){
   const pending=card('Reseller · activación pendiente',
    'El rol ya está registrado. El precio de distribuidor se habilita al confirmar tu suscripción.');
-  pending.append(button('Consultar mi acceso',()=>nav('business:STREAM_BULLS'),'cc166-secondary'));
   page.append(pending);
  }
 }
@@ -632,7 +619,7 @@ async function loadAdminAudit(force=false){
   if(!summary||typeof summary!=='object'||Array.isArray(summary)||!Array.isArray(rows))throw Error('Contabilidad no disponible');
   auditData=summary;auditRows=rows;auditState='ready';
  }catch(e){if(user===uid&&token===jwt){auditState='error';auditError=String(e?.message||e);}}
- finally{if(user===uid&&token===jwt&&view==='wallet'&&walletTab==='audit')render();}
+ finally{if(user===uid&&token===jwt&&view==='wallet'&&['summary','audit'].includes(walletTab))render();}
 }
 function adminAudit(page){
  if(auditState==='idle')void loadAdminAudit();
@@ -964,15 +951,19 @@ function wallet(page){
   if(walletTab==='audit'){adminAudit(page);return;}
   if(rechargeState==='idle')void loadAdminRecharges();
   if(auditState==='idle')void loadAdminAudit();
-  const grid=make('div','cc176-attention-grid');
-  for(const [heading,detail,cta,fn] of [
-   ['Recargas manuales',rechargeState==='ready'?rechargeRows.length+' solicitudes por verificar':'Revisar cola bancaria','Gestionar recargas',()=>finance('recharges')],
-   ['Auditoría financiera','Ingresos, egresos y trazabilidad de saldos reales.','Ver auditoría',()=>finance('audit')],
-   ['Bonos de activación','Solo COBRA YA, MI COCHERA y MI ALQUILER; nunca STREAM BULL’S.','Otorgar bono',()=>nav('bonuses')]
-  ]){
-   const block=card(heading,detail);block.append(button(cta,fn,'cc166-secondary'));grid.append(block);
-  }
-  page.append(grid);return;
+  const summary=card('Resumen financiero','Consulta los importes verificados de la plataforma.');
+  summary.append(button('Actualizar resumen',()=>void loadAdminAudit(true),'cc166-secondary'));
+  if(auditState==='ready'){
+   const stats=make('div','cc166-stats');
+   for(const [caption,key] of [
+    ['Recargas recibidas','cash_received_pen'],['Consumo pagado','paid_service_consumption_pen'],
+    ['Saldo real pendiente','real_wallet_liability_pen']
+   ])stats.append(metric(caption,price(auditData?.[key]??0),'aqua'));
+   summary.append(stats);
+   summary.append(make('p','cc166-note','Los bonos de activación se gestionan por separado desde Bonos.'));
+  }else if(auditState==='error')summary.append(make('p','cc166-notice','No se pudo consultar el resumen. Pulsa Actualizar resumen para reintentar.'));
+  else summary.append(make('p','cc166-note','Consultando el resumen financiero…'));
+  page.append(summary);return;
  }
  page.append(adminSectionTabs([
   ['summary','Resumen'],['manual','Recarga manual'],['automatic','Recarga automática'],['movements','Movimientos']
@@ -986,8 +977,7 @@ function wallet(page){
  box.append(make('strong','cc167-balance',verified?price(real):'Consultando…'));
  box.append(make('p','','Las compras utilizan saldo verificado. Los bonos gratuitos se registran por separado.'));
  const actions=make('div','cc167-actions');
- actions.append(button('Recarga manual',()=>{walletTab='manual';render();},'cc166-primary'),
-  button('Recarga automática',()=>{walletTab='automatic';render();},'cc166-secondary'));
+ actions.append(button('Recargar',()=>finance('manual'),'cc166-primary'));
  box.append(actions);page.append(box);
  const unified=card('Una sola billetera · cuatro negocios',
   'El saldo real disponible se muestra una sola vez, sin repartirlo ni duplicarlo entre plataformas.');
@@ -1550,10 +1540,14 @@ function adminAccountRow(person){
   'cc171-status-active':'cc171-status-pending',accessLabel(person)));
  wrap.append(state);
  const detail=make('details','cc246-user-details');
- const toggle=make('summary','cc246-eye','👁');
+ const toggle=make('summary','cc246-eye','Ver ficha');
  toggle.title='Ver datos y acciones de '+(person.registry_code||'usuario');
  toggle.setAttribute('aria-label',toggle.title);
  detail.append(toggle);
+ detail.addEventListener('toggle',()=>{
+  toggle.textContent=detail.open?'Ocultar ficha':'Ver ficha';
+  toggle.setAttribute('aria-label',(detail.open?'Ocultar':'Ver')+' datos y acciones de '+(person.registry_code||'usuario'));
+ });
  const expanded=make('div','cc246-expanded');
  const fields=make('div','cc246-fields');
  for(const [label,value] of [
@@ -1569,7 +1563,7 @@ function adminAccountRow(person){
  expanded.append(fields);
  const actions=make('div','cc171-person-actions');
  const rename=make('details','cc171-inline-details cc174-rename');
- rename.append(make('summary','','Editar identificación'));
+ rename.append(make('summary','','Editar nombre'));
  const tools=make('div','cc171-edit');
  const input=document.createElement('input');input.type='text';input.maxLength=80;
  input.value=person.registry_alias||person.display_name||'';
