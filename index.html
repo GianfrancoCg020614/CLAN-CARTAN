@@ -5700,6 +5700,19 @@ html body #cc77home .cc77top{max-width:100%!important;box-sizing:border-box!impo
 @media(max-width:900px){html body #cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #cc77home .cc77top{gap:12px!important}}
 @media(max-width:620px){html body #cc77home .cc77cards{grid-template-columns:1fr!important}html body #cc77home .cc77intro{background-size:cover!important;background-position:center!important}html body #cc77home .cc77wrap{padding:0 10px 65px!important}html body #cc77home .cc77top{flex-wrap:wrap!important}html body #cc77home .cc77actions{flex-wrap:wrap!important}}
 </style>
+
+<style id="cc-v276-overlay-scroll-and-edge">
+/* La portada es un panel fijo: el desplazamiento debe estar en el propio panel. */
+html body #cc77home{position:fixed!important;inset:0!important;height:100vh!important;height:100dvh!important;min-height:0!important;overflow-x:hidden!important;overflow-y:scroll!important;overscroll-behavior-y:auto!important;scrollbar-gutter:stable!important;background:#020d1f url('assets/cc-home-cinematic-hero.avif') center top/cover no-repeat!important}
+html body #cc77home::-webkit-scrollbar{display:block!important;width:12px!important}
+html body #cc77home::-webkit-scrollbar-track{background:#031527!important}
+html body #cc77home::-webkit-scrollbar-thumb{background:linear-gradient(#03f6f0,#0d8bb4)!important;border-radius:10px!important;border:2px solid #031527!important}
+html body #cc77home .cc77wrap{min-height:100%!important;overflow:visible!important;max-width:none!important;padding:0 12px 85px!important;margin:0 auto!important}
+html body #cc77home .cc77wrap::after{display:none!important;content:none!important}
+html body #cc77home .cc77top{margin:0!important;width:100%!important;max-width:none!important}
+html body #cc77home .cc77intro{max-width:100%!important}
+@media(max-width:650px){html body #cc77home .cc77wrap{padding:0 8px 75px!important}html body #cc77home .cc77cards{grid-template-columns:1fr!important}html body #cc77home .cc77top{flex-wrap:wrap!important}}
+</style>
 </body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),350)}
 function open(){session();document.getElementById('cy53layer').style.display='block';cy54.refreshAuth();if(session().isAdmin||session().isReseller)refresh()}
 function close(){document.getElementById('cy53layer').style.display='none'}
