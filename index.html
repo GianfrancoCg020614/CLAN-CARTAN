@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V306-20261103">
+<meta name="cc-deploy-version" content="V307-20261103">
 <meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="0x4AAAAAAFgi3l7LiJrucZTP">
 <style>
@@ -4845,7 +4845,7 @@ async function api(path,opts={},jwt=null){
  catch(e){throw Error(e?.name==='AbortError'?'Supabase no respondió en 20 segundos. Vuelve a intentar.':'No se pudo conectar con Supabase. Revisa tu conexión.');}
  finally{clearTimeout(timer);}
  const raw=await resp.text();let data={};try{data=JSON.parse(raw)}catch{}
- if(!resp.ok)throw Error(data.msg||data.error_description||data.message||'Error de autenticación ('+resp.status+')');
+ if(!resp.ok){const error=Error(data.error_code==='captcha_failed'?'No se pudo validar la verificación de seguridad. Complétala de nuevo y vuelve a intentar.':data.msg||data.error_description||data.message||'Error de autenticación ('+resp.status+')');error.code=data.error_code||data.code;throw error;}
  return data;
 }
 // V192 · Sesión persistente para navegador propio. No se guardan contraseñas.
@@ -4994,7 +4994,7 @@ window.addEventListener('storage',event=>{
 async function signIn(event){
  event.preventDefault();
  const gen=++ccAuthGeneration;
- btn.disabled=true;status.textContent='Verificando sesión y autorización…';
+ btn.disabled=true;status.dataset.kind='loading';status.textContent='Verificando sesión y autorización…';
  try{
   const email=document.getElementById('cc-real-email').value.trim();
   const password=document.getElementById('cc-real-pass').value;
@@ -5005,6 +5005,7 @@ async function signIn(event){
   await ccInstallSession(auth,gen);
  }catch(error){
   if(gen!==ccAuthGeneration)return;
+  status.dataset.kind='error';
   const err=String(error?.message||'Error de ingreso');
   const pending=/email not confirmed|email_not_confirmed/i.test(err);
   status.textContent=pending?'Confirma tu correo electrónico o solicita un nuevo código.':
@@ -5057,7 +5058,7 @@ if(invitationInUrl&&/^CLAN[1-9][0-9]{0,14}$/i.test(invitationInUrl)){
 }
 
 function setRegisterMode(next){
- registering=next;
+ registering=next;status.dataset.kind='neutral';
  // Los consentimientos solo son obligatorios al crear una cuenta.
  for(const id of ['cc-v81-terms','cc164-privacy'])document.getElementById(id).required=next;
  document.getElementById('cc-real-button').textContent=next?'Registrar mi cuenta':'Ingresar a CLAN CARTAN';
@@ -5079,7 +5080,7 @@ async function register(event){
  if(registrationPending)return;
  if(!ccParte1LegalReady()){ccParte1SyncRegisterButton();return;}
  registrationPending=true;ccParte1SyncRegisterButton();
- toggle.disabled=true;status.textContent='Registrando cuenta en Supabase…';
+ toggle.disabled=true;status.dataset.kind='loading';status.textContent='Creando tu cuenta…';
  try{
   const email=document.getElementById('cc-real-email').value.trim().toLowerCase();
   const password=document.getElementById('cc-real-pass').value;
@@ -5130,13 +5131,14 @@ async function register(event){
    document.getElementById('cc90-resend').style.display='block';
    status.textContent='Registro recibido. Escribe los 8 dígitos enviados a tu correo para confirmar tu cuenta.';
   }
- }catch(e){status.textContent=e.message||'No se pudo crear la cuenta. Revisa tus datos.';}
- finally{registrationPending=false;toggle.disabled=false;ccParte1SyncRegisterButton();window.cc123ResetCaptcha?.();}
+ }catch(e){status.dataset.kind='error';status.textContent=e.message||'No se pudo crear la cuenta. Revisa tus datos.';}
+ finally{registrationPending=false;toggle.disabled=false;ccParte1SyncRegisterButton();window.cc123ResetCaptcha?.('auth');}
 }
 // Login: los campos requeridos del registro permanecen ocultos y no deben bloquear el acceso.
 form.noValidate=true;
 form.addEventListener('submit',event=>{
  event.preventDefault();
+ if(btn.disabled)return;
  if(registering){void register(event);return;}
  const emailInput=document.getElementById('cc-real-email');
  emailInput.value=emailInput.value.trim();
@@ -5829,8 +5831,8 @@ body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
 </section>
 <button type="button" id="cc77back" onclick="cc77Home()">← CLAN CARTAN</button><div id="cc77demobanner">STREAM BULL’S · consulta las publicaciones y precios verificados en el catálogo oficial.</div>
 <script>
-function cc77Home(){document.getElementById('cc80wallet').style.display='none';document.getElementById('cy53layer').style.display='none';document.getElementById('cc93-affiliate').style.display='none';document.getElementById('cc77home').style.display='block';document.getElementById('cc-real-login').style.display='none';document.getElementById('cc77back').style.display='none';document.getElementById('cc77demobanner').style.display='none';}
-function cc77Auth(create){document.getElementById('cc77home').style.display='none';document.getElementById('cc77back').style.display='block';document.getElementById('cc77demobanner').style.display='none';const gate=document.getElementById('cc-real-login');gate.style.display='flex';const button=document.getElementById('cc-register-toggle');const isCreate=document.getElementById('cc-real-button').textContent.includes('Registrar mi cuenta');if(button&&isCreate!==create)button.click();}
+function cc77Home(){document.getElementById('cc80wallet').style.display='none';document.getElementById('cy53layer').style.display='none';document.getElementById('cc93-affiliate').style.display='none';document.getElementById('cc77home').style.display='block';document.getElementById('cc77home').scrollTop=0;document.getElementById('cc-real-login').style.display='none';document.getElementById('cc77back').style.display='none';document.getElementById('cc77demobanner').style.display='none';}
+function cc77Auth(create){document.getElementById('cc77home').style.display='none';document.getElementById('cc77back').style.display='block';document.getElementById('cc77demobanner').style.display='none';const gate=document.getElementById('cc-real-login');gate.style.display='flex';gate.scrollTop=0;gate.querySelector('.cc-authbox').scrollTop=0;const button=document.getElementById('cc-register-toggle');const isCreate=document.getElementById('cc-real-button').textContent.includes('Registrar mi cuenta');if(button&&isCreate!==create)button.click();}
 function cc77Store(){document.getElementById('cc77home').style.display='none';document.getElementById('cc-real-login').style.display='none';document.getElementById('cc77back').style.display='block';document.getElementById('cc77demobanner').style.display='block';if(typeof ui!=='undefined'&&typeof render==='function'){ui.role='visitor';ui.face='store';render()} }
 </script>
 
@@ -6029,7 +6031,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
     response=await fetch(url,{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({email,gotrue_meta_security:{captcha_token:window.cc123CaptchaToken?.()}})});
    }
    const data=await response.json().catch(()=>({}));
-   if(!response.ok)throw Error(data.msg||data.error_description||data.message||'No se pudo completar la solicitud.');
+   if(!response.ok)throw Error(data.error_code==='captcha_failed'?'No se pudo validar la verificación de seguridad. Complétala de nuevo y vuelve a intentar.':data.msg||data.error_description||data.message||'No se pudo completar la solicitud.');
    if(recoveryToken){history.replaceState(null,'',location.pathname+location.search);recoveryToken=null;document.getElementById('cc86-new-pass').value='';document.getElementById('cc86-confirm-pass').value='';message.textContent='Contraseña actualizada. Ya puedes iniciar sesión con tu correo y nueva contraseña.';button.style.display='none';}
    else message.textContent='Si el correo corresponde a una cuenta, recibirás instrucciones para recuperar el acceso.';
   }catch(err){message.textContent=err.message||'Ocurrió un error. Inténtalo de nuevo.'}
@@ -6055,8 +6057,8 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <script src="scripts/v132-wallet-movements.js?v=135"></script>
 <script src="scripts/v142-financial-audit.js?v=142"></script>
 <script src="scripts/v136-manual-recharges.js?v=156"></script>
-<link rel="stylesheet" href="styles/v305-auth.css?v=305">
-<script src="scripts/v123-turnstile.js?v=305"></script>
+<link rel="stylesheet" href="styles/v305-auth.css?v=307">
+<script src="scripts/v123-turnstile.js?v=307"></script>
 <script src="scripts/v127-wallet-switch.js?v=1583"></script>
 <script src="scripts/v145-cobra-access.js?v=145"></script>
 <script src="scripts/v145-commerce-guard.js?v=145b"></script>
@@ -6124,10 +6126,10 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <link rel="stylesheet" href="styles/v161-4-mi-alquiler.css?v=204">
 <script src="scripts/v161-4-mi-alquiler.js?v=206" defer></script>
 <script src="scripts/v1635-rescate-ui.js?v=224" defer></script>
-<script src="scripts/v151-portal-polish.js?v=306"></script>
+<script src="scripts/v151-portal-polish.js?v=307"></script>
 
 <!-- V217: portada aprobada sobre el proyecto original. Funciones de botones intactas. -->
-<link rel="stylesheet" href="styles/v217-home.css?v=305">
+<link rel="stylesheet" href="styles/v217-home.css?v=307">
 <script src="scripts/v217-home.js?v=305" defer></script>
 <link rel="stylesheet" href="styles/v224-day.css?v=304">
 <script src="scripts/v223-contacto-portada.js?v=223" defer></script>

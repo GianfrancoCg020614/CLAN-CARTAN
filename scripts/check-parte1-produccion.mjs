@@ -26,7 +26,7 @@ assert.ok(s.indexOf('scripts/parte1-registro.js?v=171')<s.indexOf('/* V52 pilot:
 assert.ok(!/id="cc161-marketing"[^>]*required/.test(s),'Marketing siempre voluntario');
 assert.match(s,/if\(!ccParte1LegalReady\(\)\)\{ccParte1SyncRegisterButton\(\);return;\}/);
 assert.ok(s.includes("const blocked=registrationPending||(registering&&!ccParte1LegalReady());"));
-assert.ok(s.includes("finally{registrationPending=false;toggle.disabled=false;ccParte1SyncRegisterButton();window.cc123ResetCaptcha?.();}"));
+assert.ok(s.includes("finally{registrationPending=false;toggle.disabled=false;ccParte1SyncRegisterButton();window.cc123ResetCaptcha?.('auth');}"));
 assert.ok(!s.includes('CC_P1_IS_PREVIEW'),'Producción no debe bloquear la autenticación real con reglas de preview');
 assert.ok(s.includes("const auth=await api('/auth/v1/token?grant_type=password'"),'Inicio de sesión real intacto');
 assert.ok(s.includes("await api('/auth/v1/signup?redirect_to='"),'Signup existente se conserva');
@@ -55,3 +55,4 @@ assert.equal(api.declaration({...sample,marketingAccepted:true}).marketing_conse
 assert.equal(api.validate({...sample,password:'a'}).ok,false);
 assert.equal(api.validate({...sample,preferredService:'UNAUTHORIZED'}).ok,false);
 console.log('PASS PARTE 1 MAIN: registros seguros con privacidad y marketing voluntario; login/OTP/recovery preservados.');
+

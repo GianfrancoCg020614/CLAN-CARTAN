@@ -16,6 +16,11 @@
 #cc-real-login #cc223-auth-close{width:36px!important;height:36px!important;top:16px!important;right:16px!important;border:1px solid #6d9bb44d!important;border-radius:10px!important;background:transparent!important;font-size:24px!important}
 #cc-real-login :is(button,input,select,a):focus-visible{outline:3px solid #54cfdd!important;outline-offset:3px!important}
 #cc-real-login .cc-authbox>.cc-small:last-child{margin:16px 0 0!important;padding-top:16px!important;border-top:1px solid #7fabb733!important;color:#9cb8c8!important;font-size:11px!important;line-height:1.6!important}
+#cc-real-login #cc-real-status{font-size:13px!important;line-height:1.55!important;margin:12px 0!important;color:#bbdce7!important}
+#cc-real-login #cc-real-status:empty{display:none!important}
+#cc-real-login #cc-real-status[data-kind='error']{padding:11px 13px!important;border:1px solid #d7839659!important;border-radius:10px!important;background:#57273538!important;color:#ffccd6!important;overflow-wrap:anywhere!important}
+html[data-cc-theme='light'] #cc-real-login #cc-real-status{color:#305a70!important}
+html[data-cc-theme='light'] #cc-real-login #cc-real-status[data-kind='error']{background:#fff1f3!important;color:#8b3043!important;border-color:#dfb3bd!important}
 .cc305-captcha{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;min-width:0;min-height:80px;margin:18px 0 2px}
 .cc305-captcha-note{font:11px/1.5 system-ui,sans-serif;color:#a8c5d5;text-align:center}
 .cc305-captcha>div{max-width:100%;min-width:0}
