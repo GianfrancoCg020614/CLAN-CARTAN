@@ -1,4 +1,3 @@
-@import url('./v265-hide-duplicate-panels.css?v=288');
 /* V217 · portada fiel al diseño aprobado. Solo capa pública; no toca lógica de negocio. */
 #cc77home{background:#030d1b!important;background-image:radial-gradient(ellipse at 50% 60%,#0c2946 0,#030d1b 68%)!important;color:#f7fbff;min-height:100vh}
 #cc77home .cc77wrap{max-width:1740px!important;margin-inline:auto!important;padding:0 clamp(14px,3vw,56px) 32px!important}
@@ -238,4 +237,160 @@ html:not([data-cc-theme="light"]) #cc77home .cc77top>.cc77actions button{border-
 @media(prefers-reduced-motion:reduce){
  html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.cc77card,
  html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card{transition:none!important}
+}
+
+/* V289: final cascade after legacy styles, not an early @import. */
+/* V282: real visible responsive homepage, no invisible image hotspots */
+#cc77home{min-height:100vh!important;overflow-x:clip!important;overflow-y:auto!important;background:#020c1d url('../assets/clan-neon-landscape-v256.svg') center top/cover fixed no-repeat!important}
+#cc77home .cc77wrap{position:relative!important;width:100%!important;max-width:1760px!important;min-height:100vh!important;aspect-ratio:auto!important;margin:auto!important;padding:16px clamp(14px,3vw,48px) 28px!important;box-sizing:border-box!important;overflow:visible!important;background:none!important}
+#cc77home .cc77wrap::before,#cc77home .cc77wrap::after{display:none!important;content:none!important}
+#cc77home .cc77top{position:relative!important;inset:auto!important;z-index:10!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;width:100%!important;height:auto!important;min-height:82px!important;margin:0 0 8px!important;padding:12px 22px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:linear-gradient(100deg,#00131ff2,#052b42e8,#00121fe8)!important;border:1px solid #1ce9f066!important;border-radius:24px!important;box-shadow:0 8px 30px #0008,0 0 16px #00e6ff33!important}
+#cc77home .cc77top .cc77brand,#cc77home .cc77top .cc77brand *{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+#cc77home .cc77top>.cc77actions{position:relative!important;inset:auto!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:flex-end!important;gap:9px!important;width:auto!important;height:auto!important;margin-left:auto!important;opacity:1!important;pointer-events:auto!important}
+#cc77home .cc77top>.cc77actions>.cc98-guest-action{display:inline-flex!important;flex:0 1 auto!important;width:auto!important;height:auto!important;min-height:40px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;cursor:pointer!important}
+#cc77home .cc77top #cc95-user,#cc77home .cc77top #cc92-admin-button{position:relative!important;inset:auto!important;opacity:1!important;pointer-events:auto!important}
+#cc77home .cc77intro{position:relative!important;inset:auto!important;z-index:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;width:100%!important;height:clamp(235px,22vw,380px)!important;min-height:0!important;margin:0 0 18px!important;padding:24px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:#04152c url('../assets/cc-home-cinematic-hero.avif') center/cover no-repeat!important;border:1px solid #10eaff88!important;border-radius:18px!important;box-shadow:0 0 20px #00eaff33!important;overflow:hidden!important}
+#cc77home .cc77intro h1,#cc77home .cc77intro p{display:none!important}
+#cc77home .cc77cards{position:relative!important;inset:auto!important;z-index:2!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:stretch!important;gap:clamp(12px,1.2vw,22px)!important;width:100%!important;max-width:none!important;height:auto!important;margin:0 auto!important;padding:0!important;opacity:1!important;pointer-events:auto!important}
+#cc77home .cc77cards>article.cc77card,#cc77home .cc77cards>article.ma1611-card{position:relative!important;inset:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:9px!important;width:100%!important;height:auto!important;min-height:405px!important;margin:0!important;padding:18px 14px 20px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:linear-gradient(165deg,#07344bef,#031a2def 50%,#010b1bef)!important;border:2px solid #12dfff!important;border-radius:36px!important;box-shadow:inset 0 0 18px #00e5ff22,0 0 15px #00eaff88,0 18px 30px #0009!important;overflow:visible!important;transform:none!important;grid-column:auto!important;grid-row:auto!important}
+#cc77home .cc77cards>article :is(.cc78service,.cc77tag,p,.ma1611-card-icon,.ma1611-card-copy,.ma1611-chip,h2){opacity:1!important;visibility:visible!important}
+#cc77home .cc77cards>article .cc77actions{position:relative!important;inset:auto!important;display:flex!important;flex-direction:row!important;align-items:stretch!important;gap:8px!important;width:100%!important;height:auto!important;margin-top:auto!important;padding:0!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+#cc77home .cc77cards>article button,#cc77home .cc77cards>article.ma1611-card>button{position:relative!important;inset:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1 1 0!important;width:100%!important;min-width:0!important;height:auto!important;min-height:52px!important;margin-top:auto!important;padding:10px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;cursor:pointer!important;background:linear-gradient(110deg,#00f2e6,#25bff5)!important;color:#001a26!important;border:1px solid #a2ffff!important;border-radius:24px!important;box-shadow:0 0 15px #00e9e977!important;font-weight:850!important;white-space:normal!important}
+#cc77home .cc77cards>article button:focus-visible,#cc77home .cc77top button:focus-visible{outline:3px solid #fff!important;outline-offset:3px!important}
+#cc77home .cc77cards .cc78service-logo,#cc77home .cc77cards .cc158-cochera-mark,#cc77home .cc77cards .ma1611-card-icon{width:min(100%,205px)!important;height:175px!important;max-height:175px!important;flex-basis:175px!important}
+#cc77home .cc77foot{position:relative!important;inset:auto!important;display:block!important;margin:22px 0 0!important;padding:14px!important;opacity:1!important;color:#c6eaf7!important;text-align:center!important;background:#001426dc!important;border-radius:14px!important}
+#cc77home #cc79logged{position:relative!important;inset:auto!important}
+@media(max-width:1199px){#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}#cc77home .cc77intro{height:clamp(220px,30vw,350px)!important}}
+@media(max-width:650px){#cc77home{background-attachment:scroll!important}#cc77home .cc77wrap{padding:10px 12px 24px!important}#cc77home .cc77top{border-radius:18px!important;justify-content:center!important}#cc77home .cc77top>.cc77actions{width:100%!important;justify-content:center!important;margin:0!important}#cc77home .cc77intro{height:220px!important;background-image:url('../assets/cc-home-cinematic-mobile.avif')!important}#cc77home .cc77cards{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}#cc77home .cc77cards>article.cc77card,#cc77home .cc77cards>article.ma1611-card{min-height:0!important;padding:18px!important;border-radius:26px!important}}
+
+/* V283: selector de moneda integrado en la cabecera */
+#cc77home .cc77top .cc283-home-currency{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex:1 1 285px!important;min-width:0!important;color:#f5fcff!important;font-size:14px!important;opacity:1!important;visibility:visible!important}
+#cc77home .cc77top .cc283-home-currency label{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:9px!important;flex-wrap:wrap!important}
+#cc77home .cc77top .cc283-home-currency select{min-width:195px!important;max-width:100%!important;border:1px solid #8cdcf5!important;border-radius:16px!important;background:#061324!important;color:#fff!important;padding:9px 13px!important;cursor:pointer!important}
+#cc77home .cc77top .cc283-home-currency select:focus-visible{outline:3px solid #00efff!important;outline-offset:2px!important}
+@media(max-width:900px){#cc77home .cc77top .cc283-home-currency{flex-basis:100%!important;justify-content:center!important;order:2!important}#cc77home .cc77top>.cc77actions{order:3!important;margin:0 auto!important}}
+
+/* V284: defeat legacy desktop V263/V264 high-specificity invisible overlays. */
+@media(min-width:1200px){
+html body #cc77home .cc77wrap{aspect-ratio:auto!important;min-height:100vh!important;background:none!important;overflow:visible!important;padding:16px clamp(14px,3vw,48px) 28px!important}
+html body #cc77home .cc77top{position:relative!important;inset:auto!important;z-index:10!important;display:flex!important;height:auto!important;min-height:82px!important;opacity:1!important;pointer-events:auto!important;background:linear-gradient(100deg,#00131ff2,#052b42e8,#00121fe8)!important}
+html body #cc77home .cc77top .cc77brand,html body #cc77home .cc77top .cc77brand *{visibility:visible!important;opacity:1!important}
+html body #cc77home .cc77top>.cc77actions{position:relative!important;inset:auto!important;width:auto!important;height:auto!important;opacity:1!important;pointer-events:auto!important}
+html body #cc77home .cc77top>.cc77actions>.cc98-guest-action{flex:0 1 auto!important;min-height:40px!important;height:auto!important;opacity:1!important;pointer-events:auto!important}
+html body #cc77home .cc77intro{position:relative!important;inset:auto!important;width:100%!important;height:clamp(235px,22vw,380px)!important;opacity:1!important;background:#04152c url('../assets/cc-home-cinematic-hero.avif') center/cover no-repeat!important;pointer-events:auto!important}
+html body #cc77home .cc77cards{position:relative!important;inset:auto!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%!important;height:auto!important;gap:clamp(12px,1.2vw,22px)!important;pointer-events:auto!important}
+html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{position:relative!important;display:flex!important;flex-direction:column!important;width:100%!important;height:auto!important;min-height:405px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:linear-gradient(165deg,#07344bef,#031a2def 50%,#010b1bef)!important;border:2px solid #12dfff!important;border-radius:36px!important;box-shadow:0 0 15px #00eaff88,0 18px 30px #0009!important;grid-column:auto!important;grid-row:auto!important}
+html body #cc77home .cc77cards>article :is(.cc78service,.cc77tag,p,.ma1611-card-icon,.ma1611-card-copy,.ma1611-chip,h2){opacity:1!important;visibility:visible!important}
+html body #cc77home .cc77cards>article .cc77actions{position:relative!important;inset:auto!important;display:flex!important;width:100%!important;height:auto!important;margin-top:auto!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+html body #cc77home .cc77cards>article button,html body #cc77home .cc77cards>article.ma1611-card>button{position:relative!important;inset:auto!important;display:flex!important;flex:1 1 0!important;width:100%!important;min-height:52px!important;height:auto!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:linear-gradient(110deg,#00f2e6,#25bff5)!important;color:#001a26!important;border:1px solid #a2ffff!important;border-radius:24px!important}
+html body #cc77home .cc77foot,html body #cc77home #cc79logged{position:relative!important;inset:auto!important}
+html body #cc77home .cc77top #cc95-user:not([style*="display: none"]),html body #cc77home .cc77top #cc92-admin-button:not([style*="display: none"]){position:relative!important;inset:auto!important;opacity:1!important;pointer-events:auto!important}
+}
+
+/* V286 · Fix buttons only: real click targets, equal height, no vertical/overflow buttons. */
+#cc77home .cc77cards>article.cc77card>.cc77actions,
+#cc77home .cc77cards>article.cc77card .cc77actions{
+ display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
+ align-items:stretch!important;justify-content:center!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ height:auto!important;min-height:54px!important;gap:9px!important;
+ margin:auto 0 0!important;padding:0!important;position:relative!important;
+ inset:auto!important;transform:none!important;overflow:visible!important;
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+}
+#cc77home .cc77cards>article.cc77card .cc77actions>button,
+#cc77home .cc77cards>article.ma1611-card>button,
+#cc77home .cc77cards>article.ma1611-card .ma1611-card-copy>button{
+ box-sizing:border-box!important;display:inline-flex!important;
+ flex:1 1 120px!important;align-self:stretch!important;
+ align-items:center!important;justify-content:center!important;
+ position:relative!important;inset:auto!important;transform:none!important;
+ width:auto!important;max-width:100%!important;min-width:0!important;
+ height:auto!important;min-height:54px!important;max-height:none!important;
+ margin:0!important;padding:11px 13px!important;
+ writing-mode:horizontal-tb!important;text-orientation:mixed!important;
+ white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;
+ line-height:1.25!important;letter-spacing:0!important;
+ font:800 clamp(12px,.95vw,15px)/1.25 system-ui,-apple-system,'Segoe UI',sans-serif!important;
+ text-align:center!important;vertical-align:middle!important;
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+ background:linear-gradient(110deg,#00ebde,#1dbcf0)!important;
+ color:#032334!important;border:1px solid #92ffff!important;
+ border-radius:999px!important;box-shadow:0 4px 14px #00d8e755!important;
+ cursor:pointer!important;touch-action:manipulation!important;
+}
+#cc77home .cc77cards>article.ma1611-card>button{
+ flex:0 0 auto!important;width:100%!important;margin-top:auto!important;
+}
+#cc77home .cc77cards>article.cc77card .cc77actions>button:hover,
+#cc77home .cc77cards>article.ma1611-card>button:hover{filter:brightness(1.08)!important}
+#cc77home .cc77cards>article.cc77card .cc77actions>button:focus-visible,
+#cc77home .cc77cards>article.ma1611-card>button:focus-visible{outline:3px solid white!important;outline-offset:3px!important}
+#cc77home .cc77cards>article button:disabled{opacity:.55!important;cursor:not-allowed!important}
+@media(max-width:650px){
+ #cc77home .cc77cards>article.cc77card .cc77actions{gap:10px!important}
+ #cc77home .cc77cards>article.cc77card .cc77actions>button{flex:1 1 125px!important;min-height:52px!important;font-size:13px!important}
+}
+
+/* V287 — reference-aligned real interface. No screenshot overlays. */
+html body #cc77home{
+ background-color:#010b19!important;
+ background-image:linear-gradient(180deg,rgba(0,10,23,.08),rgba(0,12,29,.05) 45%,rgba(0,14,27,.22)),url('../assets/clan-neon-landscape-v256.svg')!important;
+ background-position:center top!important;background-size:cover!important;background-repeat:no-repeat!important;
+}
+html body #cc77home .cc77wrap{max-width:1857px!important;padding:0 clamp(12px,5.2vw,98px) 32px!important}
+html body #cc77home .cc77top{
+ min-height:108px!important;margin:0 calc(-1 * clamp(12px,5.2vw,98px)) 0!important;
+ width:calc(100% + 2 * clamp(12px,5.2vw,98px))!important;
+ padding:12px clamp(16px,6.8vw,126px)!important;
+ border-radius:0 0 36px 36px!important;
+ background:linear-gradient(105deg,#00101deF,#022a40f2 48%,#00121ff2)!important;
+ border:0!important;border-bottom:2px solid #00ecf7aa!important;
+ box-shadow:0 10px 25px #001d32a8,0 0 20px #00d8ed40!important;
+}
+html body #cc77home .cc77intro{
+ height:clamp(210px,14vw,275px)!important;
+ margin:0 0 10px!important;padding:0!important;border:0!important;
+ border-radius:0!important;box-shadow:none!important;
+ background-color:transparent!important;
+ background-image:url('../assets/cc-home-cinematic-hero.avif')!important;
+ background-size:contain!important;background-repeat:no-repeat!important;
+ background-position:center center!important;
+}
+html body #cc77home .cc77cards{
+ gap:clamp(12px,1.1vw,20px)!important;align-items:stretch!important;
+}
+html body #cc77home .cc77cards>article.cc77card,
+html body #cc77home .cc77cards>article.ma1611-card{
+ min-height:418px!important;gap:7px!important;padding:12px clamp(10px,1.2vw,22px) 20px!important;
+ border:2px solid #42f4ff!important;border-radius:44px!important;
+ background:linear-gradient(170deg,rgba(2,35,56,.95),rgba(0,14,31,.98) 70%)!important;
+ box-shadow:inset 0 0 26px #00eaff1a,0 0 14px #00eaff99,0 16px 30px #000b!important;
+}
+html body #cc77home .cc77cards .cc78service-logo,
+html body #cc77home .cc77cards .cc158-cochera-mark,
+html body #cc77home .cc77cards .ma1611-card-icon{
+ width:min(100%,185px)!important;height:168px!important;max-height:168px!important;
+ flex:0 0 168px!important;margin:0 auto!important;background-size:contain!important;
+}
+html body #cc77home .cc77cards>article .cc77actions{margin-top:auto!important}
+html body #cc77home .cc77cards>article .cc77actions>button,
+html body #cc77home .cc77cards>article.ma1611-card>button{
+ min-height:54px!important;border-radius:999px!important;
+ font-size:clamp(12px,.86vw,15px)!important;font-weight:800!important;
+ background:linear-gradient(100deg,#00f5e4,#22c9f6)!important;color:#001923!important;
+}
+@media(min-width:1200px){
+ html body #cc77home .cc77cards>article.cc77card .cc77actions>button{flex:1 1 0!important}
+ html body #cc77home .cc77cards>article.cc77card .cc77actions{flex-wrap:nowrap!important}
+}
+@media(max-width:900px){
+ html body #cc77home .cc77wrap{padding:0 15px 25px!important}
+ html body #cc77home .cc77top{width:calc(100% + 30px)!important;margin:0 -15px 8px!important;padding:15px!important;border-radius:0 0 24px 24px!important}
+ html body #cc77home .cc77intro{height:clamp(160px,29vw,250px)!important;background-size:cover!important}
+ html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{min-height:390px!important}
+}
+@media(max-width:650px){
+ html body #cc77home .cc77intro{height:190px!important;background-image:url('../assets/cc-home-cinematic-mobile.avif')!important}
+ html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{min-height:0!important}
 }
