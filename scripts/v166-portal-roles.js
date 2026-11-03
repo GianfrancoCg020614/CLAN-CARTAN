@@ -204,6 +204,7 @@ function renderNav(){
  const more=button('',()=>{
   const open=app.classList.toggle('cc308-menu-open');
   more.setAttribute('aria-expanded',String(open));
+  if(open)secondary.querySelector('button')?.focus();
  },'cc308-more-button'+(!primaryIds.includes(view)?' selected':''));
  more.id='cc308-more';more.setAttribute('aria-label','Más opciones del panel');
  more.setAttribute('aria-expanded',String(app.classList.contains('cc308-menu-open')));

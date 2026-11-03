@@ -32,6 +32,7 @@ export function panelFixture(mode='admin'){
  if(innerWidth<=560&&q('#cc308-more')){
   checks.moreClosed=!isVisible(q('.cc308-nav-secondary'));
   q('#cc308-more')?.click();checks.moreOpens=isVisible(q('.cc308-nav-secondary'))&&q('#cc308-more').getAttribute('aria-expanded')==='true';
+  checks.moreFocus=document.activeElement===q('.cc308-nav-secondary button');
   q('#cc308-more').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
   checks.escapeCloses=!isVisible(q('.cc308-nav-secondary'))&&document.activeElement===q('#cc308-more');
   q('#cc308-more').click();q('#cc166-content').click();checks.outsideCloses=!isVisible(q('.cc308-nav-secondary'));
