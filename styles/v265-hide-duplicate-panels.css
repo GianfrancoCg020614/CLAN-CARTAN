@@ -89,3 +89,66 @@ html body #cc77home .cc77top #cc95-user:not([style*="display: none"]),html body 
  #cc77home .cc77cards>article.cc77card .cc77actions{gap:10px!important}
  #cc77home .cc77cards>article.cc77card .cc77actions>button{flex:1 1 125px!important;min-height:52px!important;font-size:13px!important}
 }
+
+/* V287 — reference-aligned real interface. No screenshot overlays. */
+html body #cc77home{
+ background-color:#010b19!important;
+ background-image:linear-gradient(180deg,rgba(0,10,23,.08),rgba(0,12,29,.05) 45%,rgba(0,14,27,.22)),url('../assets/clan-neon-landscape-v256.svg')!important;
+ background-position:center top!important;background-size:cover!important;background-repeat:no-repeat!important;
+}
+html body #cc77home .cc77wrap{max-width:1857px!important;padding:0 clamp(12px,5.2vw,98px) 32px!important}
+html body #cc77home .cc77top{
+ min-height:108px!important;margin:0 calc(-1 * clamp(12px,5.2vw,98px)) 0!important;
+ width:calc(100% + 2 * clamp(12px,5.2vw,98px))!important;
+ padding:12px clamp(16px,6.8vw,126px)!important;
+ border-radius:0 0 36px 36px!important;
+ background:linear-gradient(105deg,#00101deF,#022a40f2 48%,#00121ff2)!important;
+ border:0!important;border-bottom:2px solid #00ecf7aa!important;
+ box-shadow:0 10px 25px #001d32a8,0 0 20px #00d8ed40!important;
+}
+html body #cc77home .cc77intro{
+ height:clamp(210px,14vw,275px)!important;
+ margin:0 0 10px!important;padding:0!important;border:0!important;
+ border-radius:0!important;box-shadow:none!important;
+ background-color:transparent!important;
+ background-image:url('../assets/cc-home-cinematic-hero.avif')!important;
+ background-size:contain!important;background-repeat:no-repeat!important;
+ background-position:center center!important;
+}
+html body #cc77home .cc77cards{
+ gap:clamp(12px,1.1vw,20px)!important;align-items:stretch!important;
+}
+html body #cc77home .cc77cards>article.cc77card,
+html body #cc77home .cc77cards>article.ma1611-card{
+ min-height:418px!important;gap:7px!important;padding:12px clamp(10px,1.2vw,22px) 20px!important;
+ border:2px solid #42f4ff!important;border-radius:44px!important;
+ background:linear-gradient(170deg,rgba(2,35,56,.95),rgba(0,14,31,.98) 70%)!important;
+ box-shadow:inset 0 0 26px #00eaff1a,0 0 14px #00eaff99,0 16px 30px #000b!important;
+}
+html body #cc77home .cc77cards .cc78service-logo,
+html body #cc77home .cc77cards .cc158-cochera-mark,
+html body #cc77home .cc77cards .ma1611-card-icon{
+ width:min(100%,185px)!important;height:168px!important;max-height:168px!important;
+ flex:0 0 168px!important;margin:0 auto!important;background-size:contain!important;
+}
+html body #cc77home .cc77cards>article .cc77actions{margin-top:auto!important}
+html body #cc77home .cc77cards>article .cc77actions>button,
+html body #cc77home .cc77cards>article.ma1611-card>button{
+ min-height:54px!important;border-radius:999px!important;
+ font-size:clamp(12px,.86vw,15px)!important;font-weight:800!important;
+ background:linear-gradient(100deg,#00f5e4,#22c9f6)!important;color:#001923!important;
+}
+@media(min-width:1200px){
+ html body #cc77home .cc77cards>article.cc77card .cc77actions>button{flex:1 1 0!important}
+ html body #cc77home .cc77cards>article.cc77card .cc77actions{flex-wrap:nowrap!important}
+}
+@media(max-width:900px){
+ html body #cc77home .cc77wrap{padding:0 15px 25px!important}
+ html body #cc77home .cc77top{width:calc(100% + 30px)!important;margin:0 -15px 8px!important;padding:15px!important;border-radius:0 0 24px 24px!important}
+ html body #cc77home .cc77intro{height:clamp(160px,29vw,250px)!important;background-size:cover!important}
+ html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{min-height:390px!important}
+}
+@media(max-width:650px){
+ html body #cc77home .cc77intro{height:190px!important;background-image:url('../assets/cc-home-cinematic-mobile.avif')!important}
+ html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{min-height:0!important}
+}
