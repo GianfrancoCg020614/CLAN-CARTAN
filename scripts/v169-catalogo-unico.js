@@ -108,12 +108,12 @@
     // Presentación visual sin inventario, vendedores, precios ni compras reales.
     const card=text('article','product lux v23-product-card cc169-offer cc169-example');
     const cover=text('div','product-visual cc169-offer-cover');
-    cover.append(text('span','cc169-cover-brand','STREAMBULLS'),text('strong','cc169-cover-title',item.service),text('span','cc169-cover-status',item.status));
+    cover.append(text('span','cc169-cover-brand','STREAMBULLS'),text('strong','cc169-cover-title',item.service),text('span','cc169-cover-status','Ejemplo · '+item.status));
     const body=text('div','product-body');
     body.append(text('h3','cc169-offer-title',item.title));
     body.append(text('p','product-preview',item.description));
     const details=text('dl','cc169-product-facts');
-    for(const [label,value] of [['Modalidad',item.mode],['Vigencia','Según publicación'],['Atención',item.attention],['Disponibilidad',item.status],['Precio','Por confirmar']]){
+    for(const [label,value] of [['Modalidad','Ejemplo: '+item.mode],['Vigencia','Según publicación'],['Atención',item.attention],['Disponibilidad','Ejemplo: '+item.status],['Precio','Por confirmar']]){
       const row=text('div','cc169-product-fact');row.append(text('dt','',label),text('dd','',value));details.append(row);
     }
     body.append(details);
@@ -256,14 +256,14 @@
         'No encontramos servicios publicados para esta búsqueda.':
         'Todavía no hay productos publicados y verificados. Vuelve pronto para consultar los servicios disponibles.'));
       // La muestra es visual y no pertenece a la lista de productos reales.
-      if(!rows.length&&!error&&!loading){const demo=text('div','cc169-verified-grid cc169-demo-grid');showcase.filter(showcaseMatches).forEach(item=>demo.append(exampleCard(item)));holder.append(demo);}
+      if(!rows.length&&!error&&!loading){holder.append(text('p','cc169-status','Ejemplos visuales: no representan stock ni ofertas disponibles.'));const demo=text('div','cc169-verified-grid cc169-demo-grid');showcase.filter(showcaseMatches).forEach(item=>demo.append(exampleCard(item)));holder.append(demo);}
     } else {
       const grid=text('div','products v6-grid v23-product-grid cc169-verified-grid');
       grid.dataset.cc169Source='verified';matches.forEach(p=>grid.append(buildCard(p)));holder.append(grid);
     }
     if(authNotice)holder.append(text('p','cc169-status',authNotice));
     const controls=text('div','cc169-catalog-controls');
-    controls.append(text('small','','Productos y precios confirmados por CLAN CARTAN. El pago requiere sesión y saldo real.'));
+    controls.append(text('small','',rows.length?'Productos y precios confirmados por CLAN CARTAN. El pago requiere sesión y saldo real.':'No hay productos ni precios verificados disponibles para compra.'));
     controls.append(button('↻ Actualizar catálogo',()=>{void refresh()},'btn cc169-refresh'));
     holder.append(controls);
     const note=section.querySelector('.v23-shop-note');
