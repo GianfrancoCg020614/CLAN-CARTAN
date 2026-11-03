@@ -65,6 +65,7 @@ try{
    "const tabs=[...document.querySelectorAll(\".cc175-tab\")].map(b=>b.textContent);checks.walletTabsStartAtTop=tabs.length>0&&tabs.every(label=>startsAtTop(()=>[...document.querySelectorAll(\".cc175-tab\")].find(b=>b.textContent===label).click()));",
    "[...document.querySelectorAll(\".cc166-navitem\")].find(b=>b.textContent.includes(\"Negocios\"))?.click();",
    "checks.businessTabsStartAtTop=[0,1,2,3].every(index=>startsAtTop(()=>document.querySelectorAll(\".cc167-tab\")[index].click()));",
+   "const backButton=document.querySelector(\".cc177-back\");checks.backLabelVisible=backButton.textContent.includes(\"Atrás\")&&parseFloat(getComputedStyle(backButton).fontSize)>0&&getComputedStyle(backButton,\"::before\").content!==\"\\\"↻\\\"\";",
    "checks.backStartsAtTop=startsAtTop(()=>document.querySelector(\".cc177-back\").click());",
    "[...document.querySelectorAll(\".cc166-navitem\")].find(b=>b.textContent.includes(\"Inicio\")||b.textContent.includes(\"Resumen\"))?.click();",
    "workspace.scrollTop=400;const refreshPosition=workspace.scrollTop;window.cc166RefreshPanel();",
