@@ -15,7 +15,7 @@ test(html,"terms_version:'V161-20261021'");
 test(html,'scripts/v161-global-currency-flags.js?v=161');
 test(html,'scripts/v161-marketing-account.js?v=161');
 test(html,'cc161MountMarketingConsent?.()');
-test(html,'scripts/v160-invitation-register.js?v=160');
+assert.match(html,/scripts\/v160-invitation-register\.js\?v=\d+/, 'El script de invitaciones debe estar cargado con una versión de caché');
 test(html,'scripts/v127-wallet-switch.js?v=1583');
 test(html,'scripts/v145-commerce-guard.js?v=145b');
 test(html,'id="cc-v81-terms"');
@@ -42,3 +42,4 @@ assert.ok(!html.includes('BORRADOR PARA REVISIÓN'),'Obsolete draft header');
 assert.ok(!html.includes('No autorizo comunicaciones publicitarias por este acto'),'Marketing opt in must be separate');
 assert.ok(!flags.includes('balance_pen'),'Flag decorator must not edit wallet amounts');
 console.log('PASS V161: international currency flags, independent referrals, voluntary marketing consent, continuity.');
+

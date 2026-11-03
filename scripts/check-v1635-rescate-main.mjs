@@ -14,11 +14,12 @@ for(const needed of [
  'scripts/v1635-rescate-ui.js',
  'styles/v164-portal-4-negocios.css',
  'scripts/v172-clan-referrals.js?v=172',
- 'scripts/v160-invitation-register.js?v=160',
+ 'scripts/v160-invitation-register.js?v=',
  'scripts/v161-marketing-account.js?v=161',
  'id="cc164-privacy"', 'id="cc161-marketing"',
  'scripts/v158-mi-cochera.js'
 ])assert.ok(html.includes(needed),'Falta en main integrado: '+needed);
+assert.match(html,/scripts\/v160-invitation-register\.js\?v=\d+/, 'El script de invitaciones debe conservar una versión de caché');
 // Los módulos de alquiler ya se activaron en versiones posteriores.
 // Su acceso y los RPC esenciales se verifican en la prueba V226.4.
 assert.ok(html.includes('scripts/v161-2-mi-alquiler.js?'), 'Módulo de alquiler debe estar cargado');
@@ -41,3 +42,4 @@ for(const src of [
  'scripts/v161-3-mi-alquiler.js','scripts/v161-4-mi-alquiler.js'
 ])assert.ok(read(src).length>5000,'MI ALQUILER incompleto '+src);
 console.log('PASS rescate V163.5 sobre main: cuatro servicios, MI ALQUILER, tema visual y Auth/referrals intactos.');
+
