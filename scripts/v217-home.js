@@ -140,6 +140,35 @@ function init(){
    background:#020d1e url('assets/clan-neon-landscape-v256.svg') center top / cover no-repeat!important;
    overflow-x:hidden!important;overscroll-behavior-x:none!important;
   }
+
+  /* V298: remove the global currency clone only while public homepage is visible. */
+  body:has(#cc77home:not([style*="display: none"]):not([style*="display:none"])) [data-cc-currency-selector]:not(.cc283-home-currency){display:none!important}
+  html body #cc77home#cc77home .cc77top{
+   display:grid!important;grid-template-columns:minmax(240px,1fr) auto!important;
+   grid-template-areas:"brand currency" "brand actions"!important;
+   gap:6px 20px!important;align-items:center!important;min-height:100px!important;
+   padding:10px clamp(18px,5vw,85px)!important;
+  }
+  html body #cc77home#cc77home .cc77top>.cc77brand{grid-area:brand!important;justify-self:start!important;margin:0!important}
+  html body #cc77home#cc77home .cc77top>.cc283-home-currency{
+   grid-area:currency!important;justify-self:end!important;display:flex!important;
+   width:max-content!important;max-width:100%!important;min-width:0!important;
+   flex:none!important;margin:0!important;padding:0!important;
+  }
+  html body #cc77home#cc77home .cc77top>.cc283-home-currency label{
+   display:flex!important;flex-wrap:nowrap!important;gap:7px!important;align-items:center!important;
+  }
+  html body #cc77home#cc77home .cc77top>.cc77actions{
+   grid-area:actions!important;justify-self:end!important;display:flex!important;
+   flex-wrap:wrap!important;justify-content:flex-end!important;width:auto!important;margin:0!important;
+  }
+  @media(max-width:700px){
+   html body #cc77home#cc77home .cc77top{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"brand" "currency" "actions"!important;padding:12px!important;gap:10px!important}
+   html body #cc77home#cc77home .cc77top>.cc77brand{justify-self:center!important}
+   html body #cc77home#cc77home .cc77top>.cc283-home-currency{justify-self:center!important}
+   html body #cc77home#cc77home .cc77top>.cc77actions{justify-self:center!important;justify-content:center!important}
+   html body #cc77home#cc77home .cc77top>.cc283-home-currency select{min-width:0!important;max-width:190px!important}
+  }
   html body #cc77home#cc77home .cc77top{
    background:linear-gradient(115deg,rgba(0,13,27,.97),rgba(0,44,65,.94),rgba(0,16,33,.97))!important;
    border:0!important;border-bottom:2px solid #26e8f5!important;border-radius:0 0 36px 36px!important;
