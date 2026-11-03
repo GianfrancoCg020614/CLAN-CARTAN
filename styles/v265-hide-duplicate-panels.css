@@ -27,3 +27,20 @@
 #cc77home .cc77top .cc283-home-currency select{min-width:195px!important;max-width:100%!important;border:1px solid #8cdcf5!important;border-radius:16px!important;background:#061324!important;color:#fff!important;padding:9px 13px!important;cursor:pointer!important}
 #cc77home .cc77top .cc283-home-currency select:focus-visible{outline:3px solid #00efff!important;outline-offset:2px!important}
 @media(max-width:900px){#cc77home .cc77top .cc283-home-currency{flex-basis:100%!important;justify-content:center!important;order:2!important}#cc77home .cc77top>.cc77actions{order:3!important;margin:0 auto!important}}
+
+/* V284: defeat legacy desktop V263/V264 high-specificity invisible overlays. */
+@media(min-width:1200px){
+html body #cc77home .cc77wrap{aspect-ratio:auto!important;min-height:100vh!important;background:none!important;overflow:visible!important;padding:16px clamp(14px,3vw,48px) 28px!important}
+html body #cc77home .cc77top{position:relative!important;inset:auto!important;z-index:10!important;display:flex!important;height:auto!important;min-height:82px!important;opacity:1!important;pointer-events:auto!important;background:linear-gradient(100deg,#00131ff2,#052b42e8,#00121fe8)!important}
+html body #cc77home .cc77top .cc77brand,html body #cc77home .cc77top .cc77brand *{visibility:visible!important;opacity:1!important}
+html body #cc77home .cc77top>.cc77actions{position:relative!important;inset:auto!important;width:auto!important;height:auto!important;opacity:1!important;pointer-events:auto!important}
+html body #cc77home .cc77top>.cc77actions>.cc98-guest-action{flex:0 1 auto!important;min-height:40px!important;height:auto!important;opacity:1!important;pointer-events:auto!important}
+html body #cc77home .cc77intro{position:relative!important;inset:auto!important;width:100%!important;height:clamp(235px,22vw,380px)!important;opacity:1!important;background:#04152c url('../assets/cc-home-cinematic-hero.avif') center/cover no-repeat!important;pointer-events:auto!important}
+html body #cc77home .cc77cards{position:relative!important;inset:auto!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%!important;height:auto!important;gap:clamp(12px,1.2vw,22px)!important;pointer-events:auto!important}
+html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{position:relative!important;display:flex!important;flex-direction:column!important;width:100%!important;height:auto!important;min-height:405px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:linear-gradient(165deg,#07344bef,#031a2def 50%,#010b1bef)!important;border:2px solid #12dfff!important;border-radius:36px!important;box-shadow:0 0 15px #00eaff88,0 18px 30px #0009!important;grid-column:auto!important;grid-row:auto!important}
+html body #cc77home .cc77cards>article :is(.cc78service,.cc77tag,p,.ma1611-card-icon,.ma1611-card-copy,.ma1611-chip,h2){opacity:1!important;visibility:visible!important}
+html body #cc77home .cc77cards>article .cc77actions{position:relative!important;inset:auto!important;display:flex!important;width:100%!important;height:auto!important;margin-top:auto!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+html body #cc77home .cc77cards>article button,html body #cc77home .cc77cards>article.ma1611-card>button{position:relative!important;inset:auto!important;display:flex!important;flex:1 1 0!important;width:100%!important;min-height:52px!important;height:auto!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:linear-gradient(110deg,#00f2e6,#25bff5)!important;color:#001a26!important;border:1px solid #a2ffff!important;border-radius:24px!important}
+html body #cc77home .cc77foot,html body #cc77home #cc79logged{position:relative!important;inset:auto!important}
+html body #cc77home .cc77top #cc95-user:not([style*="display: none"]),html body #cc77home .cc77top #cc92-admin-button:not([style*="display: none"]){position:relative!important;inset:auto!important;opacity:1!important;pointer-events:auto!important}
+}
