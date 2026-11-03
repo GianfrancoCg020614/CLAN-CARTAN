@@ -37,15 +37,15 @@ try{
    '</div></section></div>',
    '<script>'+setup+'</script><script>'+js+'</script>',
    '<script>setTimeout(()=>{try{',
-   'const offers=document.querySelectorAll(".cc169-offer");',
+   'const offers=document.querySelectorAll(".cc169-offer:not(.cc169-example)");',
    'const noDemo=!document.getElementById("demo-offer")||!!document.getElementById("demo-offer")?.closest(".cc169-showcase");',
    mode==='no-offers'
-     ?'const sample=document.querySelector(".cc169-showcase");const safeSample=!!sample&&[...sample.querySelectorAll("button")].every(b=>b.disabled)&&!sample.textContent.includes("S/ 12.00");'
-     :'const safeSample=!document.querySelector(".cc169-showcase");',
+     ?'const sample=document.querySelector(".cc169-demo-grid");const safeSample=!!sample&&sample.querySelectorAll(".cc169-example").length===6&&[...sample.querySelectorAll("button")].every(b=>b.disabled)&&[...sample.querySelectorAll(".cc169-cover-status")].every(e=>e.textContent.startsWith("Ejemplo · "))&&!sample.textContent.includes("S/ 12.00")&&document.querySelector("#productos").textContent.includes("no representan stock ni ofertas disponibles");'
+     :'const safeSample=!document.querySelector(".cc169-demo-grid");',
    mode==='no-offers'
      ?'const correctOffers=offers.length===0;'
      :'const correctOffers=offers.length===2&&offers[0].textContent.includes("S/ 9.50");',
-   'const action=document.querySelector(".cc169-offer button");',
+   'const action=document.querySelector(".cc169-offer:not(.cc169-example) button");',
    'if(action)action.click();',
    'const buyingCorrect='+JSON.stringify(mode==='authenticated')+'?window.__payments.length===1&&window.__payments[0].id==="verified-id-1"&&window.__payments[0].price===9.5:',
    JSON.stringify(mode==='visitor')+'?window.__payments.length===0&&window.__login===1:window.__payments.length===0;',
@@ -70,3 +70,4 @@ try{
   console.log('PASS catálogo V169 '+mode+' · checkout verificado/anon/ejemplos seguros');
  }
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+
