@@ -453,6 +453,8 @@ function openAdminGrantRecharge(person){
  if(!data.admin)return;
  chosenAdminRecipient=person?.user_id||null;
  finance('recharges');
+ const workspace=app?.querySelector('.cc166-workspace');
+ if(workspace)workspace.scrollTop=0;
 }
 function openAdminGrantBonus(person){
  if(!data.admin)return;
