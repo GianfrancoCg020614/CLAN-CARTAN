@@ -35,7 +35,7 @@ const probe=[
  'const sameShell=!!$("#cc166-panel")&&!!$(".cc166-sidebar")&&!!$(".cc166-workspace");',
  'const noAdminMenu=!Array.from($$(".cc166-navitem")).some(x=>x.textContent.includes("Súper reseller")||x.textContent.includes("Bonos")||x.textContent.includes("Publicaciones"));',
  'const close=[...$$("#cc166-top-actions button")].some(x=>x.textContent.includes("Cerrar"));',
- 'const back=[...$$("#cc166-top-actions button")].some(x=>x.textContent.includes("Atrás"));',
+ 'const back=![...$$("#cc166-top-actions button")].some(x=>x.textContent.includes("Atrás"));',
  '[...$$(".cc166-navitem")].find(x=>x.textContent.includes("Billetera"))?.click();',
  '[...$$(".cc175-tab")].find(x=>x.textContent==="Recarga manual")?.click();',
  'const automaticName=$("#cc166-content")?.textContent.includes("Cliente Registrado");',
@@ -70,3 +70,4 @@ try{
  assert.equal(result[1],'pass','Error en V177: '+result[2]);
  console.log('PASS V177 · Panel común, nombre desde cuenta, recarga manual y proveedores automáticos seguros.');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+

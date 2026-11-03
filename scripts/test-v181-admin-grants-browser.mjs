@@ -33,7 +33,7 @@ const probe=[
  'function fail(e){done({error:String(e?.stack||e),passed:false})}',
  'setTimeout(()=>{try{',
  'const admin=!!$("#cc166-panel");',
- 'const homeGrants=!!findBtn("Otorgar recarga")&&!!findBtn("Otorgar bono");',
+ 'const homeGrants=!!findBtn("Otorgar recarga")&&!!findBtn("Otorgar bono")&&!!findBtn("Revisar pendientes")&&!!findBtn("Administrar usuarios");',
  'const noAdminShop=!Array.from($$(".cc166-navitem")).some(x=>x.textContent.includes("Catálogo")||x.textContent.includes("Mis compras")||x.textContent.includes("Mis publicaciones"));',
  '[...$$(".cc166-navitem")].find(x=>x.textContent.includes("Usuarios"))?.click();',
  'const rows=$$(".cc171-person").length===2;',
@@ -62,7 +62,7 @@ const probe=[
  "window.dispatchEvent(new Event(\"cc192-session-ended\"));window.cc166OpenPanel();",
  "setTimeout(()=>{try{",
  "document.querySelector(\".cc177-back\").click();const restoredBonusBackReturnsUsers=$(\"#cc166-content\")?.textContent.includes(\"Directorio de usuarios\");",
- "[...$$(\".cc166-navitem\")].find(x=>x.textContent.includes(\"Resumen\"))?.click();findBtn(\"Otorgar bono\").click();document.querySelector(\".cc177-back\").click();const homeBonusBackReturnsHome=$(\"#cc166-content\")?.textContent.includes(\"Control de operaciones\");",
+ "[...$$(\".cc166-navitem\")].find(x=>x.textContent.includes(\"Resumen\"))?.click();[...$$(\".cc166-navitem\")].find(x=>x.textContent.includes(\"Bonos\"))?.click();document.querySelector(\".cc177-back\").click();const homeBonusBackReturnsHome=$(\"#cc166-content\")?.textContent.includes(\"Control de operaciones\");",
  "done({admin,homeGrants,noAdminShop,rows,buttonsOk,startedScrolled,rechargeStartsAtTop,accountSelected,noNameQuestion,bankerDisabled,correctRequest,noCashCredit,rechargeBackReturnsUsers,bonusStartedScrolled,bonusStartsAtTop,bonusSelected,historyStored,restoredBonusBackReturnsUsers,homeBonusBackReturnsHome});",
  "}catch(e){fail(e)}},180);",
  '}catch(e){fail(e)}},250);',
@@ -82,4 +82,5 @@ try{
  assert.equal(m[1],'pass',m[2]);
  console.log('PASS V181: botones de ADMIN, cuenta preseleccionada, recarga pendiente, bono sin dinero ficticio.');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+
 

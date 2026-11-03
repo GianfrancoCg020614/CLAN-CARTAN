@@ -23,7 +23,9 @@ jobs:
         with:
           node-version: '22'
       - name: Validar sintaxis y reglas de seguridad
-        run: node scripts/check-v130.mjs
+        run: |
+          node scripts/check-v130.mjs
+          node scripts/test-v304-inline-syntax.mjs
       - name: Comprobar MI ALQUILER V226.4 sin datos reales
         run: node scripts/check-v2264-mi-alquiler.mjs
       - name: Confirmar integridad del cronograma COBRAYA V226.5
@@ -101,6 +103,15 @@ jobs:
           grep -q 'id="cc170-stream-flyers-script"' /tmp/clan-dom.html
           grep -q 'id="cc170-stream-flyers-style"' /tmp/clan-dom.html
           grep -q 'id="cc171-admin-simple-css"' /tmp/clan-dom.html
+      - name: Portada V304 en diez escenarios reales de Chrome
+        run: node scripts/test-v304-responsive-browser.mjs
+      - name: Guardar capturas y resultados V304
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v304-responsive-chrome
+          path: artifacts/v304
+          if-no-files-found: ignore
       - name: Panel único de tres roles y membresías · V166
         run: |
           checks_failed=0
@@ -140,3 +151,4 @@ jobs:
         run: node --test scripts/check-binance-webhook.mjs scripts/check-binance-merchant.mjs scripts/check-v133-taypi.mjs
       - name: Probar API de invitaciones sin modificar datos
         run: node scripts/check-v112-live.mjs
+

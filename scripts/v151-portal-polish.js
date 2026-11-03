@@ -103,7 +103,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=255';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=304';script.async=false;document.head.append(script);
  }
 })();
 
@@ -166,7 +166,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  if(document.getElementById('cc177-shared-panel-css'))return;
  const link=document.createElement('link');link.id='cc177-shared-panel-css';
- link.rel='stylesheet';link.href='styles/v177-panel-unico.css?v=250';
+ link.rel='stylesheet';link.href='styles/v177-panel-unico.css?v=304';
  document.head.append(link);
 })();
 
@@ -192,3 +192,4 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 /* V196 · presentación consistente de las cuatro tarjetas de negocio. */
 (function(){if(document.getElementById('cc196-style'))return;const l=document.createElement('link');l.id='cc196-style';l.rel='stylesheet';l.href='styles/v196-business-unified.css?v=215';document.head.append(l);})();
+

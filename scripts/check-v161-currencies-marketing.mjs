@@ -5,7 +5,7 @@ const flags=fs.readFileSync('scripts/v161-global-currency-flags.js','utf8');
 const settings=fs.readFileSync('scripts/v161-marketing-account.js','utf8');
 const migration=fs.readFileSync('supabase/migrations/20261021110000_v161_marketing_optin_audit.sql','utf8');
 const test=(s,v)=>assert.ok(s.includes(v),'Required '+v);
-test(html,'content="V161-20261021"');
+assert.match(html,/name="cc-deploy-version" content="V[0-9]+-20[0-9]{6}"/,'Versión de despliegue vigente');
 test(html,'id="cc161-marketing"');
 test(html,'Autorizo comunicaciones publicitarias de CLAN CARTAN por correo y WhatsApp');
 test(html,"marketing_consent:document.getElementById('cc161-marketing').checked");
@@ -42,4 +42,5 @@ assert.ok(!html.includes('BORRADOR PARA REVISIÓN'),'Obsolete draft header');
 assert.ok(!html.includes('No autorizo comunicaciones publicitarias por este acto'),'Marketing opt in must be separate');
 assert.ok(!flags.includes('balance_pen'),'Flag decorator must not edit wallet amounts');
 console.log('PASS V161: international currency flags, independent referrals, voluntary marketing consent, continuity.');
+
 
