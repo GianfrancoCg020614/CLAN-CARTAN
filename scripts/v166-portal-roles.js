@@ -11,6 +11,7 @@ let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
 let walletTab='summary',rechargeMode='manual';
+let renderedLocation='';
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
 let ownPending=null,ownPendingState='idle',ownPendingError='',ownPendingBusy=false;
@@ -121,14 +122,14 @@ function openCatalog(){
 function nav(to){
  if(to==='back'){
   const prior=navigationHistory.pop();
-  if(prior){view=prior.view;walletTab=prior.walletTab;render();return;}
-  if(view!=='home'){view='home';walletTab='summary';render();return;}
+  if(prior){view=prior.view;walletTab=prior.walletTab;render(true);return;}
+  if(view!=='home'){view='home';walletTab='summary';render(true);return;}
   app.hidden=true;return;
  }
  if(to==='shop'){openCatalog();return;}
  if(view!==to)navigationHistory.push({view,walletTab});
  if(to==='wallet')walletTab='summary';
- view=to;render();
+ view=to;render(true);
 }
 function notice(msg){const page=el('cc166-content');if(!page)return;const p=make('p','cc166-notice',msg);p.setAttribute('role','status');page.prepend(p);}
 function mountLauncher(){
@@ -298,7 +299,7 @@ function adminAttention(page){
  page.append(wrap);
  page.append(make('p','cc166-note','Las cifras de pedidos y publicaciones reflejan los registros consultados. Las recargas no modifican saldos hasta su verificación bancaria.'));
 }
-function finance(tab){walletTab=tab;view='wallet';render();}
+function finance(tab){walletTab=tab;view='wallet';render(true);}
 function overview(page){
  if(data.admin){adminHome(page);return;}
  const balance=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
@@ -388,7 +389,7 @@ function safeDate(value){
  catch(_){return '—';}
 }
 function adminWalletTabs(page){
- page.append(adminSectionTabs([['summary','Panel financiero'],['recharges','Recargas manuales'],['audit','Auditoría']],walletTab,id=>{walletTab=id;render();}));
+ page.append(adminSectionTabs([['summary','Panel financiero'],['recharges','Recargas manuales'],['audit','Auditoría']],walletTab,id=>{walletTab=id;render(true);}));
 }
 async function loadAdminRecharges(force=false,background=false){
  if(!data.admin||!user||!session()?.jwt||rechargeQueueBusy)return;
@@ -453,15 +454,11 @@ function openAdminGrantRecharge(person){
  if(!data.admin)return;
  chosenAdminRecipient=person?.user_id||null;
  finance('recharges');
- const workspace=app?.querySelector('.cc166-workspace');
- if(workspace)workspace.scrollTop=0;
 }
 function openAdminGrantBonus(person){
  if(!data.admin)return;
  chosenBonusRecipient=person?.email||null;
  nav('bonuses');
- const workspace=app?.querySelector('.cc166-workspace');
- if(workspace)workspace.scrollTop=0;
 }
 async function submitAdminAssistedRecharge(target,service,amount,reference,buttonEl){
  if(!data.admin||!verified||assistedRechargeSaving||!session()?.jwt)return;
@@ -974,7 +971,7 @@ function wallet(page){
  }
  page.append(adminSectionTabs([
   ['summary','Resumen'],['manual','Recarga manual'],['automatic','Recarga automática'],['movements','Movimientos']
- ],walletTab,id=>{walletTab=id;render();}));
+ ],walletTab,id=>{walletTab=id;render(true);}));
  if(walletTab==='manual'){personalManualRecharge(page);return;}
  if(walletTab==='automatic'){personalAutoRecharge(page);return;}
  if(walletTab==='movements'){movementList(page,120);return;}
@@ -1928,8 +1925,14 @@ function restoreAdminReviewDrafts(drafts){
   else if(draft.focus==='Banco de origen')bank?.focus({preventScroll:true});
  }
 }
-function render(){
+function render(startAtTop=false){
  if(!app||!user)return;
+ const location=JSON.stringify([user,view,view==='wallet'?walletTab:null]);
+ if(startAtTop||location!==renderedLocation){
+  const workspace=app.querySelector('.cc166-workspace');
+  if(workspace)workspace.scrollTop=0;
+ }
+ renderedLocation=location;
  const rechargeDrafts=saveAdminReviewDrafts();
  const grantDraft=saveAdminGrantDraft();
  el('cc177-return-panel')?.remove();
