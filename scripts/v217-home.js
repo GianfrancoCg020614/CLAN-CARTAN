@@ -241,13 +241,32 @@ function init(){
   }
   html body #cc77home#cc77home .cc77foot{position:relative!important;min-height:auto!important}
   html[data-cc-theme="light"] body #cc77home#cc77home{
-   color:#17364a!important;background:#e8f6fb url('assets/clan-neon-landscape-v256.svg?v=301') center top / cover no-repeat!important;
+   color:#143b52!important;background:#d8f4ff url('assets/clan-day-landscape-v302.svg?v=302') center top / cover no-repeat!important;
   }
   html[data-cc-theme="light"] body #cc77home#cc77home .cc77top{background:linear-gradient(110deg,#e5fbffed,#b7e9f5f0,#e7f9ffee)!important}
   html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article{
    color:#13364a!important;background:linear-gradient(160deg,#f7fffff2,#c5ebf7f4)!important;
    box-shadow:0 0 17px #008dac65,0 15px 25px #22547c26!important;
   }
+  /* V302 — actual daylight companion; night art remains untouched. */
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77brand,
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77brand small{color:#15394c!important;text-shadow:none!important}
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77foot{
+   color:#214959!important;background:rgba(241,252,255,.94)!important;
+   border:1px solid #4aa4c2!important;
+  }
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article p,
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article h2{
+   color:#123c53!important;text-shadow:none!important;
+  }
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article .cc77tag,
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article .ma1611-card-copy small{color:#7a5100!important}
+  html[data-cc-theme="light"] body #cc77home#cc77home .cc77cards>article button{
+   background:linear-gradient(110deg,#00dacf,#10a9df)!important;color:#042736!important;
+  }
+  /* The same single native scroll surface in both visual themes. */
+  html body #cc77home#cc77home{scrollbar-width:thin!important;scrollbar-color:#0bcfe3 transparent!important}
+  html body #cc77home#cc77home .cc77wrap{box-sizing:border-box!important}
   @media(max-width:1100px){
    html body #cc77home#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   }
