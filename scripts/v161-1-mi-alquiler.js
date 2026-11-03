@@ -96,6 +96,7 @@
       btn.setAttribute('aria-current', active ? 'page' : 'false');
       btn.classList.toggle('active', active);
     });
+    const layer=$('ma1611layer');if(layer)layer.scrollTop=0;
     // Solo texto estático: nunca mostrar cifras o personas inventadas.
     target.innerHTML = '<div class="ma1611-summary"><div class="ma1611-hero-icon" aria-hidden="true">' + area.emoji + '</div>' +
       '<div><small>MI ALQUILER</small><h3>' + area.title + '</h3><p>' + area.summary + '</p></div></div>' +
