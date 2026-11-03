@@ -106,7 +106,31 @@ function installCatalogPolish(){
  document.head.appendChild(style);
 }
 
+
+// V283: selector monetario real en encabezado, usando el módulo compartido.
+function ensureHomeCurrency(){
+ const top=document.querySelector('#cc77home .cc77top');
+ if(!top || top.querySelector('[data-cc-currency-selector]'))return;
+ const holder=document.createElement('div');
+ holder.className='cc283-home-currency';
+ holder.setAttribute('data-cc-currency-selector','');
+ holder.setAttribute('aria-label','Selector de moneda');
+ const actions=top.querySelector(':scope > .cc77actions');
+ if(actions)top.insertBefore(holder,actions);else top.appendChild(holder);
+ const mount=()=>window.ClanCartanCurrency?.mountAll?.();
+ if(window.ClanCartanCurrency){mount();return;}
+ if(!document.querySelector('script[data-cc283-currency-loader]')){
+  const script=document.createElement('script');
+  script.src='scripts/shared-currency-selector.js';
+  script.dataset.cc283CurrencyLoader='true';
+  script.onload=mount;
+  script.onerror=()=>{holder.textContent='Moneda no disponible';};
+  document.head.appendChild(script);
+ }
+}
+
 function init(){
+ ensureHomeCurrency();
  const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
  apply();
  installCatalogPolish();polishStreamCatalog();
