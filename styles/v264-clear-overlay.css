@@ -1,0 +1,23 @@
+/* V264: elimina superposición de la maqueta. Mantiene zonas clicables reales. */
+@media(min-width:1200px){
+html body #cc77home .cc77wrap{background-image:url('../assets/Panel%20Ne%C3%B3n%20de%20Soluciones%20Digitales.png')!important;background-color:transparent!important}
+html body #cc77home .cc77top{background:none!important;background-color:transparent!important;box-shadow:none!important;border:0!important;backdrop-filter:none!important}
+html body #cc77home .cc77top::before,html body #cc77home .cc77top::after{display:none!important}
+html body #cc77home .cc77top .cc77brand,html body #cc77home .cc77top .cc77brand *{opacity:0!important;visibility:hidden!important}
+html body #cc77home .cc77top .cc77actions{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important}
+html body #cc77home .cc77top .cc77actions>.cc98-guest-action{opacity:0!important;visibility:visible!important;background:transparent!important;box-shadow:none!important;border:0!important}
+html body #cc77home .cc77intro{background:none!important;background-image:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important}
+html body #cc77home .cc77cards{background:none!important;box-shadow:none!important;border:0!important;grid-template-columns:repeat(4,minmax(0,1fr))!important}
+html body #cc77home .cc77cards>article.cc77card,html body #cc77home .cc77cards>article.ma1611-card{background:none!important;background-color:transparent!important;background-image:none!important;border:0!important;outline:0!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important;opacity:1!important;transform:none!important}
+html body #cc77home .cc77cards>article.cc77card::before,html body #cc77home .cc77cards>article.cc77card::after,html body #cc77home .cc77cards>article.ma1611-card::before,html body #cc77home .cc77cards>article.ma1611-card::after{display:none!important;content:none!important}
+html body #cc77home .cc77cards>article.cc77card :is(.cc77tag,.cc78service,p),html body #cc77home .cc77cards>article.ma1611-card :is(.ma1611-card-icon,.ma1611-card-copy,.ma1611-chip,p,h2){opacity:0!important;visibility:hidden!important}
+html body #cc77home .cc77cards>article .cc77actions{background:none!important;box-shadow:none!important;visibility:visible!important;opacity:1!important}
+html body #cc77home .cc77cards>article .cc77actions button,html body #cc77home .cc77cards>article.ma1611-card>button{opacity:0!important;visibility:visible!important;pointer-events:auto!important;background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important}
+html body #cc77home .cc77cards>article.cc127-cobra-card{grid-column:1!important;grid-row:1!important}
+html body #cc77home .cc77cards>article.cc158-cochera-card{grid-column:2!important;grid-row:1!important}
+html body #cc77home .cc77cards>article.ma1611-card{grid-column:3!important;grid-row:1!important}
+html body #cc77home .cc77cards>article.cc77card:not(.cc127-cobra-card):not(.cc158-cochera-card){grid-column:4!important;grid-row:1!important}
+html body #cc77home .cc77cards>article.cc77card:not(.cc127-cobra-card):not(.cc158-cochera-card) .cc77actions{left:4%!important;right:4%!important;width:92%!important}
+html body #cc77home .cc77cards>article.cc77card:not(.cc127-cobra-card):not(.cc158-cochera-card) .cc77actions button{flex:1 1 0!important}
+html body #cc77home .cc77cards>article button:focus-visible,html body #cc77home .cc77top .cc98-guest-action:focus-visible{opacity:1!important;background:#04dce577!important;outline:3px solid white!important}
+}
