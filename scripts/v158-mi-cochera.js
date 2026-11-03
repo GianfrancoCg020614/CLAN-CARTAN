@@ -6,7 +6,8 @@ const $=id=>document.getElementById(id),ses=()=>window.CC_V53_SESSION;
 const esc=x=>String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const num=x=>Number(x||0),currency=(v,c)=>({PEN:"S/",USD:"US$",EUR:"€",COP:"COP",MXN:"MXN",ARS:"ARS",CLP:"CLP",BOB:"Bs.",BRL:"R$",UYU:"UYU",PYG:"PYG",CRC:"CRC",DOP:"DOP",CAD:"CAD",GBP:"£"}[c]||c)+" "+num(v).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2});
 const api=(p,b)=>window.cc80.api(p,"POST",b||{});
-let account=null,carts=[],moves=[],people=[],accounts=[],realWallets=[],busy=false,filter="";
+let account=null,carts=[],moves=[],people=[],accounts=[],realWallets=[],busy=false,filter="",cartState="ALL",ownerId=null,loadSequence=0;
+const normalize=value=>String(value||" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 function host(){let root=$("mc158layer");if(root)return root;root=document.createElement("div");root.id="mc158layer";
  root.innerHTML='<div class="mc158wrap"><header class="mc158head"><div><small>CLAN CARTAN · MI COCHERA</small><h2><img src="assets/mi-cochera-logo.svg" alt="Logotipo original MI COCHERA"> MI COCHERA</h2><p>Carritos, alquiler diario, hielo, deudas e historial.</p></div><button type="button" id="mc158close">← Volver a CLAN CARTAN</button></header><div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';
  document.body.append(root);$("mc158close").onclick=close;
@@ -23,50 +24,63 @@ async function open(){
  if(!ses()?.jwt){if(typeof window.cc77Auth==="function")window.cc77Auth(false);return;}
  const r=host();r.style.display="block";if($("cc77home"))$("cc77home").style.display="none";
  $("mc158body").innerHTML="<p>Cargando MI COCHERA…</p>";
- try{await load();}catch(e){$("mc158body").textContent="No se pudo abrir MI COCHERA: "+String(e.message||e);}
+ const actor=ses()?.userId,jwt=ses()?.jwt,expected=loadSequence+1;
+ try{await load();}catch(e){if(ses()?.userId!==actor||ses()?.jwt!==jwt||loadSequence!==expected)return;$("mc158body").textContent="No se pudo abrir MI COCHERA: "+String(e.message||e);}
 }
 async function load(){
- if(ses()?.isAdmin){account=null;return await loadAdmin();}
- const rows=await api("rpc/mc_ensure_account");
- account=Array.isArray(rows)?rows[0]:rows;
- if(!account)throw Error("Sin cuenta.");
- const detail=await window.cc80.api("mc_accounts?select=country&user_id=eq."+encodeURIComponent(ses().userId));
- account.country=detail?.[0]?.country||"PE";
- realWallets=await window.cc80.api("cc_real_service_wallets?select=service,balance_pen&user_id=eq."+encodeURIComponent(ses().userId));
- void refreshHomeWallet();
+ const session=ses(),id=session?.userId,jwt=session?.jwt,seq=++loadSequence;
+ if(!id||!jwt)return;const current=()=>ses()?.userId===id&&ses()?.jwt===jwt&&loadSequence===seq;
+ if(ownerId!==id){ownerId=id;account=null;carts=[];moves=[];people=[];realWallets=[];filter='';cartState='ALL';}
+ if(session.isAdmin){account=null;return await loadAdmin(current);}
+ const rows=await api('rpc/mc_ensure_account');if(!current())return;
+ account=Array.isArray(rows)?rows[0]:rows;if(!account)throw Error('Sin cuenta.');
+ const uid=encodeURIComponent(id);
+ const detail=await window.cc80.api('mc_accounts?select=country&user_id=eq.'+uid);if(!current())return;
+ account.country=detail?.[0]?.country||'PE';
+ const wallet=await window.cc80.api('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+uid);if(!current())return;
+ realWallets=wallet;void refreshHomeWallet();
  if(!active()){showLocked();return;}
- await api("rpc/mc_sync_rents");
- const uid=encodeURIComponent(ses().userId);
- [carts,moves,people]=await Promise.all([
-  window.cc80.api("mc_carts?select=*&reseller_id=eq."+uid+"&order=id.asc"),
-  window.cc80.api("mc_movements?select=*&reseller_id=eq."+uid+"&order=created_at.desc&limit=2000"),
-  window.cc80.api("mc_people?select=*&reseller_id=eq."+uid+"&limit=2000")
+ await api('rpc/mc_sync_rents');if(!current())return;
+ const items=await Promise.all([
+  window.cc80.api('mc_carts?select=*&reseller_id=eq.'+uid+'&order=id.asc'),
+  window.cc80.api('mc_movements?select=*&reseller_id=eq.'+uid+'&order=created_at.desc&limit=2000'),
+  window.cc80.api('mc_people?select=*&reseller_id=eq.'+uid+'&limit=2000')
  ]);
- renderList();
+ if(!current())return;[carts,moves,people]=items;renderList();
 }
 function currencyPanel(){return '<section class="mc158status"><div><strong>País: '+esc(account?.country||"PE")+' · Moneda de cobros: '+esc(account?.currency||"PEN")+'</strong><p>No confundimos la moneda de los alquileres con la billetera, que siempre está en PEN.</p></div><button type="button" data-action="currency">Configurar país y moneda</button></section>';}
 function walletPanel(){const balance=realWallets.reduce((sum,w)=>sum+num(w.balance_pen),0);
  return '<section class="mc158status"><div><strong>Billetera única · saldo real '+currency(balance,"PEN")+'</strong><p>Disponible para los cuatro negocios. El bono de activación se muestra por separado.</p></div><button type="button" data-action="wallet">Abrir mi billetera</button></section>';}
 function showLocked(){let el=$("mc158body");el.innerHTML=header()+currencyPanel()+walletPanel()+'<section class="mc158box"><h3>Acceso a MI COCHERA</h3><p>Mientras la mensualidad esté vencida, tus carritos, cobros y deudas permanecen guardados y protegidos.</p><p>Activa la membresía desde Negocios con saldo real verificado, o utiliza un bono de activación autorizado.</p><button type="button" data-action="bonus" '+(num(account.bonus_pen)<15||account.suspended?"disabled":"")+'>Activar 30 días con S/ 15 de bono</button><p id="mc158notice" role="status"></p></section>';}
-async function loadAdmin(){
+async function loadAdmin(current=()=>true){
  const [accountRows,clanUsers]=await Promise.all([
   window.cc80.api("mc_accounts?select=user_id,invite_code,currency,subscription_until,bonus_pen,suspended&order=created_at.desc&limit=300"),
   window.cc80.api("rpc/cc_admin_users_compact_v1","POST",{}).catch(()=>[])
  ]);
+ if(!current())return;
  const names=new Map((Array.isArray(clanUsers)?clanUsers:[]).map(u=>[u.id,u.code]));
  accounts=accountRows.map(a=>({...a,invite_code:names.get(a.user_id)||'CLAN pendiente'}));
  $("mc158body").innerHTML=header()+'<section class="mc158box"><h3>ADMIN · Resellers MI COCHERA</h3><p>Consulta las cuentas de MI COCHERA. Los bonos se gestionan desde el panel ADMIN único.</p><button type="button" data-action="bonuses">Gestionar bonos en ADMIN</button><p id="mc158notice" role="status"></p><div class="mc158scroll"><table><thead><tr><th>Código</th><th>Suscripción</th><th>Bono</th><th>Cuenta</th></tr></thead><tbody>'+accounts.map(a=>'<tr><td>'+esc(a.invite_code)+'</td><td>'+esc(a.subscription_until?new Date(a.subscription_until).toLocaleDateString("es-PE"):"No activa")+'</td><td>S/ '+num(a.bonus_pen).toFixed(2)+'</td><td>'+esc(a.user_id.slice(0,8))+'…</td></tr>').join("")+'</tbody></table></div></section>';
 }
 function person(id){return people.find(p=>p.id===id)||{};}
 function balance(id){return moves.filter(m=>m.cart_id===id).reduce((s,m)=>s+num(m.amount_local),0);}
-function renderList(){
- const shown=carts.filter(c=>[c.alias,c.business_type,person(c.owner_person_id).full_name,person(c.owner_person_id).document_number,person(c.worker_person_id).full_name,person(c.worker_person_id).document_number,String(c.id)].join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().includes(filter.toLowerCase()));
- const pending=carts.reduce((s,c)=>s+Math.max(0,balance(c.id)),0);
- $("mc158body").innerHTML=header()+currencyPanel()+walletPanel()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==="ACTIVE").length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><input id="mc158search" placeholder="Alias, dueño, trabajador, DNI o código C-…" value="'+esc(filter)+'"><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="reload">↻ Actualizar</button></div><p id="mc158notice" role="status"></p><div class="mc158cards">'+shown.map(c=>{
+function cartHTML(c){
  const owner=person(c.owner_person_id),worker=person(c.worker_person_id),debt=Math.max(0,balance(c.id));
- return '<article class="mc158cart"><div class="mc158carttop"><div><small>C-'+String(c.id).padStart(3,"0")+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||owner.full_name||"Carrito")+'</h3><p>Propietario: '+esc(owner.full_name)+' · '+esc(owner.document_number)+'</p>'+(worker.id?'<p>Trabajador: '+esc(worker.full_name)+'</p>':"")+'<small>Tarifa '+currency(c.daily_rate,c.currency)+' / día</small></div><div><strong class="'+(debt>0?"mc158debt":"")+'">'+currency(debt,c.currency)+'</strong><small>'+esc(c.state==="RETIRED"?"Retirado":"Activo")+'</small></div></div><div class="mc158actions"><button type="button" data-action="payment" data-cart="'+c.id+'">Cobrar</button><button type="button" data-action="sale" data-cart="'+c.id+'">Hielo / venta</button><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp · Cobrar</button><button type="button" data-action="'+(c.state==="ACTIVE"?"retire":"reactivate")+'" data-cart="'+c.id+'">'+(c.state==="ACTIVE"?"Se retira":"Reactivar")+'</button></div></article>';
- }).join("")+'</div></section>';
- $("mc158search").addEventListener("input",e=>{filter=e.target.value;renderList();const input=$("mc158search");input.focus();input.setSelectionRange(input.value.length,input.value.length);});
+ return '<article class="mc158cart"><div class="mc158carttop"><div><small>C-'+String(c.id).padStart(3,'0')+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||owner.full_name||'Carrito')+'</h3><p>Propietario: '+esc(owner.full_name)+' · '+esc(owner.document_number)+'</p>'+(worker.id?'<p>Trabajador: '+esc(worker.full_name)+'</p>':'')+'<small>Tarifa '+currency(c.daily_rate,c.currency)+' / día</small></div><div><strong class="'+(debt>0?'mc158debt':'')+'">'+currency(debt,c.currency)+'</strong><small>'+esc(c.state==='RETIRED'?'Retirado':'Activo')+'</small></div></div><div class="mc158actions"><button type="button" data-action="payment" data-cart="'+c.id+'" '+(debt>0?'':'disabled title="No hay deuda pendiente"')+'>Cobrar</button><button type="button" data-action="sale" data-cart="'+c.id+'">Hielo / venta</button><details class="mc314-more"><summary>Más acciones</summary><div><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp</button><button type="button" data-action="'+(c.state==='ACTIVE'?'retire':'reactivate')+'" data-cart="'+c.id+'">'+(c.state==='ACTIVE'?'Se retira':'Reactivar')+'</button></div></details></div></article>';
+}
+function renderList(listOnly=false){
+ const terms=normalize(filter).split(/\s+/).filter(Boolean);
+ const shown=carts.filter(c=>{
+  const text=normalize([c.alias,c.business_type,person(c.owner_person_id).full_name,person(c.owner_person_id).document_number,person(c.worker_person_id).full_name,person(c.worker_person_id).document_number,String(c.id),'C-'+String(c.id).padStart(3,'0')].join(' '));
+  return (cartState==='ALL'||c.state===cartState)&&terms.every(term=>text.includes(term));
+ });
+ const cards=shown.map(cartHTML).join('')||'<p class="mc314-empty">'+(carts.length?'No hay carritos que coincidan con la búsqueda y el estado seleccionado.':'Todavía no tienes carritos. Pulsa Registrar carrito para añadir el primero.')+'</p>';
+ if(listOnly&&$('mc158cards')){$('mc158cards').innerHTML=cards;$('mc158count').textContent=shown.length+' de '+carts.length+' carritos';return;}
+ const pending=carts.reduce((s,c)=>s+Math.max(0,balance(c.id)),0);
+ $('mc158body').innerHTML=header()+currencyPanel()+walletPanel()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==='ACTIVE').length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><label class="mc314-search">Buscar carrito<input id="mc158search" type="search" aria-label="Buscar por nombre, DNI o código de carrito" placeholder="Alias, nombre, DNI o C-001…" value="'+esc(filter)+'"></label><label>Estado<select id="mc158state"><option value="ALL">Todos</option><option value="ACTIVE">Activos</option><option value="RETIRED">Retirados</option></select></label><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="reload">↻ Actualizar</button></div><p id="mc158notice" role="status"></p><p id="mc158count" role="status">'+shown.length+' de '+carts.length+' carritos</p><div class="mc158cards" id="mc158cards">'+cards+'</div></section>';
+ $('mc158state').value=cartState;
+ $('mc158search').addEventListener('input',event=>{filter=event.target.value;renderList(true);});
+ $('mc158state').addEventListener('change',event=>{cartState=event.target.value;renderList(true);});
 }
 function drawer(title,body){$("mc158dialog")?.remove();const d=document.createElement("div");d.id="mc158dialog";d.className="mc158dialog";d.innerHTML='<section role="dialog" aria-modal="true"><header><h3>'+esc(title)+'</h3><button type="button" data-action="close-dialog">✕</button></header>'+body+'<p id="mc158dialogStatus" role="status"></p></section>';d.addEventListener("click",click);d.addEventListener("click",dniClick);d.addEventListener("submit",submit);document.body.append(d);}
 function fields(prefix,title,optional){
@@ -106,26 +120,26 @@ async function lookupDni(input){
 
 async function submit(e){
  if(!e.target.id?.startsWith("mc158"))return;
- e.preventDefault();if(busy)return;busy=true;let button=e.target.querySelector('button[type="submit"]');if(button)button.disabled=true;
+ e.preventDefault();if(busy)return;const actor=ses()?.userId,jwt=ses()?.jwt,form=e.target;const current=()=>ses()?.userId===actor&&ses()?.jwt===jwt;busy=true;let button=e.target.querySelector('button[type="submit"]');const label=button?.textContent;if(button){button.disabled=true;button.textContent='Guardando…';}form.setAttribute('aria-busy','true');
  try{
  if(e.target.id==="mc158config"){
-  const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});$("mc158dialog")?.remove();await load();note("Moneda y país actualizados para esta cochera.");
+  const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Moneda y país actualizados para esta cochera.");
  }else if(e.target.id==="mc158new"){
   const f=e.target,x=k=>f.elements.namedItem(k)?.value?.trim()||"";
   const id=await api("rpc/mc_create_cart",{p_alias:x("alias"),p_type:x("business"),p_rate:num(x("rate")),p_owner_kind:x("ownerKind"),p_owner_doc:x("ownerDoc"),p_owner_name:x("ownerName"),p_owner_phone:x("ownerPhone"),p_worker_kind:x("workerKind")||null,p_worker_doc:x("workerDoc")||null,p_worker_name:x("workerName")||null,p_worker_phone:x("workerPhone")||null});
-  $("mc158dialog")?.remove();await load();note("Carrito registrado: C-"+String(id).padStart(3,"0"));
+  if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Carrito registrado: C-"+String(id).padStart(3,"0"));
  }else if(e.target.id==="mc158pay"){
-  const f=e.target;await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PAYMENT",p_label:"Abono recibido",p_quantity:null,p_unit:null,p_amount:-num(f.elements.amount.value),p_method:f.elements.method.value});$("mc158dialog")?.remove();await load();note("Pago registrado.");
+  const f=e.target;await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PAYMENT",p_label:"Abono recibido",p_quantity:null,p_unit:null,p_amount:-num(f.elements.amount.value),p_method:f.elements.method.value});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Pago registrado.");
  }else if(e.target.id==="mc158sale"){
   const f=e.target,q=num(f.elements.quantity.value),price=num(f.elements.price.value);
-  await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PRODUCT",p_label:f.elements.item.value,p_quantity:q,p_unit:price,p_amount:Math.round(q*price*100)/100,p_method:null});$("mc158dialog")?.remove();await load();note("Producto agregado a la deuda.");
+  await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PRODUCT",p_label:f.elements.item.value,p_quantity:q,p_unit:price,p_amount:Math.round(q*price*100)/100,p_method:null});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Producto agregado a la deuda.");
  }
- }catch(e){const el=$("mc158dialogStatus")||$("mc158notice");if(el)el.textContent="No se completó: "+String(e.message||e);}
- finally{busy=false;if(button)button.disabled=false;}
+ }catch(e){if(!current())return;const el=form.closest("#mc158dialog")?.querySelector("#mc158dialogStatus")||$("mc158notice");if(el)el.textContent="No se completó: "+String(e.message||e);}
+ finally{busy=false;form.removeAttribute('aria-busy');if(button){button.disabled=false;button.textContent=label;}}
 }
 async function click(e){
  let btn=e.target.closest("[data-action]");if(!btn)return;
- e.preventDefault();const act=btn.dataset.action,id=Number(btn.dataset.cart);
+ e.preventDefault();const act=btn.dataset.action,id=Number(btn.dataset.cart),actor=ses()?.userId,jwt=ses()?.jwt;
  try{
  if(act==="close-dialog"){$("mc158dialog")?.remove();return;}
  if(act==="reload"){await load();return;}
@@ -136,40 +150,47 @@ async function click(e){
  }
  if(act==="bonuses"){close();window.cc166OpenAdminBonuses?.();return;}
  if(act==="wallet"){close();window.cc166OpenWallet?.();return;}
- if(act==="bonus"){if(!confirm("¿Usar S/ 15 del bono ADMIN para activar 30 días?"))return;await api("rpc/mc_activate_with_bonus",{p_request:crypto.randomUUID()});await load();return;}
- if(act==="retire"||act==="reactivate"){if(!confirm(act==="retire"?"Se detendrán los cargos diarios futuros. La deuda histórica permanecerá.":"¿Reactivar este carrito conservando su historial?"))return;await api("rpc/mc_change_cart_state",{p_cart:id,p_new_state:act==="retire"?"RETIRED":"ACTIVE"});await load();return;}
+ if(['bonus','retire','reactivate'].includes(act)){
+  if(busy)return;const actor=ses()?.userId,jwt=ses()?.jwt;
+  const question=act==='bonus'?'¿Usar S/ 15 del bono ADMIN para activar 30 días?':act==='retire'?'Se detendrán los cargos diarios futuros. La deuda histórica permanecerá.':'¿Reactivar este carrito conservando su historial?';
+  if(!confirm(question))return;busy=true;btn.disabled=true;
+  try{
+   if(act==='bonus')await api('rpc/mc_activate_with_bonus',{p_request:crypto.randomUUID()});
+   else await api('rpc/mc_change_cart_state',{p_cart:id,p_new_state:act==='retire'?'RETIRED':'ACTIVE'});
+   if(ses()?.userId!==actor||ses()?.jwt!==jwt)return;await load();
+  }finally{busy=false;btn.disabled=false;}
+  return;
+ }
  if(act==="whatsapp"){
   const cart=carts.find(c=>c.id===id);if(!cart)return;
   const owner=person(cart.owner_person_id),worker=person(cart.worker_person_id);
-  const recipient=[owner,worker].find(p=>String(p.phone||"").trim());
-  if(!recipient){note("Este cliente no tiene WhatsApp registrado. Agrega el número del propietario o trabajador antes de notificar.");return;}
-  let digits=String(recipient.phone).replace(/[^0-9]/g,"");
-  if(/^9[0-9]{8}$/.test(digits))digits="51"+digits;
-  if(!/^[1-9][0-9]{9,14}$/.test(digits)){note("El número guardado no incluye un código de país válido.");return;}
+  const candidates=[owner,worker].map(person=>{let digits=String(person.phone||'').replace(/[^0-9]/g,'');if(/^9[0-9]{8}$/.test(digits))digits='51'+digits;return {person,digits};});
+  const choice=candidates.find(item=>/^[1-9][0-9]{9,14}$/.test(item.digits));
+  if(!choice){note('Registra un WhatsApp válido del propietario o trabajador, con código de país.');return;}
+  const recipient=choice.person,digits=choice.digits;
   const due=Math.max(0,balance(id));
   const text="Hola, "+(recipient.full_name||"cliente")+". Te escribimos por tu carrito C-"+String(id).padStart(3,"0")+" ("+(cart.alias||cart.business_type||"Mi Cochera")+"). "+(due>0?"Tu saldo pendiente es "+currency(due,cart.currency)+". ":"No registramos deuda pendiente. ")+"Por favor, comunícate con el responsable de tu cochera. Mensaje preparado por tu administrador desde MI COCHERA | CLAN CARTAN.";
-  window.open("https://wa.me/"+digits+"?text="+encodeURIComponent(text),"_blank","noopener,noreferrer");
+  const link='https://wa.me/'+digits+'?text='+encodeURIComponent(text);
+  const opened=window.open(link,'_blank','noopener,noreferrer');
+  if(!opened){const status=$('mc158notice');if(status){status.textContent='Si WhatsApp no se abrió, utiliza este enlace: ';const a=document.createElement('a');a.href=link;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Abrir WhatsApp';status.append(a);}}
   return;
  }
- if(act==="payment"){drawer("Cobrar · C-"+id,'<form id="mc158pay" data-cart="'+id+'"><p>Deuda pendiente: '+currency(balance(id),account.currency)+'</p><label>Importe recibido<input name="amount" type="number" min=".01" max="'+Math.max(0,balance(id)).toFixed(2)+'" step=".01" required></label><label>Medio<select name="method"><option>Efectivo</option><option>Yape</option><option>Plin</option><option>Transferencia</option></select></label><button type="submit">Registrar abono</button></form>');return;}
+ if(act==="payment"){if(balance(id)<=0){note("No hay deuda pendiente para registrar un abono.");return;}drawer("Cobrar · C-"+id,'<form id="mc158pay" data-cart="'+id+'"><p>Deuda pendiente: '+currency(balance(id),account.currency)+'</p><label>Importe recibido<input name="amount" type="number" min=".01" max="'+Math.max(0,balance(id)).toFixed(2)+'" step=".01" required></label><label>Medio<select name="method"><option>Efectivo</option><option>Yape</option><option>Plin</option><option>Transferencia</option></select></label><button type="submit">Registrar abono</button></form>');return;}
  if(act==="sale"){drawer("Agregar hielo o producto · C-"+id,'<form id="mc158sale" data-cart="'+id+'"><label>Producto<input name="item" value="Hielo" required maxlength="120"></label><label>Cantidad<input name="quantity" type="number" min=".001" step="any" value="1" required></label><label>Precio por unidad ('+esc(account.currency)+')<select name="price"><option value="1.50">1.50</option><option value="2">2.00</option><option value="3">3.00</option></select></label><p>Se acumula como deuda del carrito hasta registrar el pago.</p><button type="submit">Agregar producto</button></form>');return;}
  if(act==="history"){const c=carts.find(c=>c.id===id);let records=moves.filter(m=>m.cart_id===id);drawer("Historial · "+(c?.alias||"C-"+id),'<div class="mc158scroll"><table><thead><tr><th>Fecha</th><th>Movimiento</th><th>Importe</th></tr></thead><tbody>'+records.map(m=>'<tr><td>'+esc(m.occurred_on)+'</td><td>'+esc(m.label)+'</td><td>'+currency(m.amount_local,m.currency)+'</td></tr>').join("")+'</tbody></table></div>');return;}
- }catch(e){note("Error: "+String(e.message||e));}
+ }catch(e){if(ses()?.userId===actor&&ses()?.jwt===jwt)note("Error: "+String(e.message||e));}
 }
 async function refreshHomeWallet(){
  const label=$("mc158-home-wallet"),current=ses();
  if(!label)return;
  if(!current?.jwt){label.textContent="S/ --";return;}
- const userId=current.userId;
+ const userId=current.userId,jwt=current.jwt;
  try{
   const uid=encodeURIComponent(userId);
-  const [wallet,acc]=await Promise.all([
-   window.cc80.api("cc_real_service_wallets?select=balance_pen&user_id=eq."+uid+"&service=eq.MI_COCHERA"),
-   window.cc80.api("mc_accounts?select=bonus_pen&user_id=eq."+uid)
-  ]);
-  if(ses()?.userId!==userId)return;
-  label.textContent=currency(num(wallet?.[0]?.balance_pen)+num(acc?.[0]?.bonus_pen),"PEN");
- }catch(_){label.textContent="S/ --";}
+  const wallet=await window.cc80.api('cc_real_service_wallets?select=balance_pen&user_id=eq.'+uid);
+  if(ses()?.userId!==userId||ses()?.jwt!==jwt)return;
+  label.textContent=currency(wallet.reduce((sum,row)=>sum+num(row.balance_pen),0),'PEN');
+ }catch(_){if(ses()?.userId===userId&&ses()?.jwt===jwt)label.textContent="S/ --";}
 }
 function mountHomeBadge(){
  const host=$("cc95-user");
@@ -179,6 +200,7 @@ function mountHomeBadge(){
  if(ses()?.jwt)void refreshHomeWallet();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountHomeBadge);else mountHomeBadge();
+document.addEventListener('cc192-session-ended',()=>{loadSequence++;ownerId=null;account=null;carts=[];moves=[];people=[];realWallets=[];filter='';cartState='ALL';close();const body=$('mc158body');if(body)body.textContent='Inicia sesión para abrir MI COCHERA.';});
 window.mc158Open=open;
 window.mc158Close=close;
 })();

@@ -1,0 +1,4 @@
+import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import assert from 'node:assert/strict';import {usabilityFixture} from './fixture-v314-usability.mjs';import {runChromeFixture} from './chrome-fixture.mjs';
+const chrome=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(fs.existsSync);assert.ok(chrome,'Chrome requerido');const dir=fs.mkdtempSync(path.join(os.tmpdir(),'cc314-'));
+try{for(const kind of ['cochera','contabilidad','avisos']){const file=path.join(dir,kind+'.html');fs.writeFileSync(file,usabilityFixture(kind));const out=await runChromeFixture(chrome,file,'cc314-result');assert.match(out,/data-status="pass"/,out);console.log('PASS V314 '+kind+': usabilidad y aislamiento; datos y operaciones simulados.');}}
+finally{fs.rmSync(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100});}

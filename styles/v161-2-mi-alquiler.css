@@ -29,3 +29,5 @@
 .ma1612-dialog #ma1612dialogstatus{color:#9cdbb1}
 .ma1612-dialog #ma1612dialogstatus.error{color:#ff9999}
 @media(max-width:550px){#ma1611layer .ma1612-stats{grid-template-columns:1fr 1fr}#ma1611layer .ma1612-line{align-items:flex-start}#ma1611layer .ma1612-box>header{display:block}}
+
+@media(max-width:680px){.ma1612-dialog input,.ma1612-dialog select,.ma1612-dialog textarea{font-size:16px}}
