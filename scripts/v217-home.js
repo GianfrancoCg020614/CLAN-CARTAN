@@ -130,6 +130,23 @@ function ensureHomeCurrency(){
 }
 
 function init(){
+ // V293: load final visual rules after all legacy inline styles.
+ if(!document.getElementById('cc293-final-style')){
+  const style=document.createElement('style');
+  style.id='cc293-final-style';
+  style.textContent=`
+  #cc77home{background:#010b19 url('assets/clan-neon-landscape-v256.svg') center top/cover no-repeat!important}
+  #cc77home .cc77top{background:linear-gradient(105deg,#00101df5,#022a40f5 48%,#00121ff5)!important;border-radius:0 0 36px 36px!important;border-bottom:2px solid #00ecf7aa!important;box-shadow:0 8px 25px #001d32a8,0 0 20px #00d8ed40!important}
+  #cc77home .cc77intro{background:transparent url('assets/cc-home-cinematic-hero.avif') center/contain no-repeat!important;border:0!important;box-shadow:none!important}
+  #cc77home .cc77cards{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:clamp(12px,1.1vw,20px)!important}
+  #cc77home .cc77cards>article{border:2px solid #42f4ff!important;border-radius:40px!important;background:linear-gradient(170deg,rgba(2,35,56,.95),rgba(0,14,31,.98) 70%)!important;box-shadow:inset 0 0 26px #00eaff1a,0 0 14px #00eaff99,0 16px 30px #000b!important}
+  #cc77home .cc77cards>article button{border-radius:999px!important;background:linear-gradient(100deg,#00f5e4,#22c9f6)!important;color:#001923!important}
+  #cc77home .cc77foot{position:relative!important}
+  @media(max-width:1100px){#cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+  @media(max-width:650px){#cc77home .cc77cards{grid-template-columns:1fr!important}#cc77home .cc77intro{background-image:url('assets/cc-home-cinematic-mobile.avif')!important}}
+  `;
+  document.body.appendChild(style);
+ }
  ensureHomeCurrency();
  const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
  apply();
