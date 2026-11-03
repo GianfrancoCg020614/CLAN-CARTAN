@@ -41,6 +41,7 @@ try{
    await evaluate(`document.documentElement.dataset.ccTheme!==${JSON.stringify(theme)}&&document.querySelector('#cc164-theme-toggle').click()`);await pause(100);
    const check=await evaluate(`(()=>{const h=document.querySelector('#cc77home'),cards=[...h.querySelector('.cc77cards').children],visible=e=>e.getBoundingClientRect().width>0;const buttons=cards.flatMap(c=>[...c.querySelectorAll('button')]);const sr=cards[3].querySelectorAll('button');return {width:innerWidth,theme:document.documentElement.dataset.ccTheme,noOverflow:document.documentElement.scrollWidth<=innerWidth+1&&h.scrollWidth<=innerWidth+1,singleCurrency:[...document.querySelectorAll('select')].filter(e=>visible(e)&&[...e.options].some(o=>o.value==='PEN')).length===1,realHeading:visible(h.querySelector('h1'))&&getComputedStyle(h.querySelector('h1')).clipPath==='none',headerClear:(()=>{const a=h.querySelector('.cc77brand').getBoundingClientRect(),b=h.querySelector('.cc283-home-currency').getBoundingClientRect();return Math.min(a.right,b.right)-Math.max(a.left,b.left)<=1||Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)<=1})(),fourCards:cards.length===4,columns:getComputedStyle(h.querySelector('.cc77cards')).gridTemplateColumns.split(' ').length,targets:buttons.every(b=>b.offsetHeight>=44&&b.offsetWidth>=44),streamAligned:Math.abs(sr[0].getBoundingClientRect().y-sr[1].getBoundingClientRect().y)<2,footer:h.textContent.includes('CREADA POR CLAN CARTAN')}})()`);
    assert.equal(check.noOverflow,true,JSON.stringify(check));assert.equal(check.singleCurrency,true,JSON.stringify(check));assert.equal(check.realHeading,true);assert.equal(check.fourCards,true);assert.equal(check.headerClear,true,JSON.stringify(check));assert.equal(check.targets,true);assert.equal(check.streamAligned,true);assert.equal(check.footer,true);assert.equal(check.columns,width>1100?4:width>650?2:1);assert.equal(check.theme,theme);
+   if(width<650){assert.ok(await evaluate("document.querySelector('#cc77home .cc77cards>article').offsetHeight<360"),'Tarjeta móvil demasiado alta');assert.ok(await evaluate("document.querySelector('#cc77home .cc77top').offsetHeight<215"),'Cabecera móvil demasiado alta');}
    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});fs.writeFileSync(`artifacts/v304/${width}-${theme}.png`,Buffer.from(shot.data,'base64'));results.push(check);
   }
  }
@@ -55,6 +56,11 @@ try{
   await evaluate("document.querySelector('#cc223-auth-close').click()");await pause(80);
   assert.equal(await evaluate("getComputedStyle(document.querySelector('#cc77home')).display!=='none'"),true,'Volver portada '+action);
  }
+ await evaluate("cc77Auth(false);document.querySelector('#cc305-password-toggle').click()");
+ assert.equal(await evaluate("document.querySelector('#cc-real-pass').type"),'text');
+ await evaluate("document.querySelector('#cc305-password-toggle').click()");
+ assert.equal(await evaluate("document.querySelector('#cc-real-pass').type"),'password');
+ assert.equal(await evaluate("!!document.querySelector('#cc123turnstile')"),true,'Widget real de seguridad montado');
  await evaluate("cc77Auth(true)");
  for(const type of ['terms','privacy']){
   const legal=await evaluate(`(()=>{document.querySelector('#cc-real-login a[onclick*="${type}"]').click();const m=document.querySelector('#cc82-legal-modal'),r=m.getBoundingClientRect();return m.contains(document.elementFromPoint(r.width/2,r.height/2))&&document.querySelector('#cc82-legal-body').textContent.length>100})()`);

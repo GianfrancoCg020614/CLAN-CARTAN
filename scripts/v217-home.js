@@ -131,6 +131,15 @@ function ensureHomeCurrency(){
 
 function init(){
 
+ const passwordToggle=document.getElementById('cc305-password-toggle');
+ if(passwordToggle&&!passwordToggle.dataset.bound){
+  passwordToggle.dataset.bound='true';
+  passwordToggle.addEventListener('click',()=>{
+   const input=document.getElementById('cc-real-pass');const show=input.type==='password';
+   input.type=show?'text':'password';passwordToggle.textContent=show?'Ocultar':'Mostrar';
+   passwordToggle.setAttribute('aria-pressed',String(show));
+  });
+ }
  // V304: visual rules live in styles/v217-home.css.
  // V303: two-tone live header typography, without replacing login or navigation controls.
  const brandText=document.querySelector('#cc77home .cc77brand > span:last-child');
