@@ -54,9 +54,11 @@ const probe=[
  'const noCashCredit=!window.__calls.some(x=>/cc_admin_decide_manual_recharge|cc_credit_verified_real_topup/.test(x.p));',
  '[...$$(".cc166-navitem")].find(x=>x.textContent.includes("Usuarios"))?.click();',
  'const row2=[...$$(".cc171-person")].find(x=>x.textContent.includes("CLAN2"));',
+ 'row2.style.marginTop="1400px";workspace.scrollTop=workspace.scrollHeight;const bonusStartedScrolled=workspace.scrollTop>0;',
  '[...row2.querySelectorAll(".cc181-user-actions button")].find(x=>x.textContent.includes("Otorgar bono"))?.click();',
+ 'const bonusStartsAtTop=workspace.scrollTop===0;',
  'const bonusSelected=$("#cc166-content .cc177-bonus-form select")?.value==="clan@test.local";',
- 'done({admin,homeGrants,noAdminShop,rows,buttonsOk,startedScrolled,rechargeStartsAtTop,accountSelected,noNameQuestion,bankerDisabled,correctRequest,noCashCredit,bonusSelected});',
+ 'done({admin,homeGrants,noAdminShop,rows,buttonsOk,startedScrolled,rechargeStartsAtTop,accountSelected,noNameQuestion,bankerDisabled,correctRequest,noCashCredit,bonusStartedScrolled,bonusStartsAtTop,bonusSelected});',
  '}catch(e){fail(e)}},250);',
  '}catch(e){fail(e)}},260);',
  '}catch(e){fail(e)}},500);'

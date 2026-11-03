@@ -460,6 +460,8 @@ function openAdminGrantBonus(person){
  if(!data.admin)return;
  chosenBonusRecipient=person?.email||null;
  nav('bonuses');
+ const workspace=app?.querySelector('.cc166-workspace');
+ if(workspace)workspace.scrollTop=0;
 }
 async function submitAdminAssistedRecharge(target,service,amount,reference,buttonEl){
  if(!data.admin||!verified||assistedRechargeSaving||!session()?.jwt)return;
