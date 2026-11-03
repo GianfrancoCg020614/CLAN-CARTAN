@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 const chrome=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(fs.existsSync);
 assert.ok(chrome,'Es obligatorio Chrome / Chromium para verificar V166');
 const js=fs.readFileSync('scripts/v166-portal-roles.js','utf8');
-const css=['styles/v166-portal-roles.css','styles/v171-admin-simple.css','styles/v176-admin-console.css','styles/v177-panel-unico.css','styles/v246-admin-users.css'].map(p=>fs.readFileSync(p,'utf8')).join('\n');
+const css=['styles/v166-portal-roles.css','styles/v171-admin-simple.css','styles/v176-admin-console.css','styles/v177-panel-unico.css','styles/v246-admin-users.css','styles/v308-panel-navigation.css'].map(p=>fs.readFileSync(p,'utf8')).join('\n');
 const home='<div id="cc77home"><div class="cc77top"><div class="cc77actions"></div></div><div class="cc77cards"><article class="cc77card"><button>STREAM</button></article><article class="cc77card"><button>COBRA</button></article></div></div>';
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'cc166-'));
 try{

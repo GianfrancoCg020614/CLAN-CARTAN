@@ -103,7 +103,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=307';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=308';script.async=false;document.head.append(script);
  }
 })();
 
@@ -193,3 +193,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 /* V196 · presentación consistente de las cuatro tarjetas de negocio. */
 (function(){if(document.getElementById('cc196-style'))return;const l=document.createElement('link');l.id='cc196-style';l.rel='stylesheet';l.href='styles/v196-business-unified.css?v=215';document.head.append(l);})();
 
+
+/* V308: cargar después de los estilos compartidos del panel. */
+(function(){
+ if(document.getElementById('cc308-panel-nav-css'))return;
+ const link=document.createElement('link');link.id='cc308-panel-nav-css';
+ link.rel='stylesheet';link.href='styles/v308-panel-navigation.css?v=308';
+ document.head.append(link);
+})();
