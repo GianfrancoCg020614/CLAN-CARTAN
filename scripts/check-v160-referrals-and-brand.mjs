@@ -10,13 +10,13 @@ function has(c,needle){assert.ok(c.includes(needle),'Missing '+needle);}
 assert.match(html,/content="V(?:160|161)-20261021"|content="V172-20261023"/);
 has(html,'--ccc-bull-logo:url("assets/stream-bulls-logo.svg?v=160")');
 has(html,'styles/v160-stream-bulls-brand.css?v=160');
-has(html,'scripts/v160-invitation-register.js?v=160');
+assert.match(html,/scripts\/v160-invitation-register\.js\?v=\d+/, 'El script de invitaciones debe estar cargado con una versión de caché');
 has(html,"const link='https://www.clancartan.com/?ref='+encodeURIComponent(entry.code)+'#registro'");
 has(html,"void cc160CopyText(link,share)");
 has(html,"navigator.clipboard&&window.isSecureContext");
 has(html,"document.execCommand('copy')");
 has(html,"window.prompt('Copia este enlace o código:'");
-has(html,'/^(CLAN|COBRA|BULL|COCHERA|ALQUILER)[1-9][0-9]{0,14}$/');
+has(html,'/^CLAN[1-9][0-9]{0,14}$/');
 has(setup,"new URLSearchParams(window.location.search)");
 has(setup,"kind.value=business");
 has(setup,"window.cc77Auth(true)");
@@ -42,3 +42,4 @@ has(html,'scripts/v145-commerce-guard.js?v=145b');
 assert.match(html,/scripts\/v158-mi-cochera\.js\?v=\d+/, 'MI COCHERA: debe estar cargado el módulo');
 has(html,'scripts/v127-wallet-switch.js?v=1583');
 console.log('PASS V160: STREAM BULLS brand, personalized signup links, attribution, old financial protections intact.');
+

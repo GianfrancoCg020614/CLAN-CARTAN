@@ -14,7 +14,32 @@ for(const x of [
  'void window.cc172ShowClanReferrals?.();'
 ])assert.ok(html.includes(x),'Portal CLAN no integrado: '+x);
 assert.ok(!html.includes('  cc110ShowMyInvitationCodes();\n  const adminBtn='));
-assert.ok(setup.includes('CLAN|COBRA|BULL|COCHERA|ALQUILER') && setup.includes("if(business)kind.value=business;"));
+// El alta actual acepta códigos CLAN. El parser compartido mantiene los alias históricos.
+function checkSignupLink(search,session){
+ const nodes={
+  'cc110-invite':{value:''},'cc111-business':{value:'COBRA_YA'},
+  'cc110-invite-hint':{textContent:''},'cc-real-email':{focus(){}}
+ };
+ const callbacks=[],opened=[];
+ const context={window:{location:{search},CC_V53_SESSION:session,cc77Auth:mode=>opened.push(mode)},
+  document:{readyState:'loading',getElementById:id=>nodes[id],addEventListener:(event,fn)=>callbacks.push(fn)},
+  URLSearchParams};
+ vm.runInNewContext(setup,context,{timeout:1000});
+ const signup=callbacks.find(fn=>fn.name==='setup');
+ assert.ok(signup,'El enlace de registro debe inicializarse');
+ signup();
+ return {nodes,opened};
+}
+const clanLink=checkSignupLink('?ref=clan27');
+assert.equal(clanLink.nodes['cc110-invite'].value,'CLAN27');
+assert.equal(clanLink.nodes['cc111-business'].value,'COBRA_YA','CLAN no fuerza otro negocio');
+assert.deepEqual(clanLink.opened,[true]);
+for(const invalid of ['CLAN0','CLAN01','COBRA2','CLAN<script>']){
+ const result=checkSignupLink('?ref='+encodeURIComponent(invalid));
+ assert.equal(result.nodes['cc110-invite'].value,'');
+ assert.equal(result.opened.length,0);
+}
+assert.equal(checkSignupLink('?ref=CLAN27',{jwt:'test-only'}).opened.length,0,'Un enlace no debe sustituir una sesión activa');
 assert.ok(common.includes("rpc('cc_clan_validate_code'"));
 for(const value of [
  'CREATE TABLE IF NOT EXISTS public.cc_clan_codes',
@@ -57,3 +82,4 @@ assert.equal(p.parse('CLAN'),null);
 assert.equal(p.incomingCode().code,'CLAN27');
 assert.equal(p.invitationUrl('CLAN27'),'https://www.clancartan.com/?ref=CLAN27');
 console.log('PASS PARTE 2: CLAN universal, 4 negocios, enlaces, alias históricos, seguridad RLS y recompensa deshabilitada.');
+
