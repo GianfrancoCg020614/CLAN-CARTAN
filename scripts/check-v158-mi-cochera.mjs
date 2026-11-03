@@ -13,7 +13,7 @@ function required(content,needle){assert.ok(content.includes(needle),'Missing: '
 assert.match(html,/V(?:158|160|161)-20261021/);required(html,'cc158-cochera-card');
 required(html,'Ingresar a Mi Cochera');
 assert.match(html,/scripts\/v158-mi-cochera\.js\?v=\d+/, 'MI COCHERA: falta carga del módulo versionado');
-required(html,'styles/v158-mi-cochera.css?v=158');
+assert.match(html,/styles\/v158-mi-cochera\.css\?v=\d+/);
 required(html,'<option value="MI_COCHERA">MI COCHERA</option>');
 required(html,"const rpc='cc_clan_validate_code';");
 required(html,'cc77Store()');required(html,'cc79Cobra()');

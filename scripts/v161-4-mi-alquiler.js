@@ -13,8 +13,8 @@ const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLo
 const dateDiff=(d,now=today())=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(String(d)))return null;return Math.round((Date.parse(d+'T00:00:00Z')-Date.parse(now+'T00:00:00Z'))/86400000);};
 const phoneDigits=p=>{let s=String(p||'').replace(/\D/g,'');if(/^9\d{8}$/.test(s))s='51'+s;return /^\d{10,15}$/.test(s)&&!/^0+$/.test(s)?s:null;};
 const id=()=>{if(crypto?.randomUUID)return crypto.randomUUID();const a=new Uint8Array(16);crypto.getRandomValues(a);a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;const h=[...a].map(x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);};
-let owner=null,loaded=false,loading=false,error='',ledger=[],guarantees=[],expenses=[],notices=[],ctx=null,alerts=[],allRows=[],version=0;
-function clear(){owner=null;loaded=false;loading=false;error='';ledger=[];guarantees=[];expenses=[];notices=[];ctx=null;alerts=[];allRows=[];}
+let owner=null,loaded=false,loading=false,error='',ledger=[],guarantees=[],expenses=[],notices=[],ctx=null,alerts=[],allRows=[],version=0,reportScope='all',reportQuery='';
+function clear(){owner=null;loaded=false;loading=false;error='';ledger=[];guarantees=[];expenses=[];notices=[];ctx=null;alerts=[];allRows=[];reportScope='all';reportQuery='';}
 const code=u=>u.code||((u.kind==='LOCAL'?'L-':'H-')+String(u.serial||0).padStart(3,'0'));
 function status(days){if(days===null)return ['Sin fecha','other'];if(days<0)return ['Vencido hace '+Math.abs(days)+' día(s)','late'];if(days===0)return ['Vence hoy','today'];if(days<=5)return ['Vence en '+days+' día(s)','soon'];return ['Vence en '+days+' días','later'];}
 const getLeaseLabel=(l,c)=>{const u=c.units.find(x=>String(x.id)===String(l.unit_id))||{};return code(u)+' · '+String(u.alias||'');};
@@ -56,7 +56,8 @@ function rowHTML(a){const [label,level]=status(a.days);const can=a.permit&&a.tel
  const btn=can?'<a class="ma4-wa" href="'+esc(whatsAppLink(a))+'" target="_blank" rel="noopener noreferrer" data-ma4-notice="'+esc(a.lease.id)+'">Abrir WhatsApp ↗</a>':'<small class="ma4-disabled">'+(!a.permit?'Sin autorización de avisos':'WhatsApp inválido o sin registrar')+'</small>';
  return '<article class="ma4-row"><div><strong>'+esc(a.code)+' · '+esc(a.tenant.full_name||'Inquilino')+'</strong><small>'+esc(a.unit.alias||'')+' · '+esc(a.lease.mode==='DAY'?'Diario':'Mensual')+' · Vence '+esc(a.due)+'</small><small>Saldo registrado '+cash(a.owed)+' · '+esc(a.tel?'+'+a.tel:'Sin teléfono válido')+'</small>'+state+'</div><div class="ma4-side"><span class="ma4-flag '+level+'">'+esc(label)+'</span>'+btn+'</div></article>';
 }
-function renderList(items){const el=$('ma4-results');if(!el)return;el.innerHTML=items.length?items.slice(0,250).map(rowHTML).join(''):'<p>No hay contratos activos que coincidan con la búsqueda.</p>';const n=$('ma4-count');if(n)n.textContent=items.length+' contrato(s) encontrados'+(items.length>250?' · mostrando 250':'');}
+function visibleAlerts(){return searchCards(reportQuery).filter(a=>reportScope!=='urgent'||a.days!==null&&a.days<=5);}
+function renderList(items=visibleAlerts()){const el=$('ma4-results');if(!el)return;el.innerHTML=items.length?items.slice(0,250).map(rowHTML).join(''):'<p>No hay contratos que coincidan con la búsqueda y el filtro seleccionado.</p>';document.querySelectorAll('[data-ma4-action=urgent],[data-ma4-action=all]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.ma4Action===reportScope)));const n=$('ma4-count');if(n)n.textContent=items.length+' contrato(s) encontrados'+(items.length>250?' · mostrando 250':'');}
 function panel(c){alerts=generated(c);const urgent=alerts.filter(a=>a.days!==null&&a.days<=5).length;
  return '<section class="ma4-wrap"><header class="ma4-head"><div><small>CLAN CARTAN · MI ALQUILER</small><h3>🔔 Alertas y reportes</h3><p>Recordatorios al WhatsApp que cada RESELLER registró para su inquilino.</p></div><button type="button" data-ma4-action="refresh">↻ Actualizar</button></header>'+
  '<div class="ma4-stats"><div><b>'+alerts.length+'</b><small>Contratos activos</small></div><div><b>'+urgent+'</b><small>Vencidos o próximos (5 días)</small></div><div><b>'+alerts.filter(a=>a.permit&&a.tel).length+'</b><small>Contactos habilitados</small></div></div>'+
@@ -69,7 +70,7 @@ function enhance(area,target,c){if(area!=='avisos')return false;if(!c?.account||
  if(owner!==c.sessionId)clear();ctx=c;
  if(error){target.innerHTML='<p class="ma4-error">'+esc(error)+'</p><button type="button" data-ma4-action="refresh">Reintentar</button>';return true;}
  if(!loaded){target.innerHTML='<div class="ma4-wrap"><p>Consultando vencimientos de tu cartera…</p></div>';void load(c);return true;}
- target.innerHTML=panel(c);return true;
+ target.innerHTML=panel(c);const search=$('ma4-search');if(search)search.value=reportQuery;renderList();return true;
 }
 async function lookupDni(button){if(button.disabled)return;const form=button.closest('form[data-ma-form="tenant"]');if(!form)return;
  const dni=form.elements.namedItem('document')?.value?.trim(),kind=form.elements.namedItem('kind')?.value;
@@ -130,15 +131,15 @@ async function opened(e){const a=e.target.closest('a[data-ma4-notice]');if(!a||!
  catch(err){setMessage('WhatsApp abierto, pero no se registró la apertura: '+String(err.message||err),true);}
 }
 async function action(e){const b=e.target.closest('[data-ma4-action]');if(!b||!ctx)return;e.preventDefault();const action=b.dataset.ma4Action;
- if(action==='urgent'){renderList(searchCards($('ma4-search')?.value||'').filter(a=>a.days!==null&&a.days<=5));return;}
- if(action==='all'){renderList(searchCards($('ma4-search')?.value||''));return;}
+ if(action==='urgent'){reportScope='urgent';renderList();return;}
+ if(action==='all'){reportScope='all';renderList();return;}
  if(action==='pdf'){printReport(ctx);return;}
  if(action==='xlsx'){saveFile(exportSheets(ctx),'MI_ALQUILER_'+today()+'.xlsx');setMessage('Excel generado con ocho hojas para uso privado.');return;}
  if(action==='refresh'){loaded=false;error='';await window.ma1612OnOpen?.();return;}
 }
 function init(){document.addEventListener('click',e=>{if(e.target.closest('button[data-ma4-dni]')){e.preventDefault();void lookupDni(e.target.closest('button'));}});
  document.addEventListener('click',e=>{if(e.target.closest('a[data-ma4-notice]'))void opened(e);});document.addEventListener('click',action);
- document.addEventListener('input',e=>{if(e.target.id==='ma4-search')renderList(searchCards(e.target.value));});
+ document.addEventListener('input',e=>{if(e.target.id==='ma4-search'){reportQuery=e.target.value;renderList();}});
  document.addEventListener('click',e=>{if(e.target.closest('#cc54logout'))clear();},true);
 }
 window.ma1614Enhance=enhance;window.ma1614Invalidate=()=>{version++;loaded=false;error='';};window.ma1614Test=Object.freeze({phoneDigits,dateDiff,workbook,exportSheets,searchCards});

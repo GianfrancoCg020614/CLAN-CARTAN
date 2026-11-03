@@ -156,6 +156,7 @@
   function close() {
     const layer = $('ma1611layer'); if (layer) { layer.hidden = true; layer.style.removeProperty('display'); layer.style.removeProperty('visibility'); }
     const dialog = $('ma1612dialog'); if (dialog) dialog.remove();
+    $('ma3dialog')?.remove();
     if ($('ma1611card')) $('ma1611open').focus();
   }
   // No se borran ni reescriben paneles de otros módulos.
