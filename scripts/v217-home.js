@@ -135,6 +135,13 @@ function init(){
   const style=document.createElement('style');
   style.id='cc293-final-style';
   style.textContent=`
+  html body #cc77home#cc77home{background-color:#010b19!important;background-image:url('assets/clan-neon-landscape-v256.svg')!important;background-size:cover!important;background-position:center top!important;background-repeat:no-repeat!important}
+  html body #cc77home#cc77home .cc77intro{background-image:url('assets/cc-home-cinematic-hero.avif')!important;background-size:contain!important;background-position:center!important}
+  html body #cc77home#cc77home .cc77intro::before,html body #cc77home#cc77home .cc77intro::after{content:none!important;display:none!important}
+  html body #cc77home#cc77home .cc77cards>article{outline:0!important;outline-offset:0!important;border-width:2px!important;box-shadow:0 0 14px #00eaff88,inset 0 0 16px #00eaff12!important}
+  html body #cc77home#cc77home .cc77cards>article::before,html body #cc77home#cc77home .cc77cards>article::after{box-shadow:none!important}
+  html body #cc77home#cc77home .cc77cards>article .cc77actions{border:0!important;outline:0!important}
+  @media(max-width:650px){html body #cc77home#cc77home .cc77intro{background-image:url('assets/cc-home-cinematic-mobile.avif')!important}}
   #cc77home{background:#010b19 url('assets/clan-neon-landscape-v256.svg') center top/cover no-repeat!important}
   #cc77home .cc77top{background:linear-gradient(105deg,#00101df5,#022a40f5 48%,#00121ff5)!important;border-radius:0 0 36px 36px!important;border-bottom:2px solid #00ecf7aa!important;box-shadow:0 8px 25px #001d32a8,0 0 20px #00d8ed40!important}
   #cc77home .cc77intro{background:transparent url('assets/cc-home-cinematic-hero.avif') center/contain no-repeat!important;border:0!important;box-shadow:none!important}
