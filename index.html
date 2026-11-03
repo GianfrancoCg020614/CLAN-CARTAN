@@ -5675,77 +5675,14 @@ html:not([data-cc-theme="light"]) #cc77home .cc77cards>article.ma1611-card butto
 @media(max-width:650px){#cc77home{background-size:auto 100%,auto 100%!important;background-attachment:scroll!important}#cc77home .cc77intro{height:230px!important}}
 </style>
 
-<style id="cc-v274-stability">
-/* Ajustes acotados a la portada V265; sin alterar la lógica de negocios */
-#cc77home .cc77cards{align-items:stretch!important}
-#cc77home .cc77cards>article{box-sizing:border-box!important;min-width:0!important;display:flex!important;flex-direction:column!important}
-#cc77home .cc77cards>article .cc77actions{margin-top:auto!important;display:flex!important;flex-wrap:wrap!important;gap:10px!important}
-#cc77home .cc77cards>article button{cursor:pointer!important;min-height:48px!important;font-weight:750!important;white-space:normal!important}
-#cc77home .cc77cards>article .cc78service-logo{background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important}
-#cc77home .cc77cards>article h2{overflow-wrap:anywhere!important}
-#cc77home .cc77foot{text-align:center!important;line-height:1.7!important}
-@media(max-width:700px){#cc77home .cc77cards>article .cc77actions button{flex:1 1 100%!important}#cc77home .cc77top{flex-wrap:wrap!important}}
-</style>
 
-<style id="cc-v275-responsive-fixes">
-/* La portada conserva su arte; elimina el marco oscuro y permite desplazamiento. */
-html,body{overflow-y:auto!important;overflow-x:hidden!important;max-width:100%!important;height:auto!important;scrollbar-width:auto!important}
-html::-webkit-scrollbar,body::-webkit-scrollbar{width:11px!important;display:block!important}
-html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb{background:#10b8d3!important;border-radius:12px!important}
-html body #cc77home{width:100%!important;max-width:100%!important;min-height:100vh!important;overflow:visible!important;margin:0!important;background-color:#02162b!important;background-size:cover!important;background-position:center top!important;background-attachment:scroll!important}
-html body #cc77home .cc77wrap{box-sizing:border-box!important;width:100%!important;max-width:100%!important;padding:0 clamp(12px,2vw,30px) 80px!important;overflow:visible!important}
-html body #cc77home .cc77intro{box-sizing:border-box!important;max-width:100%!important}
-html body #cc77home .cc77cards{box-sizing:border-box!important;max-width:1500px!important;gap:clamp(12px,1vw,20px)!important}
-html body #cc77home .cc77top{max-width:100%!important;box-sizing:border-box!important}
-@media(max-width:900px){html body #cc77home .cc77cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #cc77home .cc77top{gap:12px!important}}
-@media(max-width:620px){html body #cc77home .cc77cards{grid-template-columns:1fr!important}html body #cc77home .cc77intro{background-size:cover!important;background-position:center!important}html body #cc77home .cc77wrap{padding:0 10px 65px!important}html body #cc77home .cc77top{flex-wrap:wrap!important}html body #cc77home .cc77actions{flex-wrap:wrap!important}}
-</style>
 
-<style id="cc-v276-overlay-scroll-and-edge">
-/* La portada es un panel fijo: el desplazamiento debe estar en el propio panel. */
-html body #cc77home{position:fixed!important;inset:0!important;height:100vh!important;height:100dvh!important;min-height:0!important;overflow-x:hidden!important;overflow-y:scroll!important;overscroll-behavior-y:auto!important;scrollbar-gutter:stable!important;background:#020d1f url('assets/cc-home-cinematic-hero.avif') center top/cover no-repeat!important}
-html body #cc77home::-webkit-scrollbar{display:block!important;width:12px!important}
-html body #cc77home::-webkit-scrollbar-track{background:#031527!important}
-html body #cc77home::-webkit-scrollbar-thumb{background:linear-gradient(#03f6f0,#0d8bb4)!important;border-radius:10px!important;border:2px solid #031527!important}
-html body #cc77home .cc77wrap{min-height:100%!important;overflow:visible!important;max-width:none!important;padding:0 12px 85px!important;margin:0 auto!important}
-html body #cc77home .cc77wrap::after{display:none!important;content:none!important}
-html body #cc77home .cc77top{margin:0!important;width:100%!important;max-width:none!important}
-html body #cc77home .cc77intro{max-width:100%!important}
-@media(max-width:650px){html body #cc77home .cc77wrap{padding:0 8px 75px!important}html body #cc77home .cc77cards{grid-template-columns:1fr!important}html body #cc77home .cc77top{flex-wrap:wrap!important}}
-</style>
 
-<style id="cc-v277-header-cleanup">
-/* Eliminar franja vacía de la capa superior y dar continuidad al paisaje. */
-html body{background:#03152a url('assets/cc-home-cinematic-hero.avif') center top/cover no-repeat fixed!important}
-html body #cc77home{top:0!important;left:0!important;right:0!important;bottom:0!important;margin:0!important;padding:0!important;transform:none!important;z-index:2147483640!important}
-html body #cc77home .cc77wrap{padding-top:0!important}
-html body #cc77home .cc77top{margin-top:0!important}
-@media(max-width:650px){html body{background-image:url('assets/cc-home-cinematic-mobile.avif')!important}}
-</style>
-<script id="cc-v277-currency-dedupe">
-(function(){
- 'use strict';
- const home=document.getElementById('cc77home');
- if(!home)return;
- const hidden=new Map();
- function clean(){
-  const active=getComputedStyle(home).display!=='none';
-  if(!active){hidden.forEach((v,el)=>{if(el.isConnected)el.style.display=v});hidden.clear();return;}
-  document.querySelectorAll('select').forEach(sel=>{
-   if(home.contains(sel)||sel.closest('#cc-real-login,#cy53layer,#cc80wallet,#cc93-affiliate'))return;
-   const p=sel.closest('label')||sel.parentElement;
-   if(!p||home.contains(p))return;
-   const label=(p.textContent||'').slice(0,110);
-   if(!/moneda/i.test(label)||!sel.querySelector('option[value="PEN"]'))return;
-   if(!hidden.has(p))hidden.set(p,p.style.display);
-   p.style.display='none';
-  });
- }
- document.addEventListener('DOMContentLoaded',clean,{once:true});
- new MutationObserver(clean).observe(home,{attributes:true,attributeFilter:['style','class']});
- setTimeout(clean,100);
-})();
-</script>
+
+
+
+
+
 
 <style id="cc-v278-real-interactive-home">
 /* V278: cuatro tarjetas reales, no una captura con zonas invisibles */
