@@ -7,13 +7,17 @@ Continúa desde V304 (3b8e4a4). Conserva botones y lógica de los cuatro negocio
 - Inicio de sesión: etiquetas visibles, mostrar/ocultar contraseña, recuperación y registro conservados.
 - Turnstile: reutiliza el widget CLAN CARTAN Auth - Supabase. Sin widgets/proyectos duplicados ni secretos en el navegador. Token enviado al Auth existente para ingreso, registro, recuperación y reenvío; reinicio tras cada intento y al expirar.
 
-## Activación de CAPTCHA en servidor: pendiente del propietario
+## Activación de CAPTCHA — completada en V306
 
-La comprobación con un correo inexistente reservado .invalid devolvió invalid_credentials tanto sin token como con un token deliberadamente inválido. Por tanto, Supabase Auth todavía no exige CAPTCHA. El widget visible y el bloqueo cliente no sustituyen la validación del servidor.
+Durante V305, las solicitudes sin token y con token inválido devolvían invalid_credentials. El propietario configuró después Turnstile en Supabase Auth con el widget existente.
 
-El conector Supabase disponible no permite editar Auth config ni escribir sus secretos. El propietario debe abrir https://supabase.com/dashboard/project/pqalxtrcyrpmwqdlibqd/auth/protection, activar CAPTCHA, elegir Turnstile y guardar allí la clave secreta del widget existente de Cloudflare, sin enviarla al chat. No debe crearse otro widget ni rotarse la clave existente por este motivo.
+La comprobación posterior del 2026-11-03 confirmó, sobre el servicio real:
+- Sin token: HTTP 400, captcha_failed, no captcha_token found.
+- Token inválido: HTTP 400, captcha_failed, invalid-input-response.
 
-Después: comprobar rechazo de token ausente/inválido y verificar un acceso con token fresco; comprobar rechazo al repetirlo. No afirmar protección integral antes de completar esa prueba.
+No se recuperó ni expuso la clave secreta. No se crearon widgets ni proyectos adicionales. El conector no cambió la configuración Auth: la guardó el propietario en su panel.
+
+La emisión de un token nuevo y el rechazo de su reutilización siguen pendientes de una comprobación interactiva: el navegador automatizado montó el widget y cargó su API, pero no obtuvo un token. No se eludió el desafío ni se desactivó la protección para probarlo.
 
 ## Verificación
 
