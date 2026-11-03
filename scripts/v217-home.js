@@ -155,6 +155,17 @@ function init(){
   document.body.appendChild(style);
  }
  ensureHomeCurrency();
+ // V295: keep one mounted currency control in the homepage header.
+ const currencyControls=[...document.querySelectorAll('#cc77home .cc77top [data-cc-currency-selector]')];
+ currencyControls.slice(1).forEach(node=>node.remove());
+ const footer=document.querySelector('#cc77home .cc77foot');
+ if(footer && !footer.querySelector('.cc295-credit')){
+  const credit=document.createElement('div');
+  credit.className='cc295-credit';
+  credit.textContent='Creado por CLAN CARTAN';
+  credit.style.cssText='font-weight:800;letter-spacing:.11em;text-transform:uppercase;margin-top:8px;color:#57ecf6';
+  footer.appendChild(credit);
+ }
  const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
  apply();
  installCatalogPolish();polishStreamCatalog();
