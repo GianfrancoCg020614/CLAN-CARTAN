@@ -242,7 +242,14 @@ function adminHome(page){
  intro.append(tag);
  intro.append(make('h2','','Control de operaciones'));
  intro.append(make('p','','Revisa las tareas pendientes y la actividad de tus negocios.'));
- page.append(intro);
+ const shortcuts=make('details','cc304-shortcuts');
+ shortcuts.append(make('summary','','Acciones rápidas'));
+ const actions=make('div','cc166-actions');
+ actions.append(button('Revisar pendientes',()=>nav('attention'),'cc166-secondary'));
+ actions.append(button('Administrar usuarios',()=>nav('admin'),'cc166-secondary'));
+ actions.append(button('Otorgar recarga',()=>openAdminGrantRecharge(),'cc166-primary'));
+ actions.append(button('Otorgar bono',()=>openAdminGrantBonus(),'cc166-secondary'));
+ shortcuts.append(actions);intro.append(shortcuts);page.append(intro);
  const stats=make('div','cc176-kpis');
  stats.append(metric('Usuarios registrados',adminAccountsState==='ready'?String(adminAccounts.length):'—','blue'));
  stats.append(metric('Publicaciones activas',String(k.activeProducts.length),'gold'));

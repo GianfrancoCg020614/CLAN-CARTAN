@@ -168,7 +168,7 @@ function init(){
  if(footer&&!footer.querySelector('.cc295-credit')){
   const credit=document.createElement('div');
   credit.className='cc295-credit';
-  credit.textContent='Creado por CLAN CARTAN';
+  credit.textContent='CREADA POR CLAN CARTAN';
   credit.style.cssText='font-weight:800;letter-spacing:.11em;text-transform:uppercase;margin-top:8px;color:#57ecf6';
   footer.appendChild(credit);
  }

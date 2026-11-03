@@ -33,7 +33,7 @@ const probe=[
  'function fail(e){done({error:String(e?.stack||e),passed:false})}',
  'setTimeout(()=>{try{',
  'const admin=!!$("#cc166-panel");',
- 'const homeGrants=!findBtn("Otorgar recarga")&&!findBtn("Otorgar bono");',
+ 'const homeGrants=!!findBtn("Otorgar recarga")&&!!findBtn("Otorgar bono")&&!!findBtn("Revisar pendientes")&&!!findBtn("Administrar usuarios");',
  'const noAdminShop=!Array.from($$(".cc166-navitem")).some(x=>x.textContent.includes("Catálogo")||x.textContent.includes("Mis compras")||x.textContent.includes("Mis publicaciones"));',
  '[...$$(".cc166-navitem")].find(x=>x.textContent.includes("Usuarios"))?.click();',
  'const rows=$$(".cc171-person").length===2;',
