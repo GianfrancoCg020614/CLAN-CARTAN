@@ -1,0 +1,25 @@
+-- SOLO CI: base PostgreSQL aislada, usuarios y tokens ficticios. Nunca ejecutar en producción.
+create schema if not exists extensions;create extension if not exists pgcrypto with schema extensions;
+create role anon;create role authenticated;create role service_role bypassrls;
+create schema auth;create schema cc_internal;create schema vault;
+create table auth.users(id uuid primary key,email text);
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+create function auth.jwt() returns jsonb language sql stable as $$select jsonb_build_object('role',current_setting('request.jwt.claim.role',true))$$;
+create table vault.secrets(id uuid primary key default gen_random_uuid(),secret bytea not null);
+create view vault.decrypted_secrets as select id,extensions.pgp_sym_decrypt(secret,'CI-ONLY-NOT-A-PRODUCTION-KEY') as decrypted_secret from vault.secrets;
+create function vault.create_secret(new_secret text,new_name text default null,new_description text default '',new_key_id uuid default null) returns uuid language plpgsql as $$declare sid uuid;begin insert into vault.secrets(secret) values(extensions.pgp_sym_encrypt(new_secret,'CI-ONLY-NOT-A-PRODUCTION-KEY')) returning id into sid;return sid;end;$$;
+create function vault.update_secret(secret_id uuid,new_secret text default null,new_name text default null,new_description text default null,new_key_id uuid default null) returns void language sql as $$update vault.secrets set secret=extensions.pgp_sym_encrypt(new_secret,'CI-ONLY-NOT-A-PRODUCTION-KEY') where id=secret_id$$;
+create table public.cc_admins(user_id uuid primary key references auth.users);
+create table public.cc_clan_codes(user_id uuid primary key references auth.users,code text,code_number bigint);
+create table public.cc_businesses(id uuid primary key,code text);
+create table public.cc_portal_super_resellers(user_id uuid primary key references auth.users,enabled boolean);
+create table public.cc_memberships(id uuid primary key,user_id uuid references auth.users,business_id uuid references public.cc_businesses,role text,status text);
+create table public.cc_plans(id uuid primary key,business_id uuid references public.cc_businesses,code text,price_pen numeric);
+create table public.cc_subscriptions(id uuid primary key,membership_id uuid references public.cc_memberships,plan_id uuid references public.cc_plans,status text,start_at timestamptz,end_at timestamptz);
+create table public.cc_portal_stream_products(id uuid primary key,seller_id uuid references auth.users,service text,title text,duration_days integer,status text);
+create table public.cc_portal_stream_orders(id uuid primary key default gen_random_uuid(),checkout_key uuid not null default gen_random_uuid() unique,buyer_id uuid not null references auth.users,seller_id uuid not null references auth.users,product_id uuid not null references public.cc_portal_stream_products,service text,title text,price_pen numeric default 25,cost_pen numeric default 0,admin_percent numeric default 20,admin_fee_pen numeric default 5,seller_payable_pen numeric default 20,seller_whatsapp text default '+51900000000',wallet_parts jsonb default '[]',status text default 'PAID_AWAITING_DELIVERY',created_at timestamptz default now(),fulfilled_at timestamptz);
+create table public.sb_oper_accounts(id uuid primary key,owner_id uuid not null references auth.users,service text,code text,alias text,start_at timestamptz,end_at timestamptz,state text,capacity integer,provider_allows_reassignment boolean,account_email text);
+create table public.cc_real_service_wallets(user_id uuid,balance_pen numeric);
+create function public.cc_portal_mark_stream_order_delivered(p_order_id uuid) returns boolean language plpgsql security definer set search_path='' as $$begin update public.cc_portal_stream_orders set status='FULFILLED',fulfilled_at=now() where id=p_order_id and seller_id=(select auth.uid()) and status='PAID_AWAITING_DELIVERY';return found;end;$$;
+grant usage on schema public,auth to anon,authenticated,service_role;
+grant execute on function auth.uid(),auth.jwt() to public;

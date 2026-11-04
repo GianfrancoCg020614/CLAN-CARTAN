@@ -1,0 +1,38 @@
+name: Validar códigos comerciales ORD
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  sql-delivery:
+    name: ORD · vigencia, propiedad y aislamiento SQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-fixture-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probar sin datos reales
+        env:
+          PGPASSWORD: ci-fixture-only
+        run: |
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v318-foundation.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/queries/v318-stream-delivery.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v318-regression.sql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: OAuth y mensajes comerciales simulados
+        run: node scripts/test-v318-delivery-backend.mjs
