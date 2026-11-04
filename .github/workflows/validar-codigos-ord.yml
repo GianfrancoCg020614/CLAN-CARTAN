@@ -29,7 +29,7 @@ jobs:
           PGPASSWORD: ci-fixture-only
         run: |
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v318-foundation.sql
-          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/queries/v318-stream-delivery.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261104174614_v318_stream_delivery_codes.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v318-regression.sql
       - uses: actions/setup-node@v4
         with:
