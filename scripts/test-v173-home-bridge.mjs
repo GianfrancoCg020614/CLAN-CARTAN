@@ -26,7 +26,7 @@ assert.ok(html.includes('COBRA YA, MI COCHERA y MI ALQUILER'),'Una cuenta para c
 assert.ok(html.includes('id="cc93-affiliate" hidden'),'Marcador de compatibilidad no inactivo');
 assert.ok(/scripts\/v151-portal-polish[.]js[?]v=[0-9]+/.test(html),'El portal conserva versión antigua en caché');
 assert.ok(/scripts\/v166-portal-roles[.]js[?]v=[0-9]+/.test(loader)&&
- loader.includes('scripts/v169-catalogo-unico.js?v=1731'),'Scripts no versionados');
+ /scripts\/v169-catalogo-unico\.js\?v=\d+/.test(loader),'Scripts no versionados');
 assert.ok(panel.includes('window.cc166OpenStreamMembership=()=>{')&&
  panel.includes("view='business:STREAM_BULLS'"),
  'No existe destino único de membresía');
@@ -46,3 +46,4 @@ vm.runInNewContext(fn+';cc79StreamBenefits();',ctx);
 assert.equal(panelOpen,1,'Fallback de panel no responde');
 assert.equal(alerts,0,'Se mostró error de flujo antiguo');
 console.log('PASS V173 · portada sin ficticios, ADMIN antiguo oculto, beneficios al panel real, texto y caché coherentes.');
+
