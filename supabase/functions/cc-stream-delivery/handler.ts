@@ -27,10 +27,12 @@ const hash = async value => hex(await crypto.subtle.digest('SHA-256', encoder.en
 function plainBase64(value) {
   try { const raw = atob(value.replace(/-/g, '+').replace(/_/g, '/')); return new TextDecoder().decode(Uint8Array.from(raw, c => c.charCodeAt(0))); } catch { return ''; }
 }
-export function parseCommercialMessage({from, subject, text, id}, context, now = Date.now()) {
+export function parseCommercialMessage({from, subject, text, id, authentication}, context, now = Date.now()) {
   if (typeof text !== 'string' || text.length > 65536 || typeof subject !== 'string') return null;
   const sender = String(from || '').match(/<([^<>]+)>/)?.[1] || String(from || '');
   if (sender.trim().toLowerCase() !== context.authorized_sender.toLowerCase()) return null;
+  const auth=String(authentication||''),domain=context.authorized_sender.split('@').at(-1).toLowerCase();
+  if(!/\bdkim=pass\b/i.test(auth)||!/\bdmarc=pass\b/i.test(auth)||auth.match(/\bheader\.from="?([A-Za-z0-9.-]+)/i)?.[1]?.toLowerCase()!==domain)return null;
   if (subject.trim() !== 'CLAN CARTAN ENTREGA ' + context.order_code) return null;
   // Plantilla exacta de entrega comercial. Nunca se interpretan mensajes genéricos de plataformas.
   if (/\b(otp|totp|2fa|mfa|password|passcode|login|sign[ -]?in|recovery|authenticat\w*|verification|verify|contraseñ\w*|autentica\w*|verificaci[oó]n|recuperaci[oó]n)\b/i.test(text + ' ' + subject)) return null;
@@ -82,22 +84,22 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now()}) 
   async function findCommercial(context, token) {
     const authorization = { Authorization: 'Bearer ' + token };
     if (context.provider === 'google') {
-      const query = `from:${context.authorized_sender} subject:"CLAN CARTAN ENTREGA ${context.order_code}" after:${Math.floor(Date.parse(context.valid_from) / 1000)}`;
+      const query = `in:inbox from:${context.authorized_sender} subject:"CLAN CARTAN ENTREGA ${context.order_code}" after:${Math.floor(Date.parse(context.mail_after || context.valid_from) / 1000)}`;
       const response = await remote('https://gmail.googleapis.com/gmail/v1/users/me/messages?' + new URLSearchParams({ q: query, maxResults: '5', fields: 'messages(id)' }), { headers: authorization });
       if (response.status === 401 || response.status === 403) throw Error('MAIL_REAUTH_REQUIRED');if (!response.ok) throw Error('MAIL_TEMPORARILY_UNAVAILABLE');
       const data = await response.json();for (const message of (data.messages || []).slice(0, 5)) {
         const detail = await remote('https://gmail.googleapis.com/gmail/v1/users/me/messages/' + encodeURIComponent(message.id) + '?' + new URLSearchParams({ format: 'full', fields: 'id,payload(mimeType,headers(name,value),body(data,size),parts(mimeType,body(data,size)))' }), { headers: authorization });
         if (!detail.ok) continue;const item = await detail.json();const headers = item.payload?.headers || [];const header = name => headers.find(h => h.name.toLowerCase() === name)?.value || '';
-        const found = parseCommercialMessage({ id: item.id, from: header('from'), subject: header('subject'), text: messageText(item.payload) }, context, clock());if (found) return found;
+        const found = parseCommercialMessage({ id: item.id, from: header('from'), subject: header('subject'), text: messageText(item.payload), authentication:header('authentication-results') }, context, clock());if (found) return found;
       }
     } else {
       // Búsqueda acotada al buzón de entregas, remitente, asunto exacto y vigencia.
-      const filter = `from/emailAddress/address eq '${context.authorized_sender.replace(/'/g, "''")}' and subject eq 'CLAN CARTAN ENTREGA ${context.order_code}' and receivedDateTime ge ${new Date(context.valid_from).toISOString()}`;
-      const response = await remote('https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?' + new URLSearchParams({ '$filter': filter, '$top': '5', '$select': 'id,from,subject,body' }), { headers: { ...authorization, Prefer: 'outlook.body-content-type="text"' } });
+      const filter = `receivedDateTime ge ${new Date(context.mail_after || context.valid_from).toISOString()} and from/emailAddress/address eq '${context.authorized_sender.replace(/'/g, "''")}' and subject eq 'CLAN CARTAN ENTREGA ${context.order_code}'`;
+      const response = await remote('https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?' + new URLSearchParams({ '$filter': filter, '$top': '5', '$orderby':'receivedDateTime desc', '$select': 'id,from,subject,body,internetMessageHeaders' }), { headers: { ...authorization, Prefer: 'outlook.body-content-type="text"' } });
       if (response.status === 401 || response.status === 403) throw Error('MAIL_REAUTH_REQUIRED');if (!response.ok) throw Error('MAIL_TEMPORARILY_UNAVAILABLE');
       const data = await response.json();for (const item of (data.value || []).slice(0, 5)) {
         if (String(item.body?.contentType).toLowerCase() !== 'text') continue;
-        const found = parseCommercialMessage({ id: item.id, from: item.from?.emailAddress?.address, subject: item.subject, text: item.body?.content }, context, clock());if (found) return found;
+        const found = parseCommercialMessage({ id: item.id, from: item.from?.emailAddress?.address, subject: item.subject, text: item.body?.content, authentication:(item.internetMessageHeaders||[]).find(h=>h.name.toLowerCase()==='authentication-results')?.value }, context, clock());if (found) return found;
       }
     }
     return null;
@@ -154,14 +156,14 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now()}) 
         }
       }
       if (['oauth_status', 'oauth_start', 'oauth_disconnect'].includes(body.action)) {
-        await seller(account);
-        if (body.action === 'oauth_status') return json({ providers: Object.fromEntries(['google', 'microsoft'].map(p => { const c = credentials(p, env);return [p, { configured: !!(c.id && c.secret) }]; })) });
+        if (body.action === 'oauth_status') { const capabilities=await rpc('cc_stream_mail_capabilities',{},account.jwt);return json({ ...capabilities,providers: Object.fromEntries(['google', 'microsoft'].map(p => { const c = credentials(p, env);return [p, { configured: !!(c.id && c.secret) }]; })) });}
         if (body.action === 'oauth_disconnect') {
           if (!/^[a-f0-9-]{36}$/i.test(String(body.connection_id))) return json({ error: 'INVALID_REQUEST' }, 400);
           const context = await serviceCall('mail_for_disconnect', { actor_id: account.id, connection_id: body.connection_id });
           if (context.provider === 'google' && context.tokens?.refresh_token) { try { await remote('https://oauth2.googleapis.com/revoke', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ token: context.tokens.refresh_token }) }); } catch {} }
           await serviceCall('mail_disconnect', { actor_id: account.id, connection_id: body.connection_id });return json({ disconnected: true });
         }
+        await seller(account);
         const provider = validProvider(body.provider), { id, secret } = credentials(provider, env);
         if (!id || !secret) return json({ error: 'OAUTH_NOT_CONFIGURED', provider }, 503);
         if (body.dedicated_mailbox !== true) return json({ error: 'DEDICATED_MAILBOX_REQUIRED' }, 400);

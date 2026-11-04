@@ -108,6 +108,14 @@ returns boolean language sql immutable security invoker set search_path='' as $$
  select p_code is not null and p_code ~ '^[A-Za-z0-9][A-Za-z0-9 -]{7,127}$' and p_code !~ '^[0-9]{6,8}$';
 $$;
 
+create or replace function cc_internal.sb_delivery_resolve_order(p_code text,p_buyer uuid)
+returns uuid language sql stable security invoker set search_path='' as $$
+ select coalesce(r.root_order_id,o.id) from public.cc_portal_stream_orders o
+ left join cc_internal.sb_delivery_renewals r on r.paid_order_id=o.id
+ where o.order_code=upper(trim(p_code)) and o.buyer_id=p_buyer
+ and (r.root_order_id is null or exists(select 1 from public.cc_portal_stream_orders original where original.id=r.root_order_id and original.buyer_id=p_buyer));
+$$;
+
 create or replace function public.cc_stream_my_order_codes()
 returns setof jsonb language sql stable security definer set search_path='' as $$
  select jsonb_build_object('id',o.id,'order_code',o.order_code) from public.cc_portal_stream_orders o
@@ -127,7 +135,7 @@ begin
  if (select count(*) from cc_internal.sb_delivery_audit where actor_id=actor and created_at>now()-interval '5 minutes' and event='LOOKUP')>=20 then
   return jsonb_build_object('status','RATE_LIMITED','server_time',now());end if;
  if upper(trim(coalesce(p_order_code,''))) ~ '^ORD-[0-9]{6,15}$' then
-  select * into o from public.cc_portal_stream_orders where order_code=upper(trim(p_order_code)) and buyer_id=actor for share;
+  select * into o from public.cc_portal_stream_orders where id=cc_internal.sb_delivery_resolve_order(p_order_code,actor) and buyer_id=actor for share;
  end if;
  state:=case when o.id is null then 'DENIED' else cc_internal.sb_delivery_state(o.id,actor) end;
  if state='ASSISTANCE_REQUIRED' then state:='MANUAL';end if;
@@ -164,11 +172,11 @@ returns jsonb language plpgsql security definer set search_path='' as $$
 declare actor uuid:=(select auth.uid());o public.cc_portal_stream_orders%rowtype;d cc_internal.sb_order_delivery%rowtype;request_id uuid;
 begin
  if actor is null then raise exception 'Inicia sesión' using errcode='42501';end if;
- select * into o from public.cc_portal_stream_orders where order_code=upper(trim(p_order_code)) and buyer_id=actor for share;
+ select * into o from public.cc_portal_stream_orders where id=cc_internal.sb_delivery_resolve_order(p_order_code,actor) and buyer_id=actor for share;
  if not found or cc_internal.sb_delivery_state(o.id,actor) not in ('ACTIVE','ASSISTANCE_REQUIRED') then return jsonb_build_object('status','DENIED');end if;
  select * into d from cc_internal.sb_order_delivery where order_id=o.id for share;
  insert into cc_internal.sb_delivery_requests(order_id,buyer_id,seller_id,order_revision) values(o.id,actor,o.seller_id,d.revision)
- on conflict(order_id,order_revision) do update set updated_at=now() returning id into request_id;
+ on conflict(order_id,order_revision) do update set status='PENDING',updated_at=now() returning id into request_id;
  return jsonb_build_object('status','REQUESTED','request_id',request_id);
 end;$$;
 
@@ -253,6 +261,16 @@ begin
  return jsonb_build_object('saved',true);
 end;$$;
 
+create or replace function public.cc_stream_mail_capabilities()
+returns jsonb language plpgsql stable security definer set search_path='' as $$
+#variable_conflict use_column
+declare actor uuid:=(select auth.uid());begin
+ if actor is null then raise exception 'Inicia sesión' using errcode='42501';end if;
+ return jsonb_build_object('can_connect',cc_internal.sb_delivery_is_seller(actor),'mailboxes',(select coalesce(jsonb_agg(jsonb_build_object('id',id,'provider',provider,'email_address',email_address,'status',status)),'[]') from cc_internal.sb_mail_connections where owner_id=actor));
+end;$$;
+revoke all on function public.cc_stream_mail_capabilities() from public,anon;
+grant execute on function public.cc_stream_mail_capabilities() to authenticated;
+
 -- Servicio privado: solamente Edge Functions con service_role; jamás clientes del navegador.
 create or replace function public.cc_stream_delivery_service(p_action text,p_data jsonb)
 returns jsonb language plpgsql security definer set search_path='' as $$
@@ -288,7 +306,7 @@ begin
   return jsonb_build_object('saved',true);
  elsif p_action in ('mail_disconnect','mail_for_disconnect') then
   select * into mail from cc_internal.sb_mail_connections where id=(p_data->>'connection_id')::uuid and owner_id=actor for update;
-  if not found or not cc_internal.sb_delivery_is_seller(actor) then raise exception 'Buzón no autorizado' using errcode='42501';end if;
+  if not found then raise exception 'Buzón no autorizado' using errcode='42501';end if;
   if p_action='mail_for_disconnect' then
    select decrypted_secret::jsonb into token_json from vault.decrypted_secrets where id=mail.token_secret_id;
    return jsonb_build_object('provider',mail.provider,'tokens',token_json);
@@ -310,7 +328,7 @@ begin
  if p_action='mail_context' then
   select * into a from public.sb_oper_accounts where id=d.account_id;
   select decrypted_secret::jsonb into token_json from vault.decrypted_secrets where id=mail.token_secret_id;
-  return jsonb_build_object('status','READY','order_code',o.order_code,'account_code',a.code,'provider',mail.provider,'connection_id',mail.id,'authorized_sender',c.authorized_sender,'tokens',token_json,'valid_from',d.valid_from,'valid_until',d.valid_until);
+  return jsonb_build_object('status','READY','order_code',o.order_code,'account_code',a.code,'provider',mail.provider,'connection_id',mail.id,'authorized_sender',c.authorized_sender,'tokens',token_json,'valid_from',d.valid_from,'valid_until',d.valid_until,'mail_after',greatest(o.created_at,now()-interval '15 minutes'));
  elsif p_action='mail_tokens' then
   -- FOR UPDATE evita reinsertar tokens tras desconectar el buzón en otra transacción.
   select * into mail from cc_internal.sb_mail_connections where id=mail.id and status='CONNECTED' for update;
@@ -335,7 +353,7 @@ begin
 end;$$;
 
 -- Permisos explícitos: ninguna tabla privada ni token queda disponible al navegador.
-revoke all on function cc_internal.sb_delivery_is_seller(uuid),cc_internal.sb_delivery_platform(text),cc_internal.sb_delivery_new_order(),cc_internal.sb_delivery_state(uuid,uuid),cc_internal.sb_delivery_code_valid(text) from public,anon,authenticated;
+revoke all on function cc_internal.sb_delivery_is_seller(uuid),cc_internal.sb_delivery_platform(text),cc_internal.sb_delivery_new_order(),cc_internal.sb_delivery_state(uuid,uuid),cc_internal.sb_delivery_code_valid(text),cc_internal.sb_delivery_resolve_order(text,uuid) from public,anon,authenticated;
 revoke all on function public.cc_stream_my_order_codes(),public.cc_stream_delivery_lookup(text),public.cc_stream_delivery_assistance(text),public.cc_stream_delivery_manage(text,jsonb),public.cc_stream_delivery_service(text,jsonb) from public,anon,authenticated;
 grant execute on function public.cc_stream_my_order_codes(),public.cc_stream_delivery_lookup(text),public.cc_stream_delivery_assistance(text),public.cc_stream_delivery_manage(text,jsonb) to authenticated;
 grant execute on function public.cc_stream_delivery_service(text,jsonb) to service_role;

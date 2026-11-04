@@ -1,0 +1,30 @@
+/* V318: interfaz del mismo panel, sin otro catálogo ni flujo de compra. */
+#cc166-panel .cc318-root{max-width:1000px;margin:0 auto;min-width:0}
+#cc166-panel .cc318-card{margin-bottom:18px}
+#cc166-panel .cc318-title{font-size:clamp(20px,4vw,29px);margin:0 0 18px}
+#cc166-panel .cc318-lookup{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;max-width:650px;margin:22px 0}
+#cc166-panel .cc318-lookup label{display:flex;flex:1 1 230px;flex-direction:column;gap:8px;font-weight:650}
+#cc166-panel .cc318-lookup input{font-size:19px;letter-spacing:.06em;text-transform:uppercase}
+#cc166-panel .cc318-root input:not([type=checkbox]),#cc166-panel .cc318-root select{width:100%;min-width:0;min-height:46px;padding:11px 12px;border:1px solid #53718188;border-radius:10px;background:#0c1f2a;color:#eaf8ff;font:inherit}
+#cc166-panel .cc318-root button{min-height:44px;white-space:normal}
+#cc166-panel .cc318-root button:disabled{opacity:.55;cursor:default}
+#cc166-panel .cc318-result{display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0}
+#cc166-panel .cc318-status{line-height:1.65;overflow-wrap:anywhere;margin:12px 0;color:inherit;opacity:.88}
+#cc166-panel .cc318-success{color:#40c9be}
+#cc166-panel .cc318-code{font-family:ui-monospace,monospace;font-size:clamp(20px,5vw,30px);letter-spacing:.08em;padding:18px;border:1px solid #40c9be;border-radius:12px;max-width:100%;overflow-wrap:anywhere;user-select:all;background:#40c9be0b}
+#cc166-panel .cc318-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:20px 0}
+#cc166-panel .cc318-form label{display:flex;flex-direction:column;gap:7px;font-size:14px;min-width:0}
+#cc166-panel .cc318-form .cc318-status,#cc166-panel .cc318-check,#cc166-panel .cc318-mail-fields,#cc166-panel .cc318-guide{grid-column:1/-1}
+#cc166-panel .cc318-mail-fields{display:grid;gap:15px}
+#cc166-panel .cc318-root [hidden]{display:none!important}
+#cc166-panel .cc318-root .cc318-check{display:flex;flex-direction:row;gap:10px;align-items:flex-start;font-size:13px;line-height:1.6;margin:14px 0}
+#cc166-panel .cc318-check input{width:21px;height:21px;flex:0 0 21px;margin-top:3px;accent-color:#33bcb5}
+#cc166-panel .cc318-tabs,#cc166-panel .cc318-actions{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0}
+#cc166-panel .cc318-tabs button[aria-pressed=true]{border-color:#35c5c0;box-shadow:inset 0 -3px #35c5c0}
+#cc166-panel .cc318-guide{border-top:1px solid #53718155;padding:14px 0;margin-top:16px}
+#cc166-panel .cc318-guide summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:650}
+#cc166-panel .cc318-guide pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:14px;background:#0c1f2a;color:#eaf8ff;border-radius:10px;font-size:12px}
+#cc166-panel .cc318-request{border:1px solid #53718155;border-radius:12px;padding:16px;margin:12px 0;overflow-wrap:anywhere}
+#cc166-panel .cc318-credit{text-align:center;font-size:12px;letter-spacing:.04em;opacity:.65;padding:24px 12px}
+body.light #cc166-panel .cc318-root input:not([type=checkbox]),body.light #cc166-panel .cc318-root select{background:#fff;color:#17303c;border-color:#b7cbd4}
+@media(max-width:680px){#cc166-panel .cc318-form{grid-template-columns:minmax(0,1fr)}#cc166-panel .cc318-root input,#cc166-panel .cc318-root select{font-size:16px!important}#cc166-panel .cc318-lookup{display:grid;grid-template-columns:minmax(0,1fr)}#cc166-panel .cc318-lookup button{width:100%}}

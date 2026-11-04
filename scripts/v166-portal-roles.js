@@ -41,7 +41,7 @@ function restorePanelState(uid){
   const saved=JSON.parse(sessionStorage.getItem(PANEL_CONTEXT)||'null');
   if(saved?.uid!==uid)return null;
   const allowed=['home','attention','approvals','bonuses','wallet','businesses','movements',
-   'orders','publish','sales','admin','profile','shop'];
+   'orders','publish','sales','admin','profile','shop','codes','delivery','mailboxes','delivery-requests','delivery-admin'];
   const tabs=['summary','manual','automatic','movements','recharges','audit'];
   const normalize=state=>{
    const v=String(state?.view||'');
@@ -82,7 +82,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V317 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V318 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -212,13 +212,13 @@ function renderNav(){
   ['GENERAL',[['home','◫',admin?'Resumen':'Inicio']]],
   ['OPERACIONES',[
    ...(admin?[['admin','♙','Usuarios'],['approvals','✓','Súper reseller'],
-     ['sales','◈','Supervisar pedidos'],['bonuses','◇','Bonos']]:[]),
-   ...(superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas']]:[]),
-   ...(!admin?[['shop','▣','Catálogo'],['orders','◱','Mis compras']]:[]),
+     ['sales','◈','Supervisar pedidos'],['delivery-admin','⌁','Entregas y códigos'],['bonuses','◇','Bonos']]:[]),
+   ...(superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas'],['delivery','▦','Mis cuentas'],['mailboxes','✉','Mis correos'],['delivery-requests','◷','Solicitudes pendientes']]:[]),
+   ...(!admin?[['codes','⌁','Obtener código'],['shop','▣','Catálogo'],['orders','◱','Mis compras']]:[]),
    ['wallet','▤','Billetera']]],
   ['MI CUENTA',[['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
  ];
- const primaryIds=admin?['home','admin','wallet']:superRole?['home','shop','sales']:['home','shop','wallet'];
+ const primaryIds=admin?['home','admin','wallet']:superRole?['home','codes','sales']:['home','codes','shop'];
  const primary=make('div','cc308-nav-primary');
  const secondary=make('div','cc308-nav-secondary');secondary.id='cc308-secondary-nav';
  for(const [heading,items] of groups){
@@ -393,11 +393,9 @@ function overview(page){
  }else if(data.super){
   actions.append(button('Publicar servicio',()=>nav('publish'),'cc166-primary'));
   actions.append(button('Ventas y entregas',()=>nav('sales'),'cc166-secondary'));
- }else if(superAssigned||resellerPending){
-  actions.append(button('Ver activaciones',()=>nav('businesses'),'cc166-primary'));
  }else{
-  actions.append(button('Explorar catálogo',()=>nav('shop'),'cc166-primary'));
-  if(data.reseller)actions.append(button('Mis negocios',()=>nav('businesses'),'cc166-secondary'));
+  actions.append(button('Obtener código',()=>nav('codes'),'cc166-primary'));
+  actions.append(button('Explorar catálogo',()=>nav('shop'),'cc166-secondary'));
  }
  hero.append(actions);page.append(hero);
  const stats=make('div','cc166-stats cc174-overview-stats');
@@ -1220,7 +1218,7 @@ function movements(page){
 
 function orderMessage(order){
  return 'Hola, solicito coordinar la entrega de mi compra en CLAN CARTAN.'+
- '\nPedido: '+order.order_id+
+ '\nPedido: '+(order.order_code||order.order_id)+
  '\nProducto: '+order.title+
  '\nImporte pagado: '+price(order.price_pen)+
  '\nEl pago ya fue descontado de mi billetera real.';
@@ -1240,7 +1238,7 @@ function receipt(page){
  if(!lastReceipt||lastReceipt.buyer_id!==user)return;
  const box=make('section','cc167-receipt');
  box.append(make('h3','','Compra confirmada · '+price(lastReceipt.price_pen)));
- box.append(make('p','','Pedido '+lastReceipt.order_id+' · '+lastReceipt.title));
+ box.append(make('p','','Pedido '+(lastReceipt.order_code||lastReceipt.order_id)+' · '+lastReceipt.title));
  box.append(make('p','','Pago descontado y registrado. Pulsa Notificar vendedor y envía el mensaje desde WhatsApp.'));
  box.append(button('Notificar al vendedor · WhatsApp',()=>notifySeller(lastReceipt),'cc166-primary'));
  box.append(button('Ver mis compras',()=>nav('orders'),'cc166-secondary'));
@@ -1284,6 +1282,7 @@ async function buyProduct(product,b){
   forgetKey(keyInfo.name);
   lastReceipt={...response,buyer_id:uid};
   await load();
+  const savedOrder=data.orders.find(o=>o.id===response.order_id);if(savedOrder?.order_code)lastReceipt.order_code=savedOrder.order_code;
   app.hidden=false;view='shop';render();
   receiptFocus();
  }catch(e){if(session()?.userId===uid&&session()?.jwt===jwt){app.hidden=false;view='shop';render();notice('Compra no confirmada: '+String(e?.message||e)+'. Revisa Mis compras antes de intentarlo nuevamente.');}}
@@ -1358,8 +1357,9 @@ function orders(page){
   const row=make('article','cc167-order-row');
   const summary=make('div','');
   summary.append(make('strong','',o.title));
-  summary.append(make('small','','Pedido: '+o.id+' · '+orderStatusName(o.status)));
+  summary.append(make('small','','Pedido: '+(o.order_code||o.id)+' · '+orderStatusName(o.status)));
   row.append(summary,make('strong','',price(o.price_pen)));
+  if(o.order_code)row.append(button('Obtener código',()=>window.cc318OpenCode(o.order_code),'cc166-primary'));
   row.append(button('Notificar vendedor',()=>notifySeller({...o,order_id:o.id}),'cc166-secondary'));
   page.append(row);
  }
@@ -1414,8 +1414,9 @@ function sales(page){
   const line=make('article','cc167-order-row');
   const info=make('div','');
   info.append(make('strong','',o.title));
-  info.append(make('small','','Pedido '+o.id+' · '+orderStatusName(o.status)));
+  info.append(make('small','','Pedido '+(o.order_code||o.id)+' · '+orderStatusName(o.status)));
   line.append(info,make('strong','',price(o.price_pen)));
+  if(!data.admin&&o.order_code)line.append(button('Configurar entrega',()=>{window.cc318PrefillDelivery?.(o.order_code);nav('delivery');},'cc166-primary'));
   if(!data.admin){const b=button(o.status==='FULFILLED'?'Entregado':'Marcar entregado',()=>void markDelivered(o,b),'cc166-secondary');b.dataset.deliveryOrder=o.id;b.dataset.orderStatus=o.status;b.disabled=o.status!=='PAID_AWAITING_DELIVERY';line.append(b);}
   page.append(line);
  }
@@ -1951,6 +1952,7 @@ function profile(page){
  form.addEventListener('input',()=>{profileDraft=Object.fromEntries(new FormData(form));profileDraftVersion++;profileMessage='Cambios sin guardar.';status.textContent=profileMessage;});
  form.addEventListener('submit',e=>{e.preventDefault();void saveProfile(new FormData(form),submit);});
  page.append(form);
+ page.append(button('Mis autorizaciones de correo',()=>nav('mailboxes'),'cc166-secondary'));
  if(!profileEmail&&profileEmailOwner!==user&&!profileEmailLoading)void loadEmail();
 }
 async function loadEmail(){
@@ -2108,6 +2110,10 @@ function render(startAtTop=false){
  const publishDraft=view==='publish'&&data.super&&!data.admin&&!discardPublishDraft?el('cc166-publish-form'):null;
  el('cc177-return-panel')?.remove();
  mountLauncher();renderNav();const page=el('cc166-content');page.dataset.cc316StreamOperations=String(view==='stream-operations'||view==='business:STREAM_BULLS');page.replaceChildren();
+ if(['codes','delivery','mailboxes','delivery-requests','delivery-admin'].includes(view)){
+  if(typeof window.cc318Render==='function')window.cc318Render(page,view,{uid:user,jwt:token,root:session()?.root,key:session()?.key,api,nav,super:verified&&data.super,admin:verified&&data.admin});
+  else page.append(make('p','cc166-note','Preparando consulta de entregas…'));savePanelState();return;
+ }
  // Cuatro negocios, un selector: visible únicamente al gestionar negocios.
  if(view==='businesses'||view.startsWith('business:'))businessTabs(page);
  if(view.startsWith('business:')){businessPage(page,view.slice('business:'.length));return;}
@@ -2136,7 +2142,7 @@ function render(startAtTop=false){
  savePanelState();
 }
 async function read(path,required=false){try{const r=await api(path);if(!Array.isArray(r))throw Error('Respuesta inválida');return r;}catch(e){if(required)throw e;return[];}}
-async function readOrders(){const rows=await api('rpc/cc_portal_my_stream_orders','POST',{p_limit:100});if(!Array.isArray(rows))throw Error('Pedidos no disponibles');return rows;}
+async function readOrders(){const rows=await api('rpc/cc_portal_my_stream_orders','POST',{p_limit:100});if(!Array.isArray(rows))throw Error('Pedidos no disponibles');let codes=[];try{codes=await api('rpc/cc_stream_my_order_codes','POST',{});}catch(_){}const map=new Map((Array.isArray(codes)?codes:[]).map(o=>[o.id,o.order_code]));return rows.map(o=>map.has(o.id)?{...o,order_code:map.get(o.id)}:o);}
 async function readMoves(){try{const r=await api('rpc/cc_my_real_wallet_movements','POST',{p_service:null,p_limit:120});return Array.isArray(r)?r:[];}catch(_){return[];}}
 async function readOwnPriceDetails(){try{const r=await api('rpc/cc_portal_my_stream_prices','POST',{});return Array.isArray(r)?r:[];}catch(_){return[];}}
 async function readBusinessAccess(){
@@ -2231,7 +2237,8 @@ function init(){
  new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync();});})
  .observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','hidden']});
  document.addEventListener('click',e=>{if(e.target.closest?.('#cc54logout'))reset();},true);
- document.addEventListener('cc192-session-ready',()=>sync());
+ document.addEventListener('cc192-session-ready',()=>{sync();if(window.cc318CodeIntent&&app){window.cc318CodeIntent=false;app.hidden=false;nav('codes');}});
+ document.addEventListener('cc318-ready',()=>{if(window.cc318CodeIntent&&app){window.cc318CodeIntent=false;app.hidden=false;nav('codes');}else if(['codes','delivery','mailboxes','delivery-requests','delivery-admin'].includes(view))render();});
  document.addEventListener('cc192-session-refreshed',()=>sync());
  document.addEventListener('cc192-session-ended',()=>reset());
  window.addEventListener('pagehide',()=>savePanelState());
@@ -2255,6 +2262,11 @@ function init(){
     void refreshOwnWalletBalance();
   }
  },12000);
+ window.cc318OpenCode=code=>{
+  sync();if(!session()?.jwt||!app){window.cc318CodeIntent=true;window.cc77Auth?.(false);return;}
+  app.hidden=false;window.cc318PrefillCode?.(code);nav('codes');
+ };
+ if(window.cc318CodeIntent&&app){window.cc318CodeIntent=false;app.hidden=false;nav('codes');}
  window.cc166OpenPanel=()=>{
   sync();
   if(app){

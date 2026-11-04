@@ -48,6 +48,7 @@ select public.cc_stream_delivery_manage('renew_order','{"order_code":"ORD-526273
 select public.cc_stream_delivery_manage('set_resource','{"order_code":"ORD-526273","code":"LICENSE-RENEWED-01","commercial_authorized":true}');
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
 select pg_temp.check_it(public.cc_stream_delivery_lookup('ORD-526273')->>'status'='AVAILABLE','Renovación comprobada con otra compra pagada reactiva la consulta');
+select pg_temp.check_it(public.cc_stream_delivery_lookup('ORD-526277')->>'status'='AVAILABLE','El ORD de renovación también resuelve automáticamente su entrega original');
 do $$declare r jsonb;ctx jsonb;begin
  r:=public.cc_stream_delivery_lookup('ORD-526281');
  perform set_config('request.jwt.claim.role','service_role',true);
@@ -89,6 +90,15 @@ select pg_temp.check_it(public.cc_stream_delivery_lookup('ORD-526278')->>'status
 update cc_internal.sb_order_delivery set valid_from=now()+interval '1 day',valid_until=now()+interval '31 days' where order_id='dddddddd-0000-4000-8000-000000000014';
 select pg_temp.check_it(public.cc_stream_delivery_lookup('ORD-526285')->>'status'='NOT_STARTED','Vigencia futura no autoriza consulta anticipada');
 select pg_temp.check_it(not cc_internal.sb_delivery_code_valid('123456') and not cc_internal.sb_delivery_code_valid('otpauth://seed'),'No se aceptan OTP numéricos ni semillas de autenticador como recurso');
+-- El titular puede retirar su permiso de correo aunque termine su membresía comercial.
+update public.cc_subscriptions set end_at=now()-interval '1 day' where membership_id='aaaaaaaa-0000-4000-8000-000000000003';
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+select pg_temp.check_it((public.cc_stream_mail_capabilities()->>'can_connect')::boolean=false and jsonb_array_length(public.cc_stream_mail_capabilities()->'mailboxes')=2,'Titular sin membresía conserva control de sus propias autorizaciones, no puede conectar nuevas');
+select set_config('request.jwt.claim.role','service_role',true);
+select public.cc_stream_delivery_service('mail_disconnect',jsonb_build_object('actor_id','11111111-1111-4111-8111-111111111111','connection_id',(select id from cc_internal.sb_mail_connections where provider='microsoft')));
+select set_config('request.jwt.claim.role','authenticated',true);
+select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+select pg_temp.check_it(public.cc_stream_delivery_lookup('ORD-526273')->>'status'='AVAILABLE','Una compra vigente no caduca por terminar la membresía comercial del proveedor');
 delete from cc_internal.sb_delivery_audit where actor_id=auth.uid();
 do $$declare i integer;r jsonb;begin for i in 1..20 loop r:=public.cc_stream_delivery_lookup('ORD-999999999');end loop;perform pg_temp.check_it(public.cc_stream_delivery_lookup('ORD-526272')->>'status'='RATE_LIMITED','Límite por titular verificado en servidor');end;$$;
 select pg_temp.check_it((select sum(balance_pen)=100 from public.cc_real_service_wallets) and (select bool_and(admin_percent=20 and admin_fee_pen=5 and seller_payable_pen=20) from public.cc_portal_stream_orders),'Saldos y reparto comercial 80/20 permanecen intactos');
