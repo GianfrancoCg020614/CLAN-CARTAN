@@ -26,11 +26,12 @@
     if(chosen==='Recursos')return !isStreaming(row.service);
     return true;
   }
+  const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').trim();
+  const matchesTerms=(values,query)=>{const text=normalize(values.join(' '));return normalize(query).split(/\s+/).filter(Boolean).every(term=>text.includes(term));};
   function searchMatches(row){
     const input=el('cc117-search');
     const raw=input?.value??(typeof ui!=='undefined'?ui.storeSearch:'');
-    const needle=String(raw||'').trim().toLocaleLowerCase('es');
-    return !needle||[row.service,row.title,row.description].some(v=>String(v||'').toLocaleLowerCase('es').includes(needle));
+    return matchesTerms([row.service,row.title,row.description],raw);
   }
   function purchase(product,btn){
     if(!window.CC_V53_SESSION?.jwt){
@@ -134,17 +135,20 @@
     const streaming=['Netflix','Disney+','Spotify','YouTube Premium','HBO Max'].includes(item.service);
     if(chosen==='Streaming'&&!streaming)return false;
     if(chosen==='Recursos'&&streaming)return false;
-    const term=String(el('cc117-search')?.value??(typeof ui!=='undefined'?ui.storeSearch:'')).trim().toLocaleLowerCase('es');
-    return !term||[item.service,item.title,item.description,item.status].some(v=>v.toLocaleLowerCase('es').includes(term));
+    const term=el('cc117-search')?.value??(typeof ui!=='undefined'?ui.storeSearch:'');
+    return matchesTerms([item.service,item.title,item.description,item.status],term);
   }
   function unifyProfileLink(){
     const link=document.querySelector('#app .cc117-header .cc117-actions-top .cc117-register');
-    if(!link||!window.CC_V53_SESSION?.jwt||link.dataset.cc169Profile==='true')return;
+    if(!link)return;
+    if(link.dataset.cc169Profile==='true'){link.textContent=window.CC_V53_SESSION?.jwt?'Mi perfil':'Ingresar';return;}
+    if(!window.CC_V53_SESSION?.jwt)return;
     // La cabecera de ESTE mismo catálogo abre la ficha personal global.
     link.removeAttribute('onclick');
     link.textContent='Mi perfil';
     link.dataset.cc169Profile='true';
     link.addEventListener('click',()=>{
+      if(!window.CC_V53_SESSION?.jwt){window.cc77Auth?.(false);return;}
       if(typeof window.cc166OpenProfile==='function')window.cc166OpenProfile();
       else window.cc77Home?.();
     });
@@ -342,6 +346,7 @@
     void refresh();
   }
   function init(){
+    document.addEventListener('input',event=>{if(event.target.id==='cc117-search')schedule();});
     // Actualizar las tarifas cuando el usuario regresa a la tienda desde
     // otra pestaña o se renueva su membresía.
     window.addEventListener('focus',refreshIfVisible);
@@ -359,3 +364,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
+

@@ -9,6 +9,7 @@ const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'COBRA YA',MI_COCHE
 const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],['MI_ALQUILER','⌂']];
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
+let profileDraft=null,profileDraftVersion=0,profileSaveRequest=null,profileMessage='';
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
 let walletTab='summary',rechargeMode='manual';
 let renderedLocation='';
@@ -63,6 +64,7 @@ function reset(){
  data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};lastReceipt=null;purchasePending=false;membershipPending=false;businessActivationPending=null;
  app?.remove();app=null;el('cc166-open-button')?.remove();el('cc177-return-panel')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
+ profileDraft=null;profileDraftVersion=0;profileSaveRequest=null;profileMessage='';
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
  adminDirectoryQuery='';adminOpenFiles.clear();
@@ -80,7 +82,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V314 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V315 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -1886,19 +1888,21 @@ function profile(page){
  ];
  for(const [key,caption,value,type,max] of fields){
   const label=make('label','',caption),input=document.createElement('input');
-  input.name=key;input.value=value;input.type=type;input.maxLength=max;
+  input.name=key;input.value=profileDraft?.[key]??value;input.type=type;input.maxLength=max;
   if(key==='full_name')input.required=true;
   if(key==='phone'){input.placeholder='+51912345678';input.autocomplete='tel';}
   if(key==='full_name')input.autocomplete='name';
   label.append(input);form.append(label);
  }
  const mailLabel=make('label','','Correo de acceso · solo lectura'),mailInput=document.createElement('input');
- mailInput.type='email';mailInput.value=profileEmail||'Consultando correo…';
+ mailInput.id='cc315-profile-email';mailInput.type='text';mailInput.value=profileEmail||'Consultando correo…';
  mailInput.readOnly=true;mailInput.autocomplete='off';mailLabel.append(mailInput);form.append(mailLabel);
  const note=make('p','cc166-note','Estos datos pertenecen a tu cuenta CLAN CARTAN, no a un negocio. El DNI/documento, las condiciones aceptadas y el correo de acceso no se cambian desde aquí.');
  note.classList.add('cc169-profile-note');form.append(note);
- const submit=make('button','cc166-primary','Guardar cambios');submit.type='submit';
- form.append(submit);
+ const status=make('p','cc166-note',profileMessage);status.id='cc315-profile-status';status.setAttribute('role','status');form.append(status);
+ const submit=make('button','cc166-primary',profileSaveRequest?'Guardando…':'Guardar cambios');submit.type='submit';submit.disabled=!!profileSaveRequest;
+ form.append(submit);form.setAttribute('aria-busy',String(!!profileSaveRequest));
+ form.addEventListener('input',()=>{profileDraft=Object.fromEntries(new FormData(form));profileDraftVersion++;profileMessage='Cambios sin guardar.';status.textContent=profileMessage;});
  form.addEventListener('submit',e=>{e.preventDefault();void saveProfile(new FormData(form),submit);});
  page.append(form);
  if(!profileEmail&&profileEmailOwner!==user&&!profileEmailLoading)void loadEmail();
@@ -1913,12 +1917,13 @@ async function loadEmail(){
   if(auth?.id===uid&&session()?.jwt===jwt&&user===uid){
    profileEmail=String(auth.email||'');
    profileEmailOwner=uid;
-   if(view==='profile')render();
+   const field=el('cc315-profile-email');if(field)field.value=profileEmail;
   }
- }catch(_){if(user===uid){profileEmail='Correo no disponible';profileEmailOwner=uid;if(view==='profile')render();}}
- finally{profileEmailLoading=false;}
+ }catch(_){if(user===uid&&session()?.jwt===jwt){profileEmail='Correo no disponible';profileEmailOwner=uid;const field=el('cc315-profile-email');if(field)field.value=profileEmail;}}
+ finally{if(user===uid)profileEmailLoading=false;}
 }
 async function saveProfile(form,buttonEl){
+ if(profileSaveRequest)return;
  const uid=user,jwt=token;
  if(!verified||!uid||!jwt){notice('Inicia sesión y actualiza tus datos antes de guardar.');return;}
  const value=k=>String(form.get(k)||'').trim();
@@ -1928,7 +1933,10 @@ async function saveProfile(form,buttonEl){
    ||fields.some(k=>value(k).length>80)){
   notice('Corrige el nombre y escribe el WhatsApp internacional, por ejemplo +51912345678.');return;
  }
- buttonEl.disabled=true;buttonEl.textContent='Guardando…';
+ const request={uid,jwt},draftVersion=profileDraftVersion;profileSaveRequest=request;profileMessage='Guardando cambios…';
+ profileDraft=Object.fromEntries(form);buttonEl.disabled=true;buttonEl.textContent='Guardando…';
+ const status=el('cc315-profile-status');if(status)status.textContent=profileMessage;
+ buttonEl.closest('form')?.setAttribute('aria-busy','true');
  try{
   const saved=await api('rpc/cc_portal_save_my_profile','POST',{
    p_full_name:fullName,p_phone_e164:phone,p_region:value('region'),
@@ -1936,15 +1944,17 @@ async function saveProfile(form,buttonEl){
   });
   if(user!==uid||session()?.jwt!==jwt)return;
   if(!saved?.saved)throw Error('No se confirmó la actualización');
+  if(profileDraftVersion===draftVersion)profileDraft=null;
+  profileMessage=profileDraft?'Perfil guardado. Hay cambios posteriores sin guardar.':'Perfil actualizado correctamente.';
   ownRechargeIdentity=null;ownIdentityState='idle';ownIdentityError='';
   await load();
   if(user!==uid||session()?.jwt!==jwt)return;
   if(session()){session().displayName=fullName;}
   if(typeof window.cc95RenderUser==='function')window.cc95RenderUser();
-  view='profile';render();notice('Perfil actualizado. Los cuatro negocios utilizarán estos datos de la misma cuenta.');
+  const status=el('cc315-profile-status');if(status)status.textContent=profileMessage;
  }catch(e){
-  if(user===uid){buttonEl.disabled=false;buttonEl.textContent='Guardar cambios';notice('No se guardaron los cambios: '+String(e?.message||e));}
- }
+  if(user===uid&&session()?.jwt===jwt){profileMessage='No se guardaron los cambios: '+String(e?.message||e);const status=el('cc315-profile-status');if(status)status.textContent=profileMessage;else notice(profileMessage);}
+ }finally{if(profileSaveRequest===request){profileSaveRequest=null;const form=el('cc169-profile-form'),submit=form?.querySelector('button[type=submit]');form?.setAttribute('aria-busy','false');if(submit){submit.disabled=false;submit.textContent='Guardar cambios';}}}
 }
 
 function other(page){
