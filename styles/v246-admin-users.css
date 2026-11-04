@@ -63,3 +63,12 @@
  #cc166-panel .cc246-user .cc246-user-details[open]{grid-column:1/-1;grid-row:auto}
  #cc166-panel .cc246-fields{grid-template-columns:repeat(auto-fit,minmax(135px,1fr))}
 }
+
+/* V316: vigencias independientes y filtros del directorio. */
+#cc166-panel .cc316-business-status{list-style:none;padding:0;margin:14px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#cc166-panel .cc316-business-status li{display:flex;flex-direction:column;gap:5px;padding:12px;border:1px solid #55738666;border-radius:12px;min-width:0;overflow-wrap:anywhere}
+#cc166-panel .cc316-business-status .cc316-live{border-color:#43bebaaa;background:#43beba0c}
+#cc166-panel .cc316-business-status span,#cc166-panel .cc316-business-status small{font-size:13px;line-height:1.5}
+#cc166-panel .cc171-filter{flex-wrap:wrap}
+#cc166-panel .cc171-filter select{min-height:44px;min-width:0;flex:1 1 180px;max-width:100%;padding:10px;border:1px solid #55738688;border-radius:10px;background:#102330;color:#edf7fc}
+@media(max-width:640px){#cc166-panel .cc316-business-status{grid-template-columns:minmax(0,1fr)}#cc166-panel .cc171-filter select{font-size:16px}}

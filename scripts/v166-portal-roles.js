@@ -13,7 +13,7 @@ let profileDraft=null,profileDraftVersion=0,profileSaveRequest=null,profileMessa
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
 let walletTab='summary',rechargeMode='manual';
 let renderedLocation='';
-let adminDirectoryQuery='';
+let adminDirectoryQuery='',adminDirectoryRole='ALL',adminDirectoryService='ALL';
 const adminOpenFiles=new Set();
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
@@ -26,7 +26,7 @@ let rechargeRows=[],rechargeState='idle',rechargeError='';
 let rechargeReady=null,rechargeSaving=false,assistedRechargeSaving=false;
 let chosenAdminRecipient=null,chosenBonusRecipient=null;
 let auditData=null,auditRows=[],auditState='idle',auditError='';
-let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};
+let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[],accesses:null};
 let lastReceipt=null,purchasePending=false,membershipPending=false,businessActivationPending=null;
 const price=n=>Number.isFinite(Number(n))?'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const make=(tag,cls,txt)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(txt!==undefined)x.textContent=String(txt);return x;};
@@ -61,13 +61,13 @@ function savePanelState(){
 }
 function reset(){
  serial++;user=null;token=null;busy=false;verified=false;view='home';
- data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[]};lastReceipt=null;purchasePending=false;membershipPending=false;businessActivationPending=null;
+ data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[],accesses:null};lastReceipt=null;purchasePending=false;membershipPending=false;businessActivationPending=null;
  app?.remove();app=null;el('cc166-open-button')?.remove();el('cc177-return-panel')?.remove();
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  profileDraft=null;profileDraftVersion=0;profileSaveRequest=null;profileMessage='';
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
  walletTab='summary';rechargeMode='manual';navigationHistory=[];
- adminDirectoryQuery='';adminOpenFiles.clear();
+ adminDirectoryQuery='';adminDirectoryRole='ALL';adminDirectoryService='ALL';adminOpenFiles.clear();
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
  adminRechargeFormOpen=false;salesFilter='all';purchaseFilter='all';publishing=false;discardPublishDraft=false;deliveriesPending.clear();
  ownPending=null;ownPendingState='idle';ownPendingError='';ownPendingBusy=false;
@@ -82,7 +82,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V315 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V316 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -93,6 +93,7 @@ function shell(){
 }
 function access(code){
  if(data.admin)return {ok:true,reason:'Administración'};
+ if(Array.isArray(data.accesses)){const row=data.accesses.find(x=>x.service===code);return {ok:businessLive(row),reason:businessStateLabel(row)};}
  if(code==='MI_COCHERA'&&data.mc?.subscription_until&&!data.mc.suspended&&Date.parse(data.mc.subscription_until)>Date.now())return {ok:true,reason:'Vigente'};
  if(code==='MI_ALQUILER'&&data.ma?.subscription_until&&!data.ma.suspended&&Date.parse(data.ma.subscription_until)>Date.now())return {ok:true,reason:'Vigente'};
  if(code==='COBRA_YA'&&data.cy.some(x=>x.status==='ACTIVE'&&Date.parse(x.period_end)>Date.now()))return {ok:true,reason:'Vigente'};
@@ -166,15 +167,41 @@ function mountLauncher(){
  }
  launcher.hidden=!user;
 }
+function businessLive(row){return row?.status==='ACTIVE'&&Date.parse(row.active_until)>Date.now();}
+function businessStateLabel(row){
+ if(businessLive(row))return 'Vigente hasta '+trialDate(row.active_until);
+ if(row?.status==='SUSPENDED')return 'Suspendido';
+ if(row?.status==='EXPIRED'||row?.status==='ACTIVE'&&Date.parse(row.active_until)<=Date.now())return 'Vencido · '+trialDate(row.active_until);
+ if(row?.status==='PENDING')return 'Activación pendiente';
+ if(!row||row.status==='UNKNOWN')return 'Vigencia por verificar';
+ return 'Sin activar';
+}
+function accountBusinesses(person){
+ if(Array.isArray(person.business_access))return services.map(([service])=>person.business_access.find(x=>x.service===service)||{service,status:'UNKNOWN'});
+ return services.map(([service])=>({service,status:service==='STREAM_BULLS'?(person.paid_until&&Date.parse(person.paid_until)>Date.now()?'ACTIVE':'INACTIVE'):'UNKNOWN',active_until:service==='STREAM_BULLS'?person.paid_until:null}));
+}
+function accountRole(person){
+ if(person.is_admin)return 'ADMIN';
+ const rows=accountBusinesses(person),stream=rows.find(x=>x.service==='STREAM_BULLS');
+ if(person.super_enabled&&person.role_assigned==='SUPER_RESELLER'&&businessLive(stream))return 'SUPER_RESELLER';
+ return rows.some(businessLive)?'RESELLER':'AFFILIATE';
+}
+function ownBusinesses(){return Array.isArray(data.accesses)?data.accesses:services.map(([service])=>({service,status:access(service).ok?'ACTIVE':'INACTIVE',active_until:businessPeriod(service)?.end}));}
 function userRole(){
  if(data.admin)return 'ADMIN';
- if(data.super)return 'SÚPER RESELLER';
- const assigned=data.members.some(m=>m.role==='SUPER_RESELLER');
- if(assigned)return access('STREAM_BULLS').ok?
-  'SÚPER RESELLER · APROBACIÓN PENDIENTE':'SÚPER RESELLER · MEMBRESÍA PENDIENTE';
- if(data.reseller)return 'RESELLER';
- if(data.members.some(m=>m.role==='RESELLER'))return 'RESELLER · MEMBRESÍA PENDIENTE';
- return 'AFILIADO';
+ if(!verified)return 'VERIFICANDO ACCESOS';
+ const active=ownBusinesses().filter(businessLive).map(x=>serviceName(x.service));
+ if(data.super)return 'SÚPER RESELLER · STREAM BULL’S';
+ return active.length?'RESELLER · '+active.join(' · '):'AFILIADO · SIN NEGOCIOS ACTIVOS';
+}
+function appendBusinessStatus(parent,rows){
+ const list=make('ul','cc316-business-status');list.setAttribute('aria-label','Activación por negocio');
+ for(const row of rows){const item=make('li',businessLive(row)?'cc316-live':'');
+  item.append(make('strong','',serviceName(row.service)),make('span','',businessStateLabel(row)));
+  if(businessLive(row)){const days=Math.ceil((Date.parse(row.active_until)-Date.now())/86400000);if(days<=7)item.append(make('small','cc316-renew-soon','Renovación próxima · '+days+' día(s)'));}
+  if(businessLive(row)&&row.funding)item.append(make('small','',row.funding==='BONUS'?'Última activación con bono promocional':row.funding==='VERIFIED_REAL'||row.funding==='REAL_WALLET'?'Activación con saldo real':'Origen de activación registrado'));
+  list.append(item);
+ }parent.append(list);
 }
 function renderNav(){
  const menu=el('cc166-nav');menu.replaceChildren();
@@ -263,7 +290,7 @@ function movementList(page,max){
 function adminRecords(){
  return {
   pendingDeliveries:data.orders.filter(o=>o.status==='PAID_AWAITING_DELIVERY'),
-  pendingPayments:adminAccountsState==='ready'?adminAccounts.filter(a=>!a.is_admin&&!(a.paid_until&&Date.parse(a.paid_until)>Date.now())):[],
+  pendingPayments:adminAccountsState==='ready'?adminAccounts.filter(a=>accountRole(a)==='AFFILIATE'):[],
   superApproved:adminAccountsState==='ready'?adminAccounts.filter(a=>!a.is_admin&&a.super_enabled):[],
   activeProducts:data.products.filter(p=>p.status==='ACTIVE')
  };
@@ -295,8 +322,7 @@ function adminHome(page){
  const tasks=card('Pendientes','Aquí aparecen solo las tareas que necesitan revisión.');
  const items=[
   [rechargeState==='ready'?rechargeRows.length:'—','Recargas por verificar','Revisar recargas',()=>finance('recharges')],
-  [k.pendingDeliveries.length,'Entregas de STREAM BULL’S','Abrir ventas',()=>nav('sales')],
-  [adminAccountsState==='ready'?k.pendingPayments.length:'—','Membresías pendientes de pago','Ver usuarios',()=>nav('admin')]
+  [k.pendingDeliveries.length,'Entregas de STREAM BULL’S','Abrir ventas',()=>nav('sales')]
  ];
  let taskCount=0;
  for(const [num,heading,action,fn] of items){
@@ -325,8 +351,8 @@ function adminAttention(page){
    'Solo acreditar depósitos comprobados.','Abrir recargas',()=>finance('recharges')],
   ['Entregas por completar',String(k.pendingDeliveries.length),
    'Pedidos pagados que requieren entrega.','Ver ventas',()=>nav('sales')],
-  ['Cuentas sin membresía vigente',adminAccountsState==='ready'?String(k.pendingPayments.length):'—',
-   'El reseller paga el plan anual desde su propia billetera.','Ver usuarios',()=>nav('admin')],
+  ['Afiliados sin negocios activos',adminAccountsState==='ready'?String(k.pendingPayments.length):'—',
+   'Estas cuentas no tienen una activación vigente en ninguno de los cuatro negocios.','Ver usuarios',()=>nav('admin')],
   ['Permisos Súper reseller',adminAccountsState==='ready'?String(k.superApproved.length):'—',
    'Aprobación manual ADMIN; no genera cargos ni suscripciones.','Gestionar permisos',()=>nav('approvals')]
  ];
@@ -344,8 +370,8 @@ function overview(page){
  const published=data.products.filter(p=>p.seller_id===user);
  const sold=data.orders.filter(o=>o.seller_id===user);
  const currentBusiness=services.filter(b=>access(b[0]).ok).length;
- const superAssigned=!data.admin&&!data.super&&data.members.some(m=>m.role==='SUPER_RESELLER');
- const resellerPending=!data.admin&&!data.super&&!data.reseller&&data.members.some(m=>m.role==='RESELLER');
+ const superAssigned=!data.admin&&!data.super&&access('STREAM_BULLS').ok&&data.members.some(m=>m.role==='SUPER_RESELLER');
+ const resellerPending=!data.admin&&!data.super&&!data.reseller&&data.members.some(m=>m.role==='RESELLER'||m.role==='SUPER_RESELLER');
  const kind=data.admin?'admin':data.super?'super':superAssigned?'super-pending':data.reseller?'reseller':resellerPending?'reseller-pending':'affiliate';
  const headings={
   admin:['Centro de administración','Usuarios, publicaciones y ventas sin salir de un panel.'],
@@ -354,7 +380,7 @@ function overview(page){
    ['Súper reseller · aprobación pendiente','Tu membresía anual está vigente. ADMIN debe autorizar las publicaciones y ventas.']:
    ['Súper reseller · membresía pendiente','Primero activa la membresía anual. Después ADMIN autorizará las funciones especiales.'],
   reseller:['Mi espacio reseller','Compra y consulta tus servicios desde una sola cuenta.'],
-  'reseller-pending':['Reseller · membresía pendiente','Tienes el rol asignado. Los precios de distribuidor requieren una membresía activa.'],
+  'reseller-pending':['Afiliado · activa tu primer negocio','Todavía no tienes una activación vigente. Tu registro CLAN y tus compras se conservan.'],
   affiliate:['Bienvenido a CLAN CARTAN','Explora el catálogo público y consulta tus compras.']
  }[kind];
  title(page,headings[0],headings[1]);
@@ -368,7 +394,7 @@ function overview(page){
   actions.append(button('Publicar servicio',()=>nav('publish'),'cc166-primary'));
   actions.append(button('Ventas y entregas',()=>nav('sales'),'cc166-secondary'));
  }else if(superAssigned||resellerPending){
-  actions.append(button('Consultar membresía',()=>nav('business:STREAM_BULLS'),'cc166-primary'));
+  actions.append(button('Ver activaciones',()=>nav('businesses'),'cc166-primary'));
  }else{
   actions.append(button('Explorar catálogo',()=>nav('shop'),'cc166-primary'));
   if(data.reseller)actions.append(button('Mis negocios',()=>nav('businesses'),'cc166-secondary'));
@@ -389,6 +415,7 @@ function overview(page){
   if(data.reseller)stats.append(metric('Negocios activos',currentBusiness+' / 4','gold'));
  }
  page.append(stats);
+ const accessBox=card('Mis activaciones · cuatro negocios','Cada negocio tiene su propia vigencia. Activar uno no habilita los demás.');appendBusinessStatus(accessBox,ownBusinesses());page.append(accessBox);
  if(data.super&&!data.admin){
   const center=card('Centro Súper reseller · STREAM BULL’S',
    'Publicaciones y ventas propias. Los precios y las comisiones se confirman en el servidor.');
@@ -398,8 +425,8 @@ function overview(page){
    access('STREAM_BULLS').ok?'Tu pago anual está vigente. Solo ADMIN puede habilitar publicaciones y ventas.':'Primero paga la membresía anual. Después ADMIN autorizará las funciones especiales.');
   page.append(pending);
  }else if(resellerPending){
-  const pending=card('Reseller · activación pendiente',
-   'El rol ya está registrado. El precio de distribuidor se habilita al confirmar tu suscripción.');
+  const pending=card('Afiliado · sin activación vigente',
+   'Elige qué negocio activar. Una solicitud o un rol antiguo no equivale a un pago confirmado.');
   page.append(pending);
  }
 }
@@ -1037,6 +1064,7 @@ function wallet(page){
  movementList(latest,8);page.append(latest);
 }
 function businessPeriod(code){
+ if(Array.isArray(data.accesses)){const row=data.accesses.find(x=>x.service===code);return row?.active_until?{end:row.active_until}:null;}
  const periods=[];
  if(code==='COBRA_YA'){
   for(const row of data.cy||[])if(row.status==='ACTIVE')periods.push({start:row.period_start||row.start_at,end:row.period_end});
@@ -1044,7 +1072,7 @@ function businessPeriod(code){
   const row=code==='MI_COCHERA'?data.mc:data.ma;
   if(row?.subscription_until&&!row.suspended)periods.push({start:row.subscription_start||row.started_at||row.created_at,end:row.subscription_until});
  }else{
-  for(const m of data.members||[])for(const sub of data.subs||[])if(sub.membership_id===m.id&&sub.status==='ACTIVE')periods.push({start:sub.start_at,end:sub.end_at});
+  for(const m of data.members||[])for(const sub of data.subs||[])if(data.businesses.some(b=>b.id===m.business_id&&b.code===code)&&sub.membership_id===m.id&&sub.status==='ACTIVE')periods.push({start:sub.start_at,end:sub.end_at});
  }
  return periods.filter(p=>p.end&&Number.isFinite(Date.parse(p.end))).sort((a,b)=>Date.parse(b.end)-Date.parse(a.end))[0]||null;
 }
@@ -1052,7 +1080,7 @@ function businessPeriodInfo(box,code){
  const period=businessPeriod(code);
  if(!period)return;
  const fmt=x=>x&&Number.isFinite(Date.parse(x))?new Date(x).toLocaleDateString('es-PE',{timeZone:'America/Lima'}):'No registrada';
- box.append(make('p','cc166-note','Inicio: '+fmt(period.start)+' · Vencimiento: '+fmt(period.end)));
+ box.append(make('p','cc166-note',(period.start?'Inicio: '+fmt(period.start)+' · ':'')+'Vencimiento: '+fmt(period.end)));
 }
 const businessMonthlyPrice=15;
 function realBalance(){return data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);}
@@ -1117,6 +1145,21 @@ function memberships(page){
   list.append(cardEl);
  }
  page.append(list);
+}
+function streamOperations(page){
+ title(page,'STREAM BULL’S · Centro de operaciones',data.admin?'Supervisión de publicaciones y pedidos.':'Tus compras, publicaciones y entregas de STREAM BULL’S.');
+ const own=data.orders.filter(o=>o.buyer_id===user),salesRows=data.orders.filter(o=>o.seller_id===user);
+ const stats=make('div','cc166-stats');
+ stats.append(metric(data.admin?'Pedidos consultados':'Mis compras',String(data.admin?data.orders.length:own.length),'blue'));
+ if(data.admin||data.super){stats.append(metric('Entregas pendientes',String((data.admin?data.orders:salesRows).filter(o=>o.status==='PAID_AWAITING_DELIVERY').length),'gold'));stats.append(metric(data.admin?'Publicaciones activas':'Mis publicaciones activas',String(data.products.filter(p=>p.status==='ACTIVE'&&(data.admin||p.seller_id===user)).length),'aqua'));}
+ page.append(stats);
+ const tools=card('Qué necesitas hacer','Abre la sección correspondiente. Los pedidos y publicaciones se consultan desde el servidor.');
+ const actions=make('div','cc166-actions');
+ if(!data.admin)actions.append(button('Mis compras',()=>nav('orders'),'cc166-primary'));
+ if(data.admin||data.super)actions.append(button(data.admin?'Supervisar pedidos':'Ventas y entregas',()=>nav('sales'),'cc166-primary'));
+ if(data.super&&!data.admin)actions.append(button('Mis publicaciones',()=>nav('publish'),'cc166-secondary'));
+ actions.append(button(data.admin?'Ver usuarios':'Ver catálogo',()=>nav(data.admin?'admin':'shop'),'cc166-secondary'));
+ tools.append(actions);page.append(tools);
 }
 function businessPage(page,code){
  if(data.admin){
@@ -1534,9 +1577,8 @@ function roleLabel(role){
 }
 function accessLabel(item){
  if(item.is_admin)return 'Acceso administrativo';
- if(item.paid_until&&Date.parse(item.paid_until)>Date.now())
-  return 'STREAM BULL’S · anual pagado hasta '+trialDate(item.paid_until);
- return 'STREAM BULL’S · anual pendiente o vencido';
+ const live=accountBusinesses(item).filter(businessLive);
+ return live.length?live.map(x=>serviceName(x.service)+' · vigente hasta '+trialDate(x.active_until)).join(' · '):'Afiliado · sin negocios activos';
 }
 async function loadAdminAccounts(force=false){
  if(!data.admin||!user||!session()?.jwt)return;
@@ -1616,8 +1658,8 @@ function adminAccountRow(person){
  info.append(make('small','',person.email||'Correo no registrado'));
  identity.append(icon,info);wrap.append(identity);
  const state=make('div','cc171-person-role');
- state.append(make('strong','cc171-role-label',roleLabel(person.role_assigned)));
- state.append(make('small',person.paid_until&&Date.parse(person.paid_until)>Date.now()?
+ state.append(make('strong','cc171-role-label',roleLabel(accountRole(person))));
+ state.append(make('small',accountBusinesses(person).some(businessLive)?
   'cc171-status-active':'cc171-status-pending',accessLabel(person)));
  wrap.append(state);
  const detail=make('details','cc246-user-details');
@@ -1638,12 +1680,12 @@ function adminAccountRow(person){
   ['Celular',person.phone||'No registrado'],
   ['Fecha de registro',safeDate(person.registered_at)],
   ['Documento',[person.document_type,person.document_number].filter(Boolean).join(' ')||'No registrado'],
-  ['Ubicación',[person.region,person.province,person.district].filter(Boolean).join(', ')||'No registrada'],
-  ['Estado',accessLabel(person)]
+  ['Ubicación',[person.region,person.province,person.district].filter(Boolean).join(', ')||'No registrada']
  ]){
   const field=make('div','cc246-field');
   field.append(make('small','',label),make('strong','',value));fields.append(field);
  }
+ if(!person.is_admin)appendBusinessStatus(expanded,accountBusinesses(person));
  expanded.append(fields);
  const actions=make('div','cc171-person-actions');
  const rename=make('details','cc171-inline-details cc174-rename');
@@ -1664,13 +1706,13 @@ function adminAccountRow(person){
   const pendingSuper=person.role_assigned==='SUPER_RESELLER'&&!person.super_enabled;
   const paid=!!(person.paid_until&&Date.parse(person.paid_until)>Date.now());
   const controls=make('details','cc171-inline-details cc180-role-editor');
-  controls.append(make('summary','','Gestionar rol'));
+  controls.append(make('summary','','Permiso Súper reseller · STREAM BULL’S'));
   const inner=make('div','cc180-role-form');
-  inner.append(make('strong','',isApproved?'Súper reseller autorizado':pendingSuper?'Súper reseller pendiente':'Reseller / afiliado'));
+  inner.append(make('strong','',isApproved?(paid?'Súper reseller autorizado':'Permiso guardado · membresía no vigente'):pendingSuper?'Solicitud Súper reseller pendiente':roleLabel(accountRole(person))));
   inner.append(make('small','',paid?'Plan STREAM BULL’S anual pagado hasta '+trialDate(person.paid_until):
     'La membresía anual todavía no figura pagada. No se puede activar Súper reseller.'));
   if(isApproved||pendingSuper){
-   const downgrade=button('Cambiar a Reseller',()=>void adminSetSuper(person,false,20,downgrade),'cc166-secondary cc171-small');
+   const downgrade=button('Retirar permiso Súper reseller',()=>void adminSetSuper(person,false,20,downgrade),'cc166-secondary cc171-small');
    inner.append(downgrade);
    inner.append(make('small','','Retira el permiso o la solicitud especial; no modifica los días pagados ni acredita saldo.'));
   }else if(paid){
@@ -1712,8 +1754,8 @@ function adminApprovals(page){
    const identity=make('div','');
    identity.append(make('strong','',person.registry_code+' · '+(person.registry_alias||person.display_name||person.email)));
    identity.append(make('small','',person.email));
-   identity.append(make('span',approved?'cc176-status-approved':'cc176-status-pending',
-      approved?(live?'Autorizado · Membresía vigente':'Autorizado · Debe activar membresía anual'):
+   identity.append(make('span',approved&&live?'cc176-status-approved':'cc176-status-pending',
+      approved?(live?'Autorizado · Membresía vigente':'Permiso guardado · Sin membresía anual vigente'):
       'Sin permiso Súper reseller'));
    row.append(identity);
    const controls=make('div','cc176-approval-controls');
@@ -1819,13 +1861,11 @@ function admin(page){
  if(adminAccountsState==='idle')void loadAdminAccounts();
  const summary=make('div','cc171-top-summary');
  if(adminAccountsState==='ready'){
-  const active=adminAccounts.filter(a=>a.is_admin||
-   a.paid_until&&Date.parse(a.paid_until)>Date.now()).length;
-  const pending=adminAccounts.filter(a=>!a.is_admin&&
-    !(a.paid_until&&Date.parse(a.paid_until)>Date.now())).length;
+  const active=adminAccounts.filter(a=>!a.is_admin&&accountBusinesses(a).some(businessLive)).length;
+  const pending=adminAccounts.filter(a=>accountRole(a)==='AFFILIATE').length;
   summary.append(metric('Usuarios registrados',String(adminAccounts.length),'blue'),
-    metric('Accesos vigentes',String(active),'aqua'),
-    metric('Pendientes',String(pending),'gold'));
+    metric('Resellers activos',String(active),'aqua'),
+    metric('Afiliados',String(pending),'gold'));
  }else{
   summary.append(metric('Usuarios','Consultando…','blue'));
  }
@@ -1842,12 +1882,18 @@ function admin(page){
   input.type='search';input.placeholder='Buscar CLAN, nombre, correo o celular…';
   input.setAttribute('aria-label','Buscar cuenta');
   input.value=adminDirectoryQuery;
-  heading.append(input,button('↻ Actualizar',()=>void loadAdminAccounts(true),'cc166-secondary'));
+  const roleFilter=document.createElement('select');roleFilter.setAttribute('aria-label','Filtrar por categoría');
+  for(const [value,label] of [['ALL','Todas las categorías'],['AFFILIATE','Afiliados'],['RESELLER','Resellers'],['SUPER_RESELLER','Súper resellers'],['ADMIN','ADMIN']]){const option=make('option','',label);option.value=value;roleFilter.append(option);}roleFilter.value=adminDirectoryRole;
+  const serviceFilter=document.createElement('select');serviceFilter.setAttribute('aria-label','Filtrar por negocio activo');
+  const allOption=make('option','','Todos los negocios');allOption.value='ALL';serviceFilter.append(allOption);
+  for(const [code] of services){const option=make('option','',serviceName(code));option.value=code;serviceFilter.append(option);}serviceFilter.value=adminDirectoryService;
+  heading.append(input,roleFilter,serviceFilter,button('↻ Actualizar',()=>void loadAdminAccounts(true),'cc166-secondary'));
   box.append(heading);
   const rows=make('div','cc171-users');
   if(!adminAccounts.length)rows.append(make('p','cc166-empty','No hay cuentas disponibles.'));
   for(const person of adminAccounts){
    const row=adminAccountRow(person);
+   row.dataset.role=accountRole(person);row.dataset.businesses=accountBusinesses(person).filter(businessLive).map(x=>x.service).join(' ');
    row.dataset.search=(person.email+' '+(person.display_name||'')+' '+(person.registry_code||'')+' '+(person.registry_alias||'')+' '+(person.phone||'')+' '+(person.document_number||'')).toLowerCase();
    rows.append(row);
   }
@@ -1858,18 +1904,18 @@ function admin(page){
    adminDirectoryQuery=input.value;
    const term=normalize(adminDirectoryQuery.trim());let count=0;
    rows.querySelectorAll('.cc171-person').forEach(row=>{
-    row.hidden=!normalize(row.dataset.search).includes(term);if(!row.hidden)count++;
+    row.hidden=!normalize(row.dataset.search).includes(term)||(adminDirectoryRole!=='ALL'&&row.dataset.role!==adminDirectoryRole)||(adminDirectoryService!=='ALL'&&!row.dataset.businesses.split(' ').includes(adminDirectoryService));if(!row.hidden)count++;
    });
    resultCount.textContent=count+' de '+adminAccounts.length+' cuentas';
    empty.hidden=count>0||adminAccounts.length===0;
   };
-  input.addEventListener('input',filter);filter();
+  input.addEventListener('input',filter);roleFilter.addEventListener('change',()=>{adminDirectoryRole=roleFilter.value;filter();});serviceFilter.addEventListener('change',()=>{adminDirectoryService=serviceFilter.value;filter();});filter();
   box.append(resultCount,empty);
   box.append(rows);
  }
  page.append(box);
  const help=make('p','cc171-help');
- help.textContent='Pulsa «Ver ficha» para consultar los datos y las acciones autorizadas de cada usuario. El reseller obtiene precio distribuidor al pagar la membresía anual; ADMIN autoriza Súper reseller solo después de ese pago. Los días y saldos se conservan al retirar el permiso especial.';
+ help.textContent='Pulsa «Ver ficha» para consultar los datos y las acciones autorizadas de cada usuario. Cada negocio muestra su propia activación y vencimiento. El precio distribuidor de STREAM BULL’S requiere su membresía anual; ADMIN autoriza Súper reseller solo después de ese pago. Los días y saldos se conservan al retirar el permiso especial.';
  page.append(help);
 
 }
@@ -2061,12 +2107,12 @@ function render(startAtTop=false){
  const bonusDraft=saveAdminBonusDraft();
  const publishDraft=view==='publish'&&data.super&&!data.admin&&!discardPublishDraft?el('cc166-publish-form'):null;
  el('cc177-return-panel')?.remove();
- mountLauncher();renderNav();const page=el('cc166-content');page.replaceChildren();
+ mountLauncher();renderNav();const page=el('cc166-content');page.dataset.cc316StreamOperations=String(view==='stream-operations'||view==='business:STREAM_BULLS');page.replaceChildren();
  // Cuatro negocios, un selector: visible únicamente al gestionar negocios.
  if(view==='businesses'||view.startsWith('business:'))businessTabs(page);
  if(view.startsWith('business:')){businessPage(page,view.slice('business:'.length));return;}
  switch(view){
- case 'stream-operations':title(page,'STREAM BULL’S · Atención de hoy','Gestión operativa de cuentas y perfiles de tu membresía.');break;
+ case 'stream-operations':streamOperations(page);break;
  case 'home':overview(page);break;
  case 'attention':data.admin?adminAttention(page):overview(page);break;
  case 'approvals':data.admin?adminApprovals(page):overview(page);break;
@@ -2093,11 +2139,19 @@ async function read(path,required=false){try{const r=await api(path);if(!Array.i
 async function readOrders(){const rows=await api('rpc/cc_portal_my_stream_orders','POST',{p_limit:100});if(!Array.isArray(rows))throw Error('Pedidos no disponibles');return rows;}
 async function readMoves(){try{const r=await api('rpc/cc_my_real_wallet_movements','POST',{p_service:null,p_limit:120});return Array.isArray(r)?r:[];}catch(_){return[];}}
 async function readOwnPriceDetails(){try{const r=await api('rpc/cc_portal_my_stream_prices','POST',{});return Array.isArray(r)?r:[];}catch(_){return[];}}
+async function readBusinessAccess(){
+ const result=await api('rpc/cc_portal_my_business_access_v316','POST',{});
+ // Compatibilidad con fixtures y respuestas anteriores; producción entrega cuatro entradas verificadas.
+ if(Array.isArray(result)&&!result.length)return null;
+ const rows=result?.business_access;
+ if(!Array.isArray(rows)||rows.length!==4||!services.every(([code])=>rows.filter(x=>x.service===code).length===1))throw Error('Vigencias por negocio no disponibles');
+ return rows;
+}
 async function load(){
  if(!user||busy||!window.cc80?.api)return;
  busy=true;const id=user,jwt=token,n=++serial;const idp=enc(id);
  try{
-  const [admins,members,subs,businesses,real,bonus,ma,mc,cy,moves,superRoles,products,priceDetails,shopOrders,plans,details]=await Promise.all([
+  const [admins,members,subs,businesses,real,bonus,ma,mc,cy,moves,superRoles,products,priceDetails,shopOrders,plans,details,accesses]=await Promise.all([
    read('cc_admins?select=user_id&user_id=eq.'+idp+'&limit=1',true),
    read('cc_memberships?select=id,role,status,business_id&user_id=eq.'+idp,true),
    read('cc_subscriptions?select=membership_id,status,start_at,end_at&order=end_at.desc&limit=150',true),
@@ -2113,7 +2167,8 @@ async function load(){
    readOwnPriceDetails(),
    readOrders(),
    read('cc_plans?select=business_id,code,price_pen,is_active&code=eq.STREAM_365&is_active=eq.true'),
-   read('cc_user_details?select=full_name,phone_e164,region,province,district&user_id=eq.'+idp+'&limit=1')
+   read('cc_user_details?select=full_name,phone_e164,region,province,district&user_id=eq.'+idp+'&limit=1'),
+   readBusinessAccess()
   ]);
   if(!active(id,jwt,n))return;
   const hasSub=m=>subs.some(sub=>sub.membership_id===m.id&&sub.status==='ACTIVE'&&
@@ -2128,9 +2183,9 @@ async function load(){
     cy.some(x=>x.status==='ACTIVE'&&Date.parse(x.period_end)>Date.now());
   data={
    admin:admins.some(x=>x.user_id===id),
-   super:!!superRoles[0]?.enabled&&activeStream,
+   super:!!superRoles[0]?.enabled&&activeStream&&(!accesses||accesses.some(x=>x.service==='STREAM_BULLS'&&businessLive(x))),
    superPermission:!!superRoles[0]?.enabled,
-   reseller:!!currentRoleReseller,
+   reseller:accesses?accesses.some(businessLive):!!currentRoleReseller,accesses,
    members,subs,businesses,real,
    mc:mc[0]||null,ma:ma[0]||null,cy,moves,products,priceDetails,orders:shopOrders,
    requests:data.requests,

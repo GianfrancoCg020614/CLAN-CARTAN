@@ -14,7 +14,7 @@ const checks=[
  [js.includes("api('rpc/cc_admin_create_manual_recharge_for_user'")&&js.includes("cc_admin_decide_manual_recharge"),'Recarga asistida queda pendiente antes de acreditación bancaria'],
  [grantSql.includes("exists(select 1 from public.cc_admins where user_id=actor)")&&grantSql.includes("p_target=actor"),'RPC solo ADMIN y prohibido otorgarse a sí mismo'],
  [grantSql.includes("status='PENDING'")&&grantSql.includes("p_request"),'Recarga deduplicada y pendiente, sin alterar saldos'],
- [js.includes("cc180-role-editor") && js.includes("Cambiar a Reseller") && js.includes("Autorizar Súper reseller"),'Los cambios se hacen en la ficha del usuario'],
+ [js.includes("cc180-role-editor") && js.includes("Retirar permiso Súper reseller") && js.includes("Autorizar Súper reseller"),'Los cambios se hacen en la ficha del usuario'],
  [js.includes("person.paid_until") && js.includes("const paid=!!"), 'Permisos especiales solo tras el pago anual'],
  [inlineSql.includes("elsif not p_enabled then") && inlineSql.includes("set role='RESELLER'"),'Se permite bajar Súper reseller pendiente a Reseller sin activar membresía'],
  
@@ -32,7 +32,7 @@ const checks=[
  [sql.includes("'user_id',u.id"),'Los bonos de otros negocios usan identificador del usuario registrado'],
  [postpay.includes('revoke execute on function public.cc_portal_admin_assign_stream_role'), 'La RPC antigua ya no asigna Súper reseller antes del pago'],
  [postpay.includes('not exists(')&&postpay.includes('update public.cc_portal_super_resellers'), 'Autorizaciones previas a pago quedan deshabilitadas'],
- [js.includes("SÚPER RESELLER · APROBACIÓN PENDIENTE"), 'El usuario pagado ve el estado real hasta aprobación ADMIN'],
+ [js.includes("Súper reseller · aprobación ADMIN pendiente"), 'El usuario pagado ve el estado real hasta aprobación ADMIN'],
  [js.includes("rpc/cc_submit_manual_recharge") && js.includes("data.profile?.full_name"),'Recarga manual usa datos del perfil'],
  [js.includes("rpc/cc_auto_topup_method_status") && js.includes("No disponible"),'Recarga automática muestra estado del proveedor'],
  [js.includes("cc177-return-panel") && js.includes("Atrás") && js.includes("Cerrar"),'Cerrar, volver y navegación en un panel'],
@@ -43,3 +43,4 @@ let failures=0;
 for(const [ok,desc] of checks){if(!ok){console.error('FAIL:',desc);failures++;}}
 assert.equal(failures,0,'Contrato V177 incumplido');
 console.log('PASS V177 · '+checks.length+' comprobaciones de permisos, bonos, finanzas y navegación.');
+
