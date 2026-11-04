@@ -30,7 +30,8 @@ assert.match(panel,/const PANEL_CONTEXT='cc_v192_panel_context'/);
 assert.match(panel,/restorePanelState\(s\.userId\)/);
 assert.match(panel,/savePanelState\(\)/);
 assert.match(panel,/addEventListener\('pagehide',\(\)=>savePanelState\(\)\)/);
-assert.match(panel,/addEventListener\('cc192-session-ready',\(\)=>sync\(\)\)/);
+assert.match(panel,/addEventListener\('cc192-session-ready',\(\)=>\{sync\(\);/);
+assert.match(panel,/window\.cc318CodeIntent/, 'La intención de consultar ORD se conserva tras iniciar sesión');
 assert.match(panel,/addEventListener\('cc192-session-ended',\(\)=>reset\(\)\)/);
 assert.match(panel,/window\.setInterval\(\(\)=>\{/);
 assert.match(panel,/void loadAdminRecharges\(true,true\)/);
@@ -40,3 +41,4 @@ assert.match(panel,/restoreAdminReviewDrafts\(rechargeDrafts\)/);
 assert.match(loader,/scripts\/v166-portal-roles[.]js[?]v=[0-9]+/);
 assert.ok(html.includes('scripts/v151-portal-polish.js?v='));
 console.log('PASS V192: login persistente, sesión validada, salida explícita, mismo panel y sincronización manual.');
+
