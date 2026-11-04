@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 if(window.cc311BusinessDialogsLoaded)return;window.cc311BusinessDialogsLoaded=true;
-const specs=[['cy152modal','cy53close'],['mc158dialog','mc158close'],['ma1612dialog','ma1611close'],['ma3dialog','ma1611close']];
+const specs=[['cy152modal','cy53close'],['mc158dialog','mc158close'],['ma1612dialog','ma1611close'],['ma3dialog','ma1611close'],['sb317dialog','sb195-attention']];
 const records=new Map();let trigger=null,triggerAt=0;
 const visible=node=>!!node?.isConnected&&node.getBoundingClientRect().width>0&&getComputedStyle(node).visibility!=='hidden';
 const focusable=root=>[...root.querySelectorAll('button,input:not([type="hidden"]),select,textarea,a[href],[tabindex]')]
@@ -29,7 +29,7 @@ function scan(){
 }
 function init(){
  const style=document.createElement('style');style.id='cc311-dialog-style';
- style.textContent='#cy152modal [data-cc311-close],#mc158dialog [data-cc311-close],#ma1612dialog [data-cc311-close],#ma3dialog [data-cc311-close]{min-width:44px;min-height:44px}[data-cc311-close]:focus-visible{outline:2px solid #55d3d2;outline-offset:3px}';document.head.append(style);
+ style.textContent='#cy152modal [data-cc311-close],#mc158dialog [data-cc311-close],#ma1612dialog [data-cc311-close],#ma3dialog [data-cc311-close],#sb317dialog [data-cc311-close]{min-width:44px;min-height:44px}[data-cc311-close]:focus-visible{outline:2px solid #55d3d2;outline-offset:3px}';document.head.append(style);
  document.addEventListener('click',event=>{const button=event.target.closest('button,a[href]');if(button){trigger=button;triggerAt=Date.now();}},true);
  document.addEventListener('keydown',event=>{
   const node=current();if(!node||!['Escape','Tab'].includes(event.key))return;

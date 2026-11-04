@@ -33,11 +33,16 @@ function grid(parent,pairs){
  parent.append(table);
 }
 function actionPrompt(title,fields,fn){
- const modal=E('div','sb195-overlay'),card=E('div','sb195-modal');
+ by('sb317dialog')?.remove();
+ const modal=E('div','sb195-overlay'),card=E('div','sb195-modal');modal.id='sb317dialog';
+ const session=window.CC_V53_SESSION,uid=session?.userId,jwt=session?.jwt,owner=by('sb195-attention');
+ let saving=false,observer=null;const close=()=>{observer?.disconnect();modal.remove();};
+ const current=()=>modal.isConnected&&owner?.isConnected&&guard(uid,jwt);
  card.setAttribute('role','dialog');card.setAttribute('aria-modal','true');
- card.append(E('h3','',title));const form=E('form','sb195-form'),inputs={};
+ const header=E('header','sb317-dialog-head');header.append(E('h3','',title),B('Cancelar',close));card.append(header);
+ const form=E('form','sb195-form'),inputs={};
  for(const f of fields){
-  const label=E('label','',f.title),input=E(f.options?'select':'input');
+  const label=E('label','',f.title),input=E(f.options?'select':'input');input.name=f.key;
   if(f.options)for(const [value,text] of f.options){const item=E('option','',text);item.value=value;input.append(item);}
   else input.type=f.type||'text';
   if(f.value!==undefined)input.value=String(f.value);
@@ -47,17 +52,21 @@ function actionPrompt(title,fields,fn){
   if(f.step!==undefined)input.step=f.step;
   label.append(input);form.append(label);inputs[f.key]=input;
  }
- const actions=E('div','sb195-buttons');
- const close=()=>modal.remove();
- actions.append(B('Cancelar',close),B('Guardar',()=>{},'primary'));
- actions.lastChild.type='submit';
- form.append(actions);form.addEventListener('submit',async ev=>{
-  ev.preventDefault();const values=Object.fromEntries(Object.entries(inputs).map(([k,v])=>[k,v.value]));
-  try{await fn(values);close();}catch(e){let error=card.querySelector('.sb195-error');if(!error){error=E('p','sb195-error');card.append(error);}error.textContent=String(e?.message||e);}
+ const error=E('p','sb195-error');error.setAttribute('role','status');
+ const actions=E('div','sb195-buttons'),submit=B('Guardar',()=>{},'primary');submit.type='submit';actions.append(submit);
+ form.append(error,actions);form.addEventListener('submit',async ev=>{
+  ev.preventDefault();if(saving||!current())return;
+  const values=Object.fromEntries(Object.entries(inputs).map(([k,v])=>[k,v.value]));
+  saving=true;submit.disabled=true;submit.textContent='Guardando…';form.setAttribute('aria-busy','true');error.textContent='';
+  try{const result=await fn(values);if(current()&&result!==false)close();}
+  catch(e){if(current())error.textContent='No se guardó: '+String(e?.message||e);}
+  finally{saving=false;submit.disabled=false;submit.textContent='Guardar';form.setAttribute('aria-busy','false');}
  });
  card.append(form);modal.append(card);
  modal.addEventListener('click',e=>{if(e.target===modal)close();});
  document.body.append(modal);
+ observer=new MutationObserver(()=>{if(!modal.isConnected){observer.disconnect();return;}if(!owner?.isConnected||!guard(uid,jwt))close();});
+ observer.observe(document.body,{childList:true,subtree:true});
 }
 function openWhatsApp(row,kind){
  if(!row.client.phone_e164)return alert('Primero registra el WhatsApp del cliente.');
@@ -121,13 +130,16 @@ async function loadData(uid,jwt,root){
 function board(root,s,uid,jwt){
  root.replaceChildren();
  const {rows,free,raw,now}=s;
- const gate=async(fn,payload,feedback)=>{
-  if(!guard(uid,jwt))return alert('Sesión vencida. Vuelve a ingresar.');
+ const gate=async(fn,payload,feedback,formOperation=false)=>{
+  if(!guard(uid,jwt)){const error=Error('Sesión vencida. Vuelve a ingresar.');if(formOperation)throw error;alert(error.message);return false;}
   try{
    await api('rpc/'+fn,'POST',payload);
+   if(!guard(uid,jwt))throw Error('La sesión cambió. Actualiza antes de continuar.');
    await refresh(root,uid,jwt,feedback||'Actualizado.');
-  }catch(e){alert('Operación no confirmada: '+String(e?.message||e));}
+   return true;
+  }catch(e){if(formOperation)throw e;if(guard(uid,jwt))alert('Operación no confirmada: '+String(e?.message||e));return false;}
  };
+ const formGate=(fn,payload,feedback)=>gate(fn,payload,feedback,true);
  const visible=a=>a.filter(r=>!search||[r.account?.code,r.account?.alias,r.account?.account_email,r.account?.service,r.client?.alias,r.client?.email,r.client?.phone_e164,'P'+r.slot?.position].join(' ').toLowerCase().includes(search));
  const expiring=rows.filter(r=>r.contract.status==='ACTIVE'&&r.days>=0&&r.days<=7);
  const debtors=rows.filter(r=>r.due>0);
@@ -160,7 +172,7 @@ function board(root,s,uid,jwt){
   {key:'end',title:'Vencimiento principal',type:'date',value:addDay(limaDay(now),30),required:true},
   {key:'capacity',title:'Posiciones permitidas por plan',type:'number',min:1,max:12,value:1,required:true},
   {key:'allowed',title:'¿Plan permite asignaciones/reasignaciones?',options:[['false','No / sin autorización'],['true','Sí, confirmado']]}
- ],v=>gate('sb_oper_add_account',{p_service:v.service,p_code:v.code.trim(),p_alias:v.alias||'',
+ ],v=>formGate('sb_oper_add_account',{p_service:v.service,p_code:v.code.trim(),p_alias:v.alias||'',
  p_start:stamp(v.start),p_end:stamp(v.end,true),p_capacity:Number(v.capacity),p_allow_reuse:v.allowed==='true'},'Cuenta guardada.')),'primary'));
  controls.append(B('+ AGREGAR CLIENTE',()=>addClient()));
  const more=E('details','sb195-more');more.append(E('summary','','⋮ Más opciones'));
@@ -184,8 +196,8 @@ function board(root,s,uid,jwt){
    const slot=free.find(x=>x.id===v.slot),period=Number(v.duration);
    if(!slot||!Number.isInteger(period)||period<1||period>366)throw Error('Posición o plazo inválidos');
    const ending=stamp(addDay(v.start,period-1),true);
-   if(new Date(ending)>new Date(slot.account.end_at)&&!confirm('La cuenta principal vence ANTES que el contrato del cliente. ¿Confirmas que gestionarás la continuidad?'))return;
-   return gate('sb_oper_add_client',{p_slot:v.slot,p_client:v.name.trim(),p_phone:v.phone||null,
+   if(new Date(ending)>new Date(slot.account.end_at)&&!confirm('La cuenta principal vence ANTES que el contrato del cliente. ¿Confirmas que gestionarás la continuidad?'))return false;
+   return formGate('sb_oper_add_client',{p_slot:v.slot,p_client:v.name.trim(),p_phone:v.phone||null,
     p_start:stamp(v.start),p_end:ending,p_price:Number(v.price),p_paid:Number(v.paid)},'Cliente asignado.');
   });
  }
@@ -205,7 +217,7 @@ function board(root,s,uid,jwt){
    tools.append(B('RENOVAR',()=>actionPrompt('Renovar '+r.client.alias,[
     {key:'days',title:'Días adicionales',type:'number',min:1,max:366,value:30,required:true},
     {key:'price',title:'Precio adicional contratado (S/)',type:'number',min:0,step:'0.01',value:0,required:true}
-   ],v=>gate('sb_oper_extend_contract',{p_contract:r.contract.id,p_days:Number(v.days),p_price_add:Number(v.price)},'Renovación guardada.')),'primary'));
+   ],v=>formGate('sb_oper_extend_contract',{p_contract:r.contract.id,p_days:Number(v.days),p_price_add:Number(v.price)},'Renovación guardada.')),'primary'));
    tools.append(B('WHATSAPP',()=>actionPrompt('Mensaje WhatsApp manual',[
     {key:'type',title:'Motivo',options:[['upcoming','Próximo vencimiento'],['expired','Vencimiento'],['renewal','Renovación'],['debt','Deuda pendiente'],['transfer','Cambio de asignación']]}
    ],v=>openWhatsApp(r,v.type))));
@@ -222,7 +234,7 @@ function board(root,s,uid,jwt){
     ],v=>{
      const dest=valid.find(x=>x.id===v.slot);
      if(dest&&new Date(dest.account.end_at)<new Date(r.contract.end_at))alert('AVISO: el destino vence antes que el cliente. Será necesaria continuidad.');
-     return gate('sb_oper_request_transfer',{p_contract:r.contract.id,p_dest_slot:v.slot},'Traslado solicitado. Confirma la retirada real para terminar.');
+     return formGate('sb_oper_request_transfer',{p_contract:r.contract.id,p_dest_slot:v.slot},'Traslado solicitado. Confirma la retirada real para terminar.');
     });
    }));
    const pending=raw.transfers.find(t=>t.contract_id===r.contract.id&&t.status==='PENDING');
@@ -234,16 +246,16 @@ function board(root,s,uid,jwt){
     {key:'amount',title:'Importe recibido (S/)',type:'number',min:0.01,max:r.due,step:'0.01',required:true},
     {key:'method',title:'Medio',options:['YAPE','PLIN','TRANSFERENCIA','EFECTIVO','OTRO'].map(x=>[x,x])},
     {key:'reference',title:'Referencia real (mínimo 3 caracteres)',required:true}
-   ],v=>gate('sb_oper_record_payment',{p_contract:r.contract.id,p_amount:Number(v.amount),
+   ],v=>formGate('sb_oper_record_payment',{p_contract:r.contract.id,p_amount:Number(v.amount),
     p_method:v.method,p_reference:v.reference},'Pago declarado registrado; no modifica la billetera.'))));
    box.append(B('Editar contacto',()=>actionPrompt('Editar datos del cliente',[
     {key:'name',title:'Alias',value:r.client.alias,required:true},{key:'phone',title:'WhatsApp (+51)',value:r.client.phone_e164||''},
     {key:'email',title:'Correo',type:'email',value:r.client.email||''}
-   ],v=>gate('sb_oper_edit_client',{p_client:r.client.id,p_name:v.name,p_phone:v.phone,p_email:v.email}))));
+   ],v=>formGate('sb_oper_edit_client',{p_client:r.client.id,p_name:v.name,p_phone:v.phone,p_email:v.email}))));
    box.append(B('Registrar conexión',()=>gate('sb_oper_update_contract',{p_contract:r.contract.id,p_action:'CONNECTION',p_notes:null})));
    box.append(B('Registrar dispositivos / notas',()=>actionPrompt('Dispositivos (sin contraseñas ni PIN)',[
     {key:'notes',title:'Descripción',value:r.contract.device_notes||''}
-   ],v=>gate('sb_oper_update_contract',{p_contract:r.contract.id,p_action:'DEVICES',p_notes:v.notes}))));
+   ],v=>formGate('sb_oper_update_contract',{p_contract:r.contract.id,p_action:'DEVICES',p_notes:v.notes}))));
    box.append(B(r.contract.status==='SUSPENDED'?'Reactivar cliente':'Suspender cliente',()=>gate('sb_oper_update_contract',{
     p_contract:r.contract.id,p_action:r.contract.status==='SUSPENDED'?'REACTIVATE':'SUSPEND',p_notes:null})));
    box.append(B('Ver historial',()=>{
@@ -262,7 +274,7 @@ function board(root,s,uid,jwt){
    const actions=E('div','sb195-buttons');
    actions.append(B('RENOVAR CUENTA',()=>actionPrompt('Renovar cuenta principal',[
     {key:'days',title:'Días de vigencia adicional',type:'number',min:1,max:366,value:30,required:true}
-   ],v=>gate('sb_oper_manage_account',{p_account:a.id,p_action:'RENEW',p_days:Number(v.days)})),'primary'));
+   ],v=>formGate('sb_oper_manage_account',{p_account:a.id,p_action:'RENEW',p_days:Number(v.days)})),'primary'));
    actions.append(B(a.state==='SUSPENDED'||a.state==='ENDED'?'REACTIVAR':'SUSPENDER',()=>{
     const action=a.state==='ACTIVE'?'SUSPEND':'REACTIVATE';
     void gate('sb_oper_manage_account',{p_account:a.id,p_action:action,p_days:null});
@@ -317,11 +329,12 @@ function board(root,s,uid,jwt){
 }
 async function refresh(root,uid,jwt,feedback){
  if(!root.isConnected||!guard(uid,jwt))return;
+ const run=++serial;
  root.replaceChildren(E('p','sb195-loading',feedback||'Consultando tus cuentas y perfiles…'));
  try{
   const data=await loadData(uid,jwt,root);
-  if(guard(uid,jwt)&&root.isConnected)board(root,data,uid,jwt);
- }catch(e){if(root.isConnected)root.replaceChildren(E('p','sb195-alert','No se pudo cargar Atención de hoy: '+String(e.message||e)));}
+  if(run===serial&&guard(uid,jwt)&&root.isConnected)board(root,data,uid,jwt);
+ }catch(e){if(run===serial&&guard(uid,jwt)&&root.isConnected)root.replaceChildren(E('p','sb195-alert','No se pudo cargar Atención de hoy: '+String(e.message||e)),B('Volver a consultar',()=>void refresh(root,uid,jwt)));}
 }
 async function mount(){
  const page=by('cc166-content'),session=window.CC_V53_SESSION;
@@ -335,13 +348,14 @@ async function mount(){
   const eligible=await api('rpc/sb_oper_has_access_v195','POST',{});
   if(!guard(uid,jwt)||!page.isConnected||page.dataset.cc316StreamOperations!=='true'||page.querySelector('.cc166-section-title h2')?.textContent!==heading)return;
   if(eligible!==true)return;
-  const root=E('section','sb195-root');root.id='sb195-attention';
+  const root=E('section','sb195-root');root.id='sb195-attention';root.tabIndex=-1;
   page.replaceChildren(root);
   await refresh(root,uid,jwt);
  }catch(_){/* Conservar el panel y las membresías existentes si el módulo aún no responde. */ }
  finally{delete page.dataset.sb195Mounting;}
 }
 function init(){
+ document.addEventListener('cc192-session-ended',()=>by('sb317dialog')?.remove());
  let tick=false;
  new MutationObserver(()=>{
   if(tick)return;tick=true;

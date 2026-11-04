@@ -40,7 +40,7 @@
 #sb195-attention .sb195-free-row{display:flex;align-items:center;gap:15px;justify-content:space-between;padding:12px;border:1px solid var(--sb-line);border-radius:10px;margin:10px 0;background:#18313a;font-size:12px}
 #sb195-attention .sb195-free-row strong:last-child{color:var(--sb-mint)}
 #sb195-attention .sb195-select,#sb195-attention .sb195-min{border:1px solid var(--sb-line);background:#112934;color:var(--sb-ink);border-radius:8px;padding:8px;max-width:170px}
-.sb195-overlay{position:fixed;inset:0;z-index:9999;display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:7vh 18px;background:#020909d9}
+.sb195-overlay{position:fixed;inset:0;z-index:2147483647;display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:7vh 18px;background:#020909d9}
 .sb195-modal{color:#eafaf8;background:#142b37;border:1px solid #527680;border-radius:15px;width:min(560px,95vw);padding:21px}
 .sb195-modal h3{margin:0 0 16px;font-size:19px}
 .sb195-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -52,3 +52,15 @@
 .sb195-error{color:#ffb8a7}
 @media(max-width:860px){#sb195-attention .sb195-indicators{grid-template-columns:repeat(3,minmax(0,1fr))}#sb195-attention .sb195-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:550px){#sb195-attention{padding:13px;margin:8px 0 18px}#sb195-attention .sb195-indicators{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#sb195-attention .sb195-tile{min-height:82px;padding:10px}#sb195-attention .sb195-tile:last-child{grid-column:1/-1;min-height:60px}#sb195-attention .sb195-bar{align-items:stretch}#sb195-attention .sb195-search{width:100%}#sb195-attention .sb195-grid{grid-template-columns:1fr 1fr;gap:9px}.sb195-form{grid-template-columns:1fr}#sb195-attention .sb195-free-row{flex-wrap:wrap}}
+
+
+/* V317: formularios visibles, accesibles y cómodos en móvil. */
+.sb195-overlay,.sb195-overlay *{box-sizing:border-box}
+.sb195-overlay .sb317-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.sb195-overlay .sb317-dialog-head h3{margin:0;overflow-wrap:anywhere}
+.sb195-overlay .sb195-btn{font:inherit;min-height:44px;padding:10px 14px;border:1px solid #527680;border-radius:9px;background:#284250;color:#eafaf8;cursor:pointer}
+.sb195-overlay .sb195-btn:disabled{opacity:.6;cursor:wait}
+.sb195-overlay .sb195-form input,.sb195-overlay .sb195-form select{min-height:44px;width:100%}
+.sb195-overlay .sb195-error{grid-column:1/-1;margin:0;overflow-wrap:anywhere}
+.sb195-overlay .sb195-error:empty{display:none}
+@media(max-width:680px){.sb195-overlay{padding:16px 12px}.sb195-overlay .sb195-modal{width:100%;padding:16px}.sb195-overlay input,.sb195-overlay select{font-size:16px}}
