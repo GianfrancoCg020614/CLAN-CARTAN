@@ -55,7 +55,7 @@ export function panelFixture(mode='admin'){
   const adminRow=all('.cc171-person')[0];adminRow.querySelector('details').open=true;
   checks.adminProtected=!adminRow.querySelector('.cc180-role-editor')&&!adminRow.querySelector('.cc181-user-actions');
   const superRow=all('.cc171-person')[1];superRow.querySelector('details').open=true;
-  checks.superRevocationPresent=superRow.textContent.includes('Cambiar a Reseller');
+  checks.superRevocationPresent=superRow.textContent.includes('Retirar permiso Súper reseller');
   checks.readableHelp=q('.cc171-help').textContent.includes('Ver ficha');
  }
  checks.noWrites=!__requests.some(p=>/set_super|set_registry|grant_bonus|assisted_recharge|decide_manual|purchase/i.test(p));

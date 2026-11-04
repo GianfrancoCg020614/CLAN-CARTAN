@@ -325,7 +325,7 @@ async function refresh(root,uid,jwt,feedback){
 }
 async function mount(){
  const page=by('cc166-content'),session=window.CC_V53_SESSION;
- if(!page||!session?.userId||!session?.jwt||page.querySelector('#sb195-attention'))return;
+ if(!page||page.dataset.cc316StreamOperations!=='true'||!session?.userId||!session?.jwt||page.querySelector('#sb195-attention'))return;
  const heading=page.querySelector('.cc166-section-title h2')?.textContent||'';
  if(!/STREAM BULL['’]?S/.test(heading))return;
  if(page.dataset.sb195Mounting==='1')return;
@@ -333,7 +333,7 @@ async function mount(){
  page.dataset.sb195Mounting='1';
  try{
   const eligible=await api('rpc/sb_oper_has_access_v195','POST',{});
-  if(!guard(uid,jwt)||!page.isConnected||page.querySelector('.cc166-section-title h2')?.textContent!==heading)return;
+  if(!guard(uid,jwt)||!page.isConnected||page.dataset.cc316StreamOperations!=='true'||page.querySelector('.cc166-section-title h2')?.textContent!==heading)return;
   if(eligible!==true)return;
   const root=E('section','sb195-root');root.id='sb195-attention';
   page.replaceChildren(root);

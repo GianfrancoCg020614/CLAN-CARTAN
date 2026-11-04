@@ -40,8 +40,8 @@ const probe=[
  'const correctTitle=page?.textContent.includes("Directorio de usuarios");',
  'const threeAccounts=$$(".cc171-person").length===3;',
  'const stableCodes=page?.textContent.includes("CLAN1")&&page?.textContent.includes("CLAN2")&&page?.textContent.includes("CLAN3");',
- 'const expectedRoles=page?.textContent.includes("SÚPER RESELLER")&&page?.textContent.includes("RESELLER");',
- 'const pendingLabel=page?.textContent.includes("STREAM BULL’S · anual pendiente o vencido");',
+ 'const expectedRoles=page?.textContent.includes("AFILIADO")&&page?.textContent.includes("RESELLER");',
+ 'const pendingLabel=page?.textContent.includes("Afiliado · sin negocios activos");',
  'const noTrialUi=!page?.textContent.includes("prueba gratuita")&&!page?.textContent.includes("Probar 7 días")&&!page?.textContent.includes("Finalizar prueba");',
  'const noAdvanced=$(".cc171-advanced")===null&&!page?.textContent.includes("Herramientas avanzadas");',
  'const noRoleEditor=!page?.textContent.includes("Cambiar rol");',
@@ -50,7 +50,7 @@ const probe=[
  'const paidRow=[...$$(".cc171-person")].find(x=>x.textContent.includes("LUIS CAR"));',
  'unpaidRow?.querySelector(".cc180-role-editor")?.setAttribute("open","");',
  'paidRow?.querySelector(".cc180-role-editor")?.setAttribute("open","");',
- 'const pendingCanDowngrade=!!unpaidRow?.textContent.includes("Cambiar a Reseller");',
+ 'const pendingCanDowngrade=!!unpaidRow?.textContent.includes("Retirar permiso Súper reseller");',
  'const pendingCannotApprove=!unpaidRow?.textContent.includes("Autorizar Súper reseller");',
  'const paidCanApprove=!!paidRow?.textContent.includes("Autorizar Súper reseller");',
  '[...$$(".cc166-navitem")].find(b=>b.textContent.includes("Súper reseller"))?.click();',
@@ -87,3 +87,4 @@ try{
  assert.equal(m[1],'pass','ADMIN V172: '+m[2]);
  console.log('PASS · ADMIN muestra 3 cuentas y roles sin pruebas gratis, sin cobro y en móvil.');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+
