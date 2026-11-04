@@ -322,8 +322,7 @@ function adminHome(page){
  const tasks=card('Pendientes','Aquí aparecen solo las tareas que necesitan revisión.');
  const items=[
   [rechargeState==='ready'?rechargeRows.length:'—','Recargas por verificar','Revisar recargas',()=>finance('recharges')],
-  [k.pendingDeliveries.length,'Entregas de STREAM BULL’S','Abrir ventas',()=>nav('sales')],
-  [adminAccountsState==='ready'?k.pendingPayments.length:'—','Afiliados sin activación','Ver usuarios',()=>nav('admin')]
+  [k.pendingDeliveries.length,'Entregas de STREAM BULL’S','Abrir ventas',()=>nav('sales')]
  ];
  let taskCount=0;
  for(const [num,heading,action,fn] of items){
@@ -1755,8 +1754,8 @@ function adminApprovals(page){
    const identity=make('div','');
    identity.append(make('strong','',person.registry_code+' · '+(person.registry_alias||person.display_name||person.email)));
    identity.append(make('small','',person.email));
-   identity.append(make('span',approved?'cc176-status-approved':'cc176-status-pending',
-      approved?(live?'Autorizado · Membresía vigente':'Autorizado · Debe activar membresía anual'):
+   identity.append(make('span',approved&&live?'cc176-status-approved':'cc176-status-pending',
+      approved?(live?'Autorizado · Membresía vigente':'Permiso guardado · Sin membresía anual vigente'):
       'Sin permiso Súper reseller'));
    row.append(identity);
    const controls=make('div','cc176-approval-controls');
