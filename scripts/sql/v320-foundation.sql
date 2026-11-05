@@ -36,7 +36,7 @@ create function public.cc_refund_cobra_real_subscription(p_access_id uuid,p_refu
  return true;end;$$;
 grant usage on schema public,auth,storage to authenticated,anon,service_role;
 
-create table public.cc_wallet_financial_audit(id bigint,user_id uuid,service text,balance_after numeric,affects_balance boolean);
+create table public.cc_wallet_financial_audit(id bigint generated always as identity primary key,user_id uuid,service text,event_type text,concept text,amount_pen numeric,balance_before numeric,balance_after numeric,reference text,related_payment_ref text,referred_user_id uuid,original_reference text,reason text,affects_balance boolean default true);
 
 create table public.cc_portal_stream_memberships_paid(checkout_key uuid primary key,user_id uuid,amount_pen numeric,ends_at timestamptz,membership_id uuid,subscription_id uuid);
 

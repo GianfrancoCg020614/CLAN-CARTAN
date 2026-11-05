@@ -69,6 +69,10 @@ create trigger finance_rates_immutable before update or delete on cc_internal.fi
 create trigger finance_adjustments_immutable before update or delete on cc_internal.finance_order_adjustments for each row execute function cc_internal.finance_audit_immutable();
 create trigger finance_payments_immutable before update or delete on cc_internal.finance_settlement_payments for each row execute function cc_internal.finance_audit_immutable();
 create or replace function cc_internal.finance_admin() returns boolean language sql stable set search_path='' as $$select (select auth.uid()) is not null and exists(select 1 from public.cc_admins where user_id=(select auth.uid()))$$;
+create or replace function cc_internal.finance_audit_clear() returns void language plpgsql set search_path='' as $$declare k text;begin foreach k in array array['kind','concept','reference','payment','referred','original','reason'] loop perform set_config('cc_audit.'||k,'',true);end loop;end;$$;
+create or replace function cc_internal.finance_set_audit(k text,c text,r text,p text,u uuid,o text,why text) returns void language plpgsql set search_path='' as $$begin
+ perform cc_internal.finance_audit_clear();perform set_config('cc_audit.kind',k,true);perform set_config('cc_audit.concept',c,true);perform set_config('cc_audit.reference',r,true);perform set_config('cc_audit.payment',coalesce(p,''),true);perform set_config('cc_audit.referred',coalesce(u::text,''),true);perform set_config('cc_audit.original',coalesce(o,''),true);perform set_config('cc_audit.reason',coalesce(why,''),true);end;$$;
+revoke all on function cc_internal.finance_audit_clear(),cc_internal.finance_set_audit(text,text,text,text,uuid,text,text) from public,anon,authenticated;
 create or replace function cc_internal.finance_collect_debt(p_user uuid) returns numeric language plpgsql set search_path='' as $$
 #variable_conflict use_column
 declare b cc_internal.finance_referral_bonuses%rowtype;w record;take numeric;remaining numeric;total numeric:=0;begin
@@ -76,14 +80,14 @@ declare b cc_internal.finance_referral_bonuses%rowtype;w record;take numeric;rem
   remaining:=5-b.recovered_pen;
   for w in select * from public.cc_real_service_wallets where user_id=p_user and balance_pen>0 order by service for update loop
    exit when remaining<=0;take:=least(remaining,w.balance_pen);
-   perform set_config('cc_audit.kind','BONUS_REVERSAL',true);perform set_config('cc_audit.reference','V320-BONUS-REV-'||b.payment_id::text,true);
+   perform cc_internal.finance_set_audit('BONUS_REVERSAL','Reversión de bono por mensualidad anulada','V320-BONUS-REV-'||b.payment_id::text,b.payment_id::text,b.referred_id,'V320-BONUS-'||b.payment_id::text,'Reembolso de mensualidad');
    update public.cc_real_service_wallets set balance_pen=balance_pen-take,updated_at=now() where user_id=p_user and service=w.service;
    insert into cc_internal.finance_events(user_id,event,reference,amount_pen) values(p_user,'BONUS_REVERSAL',b.payment_id::text,-take);
    remaining:=remaining-take;total:=total+take;
   end loop;
   update cc_internal.finance_referral_bonuses set recovered_pen=5-remaining,status=case when remaining=0 then 'REVERSED' else 'REVERSAL_PENDING' end,reversed_at=case when remaining=0 then now() else null end where payment_id=b.payment_id;
  end loop;
- perform set_config('cc_audit.kind','',true);perform set_config('cc_audit.reference','',true);return total;
+ perform cc_internal.finance_audit_clear();return total;
 end;$$;
 create or replace function public.cc_finance_rates() returns jsonb language plpgsql stable security definer set search_path='' as $$begin
  if auth.uid() is null then raise exception 'Inicia sesión' using errcode='42501';end if;
@@ -167,13 +171,13 @@ begin
  if inviter is not null then
   insert into cc_internal.finance_referral_bonuses(payment_id,beneficiary_id,referred_id) values(pid,inviter,u);
   insert into public.cc_real_service_wallets(user_id,service,balance_pen) values(inviter,'STREAM_BULLS',0) on conflict(user_id,service) do nothing;
-  perform set_config('cc_audit.kind','BONUS',true);perform set_config('cc_audit.reference','V320-BONUS-'||pid::text,true);perform set_config('cc_audit.referred',u::text,true);
+  perform cc_internal.finance_set_audit('BONUS','Bono recurrente por mensualidad de referido','V320-BONUS-'||pid::text,'MONTH-'||p_request::text,u,null,null);
   update public.cc_real_service_wallets set balance_pen=balance_pen+5,updated_at=now() where user_id=inviter and service='STREAM_BULLS';
   insert into cc_internal.finance_events(actor_id,user_id,event,reference,amount_pen,details) values(u,inviter,'REFERRAL_BONUS',pid::text,5,jsonb_build_object('service',p_service,'referred_id',u,'kind',kind));
   perform cc_internal.finance_collect_debt(inviter);
  end if;
  insert into cc_internal.finance_events(actor_id,user_id,event,reference,amount_pen,details) values(u,u,'MEMBERSHIP_PAYMENT',pid::text,rate.amount_pen,jsonb_build_object('service',p_service,'kind',kind));
- perform set_config('cc_audit.kind','',true);perform set_config('cc_audit.reference','',true);perform set_config('cc_audit.referred','',true);
+ perform cc_internal.finance_audit_clear();
  return jsonb_build_object('payment_id',pid,'service',p_service,'amount_pen',rate.amount_pen,'active_until',finishes,'membership_id',member,'subscription_id',sub,'already_processed',false);
 end;$$;
 -- Compatibilidad: entradas anteriores pasan por la misma operación mensual.
@@ -263,6 +267,7 @@ begin
    'wallet_liability_pen',coalesce((select sum(balance_pen) from public.cc_real_service_wallets),0),
    'audit_balance_difference_pen',(select coalesce(sum(w.balance_pen-coalesce(a.balance_after,0)),0) from public.cc_real_service_wallets w left join lateral(select balance_after from public.cc_wallet_financial_audit where user_id=w.user_id and service=w.service and affects_balance order by id desc limit 1)a on true),
    'membership_income_pen',coalesce((select sum(amount_pen) from cc_internal.finance_membership_payments where status='PAID'),0),
+   'membership_net_before_costs_pen',coalesce((select sum(amount_pen) from cc_internal.finance_membership_payments where status='PAID'),0)-coalesce((select sum(amount_pen-recovered_pen) from cc_internal.finance_referral_bonuses),0),
    'legacy_subscription_spends_pen',coalesce((select sum(s.amount_pen) from public.cc_real_wallet_spends s where s.kind='SUBSCRIPTION' and s.reference not like 'PORTAL-MONTH-%'),0),
    'referral_bonuses_pen',coalesce((select sum(amount_pen-recovered_pen) from cc_internal.finance_referral_bonuses),0),
    'pending_bonus_reversals_pen',coalesce((select sum(5-recovered_pen) from cc_internal.finance_referral_bonuses where status='REVERSAL_PENDING'),0),
@@ -299,7 +304,7 @@ begin
   if exists(select 1 from cc_internal.finance_membership_payments where user_id=payment.user_id and service=payment.service and status='PAID' and period_end>payment.period_end) then raise exception 'Devuelve primero las renovaciones posteriores';end if;
   for sp in select * from public.cc_real_wallet_spends where user_id=payment.user_id and reference like 'PORTAL-MONTH-'||payment.request_id::text||'-%' order by service for update loop
    if exists(select 1 from public.cc_real_wallet_refunds where spend_id=sp.id) then raise exception 'Pago con devolución previa; requiere conciliación';end if;
-   perform set_config('cc_audit.kind','REFUND',true);perform set_config('cc_audit.reference','V320-REF-'||req::text,true);
+   perform cc_internal.finance_set_audit('REFUND','Reembolso de mensualidad','V320-REF-'||req::text,payment.id::text,null,sp.reference,reason);
    update public.cc_real_service_wallets set balance_pen=balance_pen+sp.amount_pen,updated_at=now() where user_id=sp.user_id and service=sp.service;
    insert into public.cc_real_wallet_refunds(spend_id,user_id,service,amount_pen,reference,reason) values(sp.id,sp.user_id,sp.service,sp.amount_pen,'V320-REF-'||req::text||'-'||sp.service,reason);
   end loop;
@@ -312,7 +317,7 @@ begin
   update cc_internal.finance_referral_bonuses set status='REVERSAL_PENDING' where payment_id=payment.id and status='CREDITED' returning beneficiary_id into inviter;
   if inviter is not null then perform cc_internal.finance_collect_debt(inviter);end if;
   insert into cc_internal.finance_events(actor_id,user_id,event,reference,amount_pen,details) values(actor,payment.user_id,'MEMBERSHIP_REFUND',payment.id::text,payment.amount_pen,jsonb_build_object('reason',reason,'request_id',req));
-  perform set_config('cc_audit.kind','',true);perform set_config('cc_audit.reference','',true);
+  perform cc_internal.finance_audit_clear();
   return jsonb_build_object('saved',true);
  elsif p_action='refund_order' then
   if req is null or length(reason) not between 3 and 160 then raise exception 'Referencia y motivo obligatorios';end if;
@@ -332,7 +337,7 @@ begin
   remain:=amount;
   for sp in select s.*,s.amount_pen-coalesce((select sum(amount_pen) from public.cc_real_wallet_refunds where spend_id=s.id),0) available from public.cc_real_wallet_spends s where user_id=o.buyer_id and reference like 'PORTAL-BUY-'||o.checkout_key::text||'-%' order by service for update loop
    exit when remain<=0;take:=least(remain,sp.available);if take<=0 then continue;end if;
-   perform set_config('cc_audit.kind','REFUND',true);perform set_config('cc_audit.reference','V320-ORDER-REF-'||req::text,true);
+   perform cc_internal.finance_set_audit('REFUND','Reembolso de compra STREAM BULL’S','V320-ORDER-REF-'||req::text,o.order_code,null,sp.reference,reason);
    update public.cc_real_service_wallets set balance_pen=balance_pen+take,updated_at=now() where user_id=sp.user_id and service=sp.service;
    insert into public.cc_real_wallet_refunds(spend_id,user_id,service,amount_pen,reference,reason) values(sp.id,sp.user_id,sp.service,take,'V320-ORDER-REF-'||req::text||'-'||sp.service,reason);remain:=remain-take;
   end loop;
@@ -340,7 +345,7 @@ begin
   insert into cc_internal.finance_order_adjustments(request_id,order_id,amount_pen,commission_pen,seller_pen,reason,actor_id) values(req,o.id,amount,fee,amount-fee,reason,actor);
   if refundtotal+amount=o.price_pen then update public.cc_portal_stream_orders set status='REFUNDED' where id=o.id;end if;
   insert into cc_internal.finance_events(actor_id,user_id,event,reference,amount_pen,details) values(actor,o.buyer_id,'ORDER_REFUND',o.order_code,amount,jsonb_build_object('reason',reason,'seller_id',o.seller_id));
-  perform set_config('cc_audit.kind','',true);perform set_config('cc_audit.reference','',true);return jsonb_build_object('saved',true);
+  perform cc_internal.finance_audit_clear();return jsonb_build_object('saved',true);
  elsif p_action='approve_settlement' then
   if req is null then raise exception 'Referencia obligatoria';end if;
   seller:=(p_data->>'seller_id')::uuid;since:=(p_data->>'from')::timestamptz;untilv:=(p_data->>'to')::timestamptz;amount:=(p_data->>'amount_pen')::numeric;
@@ -403,7 +408,7 @@ do $$declare d text;begin
  d:=replace(d,E'begin\n',E'begin\n if exists(select 1 from cc_internal.finance_membership_payments where access_id=p_access_id) then raise exception ''Utiliza el reembolso mensual de ADMIN'';end if;\n');execute d;
  -- Cualquier compra que reutiliza el cargo común respeta la recuperación de bonos anulados.
  select pg_get_functiondef('cc_internal.cc_portal_charge_unified(uuid,numeric,text,text,text)'::regprocedure) into d;
- d:=replace(d,'remaining:=p_amount;', 'perform cc_internal.finance_collect_debt(p_user); select coalesce(sum(balance_pen),0) into available from public.cc_real_service_wallets where user_id=p_user; if available<p_amount then raise exception ''Saldo disponible insuficiente tras reversión de bonos'';end if; remaining:=p_amount;');execute d;
+ d:=replace(d,'remaining:=p_amount;', 'perform cc_internal.finance_collect_debt(p_user); select coalesce(sum(balance_pen),0) into available from public.cc_real_service_wallets where user_id=p_user; if available<p_amount then raise exception ''Saldo disponible insuficiente tras reversión de bonos'';end if; perform cc_internal.finance_set_audit(p_kind,p_description,p_key,p_key,null,null,null); remaining:=p_amount;');d:=replace(d,'return parts;','perform cc_internal.finance_audit_clear(); return parts;');execute d;
 end;$$;
 create or replace function public.cc_finance_wallet() returns jsonb language plpgsql stable security definer set search_path='' as $$declare u uuid:=auth.uid();balance numeric;debt numeric;begin
  if u is null then raise exception 'Inicia sesión' using errcode='42501';end if;

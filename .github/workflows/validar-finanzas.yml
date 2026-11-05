@@ -29,9 +29,10 @@ jobs:
       - name: Base aislada y funciones de producción auditadas
         run: |
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v320-foundation.sql
-          for sql in cc_portal_charge_unified cc_business_access_v316 sb_delivery_is_seller cc_stream_distributor_eligible cc_portal_purchase_stream_product; do
+          for sql in capture_real_wallet_change cc_portal_charge_unified cc_business_access_v316 sb_delivery_is_seller cc_stream_distributor_eligible cc_portal_purchase_stream_product; do
             psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f "supabase/recovery/v320_${sql}.sql"
           done
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v320-audit-trigger.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/queries/v320-finance.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v320-regression.sql
       - name: Dos peticiones concurrentes no duplican cargo ni bono

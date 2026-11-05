@@ -117,4 +117,6 @@ do $$declare b uuid;r jsonb;begin
  r:=public.cc_finance_report('00000000-0000-4000-8000-000000000005',now()-interval '31 days',now()+interval '1 day');
  perform pg_temp.ok((r->'totals'->>'paid_pen')::numeric=100 and (r->>'approval_available_pen')::numeric=30,'Cierre libera remanente y compensa devolución ya pagada');
 end;$$;
+select pg_temp.ok(exists(select 1 from public.cc_wallet_financial_audit where event_type='SUBSCRIPTION' and related_payment_ref like 'MONTH-%' and reference=related_payment_ref),'Auditoría enlaza cargo mensual con su identificador');
+select pg_temp.ok(not exists(select 1 from public.cc_wallet_financial_audit where reference like 'V320-%' and concept like '%por conciliar%'),'Bonos y devoluciones tienen concepto y referencia explícitos');
 rollback;

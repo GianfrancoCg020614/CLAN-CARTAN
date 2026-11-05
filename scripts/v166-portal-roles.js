@@ -1011,7 +1011,7 @@ function personalManualRecharge(page){
  page.append(box);
 }
 function wallet(page){
- title(page,'Billetera única',data.admin?'Supervisión de recargas, bonos y auditoría. No se mezcla dinero recibido con bonos.':'Saldo verificado y movimientos de todos tus negocios, en una sola cuenta.');
+ title(page,'Billetera única',data.admin?'Recargas confirmadas, saldo común y auditoría financiera.':'Saldo verificado y movimientos de todos tus negocios, en una sola cuenta.');
  if(data.admin){
   adminWalletTabs(page);
   if(walletTab==='recharges'){adminRecharges(page);return;}
@@ -1038,14 +1038,14 @@ function wallet(page){
  if(walletTab==='manual'){personalManualRecharge(page);return;}
  if(walletTab==='automatic'){personalAutoRecharge(page);return;}
  if(walletTab==='movements'){movementList(page,120);return;}
- const real=data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0);
+ const real=realBalance();
  const box=make('section','cc167-hero');
  box.append(make('h2','','Saldo real disponible'));
  box.append(make('strong','cc167-balance',verified?price(real):'Consultando…'));
- box.append(make('p','','Las compras utilizan saldo verificado. Los bonos gratuitos se registran por separado.'));
+ box.append(make('p','','El saldo incluye recargas confirmadas y bonos recurrentes por referidos. Puedes usarlo en los cuatro negocios. Los bonos promocionales de activación se muestran aparte.'));
  const actions=make('div','cc167-actions');
  actions.append(button('Recargar',()=>finance('manual'),'cc166-primary'));
- box.append(actions);page.append(box);
+ box.append(actions);if(Number(data.financeWallet?.pending_reversal_pen)>0)box.append(make('p','cc166-note','El disponible ya descuenta '+price(data.financeWallet.pending_reversal_pen)+' por bonos de operaciones anuladas.'));page.append(box);
  const unified=card('Una sola billetera · cuatro negocios',
   'El saldo real disponible se muestra una sola vez, sin repartirlo ni duplicarlo entre plataformas.');
  unified.append(make('p','cc185-unified-explain','STREAM BULL’S · COBRA YA · MI COCHERA · MI ALQUILER'));
