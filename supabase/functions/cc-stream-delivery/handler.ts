@@ -58,7 +58,7 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now(), p
   async function rpc(name, body, jwt, internal = false) {
     const token = internal ? service : jwt;
     const response = await remote(root + '/rest/v1/rpc/' + name, { method: 'POST', headers: { apikey: internal ? service : key, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (!response.ok) throw Error('DATA_UNAVAILABLE');return response.json();
+    if (!response.ok) {let code='';try{const detail=await response.json();if(/^[A-Z0-9]{5,12}$/.test(String(detail.code||'')))code=detail.code;}catch{}const error=Error('DATA_UNAVAILABLE');error.status=response.status;error.code=code;throw error;}return response.json();
   }
   const serviceCall = (action, data) => rpc(paymentMode?'cc_recharge_mail_service':'cc_stream_delivery_service', { p_action: action, p_data: data }, '', true);
   async function user(request) {
@@ -140,7 +140,7 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now(), p
         const token=(request.headers.get('Authorization')||'').match(/^Bearer ([a-f0-9]{64})$/i)?.[1];
         if(!token||typeof paymentScanner!=='function')return json({error:'AUTH_REQUIRED'},401);
         const run=crypto.randomUUID();let batch;
-        try{batch=await rpc('cc_recharge_schedule_service',{p_action:'claim',p_data:{secret_hash:await hash(token),run_id:run}},'',true);}catch{return json({error:'AUTH_REQUIRED'},401);}
+        try{batch=await rpc('cc_recharge_schedule_service',{p_action:'claim',p_data:{secret_hash:await hash(token),run_id:run}},'',true);}catch(e){return e.status===401||e.status===403||e.code==='42501'?json({error:'AUTH_REQUIRED'},401):json({error:'SCHEDULER_UNAVAILABLE'},503);}
         if(batch.status!=='READY')return json({status:batch.status,credited:0});
         let examined=0,detected=0,failed=0;const jobs=(batch.jobs||[]).slice(0,1);
         for(const job of jobs){try{

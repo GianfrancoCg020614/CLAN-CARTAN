@@ -13,3 +13,5 @@ Pruebas: SQL aislado para permisos, secreto falso, exclusión concurrente, pausa
 Pendientes del titular: crear/configurar una aplicación OAuth Google o Microsoft y autorizar el correo; validar formatos reales; disponer de confirmación oficial de pagos personales y una referencia inequívoca por REC. El correo nunca acredita saldo por sí solo. Guía: https://www.clancartan.com/recargas-configuracion.html.
 
 Migraciones iniciales aplicadas: 20261105130549_v322_scheduled_deposit_notices.sql y 20261105131144_v322_private_worker_dispatch.sql. Migración de retirada del job: 20261105131514_v322_remove_legacy_poll_job.sql. Backend final preparado para reflejar espera sin simular consultas.
+
+Validación del primer ciclo: Cloudflare requiere redirect:manual y rechazo explícito de 3xx; PostgREST requiere WHERE singleton en las actualizaciones del estado. Ambos contratos quedan cubiertos por regresiones. Migración de compatibilidad: 20261105134223_v322_scheduler_safe_updates.sql.
