@@ -16,20 +16,20 @@ export function parseDepositNotice(message,allowedSenders){
 }
 function textBody(payload){if(!payload)return '';if(payload.mimeType==='text/plain'){try{const raw=atob(String(payload.body?.data||'').replace(/-/g,'+').replace(/_/g,'/'));return new TextDecoder().decode(Uint8Array.from(raw,c=>c.charCodeAt(0)));}catch{return '';}}return(payload.parts||[]).filter(p=>p.mimeType==='text/plain').map(textBody).join('\n');}
 export async function scanPaymentNotices({context,token,remote,clock=Date.now}){
- const senders=context.allowed_senders;if(senders.length>10||senders.some(v=>! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v)))throw Error('INVALID_SENDERS');
+ const limit=Math.min(10,Math.max(1,Number(context.page_size)||10));const senders=context.allowed_senders;if(senders.length>10||senders.some(v=>! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v)))throw Error('INVALID_SENDERS');
  const headers={Authorization:'Bearer '+token};const events=[];let cursor=null,examined=0;
  const check=r=>{if(r.status===401||r.status===403)throw Error('MAIL_REAUTH_REQUIRED');if(!r.ok)throw Error('MAIL_SCAN_UNAVAILABLE');};
  if(context.provider==='google'){
   const query='in:inbox {'+senders.map(s=>'from:'+s).join(' ')+'} after:'+Math.floor(Date.parse(context.after)/1000);
-  const list=await remote('https://gmail.googleapis.com/gmail/v1/users/me/messages?'+new URLSearchParams({q:query,maxResults:'10',fields:'messages(id),nextPageToken',...(context.cursor?{pageToken:context.cursor}:{})}),{headers});check(list);const data=await list.json();cursor=data.nextPageToken||null;
-  for(const m of(data.messages||[]).slice(0,10)){const response=await remote('https://gmail.googleapis.com/gmail/v1/users/me/messages/'+encodeURIComponent(m.id)+'?'+new URLSearchParams({format:'full',fields:'id,internalDate,payload(mimeType,headers(name,value),body(data,size),parts(mimeType,body(data,size)))'}),{headers});check(response);const v=await response.json();examined++;const h=name=>(v.payload?.headers||[]).find(x=>x.name.toLowerCase()===name)?.value||'';
+  const list=await remote('https://gmail.googleapis.com/gmail/v1/users/me/messages?'+new URLSearchParams({q:query,maxResults:String(limit),fields:'messages(id),nextPageToken',...(context.cursor?{pageToken:context.cursor}:{})}),{headers});check(list);const data=await list.json();cursor=data.nextPageToken||null;
+  for(const m of(data.messages||[]).slice(0,limit)){const response=await remote('https://gmail.googleapis.com/gmail/v1/users/me/messages/'+encodeURIComponent(m.id)+'?'+new URLSearchParams({format:'full',fields:'id,internalDate,payload(mimeType,headers(name,value),body(data,size),parts(mimeType,body(data,size)))'}),{headers});check(response);const v=await response.json();examined++;const h=name=>(v.payload?.headers||[]).find(x=>x.name.toLowerCase()===name)?.value||'';
    const event=parseDepositNotice({id:v.id,from:h('from'),subject:h('subject'),text:textBody(v.payload),authentication:h('authentication-results'),received_at:new Date(Number(v.internalDate)||clock()).toISOString()},senders);if(event)events.push(event);}
  }else if(context.provider==='microsoft'){
   const after=new Date(context.after).toISOString(),filter='receivedDateTime ge '+after+' and ('+senders.map(s=>"from/emailAddress/address eq '"+s+"'").join(' or ')+')';
-  let url='https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?'+new URLSearchParams({'$filter':filter,'$top':'10','$orderby':'receivedDateTime desc','$select':'id,from,subject,body,receivedDateTime,internetMessageHeaders'});
+  let url='https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?'+new URLSearchParams({'$filter':filter,'$top':String(limit),'$orderby':'receivedDateTime desc','$select':'id,from,subject,body,receivedDateTime,internetMessageHeaders'});
   if(context.cursor){const next=new URL(context.cursor);if(next.origin!=='https://graph.microsoft.com'||!next.pathname.startsWith('/v1.0/me/mailFolders/'))throw Error('INVALID_CURSOR');url=next.href;}
   const response=await remote(url,{headers:{...headers,Prefer:'outlook.body-content-type="text"'}});check(response);const data=await response.json();cursor=data['@odata.nextLink']||null;
-  for(const v of(data.value||[]).slice(0,10)){examined++;if(String(v.body?.contentType).toLowerCase()!=='text')continue;const event=parseDepositNotice({id:v.id,from:v.from?.emailAddress?.address,subject:v.subject,text:v.body.content,authentication:(v.internetMessageHeaders||[]).find(x=>x.name.toLowerCase()==='authentication-results')?.value,received_at:v.receivedDateTime},senders);if(event)events.push(event);}
+  for(const v of(data.value||[]).slice(0,limit)){examined++;if(String(v.body?.contentType).toLowerCase()!=='text')continue;const event=parseDepositNotice({id:v.id,from:v.from?.emailAddress?.address,subject:v.subject,text:v.body.content,authentication:(v.internetMessageHeaders||[]).find(x=>x.name.toLowerCase()==='authentication-results')?.value,received_at:v.receivedDateTime},senders);if(event)events.push(event);}
  }else throw Error('INVALID_PROVIDER');
  return {events,cursor,examined};
 }
