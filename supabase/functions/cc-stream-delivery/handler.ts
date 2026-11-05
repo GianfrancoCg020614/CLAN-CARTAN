@@ -49,9 +49,9 @@ function messageText(payload) {
   if (payload.mimeType === 'text/plain' || !payload.mimeType && payload.body?.data) return plainBase64(payload.body?.data || '');
   return (payload.parts || []).filter(p => p.mimeType === 'text/plain').map(p => plainBase64(p.body?.data || '')).join('\n');
 }
-export function createHandler({env, fetcher = fetch, clock = () => Date.now()}) {
+export function createHandler({env, fetcher = fetch, clock = () => Date.now(), paymentMode = false, paymentScanner = null}) {
   const root = env('SUPABASE_URL'), key = env('SUPABASE_ANON_KEY'), service = env('SUPABASE_SERVICE_ROLE_KEY');
-  const callback = root + '/functions/v1/cc-stream-delivery/oauth/';
+  const callback = root + '/functions/v1/'+(paymentMode?'cc-recharge-mail':'cc-stream-delivery')+'/oauth/';
   async function remote(url, options = {}) {
     return fetcher(url, { ...options, redirect: 'error', signal: AbortSignal.timeout(6500) });
   }
@@ -60,13 +60,13 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now()}) 
     const response = await remote(root + '/rest/v1/rpc/' + name, { method: 'POST', headers: { apikey: internal ? service : key, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!response.ok) throw Error('DATA_UNAVAILABLE');return response.json();
   }
-  const serviceCall = (action, data) => rpc('cc_stream_delivery_service', { p_action: action, p_data: data }, '', true);
+  const serviceCall = (action, data) => rpc(paymentMode?'cc_recharge_mail_service':'cc_stream_delivery_service', { p_action: action, p_data: data }, '', true);
   async function user(request) {
     const match = (request.headers.get('Authorization') || '').match(/^Bearer (\S+)$/i); if (!match) throw Error('AUTH_REQUIRED');
     const response = await remote(root + '/auth/v1/user', { headers: { apikey: key, Authorization: 'Bearer ' + match[1] } });
     if (!response.ok) throw Error('AUTH_REQUIRED');const account = await response.json();if (!account?.id) throw Error('AUTH_REQUIRED');return { id: account.id, jwt: match[1] };
   }
-  async function seller(account) { await rpc('cc_stream_delivery_manage', { p_action: 'overview', p_data: {} }, account.jwt); }
+  async function seller(account) { await rpc(paymentMode?'cc_recharge_admin':'cc_stream_delivery_manage', { p_action: 'overview', p_data: {} }, account.jwt); }
   async function oauthToken(provider, params) {
     const {id, secret} = credentials(provider, env);if (!id || !secret) throw Error('OAUTH_NOT_CONFIGURED');
     const response = await remote(tokenURL(provider, env), { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ ...params, client_id: id, client_secret: secret }) });
@@ -79,7 +79,7 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now()}) 
     const renewed = await oauthToken(context.provider, { grant_type: 'refresh_token', refresh_token: current.refresh_token, ...(context.provider === 'microsoft' ? { scope: scopes.microsoft } : {}) });
     const scope = renewed.scope || current.scope;validateScopes(context.provider, scope);
     const tokens = { access_token: renewed.access_token, refresh_token: renewed.refresh_token || current.refresh_token, expires_at: new Date(clock() + Math.max(60, Math.min(86400, Number(renewed.expires_in) || 3600)) * 1000).toISOString(), scope };
-    const result = await serviceCall('mail_tokens', { actor_id: actor, request_id: requestId, tokens });if (!result.saved) throw Error('MAIL_REAUTH_REQUIRED');return tokens.access_token;
+    const result = await serviceCall('mail_tokens', { actor_id: actor, ...(paymentMode?{connection_id:requestId}:{request_id:requestId}), tokens });if (!result.saved) throw Error('MAIL_REAUTH_REQUIRED');return tokens.access_token;
   }
   async function findCommercial(context, token) {
     const authorization = { Authorization: 'Bearer ' + token };
@@ -105,7 +105,7 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now()}) 
     return null;
   }
   function callbackHTML(ok, origin) {
-    const message = JSON.stringify({ type: 'cc318-mail-result', ok });
+    const message = JSON.stringify({ type: paymentMode?'cc321-mail-result':'cc318-mail-result', ok });
     return new Response('<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CLAN CARTAN · Correo</title><p>' + (ok ? 'Correo conectado. Puedes volver a CLAN CARTAN.' : 'No se pudo completar la conexión. Regresa a CLAN CARTAN y vuelve a intentarlo.') + '</p><a href="https://www.clancartan.com/?cc_mail=return">Volver a CLAN CARTAN</a><script>if(window.opener){window.opener.postMessage(' + message + ',"https://www.clancartan.com");window.close();}</script></html>', { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'" } });
   }
   return async function handle(request) {
@@ -137,7 +137,20 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now()}) 
       const account = await user(request);
       const raw = await request.text();if (raw.length > 4096) return json({ error: 'REQUEST_TOO_LARGE' }, 413);
       let body;try { body = JSON.parse(raw); } catch { return json({ error: 'INVALID_REQUEST' }, 400); }
-      if (body.action === 'lookup') {
+      if(paymentMode&&body.action==='methods_status'){
+        const configured=env('CC_BINANCE_MERCHANT_ENABLED')==='true'&&['BINANCE_PAY_API_KEY','BINANCE_PAY_SECRET_KEY','BINANCE_MERCHANT_ID','BINANCE_WEBHOOK_PUBLIC_KEY_PEM','BINANCE_WEBHOOK_CERT_SN'].every(k=>!!env(k));
+        return json({binance_merchant:{enabled:configured,min_pen:1,max_pen:10},lemon:{enabled:false},personal_automatic:{enabled:false},notice:'Un QR personal o un correo no confirman una recarga ni identifican al titular.'});
+      }
+      if(paymentMode&&body.action==='scan_deposits'){
+        await seller(account);if(typeof paymentScanner!=='function'||! /^[a-f0-9-]{36}$/i.test(String(body.connection_id)))return json({error:'INVALID_REQUEST'},400);
+        const context=await serviceCall('mail_scan_context',{actor_id:account.id,connection_id:body.connection_id});if(context.status!=='READY')return json({error:'MAIL_DISCONNECTED'},409);
+        if(!Array.isArray(context.allowed_senders)||!context.allowed_senders.length)return json({error:'ALLOWED_SENDERS_REQUIRED'},400);
+        try{const token=await getAccess(context,account.id,body.connection_id);const scan=await paymentScanner({context,token,remote,clock});let recorded=0;
+          for(const event of scan.events){const r=await serviceCall('mail_notice',{actor_id:account.id,connection_id:body.connection_id,...event});if(r.recorded)recorded++;}
+          await serviceCall('mail_scan_done',{actor_id:account.id,connection_id:body.connection_id,cursor:scan.cursor||null});return json({detected:recorded,examined:scan.examined,has_more:!!scan.cursor,credited:0,notice:'Avisos sin confirmación transaccional. Ninguna billetera se modificó.'});
+        }catch(e){if(e.message==='MAIL_REAUTH_REQUIRED')await serviceCall('mail_reauth',{actor_id:account.id,connection_id:body.connection_id});return json({error:e.message==='MAIL_REAUTH_REQUIRED'?'MAIL_REAUTH_REQUIRED':'MAIL_SCAN_UNAVAILABLE'},409);}
+      }
+      if (!paymentMode&&body.action === 'lookup') {
         const order = String(body.order_code || '').trim().toUpperCase();if (!ORDER.test(order)) return json({ status: 'DENIED' });
         const result = await rpc('cc_stream_delivery_lookup', { p_order_code: order }, account.jwt);
         if (result.status !== 'AUTOMATIC_PENDING') return json(result);
@@ -156,7 +169,7 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now()}) 
         }
       }
       if (['oauth_status', 'oauth_start', 'oauth_disconnect'].includes(body.action)) {
-        if (body.action === 'oauth_status') { const capabilities=await rpc('cc_stream_mail_capabilities',{},account.jwt);return json({ ...capabilities,providers: Object.fromEntries(['google', 'microsoft'].map(p => { const c = credentials(p, env);return [p, { configured: !!(c.id && c.secret) }]; })) });}
+        if (body.action === 'oauth_status') { const capabilities=await rpc(paymentMode?'cc_recharge_mail_capabilities':'cc_stream_mail_capabilities',{},account.jwt);return json({ ...capabilities,providers: Object.fromEntries(['google', 'microsoft'].map(p => { const c = credentials(p, env);return [p, { configured: !!(c.id && c.secret) }]; })) });}
         if (body.action === 'oauth_disconnect') {
           if (!/^[a-f0-9-]{36}$/i.test(String(body.connection_id))) return json({ error: 'INVALID_REQUEST' }, 400);
           const context = await serviceCall('mail_for_disconnect', { actor_id: account.id, connection_id: body.connection_id });
@@ -166,7 +179,7 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now()}) 
         await seller(account);
         const provider = validProvider(body.provider), { id, secret } = credentials(provider, env);
         if (!id || !secret) return json({ error: 'OAUTH_NOT_CONFIGURED', provider }, 503);
-        if (body.dedicated_mailbox !== true) return json({ error: 'DEDICATED_MAILBOX_REQUIRED' }, 400);
+        if ((paymentMode?body.notification_mailbox:body.dedicated_mailbox) !== true) return json({ error: 'DEDICATED_MAILBOX_REQUIRED' }, 400);
         const verifier = base64url(crypto.getRandomValues(new Uint8Array(48))), state = base64url(crypto.getRandomValues(new Uint8Array(32)));
         const challenge = base64url(await crypto.subtle.digest('SHA-256', encoder.encode(verifier)));
         await serviceCall('oauth_start', { actor_id: account.id, provider, verifier, state_hash: await hash(state) });

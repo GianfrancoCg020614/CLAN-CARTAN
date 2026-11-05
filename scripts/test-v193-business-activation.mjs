@@ -12,7 +12,7 @@ new vm.Script(js);
 assert.match(js,/function memberships\(page\)/);
 assert.match(js,/function businessPayButtons\(box,code,active\)/);
 assert.match(js,/async function activateBusiness\(code,b\)/);
-assert.match(js,/businessMonthlyPrice=20/);
+assert.match(js,/businessMonthlyPrice=15/);
 for(const code of ['COBRA_YA','MI_COCHERA','MI_ALQUILER'])assert.ok(js.includes(code));
 assert.match(js,/Activar o renovar/);
 assert.match(js,/window\.confirm\('¿Pagar '\+price\(cost\)/);
