@@ -150,7 +150,7 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now(), p
           await serviceCall('mail_scan_done',{...job,cursor:scan.cursor||null});
         }catch(e){failed++;if(e.message==='MAIL_REAUTH_REQUIRED')try{await serviceCall('mail_reauth',job);}catch{}}}
         await rpc('cc_recharge_schedule_service',{p_action:'finish',p_data:{run_id:run,examined,detected,failed,jobs:jobs.length}},'',true);
-        return json({status:failed?'ERROR':'SUCCESS',examined,detected,failed,credited:0});
+        return json({status:failed?'ERROR':jobs.length?'SUCCESS':'WAITING_FOR_MAILBOX',examined,detected,failed,credited:0});
       }
       const account = await user(request);
       if(paymentMode&&body.action==='methods_status'){

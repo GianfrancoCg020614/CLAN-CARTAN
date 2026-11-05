@@ -15,3 +15,5 @@ Pendientes externos ya conocidos: el propietario no tiene aplicaciones OAuth Goo
 Migración aplicada: 20261105124920_v321_recharge_rec_and_reconciliation.sql. Backend cc-recharge-mail v1 y cc-stream-delivery v4 desplegados. No se realizaron operaciones financieras de prueba en producción. Billeteras y periodos anteriores verificados sin cambios.
 
 Pruebas: regresión SQL aislada, aprobaciones concurrentes de un REC, colisión de la misma referencia entre dos titulares, 27 pruebas de entregas ORD, 10 pruebas de avisos/correo y fixtures móviles. El sondeo de correo es a petición de ADMIN; no existe una tarea programada activa. La confirmación de pagos personales y su asociación automática siguen pendientes de una integración autorizada y configuración real.
+
+Actualización: el sondeo programado se incorpora en V322 mediante un Worker privado de Cloudflare; consultar docs/V322-SONDEO-CORREOS.md. Los requisitos OAuth y de confirmación personal siguen pendientes.

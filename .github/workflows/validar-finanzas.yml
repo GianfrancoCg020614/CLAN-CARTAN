@@ -57,8 +57,11 @@ jobs:
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261105124920_v321_recharge_rec_and_reconciliation.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v321-regression.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v322-scheduler-fixture.sql
-          sed '/^create extension if not exists pg_cron/d; /^create extension if not exists pg_net/d' supabase/queries/v322-mail-scheduler.sql | psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1
+          sed '/^create extension if not exists pg_cron/d; /^create extension if not exists pg_net/d' supabase/migrations/20261105130549_v322_scheduled_deposit_notices.sql | psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v322-scheduler-regression.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261105131144_v322_private_worker_dispatch.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261105131514_v322_remove_legacy_poll_job.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v322-private-worker-regression.sql
           bash scripts/test-v321-concurrency.sh
       - uses: actions/setup-node@v4
         with:
@@ -67,3 +70,4 @@ jobs:
         run: |
           node scripts/test-v321-payment-notices.mjs
           node scripts/test-v322-scheduler.mjs
+          node scripts/test-v322-worker.mjs
