@@ -1,0 +1,38 @@
+name: Validar finanzas CLAN CARTAN
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  finance-sql:
+    name: Finanzas · transacciones, bonos y liquidaciones
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-fixture-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: ci-fixture-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Base aislada y funciones de producción auditadas
+        run: |
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v320-foundation.sql
+          for sql in cc_portal_charge_unified cc_business_access_v316 cc_stream_distributor_eligible cc_portal_purchase_stream_product; do
+            psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f "supabase/recovery/v320_${sql}.sql"
+          done
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/queries/v320-finance.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v320-regression.sql
+      - name: Dos peticiones concurrentes no duplican cargo ni bono
+        run: bash scripts/test-v320-concurrency.sh
