@@ -1678,7 +1678,7 @@ function adminAccountRow(person){
   const inner=make('div','cc180-role-form');
   inner.append(make('strong','',isApproved?(paid?'Súper reseller autorizado':'Permiso guardado · membresía no vigente'):pendingSuper?'Solicitud Súper reseller pendiente':roleLabel(accountRole(person))));
   inner.append(make('small','',paid?'Plan STREAM BULL’S membresía pagada hasta '+trialDate(person.paid_until):
-    'La membresía pagada todavía no figura pagada. No se puede activar Súper reseller.'));
+    'El pago de la membresía todavía no está confirmado. No se puede activar Súper reseller.'));
   if(isApproved||pendingSuper){
    const downgrade=button('Retirar permiso Súper reseller',()=>void adminSetSuper(person,false,20,downgrade),'cc166-secondary cc171-small');
    inner.append(downgrade);
@@ -1701,7 +1701,7 @@ function adminApprovals(page){
  if(!data.admin)return overview(page);
  if(adminAccountsState==='idle')void loadAdminAccounts();
  title(page,'Autorizaciones · Súper reseller',
-  'ADMIN concede o revoca permisos de publicación en STREAM BULL’S. Reseller se activa automáticamente al pagar su membresía pagada.');
+  'ADMIN concede o revoca permisos de publicación en STREAM BULL’S. Reseller se activa automáticamente al pagar su membresía.');
  const guide=make('section','cc176-approval-intro');
  guide.append(make('strong','','Regla comercial'));
  guide.append(make('p','','Una autorización es distinta al pago: el usuario autorizado debe mantener su membresía pagada de STREAM BULL’S vigente para publicar. Aquí no se cobran membresías ni se activa a los resellers.'));
@@ -2208,6 +2208,7 @@ function init(){
  .observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','hidden']});
  document.addEventListener('click',e=>{if(e.target.closest?.('#cc54logout'))reset();},true);
  document.addEventListener('cc192-session-ready',()=>{sync();if(window.cc318CodeIntent&&app){window.cc318CodeIntent=false;app.hidden=false;nav('codes');}});
+ document.addEventListener('cc320-ready',()=>{if(['finance','referrals'].includes(view))render();});
  document.addEventListener('cc318-ready',()=>{if(window.cc318CodeIntent&&app){window.cc318CodeIntent=false;app.hidden=false;nav('codes');}else if(['codes','delivery','mailboxes','delivery-requests','delivery-admin'].includes(view))render();});
  document.addEventListener('cc192-session-refreshed',()=>sync());
  document.addEventListener('cc192-session-ended',()=>reset());

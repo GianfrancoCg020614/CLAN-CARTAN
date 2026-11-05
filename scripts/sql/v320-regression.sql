@@ -89,6 +89,8 @@ select public.cc_portal_purchase_stream_product('30000000-0000-4000-8000-0000000
 select public.cc_portal_purchase_stream_product('30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000002',100);
 select pg_temp.ok((select count(*)=1 from public.cc_portal_stream_orders where checkout_key='50000000-0000-4000-8000-000000000002' and admin_percent=30 and admin_fee_pen=30 and seller_payable_pen=70),'Compra real idempotente toma nueva comisión 30/70');
 select pg_temp.ok((select count(*)=6 from cc_internal.finance_referral_bonuses),'Comprar un producto no genera bono de membresía');
+select pg_temp.ok(cc_internal.sb_delivery_is_seller('00000000-0000-4000-8000-000000000005'),'Proveedor mensual conserva permisos de cuentas y correos');
+select pg_temp.ok(exists(select 1 from jsonb_array_elements(cc_internal.cc_business_access_v316('00000000-0000-4000-8000-000000000002')) r where r->>'service'='STREAM_BULLS' and r->>'status'='ACTIVE'),'Rol por plataforma reconoce mensualidad STREAM');
 -- Bono gastado: deuda explícita, disponible neto y recuperación antes de una nueva mensualidad.
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',true);
 update public.cc_real_service_wallets set balance_pen=0 where user_id='00000000-0000-4000-8000-000000000003';
@@ -102,4 +104,17 @@ select pg_temp.ok((select sum(balance_pen)=0 from public.cc_real_service_wallets
 select pg_temp.ok((select count(*)=0 from cc_internal.finance_referral_bonuses where status='REVERSAL_PENDING'),'Reversión recuperada se cierra');
 -- Las rutas antiguas sin precio/duración explícitos no pueden cobrar una tarifa diferente.
 do $$begin begin perform public.mc_activate_real_wallet_v193('10000000-0000-4000-8000-000000000040');raise exception 'FAIL legacy amountless';exception when others then if sqlerrm='FAIL legacy amountless' then raise;end if;end;end;$$;
+-- Cerrar un pago parcial libera solo el remanente, conserva el dinero ya pagado.
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',true);
+update public.cc_portal_stream_orders set status='FULFILLED' where checkout_key='50000000-0000-4000-8000-000000000002';
+select public.cc_finance_admin('approve_settlement',jsonb_build_object('request_id','60000000-0000-4000-8000-000000000002','seller_id','00000000-0000-4000-8000-000000000005','from',now()-interval '31 days','to',now()+interval '1 day','amount_pen',50));
+insert into storage.objects(bucket_id,name) values('cc-financial-proofs','00000000-0000-4000-8000-000000000001/proof3.pdf');
+do $$declare b uuid;r jsonb;begin
+ select id into b from cc_internal.finance_settlements where request_id='60000000-0000-4000-8000-000000000002';
+ perform public.cc_finance_admin('record_payment',jsonb_build_object('request_id','70000000-0000-4000-8000-000000000004','settlement_id',b,'amount_pen',20,'method','YAPE','reference','TEST-004','proof_path','00000000-0000-4000-8000-000000000001/proof3.pdf'));
+ perform public.cc_finance_admin('close_settlement',jsonb_build_object('settlement_id',b,'reason','Cierre parcial ficticio'));
+ perform pg_temp.ok((select status='CLOSED' from cc_internal.finance_settlements where id=b),'Cierre parcial conserva estado separado');
+ r:=public.cc_finance_report('00000000-0000-4000-8000-000000000005',now()-interval '31 days',now()+interval '1 day');
+ perform pg_temp.ok((r->'totals'->>'paid_pen')::numeric=100 and (r->>'approval_available_pen')::numeric=30,'Cierre libera remanente y compensa devolución ya pagada');
+end;$$;
 rollback;

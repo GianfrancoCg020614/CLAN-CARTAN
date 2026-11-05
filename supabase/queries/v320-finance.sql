@@ -38,7 +38,7 @@ create index finance_order_adjustments_order on cc_internal.finance_order_adjust
 create table cc_internal.finance_settlements(
  id uuid primary key default gen_random_uuid(),request_id uuid not null unique,seller_id uuid not null references auth.users(id),
  starts_at timestamptz not null,ends_at timestamptz not null,amount_pen numeric(14,2) not null check(amount_pen>0),
- approved_by uuid not null references auth.users(id),status text not null default 'APPROVED' check(status in ('APPROVED','PARTIAL','PAID','CANCELLED')),
+ approved_by uuid not null references auth.users(id),status text not null default 'APPROVED' check(status in ('APPROVED','PARTIAL','PAID','CANCELLED','CLOSED')),
  created_at timestamptz not null default now(),check(ends_at>starts_at)
 );
 create index finance_settlements_seller on cc_internal.finance_settlements(seller_id,created_at desc);
@@ -191,7 +191,7 @@ create or replace function public.cc_pay_cobra_subscription_real() returns uuid 
 -- Se conservan los planes anuales y periodos ya pagados; se añade reconocimiento del mensual.
 do $$declare f record;d text;begin
  for f in select p.oid from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname in('public','cc_internal') and p.proname in('cc_portal_admin_set_super_reseller','cc_portal_admin_accounts_v2','cc_business_access_v316','sb_delivery_is_seller') loop
-  d:=pg_get_functiondef(f.oid);d:=regexp_replace(d,'([a-z_]+\.code)\s*=\s*''STREAM_365''','\1 in (''STREAM_365'',''STREAM_MONTHLY'')','g');d:=replace(d,'Primero debe pagar y activar el plan anual STREAM_365','Primero debe pagar una membresía STREAM BULL’S vigente');execute d;
+  d:=pg_get_functiondef(f.oid);d:=regexp_replace(d,'([a-z_]+\.code)\s*=\s*''STREAM_365''','\1 in (''STREAM_365'',''STREAM_MONTHLY'')','g');d:=replace(d,'Primero debe pagar y activar el plan anual STREAM_365','Primero debe pagar una membresía STREAM BULL’S vigente');d:=replace(d,'anual pagado hasta','membresía pagada hasta');d:=replace(d,'anual pendiente o vencido','membresía pendiente o vencida');execute d;
  end loop;
 end;$$;
 create or replace function cc_internal.finance_commission_history() returns trigger language plpgsql security definer set search_path='' as $$begin
@@ -206,12 +206,16 @@ create or replace function cc_internal.finance_order_price_snapshot() returns tr
 create trigger finance_order_price before insert on public.cc_portal_stream_orders for each row execute function cc_internal.finance_order_price_snapshot();
 revoke all on function cc_internal.finance_order_price_snapshot() from public,anon,authenticated;
 
+create or replace function cc_internal.finance_reserved_order(p_order uuid) returns numeric language sql stable set search_path='' as $$
+ select coalesce(sum(case when b.status='CLOSED' then least(l.amount_pen,greatest(coalesce((select sum(amount_pen) from cc_internal.finance_settlement_payments where settlement_id=b.id),0)-coalesce((select sum(amount_pen) from cc_internal.finance_settlement_lines where settlement_id=b.id and order_id<l.order_id),0),0)) else l.amount_pen end),0)
+ from cc_internal.finance_settlement_lines l join cc_internal.finance_settlements b on b.id=l.settlement_id where l.order_id=p_order and b.status<>'CANCELLED';$$;
+revoke all on function cc_internal.finance_reserved_order(uuid) from public,anon,authenticated;
 -- Informe único; las recargas no participan en ventas ni en liquidaciones.
 create or replace function cc_internal.finance_sales(p_seller uuid,p_from timestamptz,p_to timestamptz) returns jsonb language sql stable set search_path='' as $$
  with adjustments as(select order_id,sum(amount_pen) refund,sum(commission_pen) fee,sum(seller_pen) supplier from cc_internal.finance_order_adjustments group by order_id),
  batches as(select b.id,b.status,b.amount_pen,coalesce((select sum(p.amount_pen) from cc_internal.finance_settlement_payments p where p.settlement_id=b.id),0) paid from cc_internal.finance_settlements b where b.seller_id=p_seller and b.status<>'CANCELLED'),
  allocated as(select l.order_id,l.amount_pen,least(l.amount_pen,greatest(b.paid-coalesce(sum(l.amount_pen) over(partition by b.id order by l.order_id rows between unbounded preceding and 1 preceding),0),0)) paid from cc_internal.finance_settlement_lines l join batches b on b.id=l.settlement_id),
- allocations as(select order_id,sum(amount_pen) reserved,sum(paid) paid from allocated group by order_id),
+ allocations as(select order_id,cc_internal.finance_reserved_order(order_id) reserved,sum(paid) paid from allocated group by order_id),
  sales as(select o.*,coalesce(a.refund,0) refund,coalesce(a.fee,0) refunded_fee,coalesce(a.supplier,0) refunded_supplier,coalesce(l.reserved,0) reserved,coalesce(l.paid,0) paid,
   case when o.status in('FULFILLED','PAID_AWAITING_DELIVERY') then o.seller_payable_pen-coalesce(a.supplier,0) else 0 end net_supplier,
   case when o.status in('FULFILLED','PAID_AWAITING_DELIVERY') then o.admin_fee_pen-coalesce(a.fee,0) else 0 end net_fee
@@ -349,7 +353,7 @@ begin
   if amount is null or amount<=0 or amount<>round(amount,2) or amount>(report->>'approval_available_pen')::numeric then raise exception 'Importe no disponible. Actualiza el reporte';end if;
   insert into cc_internal.finance_settlements(request_id,seller_id,starts_at,ends_at,amount_pen,approved_by) values(req,seller,since,untilv,amount,actor) returning id into bid;
   remain:=amount;
-  for line in select o.id,o.seller_payable_pen-coalesce((select sum(seller_pen) from cc_internal.finance_order_adjustments where order_id=o.id),0)-coalesce((select sum(l.amount_pen) from cc_internal.finance_settlement_lines l join cc_internal.finance_settlements b on b.id=l.settlement_id where l.order_id=o.id and b.status<>'CANCELLED'),0) available from public.cc_portal_stream_orders o where o.seller_id=seller and o.status='FULFILLED' and o.created_at>=since and o.created_at<untilv order by o.created_at,o.id for update loop
+  for line in select o.id,o.seller_payable_pen-coalesce((select sum(seller_pen) from cc_internal.finance_order_adjustments where order_id=o.id),0)-cc_internal.finance_reserved_order(o.id) available from public.cc_portal_stream_orders o where o.seller_id=seller and o.status='FULFILLED' and o.created_at>=since and o.created_at<untilv order by o.created_at,o.id for update loop
    exit when remain<=0;take:=least(remain,line.available);if take<=0 then continue;end if;
    insert into cc_internal.finance_settlement_lines(settlement_id,order_id,amount_pen) values(bid,line.id,take);remain:=remain-take;
   end loop;
@@ -358,7 +362,7 @@ begin
   return jsonb_build_object('id',bid,'saved',true);
  elsif p_action='record_payment' then
   if req is null then raise exception 'Referencia obligatoria';end if;
-  bid:=(p_data->>'settlement_id')::uuid;amount:=(p_data->>'amount_pen')::numeric;method:=p_data->>'method';ref:=upper(trim(p_data->>'reference'));proof:=p_data->>'proof_path';
+  bid:=(p_data->>'settlement_id')::uuid;amount:=(p_data->>'amount_pen')::numeric;method:=p_data->>'method';ref:=regexp_replace(upper(trim(p_data->>'reference')),'[^A-Z0-9]','','g');proof:=p_data->>'proof_path';
   select * into r from cc_internal.finance_settlement_payments where request_id=req;
   if found then
    if r.settlement_id<>bid or r.amount_pen is distinct from amount or r.method<>method or r.reference<>ref or r.proof_path<>proof then raise exception 'Referencia utilizada con otros datos';end if;
@@ -373,12 +377,13 @@ begin
   insert into cc_internal.finance_settlement_payments(request_id,settlement_id,amount_pen,method,reference,proof_path,actor_id) values(req,bid,amount,method,ref,proof,actor);
   update cc_internal.finance_settlements set status=case when take+amount=amount_pen then 'PAID' else 'PARTIAL' end where id=bid;
   insert into cc_internal.finance_events(actor_id,user_id,event,reference,amount_pen,details) values(actor,b.seller_id,'SETTLEMENT_PAID',bid::text,amount,jsonb_build_object('method',method,'reference',ref));return jsonb_build_object('saved',true);
- elsif p_action='cancel_settlement' then
+ elsif p_action in('cancel_settlement','close_settlement') then
   select * into b from cc_internal.finance_settlements where id=(p_data->>'settlement_id')::uuid for update;
   if not found or length(reason) not between 3 and 160 then raise exception 'Liquidación o motivo inválido';end if;
-  if exists(select 1 from cc_internal.finance_settlement_payments where settlement_id=b.id) then raise exception 'Liquidación con pagos: no se puede cancelar';end if;
-  update cc_internal.finance_settlements set status='CANCELLED' where id=b.id;
-  insert into cc_internal.finance_events(actor_id,user_id,event,reference,details) values(actor,b.seller_id,'SETTLEMENT_CANCELLED',b.id::text,jsonb_build_object('reason',reason));return jsonb_build_object('saved',true);
+  if b.status not in('APPROVED','PARTIAL') then raise exception 'Liquidación ya cerrada';end if;
+  select coalesce(sum(amount_pen),0) into take from cc_internal.finance_settlement_payments where settlement_id=b.id;
+  update cc_internal.finance_settlements set status=case when take>0 then 'CLOSED' else 'CANCELLED' end where id=b.id;
+  insert into cc_internal.finance_events(actor_id,user_id,event,reference,details) values(actor,b.seller_id,case when take>0 then 'SETTLEMENT_CLOSED' else 'SETTLEMENT_CANCELLED' end,b.id::text,jsonb_build_object('reason',reason));return jsonb_build_object('saved',true);
  end if;
  raise exception 'Acción financiera inválida';
 end;$$;

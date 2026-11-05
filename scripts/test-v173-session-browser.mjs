@@ -41,7 +41,7 @@ const probe=[
  'const stillOnePanel=document.querySelectorAll("#cc166-panel").length===1&&initialCount===1;',
  'window.cc166OpenStreamMembership();',
  'const membershipContent=x("cc166-content")?.textContent||"";',
- 'const correctMembership=membershipContent.includes("STREAM BULL’S")&&membershipContent.includes("365 días")&&membershipContent.includes("S/ 25.00");',
+ 'const correctMembership=membershipContent.includes("STREAM BULL’S")&&membershipContent.includes("Membresía mensual")&&membershipContent.includes("S/ 25.00");',
  'const noTrial=!membershipContent.includes("Probar 7 días")&&!membershipContent.includes("S/ 0");',
  'window.CC_V53_SESSION=null;window.cc166OpenStreamMembership();',
  'const guestRequestsLogin=window.__login===1;',
@@ -74,3 +74,4 @@ try{
  assert.equal(result[1],'pass','V173: '+result[2]);
  console.log('PASS V174 · mismo panel tras renovación JWT, negocios sin redundancia y acceso invitado.');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+

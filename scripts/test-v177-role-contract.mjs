@@ -26,7 +26,7 @@ const checks=[
  [js.includes("...(superRole?[['publish','▣','Mis publicaciones']"),'Solo el Súper reseller muestra publicar'],
  [js.includes("if(data.admin||!data.super)return overview(page)"),'Publicación bloqueada en front para ADMIN'],
  [js.includes("if(!data.admin){const b=button("),'ADMIN no marca pedidos entregados'],
- [js.includes("if(enable&&!paid)") && js.includes("Primero debe activar su membresía anual"),'Súper reseller requiere pago anual antes de autorización'],
+ [js.includes("if(enable&&!paid)") && js.includes("Primero debe activar su membresía pagada"),'Súper reseller requiere membresía pagada antes de autorización'],
  [sql.includes("ADMIN supervisa; la publicación corresponde exclusivamente a Súper reseller"),'ADMIN bloqueado por la base de datos'],
  [sql.includes("revoke execute on function public.cc_portal_publish_stream_product("),'No hay atajo a RPC antigua de publicación'],
  [sql.includes("'user_id',u.id"),'Los bonos de otros negocios usan identificador del usuario registrado'],

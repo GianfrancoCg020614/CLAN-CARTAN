@@ -20,7 +20,7 @@ ADMIN selecciona proveedor y fechas inclusivas en hora de Lima. Semana: últimos
 
 La aprobación reserva ventas entregadas y no transfiere dinero. Las aprobaciones previas reducen lo disponible. El administrador registra después Yape, Plin o transferencia, referencia única y comprobante privado. Se admiten pagos parciales; no se admite sobrepago ni la repetición del mismo medio/referencia o comprobante. Los comprobantes no son públicos. Una aprobación sin pagos se puede cancelar con motivo.
 
-Los reembolsos de productos se concilian contra los gastos originales y conservan la comisión aplicada al comprar. Si ya se pagó al proveedor, se registra la diferencia pendiente para compensar futuras liquidaciones; no se borra ni cambia el pago anterior. Las aprobaciones parcialmente pagadas deben cerrarse antes de ajustar sus órdenes.
+Los reembolsos de productos se concilian contra los gastos originales y conservan la comisión aplicada al comprar. Si ya se pagó al proveedor, se registra la diferencia pendiente para compensar futuras liquidaciones; no se borra ni cambia el pago anterior. Una aprobación parcialmente pagada puede cerrarse con motivo: se libera solo su remanente y se conserva el pago efectuado antes de ajustar sus órdenes.
 
 Excel: archivo XLSX sin dependencias externas, celdas de texto sin fórmulas ejecutables y cantidades numéricas. PDF: vista de impresión preparada para guardar como PDF desde el navegador. Las transferencias externas son exclusivamente manuales.
 
