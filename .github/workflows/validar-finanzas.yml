@@ -54,7 +54,7 @@ jobs:
           done
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v321-receipt-triggers.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v321-source-acls.sql
-          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/queries/v321-recharges.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261105124920_v321_recharge_rec_and_reconciliation.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v321-regression.sql
           bash scripts/test-v321-concurrency.sh
       - uses: actions/setup-node@v4
