@@ -134,9 +134,25 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now(), p
     if (request.method !== 'POST') return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
     try {
       if (!root || !key || !service) throw Error('CONFIGURATION_ERROR');
-      const account = await user(request);
       const raw = await request.text();if (raw.length > 4096) return json({ error: 'REQUEST_TOO_LARGE' }, 413);
       let body;try { body = JSON.parse(raw); } catch { return json({ error: 'INVALID_REQUEST' }, 400); }
+      if(paymentMode&&body.action==='scheduled_scan'){
+        const token=(request.headers.get('Authorization')||'').match(/^Bearer ([a-f0-9]{64})$/i)?.[1];
+        if(!token||typeof paymentScanner!=='function')return json({error:'AUTH_REQUIRED'},401);
+        const run=crypto.randomUUID();let batch;
+        try{batch=await rpc('cc_recharge_schedule_service',{p_action:'claim',p_data:{secret_hash:await hash(token),run_id:run}},'',true);}catch{return json({error:'AUTH_REQUIRED'},401);}
+        if(batch.status!=='READY')return json({status:batch.status,credited:0});
+        let examined=0,detected=0,failed=0;const jobs=(batch.jobs||[]).slice(0,1);
+        for(const job of jobs){try{
+          const context=await serviceCall('mail_scan_context',job);if(context.status!=='READY'||!context.allowed_senders?.length)continue;
+          const access=await getAccess(context,job.actor_id,job.connection_id),scan=await paymentScanner({context:{...context,page_size:5},token:access,remote,clock});examined+=scan.examined;
+          for(const event of scan.events){const result=await serviceCall('mail_notice',{...event,...job});if(result.recorded)detected++;}
+          await serviceCall('mail_scan_done',{...job,cursor:scan.cursor||null});
+        }catch(e){failed++;if(e.message==='MAIL_REAUTH_REQUIRED')try{await serviceCall('mail_reauth',job);}catch{}}}
+        await rpc('cc_recharge_schedule_service',{p_action:'finish',p_data:{run_id:run,examined,detected,failed,jobs:jobs.length}},'',true);
+        return json({status:failed?'ERROR':jobs.length?'SUCCESS':'WAITING_FOR_MAILBOX',examined,detected,failed,credited:0});
+      }
+      const account = await user(request);
       if(paymentMode&&body.action==='methods_status'){
         const configured=env('CC_BINANCE_MERCHANT_ENABLED')==='true'&&['BINANCE_PAY_API_KEY','BINANCE_PAY_SECRET_KEY','BINANCE_MERCHANT_ID','BINANCE_WEBHOOK_PUBLIC_KEY_PEM','BINANCE_WEBHOOK_CERT_SN'].every(k=>!!env(k));
         return json({binance_merchant:{enabled:configured,min_pen:1,max_pen:10},lemon:{enabled:false},personal_automatic:{enabled:false},notice:'Un QR personal o un correo no confirman una recarga ni identifican al titular.'});

@@ -1,5 +1,9 @@
 # CLAN CARTAN E.I.R.L. — Estado del proyecto
 
+**Referencia actual: V322 (5-NOV-2026).** [Recargas y sondeo programado](docs/V322-SONDEO-CORREOS.md). Una billetera general, REC permanente y aprobación manual trazable. Cron revisa avisos autorizados; los correos no acreditan dinero. Sin OAuth o sin referencia transaccional inequívoca no se habilita la automatización personal. Tarifas: S/15 mensuales en los tres negocios y STREAM BULL’S S/25 anuales; periodos previos conservados.
+
+**Las secciones siguientes son antecedentes históricos; no sustituyen la referencia V322.**
+
 **ESTADO VIGENTE · V173 (25-OCT-2026):** [Verificación de publicación, funcionalidades y pendientes](docs/CONTINUIDAD-ACTUAL-V173-2026-10-25.md). Producción confirmada en Cloudflare Pages y GitHub Actions con commit `4bbdf37fd0225c4a78b8790bd14180d9dcd54849`. El catálogo real aún no contiene productos ni flyers; **no afirmar que las compras reales y los métodos de pago ya fueron probados**. Las versiones V145 y anteriores de este README son antecedentes históricos, no el estado vigente.
 
 
