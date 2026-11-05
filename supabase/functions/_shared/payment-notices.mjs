@@ -16,7 +16,7 @@ export function parseDepositNotice(message,allowedSenders){
 }
 function textBody(payload){if(!payload)return '';if(payload.mimeType==='text/plain'){try{const raw=atob(String(payload.body?.data||'').replace(/-/g,'+').replace(/_/g,'/'));return new TextDecoder().decode(Uint8Array.from(raw,c=>c.charCodeAt(0)));}catch{return '';}}return(payload.parts||[]).filter(p=>p.mimeType==='text/plain').map(textBody).join('\n');}
 export async function scanPaymentNotices({context,token,remote,clock=Date.now}){
- const limit=Math.min(10,Math.max(1,Number(context.page_size)||10));const senders=context.allowed_senders;if(senders.length>10||senders.some(v=>! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v)))throw Error('INVALID_SENDERS');
+ const limit=5;const senders=context.allowed_senders;if(senders.length>10||senders.some(v=>! /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v)))throw Error('INVALID_SENDERS');
  const headers={Authorization:'Bearer '+token};const events=[];let cursor=null,examined=0;
  const check=r=>{if(r.status===401||r.status===403)throw Error('MAIL_REAUTH_REQUIRED');if(!r.ok)throw Error('MAIL_SCAN_UNAVAILABLE');};
  if(context.provider==='google'){
