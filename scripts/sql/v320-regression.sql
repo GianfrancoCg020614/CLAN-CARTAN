@@ -119,4 +119,8 @@ do $$declare b uuid;r jsonb;begin
 end;$$;
 select pg_temp.ok(exists(select 1 from public.cc_wallet_financial_audit where event_type='SUBSCRIPTION' and related_payment_ref like 'MONTH-%' and reference=related_payment_ref),'Auditoría enlaza cargo mensual con su identificador');
 select pg_temp.ok(not exists(select 1 from public.cc_wallet_financial_audit where reference like 'V320-%' and concept like '%por conciliar%'),'Bonos y devoluciones tienen concepto y referencia explícitos');
+select public.cc_portal_admin_set_super_reseller('fixture-5@example.invalid',false,20);
+select pg_temp.ok((select admin_percent=30 from public.cc_portal_super_resellers where user_id='00000000-0000-4000-8000-000000000005'),'Revocar permiso no reinicia comisión personalizada');
+select public.cc_portal_admin_set_super_reseller('fixture-5@example.invalid',true,30);
+select pg_temp.ok(cc_internal.sb_delivery_is_seller('00000000-0000-4000-8000-000000000005'),'ADMIN autoriza proveedor con mensualidad activa');
 rollback;

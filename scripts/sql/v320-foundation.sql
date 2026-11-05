@@ -42,3 +42,5 @@ create table public.cc_portal_stream_memberships_paid(checkout_key uuid primary 
 
 alter table public.cc_portal_stream_products add column status text default 'ACTIVE',add column stock integer default 10,add column service text default 'Netflix',add column title text default 'Licencia ficticia',add column distributor_price_pen numeric,add column whatsapp text default '+51900000000',add column cost_pen numeric default 0;
 alter table public.cc_portal_stream_orders add column seller_whatsapp text,add column wallet_parts jsonb;
+
+alter table public.cc_portal_super_resellers add column granted_by uuid,add column granted_at timestamptz;

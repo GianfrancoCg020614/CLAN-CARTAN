@@ -1579,7 +1579,7 @@ async function adminSetSuper(person,enable,percent,btn){
  const name=person.registry_alias||person.display_name||person.email;
  const live=person.paid_until&&Date.parse(person.paid_until)>Date.now();
  const text=enable?
-  '¿Autorizar a '+name+' como Súper reseller de STREAM BULL’S? La autorización no cobra ni activa una suscripción.':
+  '¿Autorizar a '+name+' como Súper reseller de STREAM BULL’S? Comisión de futuras ventas: '+commission+' %. La autorización no cobra ni activa una suscripción.':
   '¿Revocar el permiso Súper reseller de '+name+'? Conservará sus pagos y su cuenta.';
  if(!window.confirm(text))return;
  adminActionBusy=true;btn.disabled=true;

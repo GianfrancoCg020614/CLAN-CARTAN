@@ -195,7 +195,7 @@ create or replace function public.cc_pay_cobra_subscription_real() returns uuid 
 -- Se conservan los planes anuales y periodos ya pagados; se añade reconocimiento del mensual.
 do $$declare f record;d text;begin
  for f in select p.oid from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname in('public','cc_internal') and p.proname in('cc_portal_admin_set_super_reseller','cc_portal_admin_accounts_v2','cc_business_access_v316','sb_delivery_is_seller') loop
-  d:=pg_get_functiondef(f.oid);d:=regexp_replace(d,'([a-z_]+\.code)\s*=\s*''STREAM_365''','\1 in (''STREAM_365'',''STREAM_MONTHLY'')','g');d:=replace(d,'Primero debe pagar y activar el plan anual STREAM_365','Primero debe pagar una membresía STREAM BULL’S vigente');d:=replace(d,'anual pagado hasta','membresía pagada hasta');d:=replace(d,'anual pendiente o vencido','membresía pendiente o vencida');execute d;
+  d:=pg_get_functiondef(f.oid);d:=regexp_replace(d,'([a-z_]+\.code)\s*=\s*''STREAM_365''','\1 in (''STREAM_365'',''STREAM_MONTHLY'')','g');d:=replace(d,'Primero debe pagar y activar el plan anual STREAM_365','Primero debe pagar una membresía STREAM BULL’S vigente');d:=replace(d,'admin_percent=excluded.admin_percent,','admin_percent=case when excluded.enabled then excluded.admin_percent else public.cc_portal_super_resellers.admin_percent end,');d:=replace(d,'anual pagado hasta','membresía pagada hasta');d:=replace(d,'anual pendiente o vencido','membresía pendiente o vencida');execute d;
  end loop;
 end;$$;
 create or replace function cc_internal.finance_commission_history() returns trigger language plpgsql security definer set search_path='' as $$begin
