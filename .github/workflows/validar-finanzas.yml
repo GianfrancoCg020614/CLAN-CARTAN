@@ -42,7 +42,7 @@ jobs:
         run: |
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -c 'create database rec321;'
           export PGDATABASE=rec321
-          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v320-foundation.sql
+          sed '/^create role /d' scripts/sql/v320-foundation.sql | psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1
           for sql in capture_real_wallet_change cc_portal_charge_unified cc_business_access_v316 sb_delivery_is_seller cc_portal_admin_set_super_reseller cc_stream_distributor_eligible cc_portal_purchase_stream_product; do
             psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f "supabase/recovery/v320_${sql}.sql"
           done

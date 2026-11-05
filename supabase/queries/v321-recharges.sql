@@ -123,7 +123,7 @@ insert into cc_internal.finance_rates(service,amount_pen,reason) values('COBRA_Y
 do $$declare d text;begin
  select pg_get_functiondef('public.cc_finance_pay_membership(text,uuid,numeric)'::regprocedure) into d;
  d:=replace(d,$old$finishes:=((starts at time zone 'America/Lima')+interval '1 month') at time zone 'America/Lima';$old$,$new$finishes:=((starts at time zone 'America/Lima')+case when p_service='STREAM_BULLS' then interval '1 year' else interval '1 month' end) at time zone 'America/Lima';$new$);
- d:=replace(d,$old$code='STREAM_MONTHLY'$old$,$new$code='STREAM_365'$new$);execute d;
+ d:=replace(d,$old$code='STREAM_MONTHLY'$old$,$new$code='STREAM_365'$new$);d:=replace(d,$old$'Membresía mensual '||p_service$old$,$new$(case when p_service='STREAM_BULLS' then 'Membresía anual ' else 'Membresía mensual ' end)||p_service$new$);execute d;
 end;$$;
 -- Referencia canónica adicional: conserva el texto histórico y bloquea variantes de escritura.
 alter table cc_internal.cc_verified_payment_receipts add column canonical_reference text generated always as (regexp_replace(lower(transaction_reference),'[^a-z0-9]','','g')) stored;
@@ -168,13 +168,14 @@ declare actor uuid:=auth.uid();r cc_internal.recharge_registry%rowtype;q public.
   if exists(select 1 from jsonb_array_elements_text(p_data->'senders') v where v !~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$') then raise exception 'Remitente inválido';end if;
   insert into cc_internal.recharge_mail_settings(admin_id,allowed_senders) values(actor,array(select lower(v) from jsonb_array_elements_text(p_data->'senders') v)) on conflict(admin_id) do update set allowed_senders=excluded.allowed_senders,updated_at=now();
   update cc_internal.recharge_mail_connections set scan_cursor=null where owner_id=actor;
+  insert into cc_internal.recharge_audit(actor_id,action,details) values(actor,'MAIL_SENDERS_UPDATED',jsonb_build_object('count',jsonb_array_length(p_data->'senders')));
   return jsonb_build_object('saved',true);
  end if;
  reason:=trim(coalesce(p_data->>'reason',''));
  if p_action='ignore_notice' then
   if length(reason) not between 3 and 300 then raise exception 'Indica un motivo';end if;
   update cc_internal.recharge_mail_events set status='IGNORED',reviewed_by=actor,note=reason where id=(p_data->>'event_id')::uuid and linked_rec_id is null;
-  if not found then raise exception 'Aviso no disponible';end if;return jsonb_build_object('saved',true);
+  if not found then raise exception 'Aviso no disponible';end if;insert into cc_internal.recharge_audit(actor_id,action,details) values(actor,'MAIL_NOTICE_IGNORED',jsonb_build_object('event_id',p_data->>'event_id','reason',reason));return jsonb_build_object('saved',true);
  end if;
  select * into r from cc_internal.recharge_registry where rec_code=upper(trim(p_data->>'rec_code')) for update;
  if not found then raise exception 'REC no encontrado';end if;
@@ -296,3 +297,7 @@ create or replace function public.cc_recharge_my_movements() returns jsonb langu
  return coalesce((select jsonb_agg(jsonb_build_object('movement_id','rec-reversal:'||a.id,'occurred_at',a.created_at,'service','CLAN_CARTAN','movement_type','RECHARGE_REVERSAL','amount_pen',-(a.details->>'amount_pen')::numeric,'status','COMPLETED','provider','INTERNAL','reference',r.rec_code,'description','Reversión de recarga '||r.rec_code,'affects_balance',true) order by a.id desc) from cc_internal.recharge_audit a join cc_internal.recharge_registry r on r.id=a.rec_id where a.action='REVERSAL_RECOVERED' and r.user_id=auth.uid()),'[]');end;$$;
 revoke all on function public.cc_recharge_my_movements() from public,anon,authenticated;
 grant execute on function public.cc_recharge_my_movements() to authenticated;
+
+-- Desactiva nuevas ofertas mensuales; los periodos históricos permanecen intactos.
+update public.cc_plans set is_active=false where code='STREAM_MONTHLY';
+update public.cc_plans set is_active=true,price_pen=25 where code='STREAM_365';
