@@ -28,3 +28,7 @@
 #cc166-panel .cc318-credit{text-align:center;font-size:12px;letter-spacing:.04em;opacity:.65;padding:24px 12px}
 body.light #cc166-panel .cc318-root input:not([type=checkbox]),body.light #cc166-panel .cc318-root select{background:#fff;color:#17303c;border-color:#b7cbd4}
 @media(max-width:680px){#cc166-panel .cc318-form{grid-template-columns:minmax(0,1fr)}#cc166-panel .cc318-root input,#cc166-panel .cc318-root select{font-size:16px!important}#cc166-panel .cc318-lookup{display:grid;grid-template-columns:minmax(0,1fr)}#cc166-panel .cc318-lookup button{width:100%}}
+
+/* V319: ayuda visible sin duplicar acciones de conexión. */
+#cc166-panel .cc318-help{display:block;max-width:100%;min-height:44px;padding:12px 0;color:inherit;text-underline-offset:4px;overflow-wrap:anywhere}
+#cc166-panel .cc318-help:focus-visible{outline:2px solid #35c5c0;outline-offset:3px;border-radius:4px}
