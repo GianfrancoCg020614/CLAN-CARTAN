@@ -21,7 +21,7 @@ assert.ok(!html.includes('onclick="cc94RequestTopup()"'),'Aún existe recarga fi
 assert.ok(html.includes("if(adminBtn)adminBtn.style.display='none'; // Accesible"),
  'El antiguo botón ADMIN aún aparece en el menú principal');
 assert.ok(html.includes('Los visitantes y afiliados ven precios públicos.'),'Precios públicos no explicados');
-assert.ok(html.includes('S/ 25 por 365 días'),'Condiciones del plan anual no corregidas');
+assert.ok(html.includes('S/ 25 por mes')&&html.includes('S/ 20 por mes')&&html.includes('periodos anuales ya pagados'),'Condiciones mensuales e históricos no alineadas');
 assert.ok(html.includes('COBRA YA, MI COCHERA y MI ALQUILER'),'Una cuenta para cuatro negocios');
 assert.ok(html.includes('id="cc93-affiliate" hidden'),'Marcador de compatibilidad no inactivo');
 assert.ok(/scripts\/v151-portal-polish[.]js[?]v=[0-9]+/.test(html),'El portal conserva versión antigua en caché');

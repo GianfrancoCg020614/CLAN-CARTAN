@@ -132,6 +132,7 @@ jobs:
           run_check node scripts/test-v316-business-roles-browser.mjs
           run_check node scripts/test-v317-stream-forms-browser.mjs
           run_check node scripts/test-v318-delivery-ui-browser.mjs
+          run_check node scripts/test-v320-finance-browser.mjs
           run_check node scripts/test-v166-three-roles-browser.mjs
           run_check node scripts/test-v167-checkout-browser.mjs
           run_check node scripts/test-v167-financial-integrity.mjs

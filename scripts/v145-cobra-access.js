@@ -13,17 +13,17 @@ async function refresh(){
  try{
  const [sub,real,free,config]=await Promise.all([
  api('rpc/cy_subscription_status'),
- window.cc80.api('cc_real_service_wallets?select=balance_pen&service=eq.COBRA_YA&user_id=eq.'+encodeURIComponent(uid)),
+ window.cc80.api('cc_real_service_wallets?select=balance_pen&user_id=eq.'+encodeURIComponent(uid)),
  window.cc80.api('cc_cobra_welcome_bonus_wallets?select=balance_pen&user_id=eq.'+encodeURIComponent(uid)),
  api('rpc/cc_cobra_checkout_status')]);
  if(s()?.userId!==uid)return;
  const row=Array.isArray(sub)?sub[0]||{}:sub;
- const active=!!(row.authorized&&row.active),amount=Number(real?.[0]?.balance_pen||0),bonus=Number(free?.[0]?.balance_pen||0),enabled=config?.[0]?.enabled===true;
+ const active=!!(row.authorized&&row.active),amount=(Array.isArray(real)?real:[]).reduce((n,r)=>n+Number(r.balance_pen||0),0),bonus=Number(free?.[0]?.balance_pen||0),enabled=config?.[0]?.enabled===true;
  $('cy55balance').textContent=cash(amount);
  $('cy55state').textContent=active?'Acceso vigente':'Sin activar';
  $('cy113due').textContent=active&&row.expires_at?new Date(row.expires_at).toLocaleDateString('es-PE'):'Sin activar';
- $('cy55pay').textContent=active?'Suscripcion vigente':!enabled?'Pago real no habilitado':amount<15?'Saldo insuficiente':'Pagar S/15';
- $('cy55pay').disabled=busy||active||!enabled||amount<15;
+ $('cy55pay').textContent='Activar o renovar desde billetera CLAN CARTAN';
+ $('cy55pay').disabled=busy;
  $('cc145giftAmount').textContent='Bono de activacion: '+cash(bonus)+' (no transferible)';
  gift.disabled=busy||active||bonus<15;
  document.querySelectorAll('#cy53client button[type="submit"],#cy53loan button[type="submit"]').forEach(b=>b.disabled=!active);
@@ -31,6 +31,7 @@ async function refresh(){
 }
 async function activate(kind){
  if(busy||!s()?.jwt)return;
+ if(kind!=='bonus'){if(window.cc166OpenBusiness)window.cc166OpenBusiness('COBRA_YA');else notice('Actualiza la página para confirmar la tarifa mensual vigente.');return;}
  if(!confirm(kind==='bonus'?'¿Utilizar S/15 del bono gratuito para activar COBRA YA por 30 días?':'¿Pagar S/15 con saldo real confirmado por 30 días?'))return;
  busy=true;
  try{
