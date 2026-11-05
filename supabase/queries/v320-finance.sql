@@ -139,7 +139,7 @@ begin
  else
   select max(end_at) into untilv from public.cc_subscriptions where membership_id=member and status='ACTIVE';
  end if;
- starts:=greatest(now(),coalesce(untilv,now()));finishes:=starts+interval '1 month';
+ starts:=greatest(now(),coalesce(untilv,now()));finishes:=((starts at time zone 'America/Lima')+interval '1 month') at time zone 'America/Lima';
  kind:=case when untilv is null then 'ACTIVATION' else 'RENEWAL' end;
  perform cc_internal.finance_collect_debt(u);
  parts:=cc_internal.cc_portal_charge_unified(u,rate.amount_pen,'SUBSCRIPTION','MONTH-'||p_request::text,'Membresía mensual '||p_service);

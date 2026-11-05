@@ -123,4 +123,7 @@ select public.cc_portal_admin_set_super_reseller('fixture-5@example.invalid',fal
 select pg_temp.ok((select admin_percent=30 from public.cc_portal_super_resellers where user_id='00000000-0000-4000-8000-000000000005'),'Revocar permiso no reinicia comisión personalizada');
 select public.cc_portal_admin_set_super_reseller('fixture-5@example.invalid',true,30);
 select pg_temp.ok(cc_internal.sb_delivery_is_seller('00000000-0000-4000-8000-000000000005'),'ADMIN autoriza proveedor con mensualidad activa');
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',true);
+update public.mc_accounts set subscription_until='2027-01-31T21:30:00-05:00' where user_id=auth.uid();
+select pg_temp.ok((public.cc_finance_pay_membership('MI_COCHERA','10000000-0000-4000-8000-000000000050',20)->>'active_until')::timestamptz='2027-02-28T21:30:00-05:00'::timestamptz,'Mes calendario conserva hora de Lima al cerrar febrero');
 rollback;
