@@ -33,7 +33,7 @@ jobs:
             psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f "supabase/recovery/v320_${sql}.sql"
           done
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v320-audit-trigger.sql
-          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/queries/v320-finance.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261105072557_v320_unified_finance_monthly_settlements.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v320-regression.sql
       - name: Dos peticiones concurrentes no duplican cargo ni bono
         run: bash scripts/test-v320-concurrency.sh

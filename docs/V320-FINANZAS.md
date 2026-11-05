@@ -4,11 +4,11 @@
 
 El saldo común ya existe como suma de asientos contables de cc_real_service_wallets. V320 no crea una billetera monetaria nueva ni consolida mediante copias de saldos. Reutiliza cc_portal_charge_unified, cc_real_wallet_spends, cc_real_wallet_refunds y la atribución única cc_clan_attributions. Las recargas continúan en los circuitos verificados existentes. La comisión de productos ya se calculaba sobre el precio pagado y se guardaba en cada orden; se conserva ese cálculo y se añade historial de cambios.
 
-Base auditada antes de migrar: 0 pedidos STREAM, 1 suscripción, saldo agregado S/85, 4 recargas en ledger. Son contadores de conciliación, no datos de prueba. No se alteran saldos reales ni se generan bonos retroactivos.
+Se compararon huellas de saldos, usuarios, pedidos y vigencias antes y después de la migración. Coincidieron sin cambios. No se alteraron saldos reales ni se generaron bonos retroactivos. La revisión en producción fue de lectura y no creó operaciones de prueba.
 
 ## Reglas futuras
 
-COBRA YA, MI COCHERA y MI ALQUILER: S/20 por mes. STREAM BULL’S reseller: S/25 por mes. Es un mes calendario desde el comienzo de cada periodo; renovar conserva la vigencia ya pagada. Las tarifas futuras se configuran en ADMIN y conservan historial. Los periodos anuales ya pagados siguen vigentes hasta su vencimiento original. Se reconoce tanto STREAM_365 histórico como STREAM_MONTHLY en los permisos.
+COBRA YA, MI COCHERA y MI ALQUILER: S/20 por mes. STREAM BULL’S reseller: S/25 por mes. Es un mes calendario en hora de Lima desde el comienzo de cada periodo; renovar conserva la vigencia ya pagada. Las tarifas futuras se configuran en ADMIN y conservan historial. Los periodos anuales ya pagados siguen vigentes hasta su vencimiento original. Se reconoce tanto STREAM_365 histórico como STREAM_MONTHLY en los permisos.
 
 Cada pago mensual elegible genera S/5 una sola vez para su referidor CLAN. Registros, recargas y compras de productos no generan este bono. La operación usa transacción, bloqueo e identificador único. Los bonos se acreditan en el saldo común, no en un monedero nuevo. Los bonos promocionales históricos mantienen sus restricciones y no se convierten en dinero.
 
@@ -31,3 +31,5 @@ Pruebas SQL con dinero ficticio: cuatro tarifas, renovación, vencimiento y reac
 Navegador: ADMIN y usuario, filtros, XLSX/PDF, referencia conservada tras fallo de red, aprobación sin transferencia, comprobante privado y pago parcial, descarte de reportes obsoletos y referidos. Datos ficticios, nunca operaciones de prueba en producción.
 
 Las credenciales OAuth de Gmail/Outlook siguen dependiendo del propietario según V318/V319; esta implementación conserva el consultor ORD, inventario y métodos de entrega.
+
+Migración aplicada y guardada con la versión real de Supabase: `20261105072557_v320_unified_finance_monthly_settlements.sql`. Se comprobó que las RPC anónimas están bloqueadas, las tablas privadas no admiten escrituras de clientes y el bucket de comprobantes no es público. Los avisos de seguridad existentes no aumentaron para acceso anónimo ni tablas sin políticas; las siete RPC nuevas son endpoints autenticados con comprobaciones de titular o ADMIN.
