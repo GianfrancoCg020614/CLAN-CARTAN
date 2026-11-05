@@ -82,7 +82,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V322 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V323 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -254,7 +254,7 @@ function renderNav(){
  const top=el('cc166-top-actions');top.replaceChildren();
  if(view!=='home'&&navigationHistory.length)
   top.append(button('← Atrás',()=>nav('back'),'cc166-secondary cc177-back'));
- const localRefresh=view==='admin'||(view==='wallet'&&data.admin);
+ const localRefresh=view==='admin'||['recharges','recharge-mail'].includes(view)||(view==='wallet'&&data.admin);
  if(view!=='home'&&!localRefresh&&view!=='bonuses'&&view!=='profile')
   top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
  top.append(button('✕ Cerrar',()=>{app.hidden=true;window.cc77Home?.();},'cc166-x'));
@@ -321,7 +321,7 @@ function adminHome(page){
  const section=make('div','cc176-dashboard-columns cc256-home-tasks');
  const tasks=card('Pendientes','Aquí aparecen solo las tareas que necesitan revisión.');
  const items=[
-  [rechargeState==='ready'?rechargeRows.length:'—','Recargas por verificar','Revisar recargas',()=>finance('recharges')],
+  [rechargeState==='ready'?rechargeRows.length:'—','Recargas por verificar','Revisar recargas',()=>nav('recharges')],
   [k.pendingDeliveries.length,'Entregas de STREAM BULL’S','Abrir ventas',()=>nav('sales')]
  ];
  let taskCount=0;
@@ -348,7 +348,7 @@ function adminAttention(page){
  const wrap=make('div','cc176-attention-grid');
  const tiles=[
   ['Recargas pendientes',rechargeState==='ready'?String(rechargeRows.length):'—',
-   'Solo acreditar depósitos comprobados.','Abrir recargas',()=>finance('recharges')],
+   'Solo acreditar depósitos comprobados.','Abrir recargas',()=>nav('recharges')],
   ['Entregas por completar',String(k.pendingDeliveries.length),
    'Pedidos pagados que requieren entrega.','Ver ventas',()=>nav('sales')],
   ['Afiliados sin negocios activos',adminAccountsState==='ready'?String(k.pendingPayments.length):'—',
@@ -596,6 +596,7 @@ function adminAssistedRechargeForm(page){
 }
 function adminRecharges(page){
  adminAssistedRechargeForm(page);
+ const link=make('div','cc166-actions');link.append(button('Abrir control de recargas por REC',()=>nav('recharges'),'cc166-secondary'));page.append(link);
  const box=card('Recargas pendientes','Aprobación MANUAL: verifica el ingreso REAL en tu cuenta antes de acreditar. El envío de WhatsApp o un comprobante por sí solo no acredita saldo.');
  const actions=make('div','cc166-actions');
  actions.append(button('Actualizar pendientes',()=>void loadAdminRecharges(true),'cc166-secondary'));box.append(actions);
@@ -1035,7 +1036,7 @@ function wallet(page){
  page.append(adminSectionTabs([
   ['summary','Resumen'],['manual','Recarga manual'],['automatic','Recarga automática'],['movements','Movimientos']
  ],walletTab,id=>{walletTab=id;render(true);}));
- if(['manual','automatic'].includes(walletTab)&&typeof window.cc321Render==='function'){window.cc321Render(page,walletTab,{uid:user,jwt:token,root:session()?.root,key:session()?.key,api,nav,admin:false});return;}
+ if(['manual','automatic'].includes(walletTab)&&typeof window.cc321Render==='function'){window.cc321Render(page,walletTab,{uid:user,jwt:token,root:session()?.root,key:session()?.key,api,nav,openRecharge:mode=>finance(mode),admin:false});return;}
  if(walletTab==='manual'){personalManualRecharge(page);return;}
  if(walletTab==='automatic'){personalAutoRecharge(page);return;}
  if(walletTab==='movements'){movementList(page,120);return;}
