@@ -5,7 +5,7 @@ const handler=source.slice(source.indexOf('async function activateBusiness('),so
 async function scenario({active=false,intent='ACTIVATE',reply='paid',balance=100,double=false,confirm=true}={}){
  const calls=[],messages=[],keys=[],confirmations=[];let finish,gate=double?new Promise(r=>finish=r):Promise.resolve();
  const c={verified:true,data:{admin:false},businessActivationPending:null,services:[['STREAM_BULLS']],user:'buyer',token:'jwt',view:'home',app:{hidden:true},
- access:()=>({ok:active}),monthlyPrice:()=>25,realBalance:()=>balance,price:n=>'S/ '+n,serviceName:()=> 'STREAM',notice:m=>messages.push(m),
+ access:()=>({ok:active}),businessPeriod:()=>({end:'2099-01-01'}),monthlyPrice:()=>25,realBalance:()=>balance,price:n=>'S/ '+n,serviceName:()=> 'STREAM',notice:m=>messages.push(m),
  storedKey:(kind)=>{keys.push(kind);return {key:'fake-uuid',name:kind}},forgetKey:()=>{},session:()=>({userId:'buyer',jwt:'jwt'}),load:async()=>{},render:()=>{},
  api:async(p,m,b)=>{calls.push({p,b});await gate;return reply==='already'?{service:'STREAM_BULLS',status:'ALREADY_ACTIVE',charged:false,amount_pen:0,active_until:'2099-01-01'}:{service:'STREAM_BULLS',amount_pen:25,active_until:'2099-01-01'}},
  window:{confirm:m=>{confirmations.push(m);return confirm}}};
