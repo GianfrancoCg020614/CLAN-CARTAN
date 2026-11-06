@@ -8,17 +8,19 @@ let busy=false;
 function notice(t){if($('cy55msg'))$('cy55msg').textContent=t;}
 async function refresh(){
  if(!s()?.jwt||s().isAdmin)return;
- const uid=s().userId,pay=$('cy55pay'),gift=$('cc145giftButton');
+ const uid=s().userId,jwt=s().jwt,pay=$('cy55pay'),gift=$('cc145giftButton');
  if(pay)pay.disabled=true;if(gift)gift.disabled=true;
+ $('cy55balance')?.setAttribute('data-cc-wallet-amount','');
  try{
  const [sub,real,free,config]=await Promise.all([
  api('rpc/cy_subscription_status'),
- window.cc80.api('cc_real_service_wallets?select=balance_pen&user_id=eq.'+encodeURIComponent(uid)),
+ api('rpc/cc_finance_wallet'),
  window.cc80.api('cc_cobra_welcome_bonus_wallets?select=balance_pen&user_id=eq.'+encodeURIComponent(uid)),
  api('rpc/cc_cobra_checkout_status')]);
- if(s()?.userId!==uid)return;
+ if(s()?.userId!==uid||s()?.jwt!==jwt)return;
  const row=Array.isArray(sub)?sub[0]||{}:sub;
- const active=!!(row.authorized&&row.active),amount=(Array.isArray(real)?real:[]).reduce((n,r)=>n+Number(r.balance_pen||0),0),bonus=Number(free?.[0]?.balance_pen||0),enabled=config?.[0]?.enabled===true;
+ if(real?.available_pen==null||!Number.isFinite(Number(real.available_pen)))throw Error('No se pudo verificar tu saldo disponible. Actualiza antes de pagar.');
+ const active=!!(row.authorized&&row.active),amount=Number(real.available_pen),bonus=Number(free?.[0]?.balance_pen||0),enabled=config?.[0]?.enabled===true;
  $('cy55balance').textContent=cash(amount);
  $('cy55state').textContent=active?'Acceso vigente':'Sin activar';
  $('cy113due').textContent=active&&row.expires_at?new Date(row.expires_at).toLocaleDateString('es-PE'):'Sin activar';
@@ -27,7 +29,7 @@ async function refresh(){
  $('cc145giftAmount').textContent='Bono de activacion: '+cash(bonus)+' (no transferible)';
  gift.disabled=busy||active||bonus<15;
  document.querySelectorAll('#cy53client button[type="submit"],#cy53loan button[type="submit"]').forEach(b=>b.disabled=!active);
- }catch(e){notice('No se pudo verificar el acceso: '+String(e.message||e));}
+ }catch(e){if(s()?.userId===uid&&s()?.jwt===jwt){if($('cy55balance'))$('cy55balance').textContent='Saldo sin verificar';notice('No se pudo verificar el acceso: '+String(e.message||e));}}
 }
 async function activate(kind){
  if(busy||!s()?.jwt)return;

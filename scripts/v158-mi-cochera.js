@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id),ses=()=>window.CC_V53_SESSION;
 const esc=x=>String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const num=x=>Number(x||0),currency=(v,c)=>({PEN:"S/",USD:"US$",EUR:"€",COP:"COP",MXN:"MXN",ARS:"ARS",CLP:"CLP",BOB:"Bs.",BRL:"R$",UYU:"UYU",PYG:"PYG",CRC:"CRC",DOP:"DOP",CAD:"CAD",GBP:"£"}[c]||c)+" "+num(v).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2});
 const api=(p,b)=>window.cc80.api(p,"POST",b||{});
-let account=null,carts=[],moves=[],people=[],accounts=[],realWallets=[],busy=false,filter="",cartState="ALL",ownerId=null,loadSequence=0;
+let account=null,carts=[],moves=[],people=[],accounts=[],walletAvailable=null,busy=false,filter="",cartState="ALL",ownerId=null,loadSequence=0;
 const normalize=value=>String(value||" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 function host(){let root=$("mc158layer");if(root)return root;root=document.createElement("div");root.id="mc158layer";
  root.innerHTML='<div class="mc158wrap"><header class="mc158head"><div><small>CLAN CARTAN · MI COCHERA</small><h2><img src="assets/mi-cochera-logo.svg" alt="Logotipo original MI COCHERA"> MI COCHERA</h2><p>Carritos, alquiler diario, hielo, deudas e historial.</p></div><button type="button" id="mc158close">← Volver a CLAN CARTAN</button></header><div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';
@@ -30,15 +30,16 @@ async function open(){
 async function load(){
  const session=ses(),id=session?.userId,jwt=session?.jwt,seq=++loadSequence;
  if(!id||!jwt)return;const current=()=>ses()?.userId===id&&ses()?.jwt===jwt&&loadSequence===seq;
- if(ownerId!==id){ownerId=id;account=null;carts=[];moves=[];people=[];realWallets=[];filter='';cartState='ALL';}
+ if(ownerId!==id){ownerId=id;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';}
  if(session.isAdmin){account=null;return await loadAdmin(current);}
  const rows=await api('rpc/mc_ensure_account');if(!current())return;
  account=Array.isArray(rows)?rows[0]:rows;if(!account)throw Error('Sin cuenta.');
  const uid=encodeURIComponent(id);
  const detail=await window.cc80.api('mc_accounts?select=country&user_id=eq.'+uid);if(!current())return;
  account.country=detail?.[0]?.country||'PE';
- const wallet=await window.cc80.api('cc_real_service_wallets?select=service,balance_pen&user_id=eq.'+uid);if(!current())return;
- realWallets=wallet;void refreshHomeWallet();
+ const wallet=await api('rpc/cc_finance_wallet');if(!current())return;
+ if(wallet?.available_pen==null||!Number.isFinite(Number(wallet.available_pen)))throw Error('No se pudo verificar tu saldo disponible. Actualiza para continuar.');
+ walletAvailable=Number(wallet.available_pen);window.cc326Wallet?.accept({userId:id,jwt,wallet});void refreshHomeWallet();
  if(!active()){showLocked();return;}
  await api('rpc/mc_sync_rents');if(!current())return;
  const items=await Promise.all([
@@ -49,8 +50,8 @@ async function load(){
  if(!current())return;[carts,moves,people]=items;renderList();
 }
 function currencyPanel(){return '<section class="mc158status"><div><strong>País: '+esc(account?.country||"PE")+' · Moneda de cobros: '+esc(account?.currency||"PEN")+'</strong><p>No confundimos la moneda de los alquileres con la billetera, que siempre está en PEN.</p></div><button type="button" data-action="currency">Configurar país y moneda</button></section>';}
-function walletPanel(){const balance=realWallets.reduce((sum,w)=>sum+num(w.balance_pen),0);
- return '<section class="mc158status"><div><strong>Billetera única · saldo real '+currency(balance,"PEN")+'</strong><p>Disponible para los cuatro negocios. El bono de activación se muestra por separado.</p></div><button type="button" data-action="wallet">Abrir mi billetera</button></section>';}
+function walletPanel(){const balance=walletAvailable;
+ return '<section class="mc158status"><div><strong>Billetera única · saldo real <span data-cc-wallet-amount>'+ (balance===null?'Sin verificar':currency(balance,"PEN"))+'</span></strong><p>Disponible para los cuatro negocios. El bono de activación se muestra por separado.</p></div><button type="button" data-action="wallet">Abrir mi billetera</button></section>';}
 function showLocked(){let el=$("mc158body");el.innerHTML=header()+currencyPanel()+walletPanel()+'<section class="mc158box"><h3>Acceso a MI COCHERA</h3><p>Mientras la mensualidad esté vencida, tus carritos, cobros y deudas permanecen guardados y protegidos.</p><p>Activa la membresía desde Negocios con saldo real verificado, o utiliza un bono de activación autorizado.</p><button type="button" data-action="bonus" '+(num(account.bonus_pen)<15||account.suspended?"disabled":"")+'>Activar 30 días con S/ 15 de bono</button><p id="mc158notice" role="status"></p></section>';}
 async function loadAdmin(current=()=>true){
  const [accountRows,clanUsers]=await Promise.all([
@@ -183,13 +184,15 @@ async function click(e){
 async function refreshHomeWallet(){
  const label=$("mc158-home-wallet"),current=ses();
  if(!label)return;
+ label.setAttribute('data-cc-wallet-amount','');
  if(!current?.jwt){label.textContent="S/ --";return;}
  const userId=current.userId,jwt=current.jwt;
  try{
   const uid=encodeURIComponent(userId);
-  const wallet=await window.cc80.api('cc_real_service_wallets?select=balance_pen&user_id=eq.'+uid);
+  const wallet=await api('rpc/cc_finance_wallet');
   if(ses()?.userId!==userId||ses()?.jwt!==jwt)return;
-  label.textContent=currency(wallet.reduce((sum,row)=>sum+num(row.balance_pen),0),'PEN');
+  if(wallet?.available_pen==null||!Number.isFinite(Number(wallet.available_pen)))throw Error('Saldo sin verificar');
+  label.textContent=currency(Number(wallet.available_pen),'PEN');
  }catch(_){if(ses()?.userId===userId&&ses()?.jwt===jwt)label.textContent="S/ --";}
 }
 function mountHomeBadge(){
@@ -200,7 +203,7 @@ function mountHomeBadge(){
  if(ses()?.jwt)void refreshHomeWallet();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountHomeBadge);else mountHomeBadge();
-document.addEventListener('cc192-session-ended',()=>{loadSequence++;ownerId=null;account=null;carts=[];moves=[];people=[];realWallets=[];filter='';cartState='ALL';close();const body=$('mc158body');if(body)body.textContent='Inicia sesión para abrir MI COCHERA.';});
+document.addEventListener('cc192-session-ended',()=>{loadSequence++;ownerId=null;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';close();const body=$('mc158body');if(body)body.textContent='Inicia sesión para abrir MI COCHERA.';});
 window.mc158Open=open;
 window.mc158Close=close;
 })();

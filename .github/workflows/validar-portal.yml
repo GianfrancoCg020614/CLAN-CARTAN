@@ -152,6 +152,7 @@ jobs:
           run_check node scripts/test-v193-business-activation.mjs
           run_check node scripts/test-v321-recharges-browser.mjs
           run_check node scripts/test-v323-usability-browser.mjs
+          run_check node scripts/test-v326-wallet-access-browser.mjs
           run_check node scripts/test-v185-single-wallet.mjs
           run_check node scripts/test-v182-recharges-regression.mjs
           run_check node scripts/test-v177-role-contract.mjs

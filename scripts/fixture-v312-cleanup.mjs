@@ -11,7 +11,7 @@ export function cleanupFixture(){
   __requests.push(p);
   if(p.startsWith('cc_admins?'))return window.CC_V53_SESSION.isAdmin?[{user_id:'fixture-user'}]:[];
   if(p.startsWith('cc_real_service_wallets?'))return [{service:'STREAM_BULLS',balance_pen:10},{service:'COBRA_YA',balance_pen:5},{service:'MI_COCHERA',balance_pen:2}];
-  if(p==='rpc/mc_ensure_account')return [{user_id:'fixture-user',subscription_until:'2099-12-31',currency:'PEN',bonus_pen:50}];
+  if(p==='rpc/cc_finance_wallet')return {available_pen:17,pending_reversal_pen:0};if(p==='rpc/mc_ensure_account')return [{user_id:'fixture-user',subscription_until:'2099-12-31',currency:'PEN',bonus_pen:50}];
   if(p==='rpc/mc_sync_rents')return [];
   if(p==='rpc/cc_my_real_wallet_movements')return [{movement_id:'fixture-history',occurred_at:'2026-11-01T12:00:00Z',movement_type:'RECHARGE',service:'MI_COCHERA',amount_pen:2,affects_balance:true,status:'CREDITED',reference:'FIXTURE-REF',description:'Movimiento ficticio conservado'}];
   if(p.startsWith('rpc/')&&/transfer|grant|create|pay_|purchase|test_wallet/i.test(p)){throw Error('Ruta retirada o escritura prohibida: '+p);}

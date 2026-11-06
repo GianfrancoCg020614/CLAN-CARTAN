@@ -13,7 +13,7 @@ export function usabilityFixture(kind='cochera'){
  const base=cc80.api;cc80.api=async(p,m,b)=>{
  if(p==='rpc/mc_change_cart_state'){calls++;return new Promise(r=>changeResolve=()=>{carts[0].state=b.p_new_state;r([]);});}
  if(p==='rpc/mc_create_cart'){calls++;return new Promise(r=>saveResolve=()=>r(3));}
- if(p.startsWith('cc_real_service_wallets?'))return [{balance_pen:2},{balance_pen:5},{balance_pen:10}];
+ if(p==='rpc/cc_finance_wallet')return {balance_pen:22,pending_reversal_pen:5,available_pen:17};
  if(p.startsWith('mc_carts?')){if(hold){hold=false;return new Promise(r=>staleResolve=r);}return CC_V53_SESSION.userId==='new-user'?[{...carts[0],alias:'Cuenta nueva'}]:carts.map(c=>({...c}));}
  if(p.startsWith('mc_people?'))return people;if(p.startsWith('mc_movements?'))return [{cart_id:1,amount_local:12}];return base(p,m,b);};
  window.confirm=()=>true;const badge=document.createElement('span');badge.id='mc158-home-wallet';document.body.append(badge);
