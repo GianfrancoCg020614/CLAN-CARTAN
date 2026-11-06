@@ -1,0 +1,39 @@
+name: Validar integración API Perú
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  dni-service:
+    name: DNI · autorización del servidor y límites
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-fixture-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: ci-fixture-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: JWT moderno y cupos con datos ficticios
+        run: |
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v324-dni-foundation.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/recovery/v324_cc_claim_dni_quota.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/queries/v324-dni-service-claims.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v324-dni-regression.sql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Tres módulos, caché y fallos sin DNI reales
+        run: node scripts/test-v324-dni-backend.mjs
