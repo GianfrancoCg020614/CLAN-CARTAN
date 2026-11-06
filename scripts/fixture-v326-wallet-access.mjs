@@ -5,14 +5,14 @@ export function walletAccessFixture(mode='insufficient'){
  const setup=`
  if(${JSON.stringify(mode)}==='light')document.documentElement.dataset.ccTheme='light';
  const home=document.querySelector('#cc77home');home.classList.add('cc304-home');home.insertAdjacentHTML('beforeend','<div class="cc77cards"><article class="cc217-stream"><div class="cc77actions"><button>Ver catálogo</button><button id="fixture-stream-activation">Acceder como distribuidor</button></div></article></div>');
- window.__balance=${mode==='zero'?0:mode==='exact'?25:['insufficient','pending','credited'].includes(mode)?8:30};window.__cost=25;window.__stream=${mode==='active'};window.__writes=[];window.__confirm=true;window.__login=0;window.__catalog=0;window.__walletCalls=0;window.__walletFail=false;window.__hold=false;window.__waiting=[];
+ window.__balance=${mode==='zero'?0:mode==='exact'?25:['insufficient','pending','credited'].includes(mode)?8:30};window.__cost=25;window.__stream=${mode==='active'};window.__writes=[];window.__confirm=true;window.__login=0;window.__catalog=0;window.__walletCalls=0;window.__walletFail=false;window.__hold=false;window.__waiting=[];window.__rateFail=false;window.__holdRate=false;window.__rateWaiting=[];
  window.confirm=()=>__confirm;window.alert=()=>{};window.cc77Auth=()=>__login++;window.cc169OpenCatalog=()=>__catalog++;window.cc169RefreshCatalog=()=>{};
  try{sessionStorage.getItem('test');}catch(_){const mem=new Map();Object.defineProperty(window,'sessionStorage',{value:{getItem:k=>mem.get(k)||null,setItem:(k,v)=>mem.set(k,v),removeItem:k=>mem.delete(k)}});}
  let uuid=0;if(!crypto.randomUUID)crypto.randomUUID=()=>('32600000-0000-4000-8000-'+String(++uuid).padStart(12,'0'));
  const native=cc80.api;cc80.api=async(p,m,b)=>{
  if(p.startsWith('cc_manual_recharge_requests?'))return ${JSON.stringify(mode)}==='pending'?[{id:'pending-rec',status:'PENDING',amount_pen:20}]:[];
  if(p==='rpc/cc_finance_wallet'){__walletCalls++;if(__walletFail)throw Error('Offline');const result={balance_pen:__balance+5,pending_reversal_pen:5,available_pen:__balance};if(__hold)return new Promise(resolve=>__waiting.push(()=>resolve(result)));return result;}
- if(p==='rpc/cc_finance_rates')return ['COBRA_YA','MI_COCHERA','MI_ALQUILER','STREAM_BULLS'].map(service=>({service,amount_pen:service==='STREAM_BULLS'?__cost:15}));
+ if(p==='rpc/cc_finance_rates'){if(__rateFail)throw Error('Offline');const result=['COBRA_YA','MI_COCHERA','MI_ALQUILER','STREAM_BULLS'].map(service=>({service,amount_pen:service==='STREAM_BULLS'?__cost:15}));if(__holdRate)return new Promise(resolve=>__rateWaiting.push(()=>resolve(result)));return result;}
  if(p==='rpc/cc_portal_my_business_access_v316')return {business_access:['COBRA_YA','MI_COCHERA','MI_ALQUILER','STREAM_BULLS'].map(service=>({service,status:service==='COBRA_YA'||service==='STREAM_BULLS'&&__stream?'ACTIVE':'INACTIVE',active_until:service==='COBRA_YA'||__stream?'2099-12-31':null}))};
  if(p==='rpc/cc_finance_activate_membership'){__writes.push({p,b});if(__stream)return {service:'STREAM_BULLS',status:'ALREADY_ACTIVE',amount_pen:0,charged:false,active_until:'2099-12-31'};if(b.p_expected_amount_pen!==__cost||__balance<__cost)throw Error('Saldo o tarifa');await new Promise(r=>setTimeout(r,35));__balance-=__cost;__stream=true;return {service:'STREAM_BULLS',amount_pen:__cost,active_until:'2099-12-31'};}
  if(p==='rpc/cc_finance_pay_membership')throw Error('Una activación no puede renovar');
@@ -27,6 +27,16 @@ export function walletAccessFixture(mode='insufficient'){
  checks.otherPlatformDoesNotUnlock=__stream||${JSON.stringify(mode)}==='admin'||!!q('.cc326-distributor-cta');
  if(${JSON.stringify(mode)}==='active'||${JSON.stringify(mode)}==='admin'){
   checks.noActivation=q('.cc326-distributor-cta')===null;await cc326OpenStreamActivation();checks.noModal=!q('#cc326-activation');
+ }else if(['recover-wallet','recover-quote'].includes(${JSON.stringify(mode)})){
+  if(${JSON.stringify(mode)}==='recover-wallet')__walletFail=true;else __rateFail=true;
+  await cc326OpenStreamActivation();await wait(50);const original=q('#cc326-activation');
+  checks.recoveryAction=!q('[data-action=retry]').hidden&&q('[data-action=activate]').hidden&&__writes.length===0;
+  __walletFail=false;__rateFail=false;const before=__walletCalls;q('[data-action=retry]').click();q('[data-action=retry]').click();await wait(130);
+  checks.recoveredInPlace=q('#cc326-activation')===original&&q('[data-action=retry]').hidden&&!q('[data-action=activate]').disabled&&q('[data-field=price]').textContent.includes('25.00');
+  checks.readsOnly=__writes.length===0&&__walletCalls===before+1;
+ }else if(${JSON.stringify(mode)}==='reopen-loading'){
+  __holdRate=true;void cc326OpenStreamActivation();await wait(30);const old=q('#cc326-activation');q('[data-action=close]').click();__holdRate=false;await cc326OpenStreamActivation();__rateWaiting.splice(0).forEach(fn=>fn());await wait(60);
+  checks.reopened=q('#cc326-activation')!==old&&!q('[data-action=activate]').disabled&&q('[data-field=price]').textContent.includes('25.00');checks.noWrites=__writes.length===0;
  }else if(${JSON.stringify(mode)}==='failure'){
   __walletFail=true;await cc326Wallet.refresh(true);await wait(70);const calls=__walletCalls;await wait(100);checks.noRetryLoop=__walletCalls===calls;checks.unknownNotZero=all('.cc326-wallet-summary').every(e=>e.textContent.includes('Saldo sin verificar'));checks.noWrites=__writes.length===0;
  }else if(${JSON.stringify(mode)}==='switch'){
@@ -43,7 +53,7 @@ export function walletAccessFixture(mode='insufficient'){
    checks.noCharge=q('[data-action=activate]').disabled&&__writes.length===0;if(${JSON.stringify(mode)}==='pending')checks.pendingHonest=q('[data-pending]').textContent.includes('Recarga en verificación');
    q('[data-action=recharge]').click();await wait(40);checks.existingWallet=!q('#cc326-activation')&&!!q('#cc166-content');
   }else if(${JSON.stringify(mode)}==='price-change'){
-   __cost=30;q('[data-action=activate]').click();await wait(100);checks.priceRechecked=__writes.length===0&&q('[data-message]').textContent.includes('tarifa cambió');
+   __cost=30;q('[data-action=activate]').click();await wait(100);checks.priceRechecked=__writes.length===0&&q('[data-message]').textContent.includes('tarifa cambió');checks.oldPriceBlocked=q('[data-action=activate]').hidden&&!q('[data-action=retry]').hidden;q('[data-action=retry]').click();await wait(130);checks.newPriceVerified=__writes.length===0&&q('[data-field=price]').textContent.includes('30.00')&&!q('[data-action=activate]').disabled;
   }else{
    __confirm=false;q('[data-action=activate]').click();await wait(80);checks.cancelled=__writes.length===0&&q('[data-message]').textContent.includes('cancelada');__confirm=true;
    q('[data-action=activate]').click();q('[data-action=activate]').click();await wait(240);

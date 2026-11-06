@@ -82,7 +82,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V326 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V327 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -2290,7 +2290,7 @@ function init(){
   if(session()?.userId!==userId||session()?.jwt!==jwt||!verified)throw Error('No se pudo verificar tu cuenta. Actualiza antes de activar.');
   if(data.admin)throw Error('La cuenta administradora no necesita esta activación.');
   const rate=data.financeRates?.find(r=>r.service==='STREAM_BULLS');
-  if(!rate||Number(rate.amount_pen)!==Number(expected))throw Error('La tarifa cambió. Cierra esta ventana y vuelve a consultar antes de pagar.');
+  if(!rate||Number(rate.amount_pen)!==Number(expected))throw Error('La tarifa cambió. Vuelve a verificar los datos antes de pagar.');
   const result=await activateBusiness('STREAM_BULLS',null,'ACTIVATE');
   return result;
  };
