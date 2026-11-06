@@ -40,7 +40,7 @@ Deno.serve(async req=>{
  try{
   const remote=await fetch("https://api.apiperu.dev/dni",{method:"POST",signal:ctl.signal,headers:{Authorization:"Bearer "+token,"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({dni})});
   const data=await remote.json().catch(()=>({}));
-  if(remote.status===429||/quota|credit|limit/i.test(String(data?.code||"")+" "+String(data?.message||"")))return response({status:"manual",reason:"quota_exhausted"},200,origin);
+  if(remote.status===429||/quota|credit|limit/i.test(String(data?.code||"")+" "+String(data?.message||""))){await fetch(base+"/rest/v1/rpc/cc_mark_dni_provider_exhausted",{method:"POST",headers,body:"{}"}).catch(()=>{});return response({status:"manual",reason:"quota_exhausted"},200,origin);}
   if(!remote.ok||data?.success!==true)return response({status:"manual",reason:"provider_unavailable"},200,origin);
   const d=data.data||{},name=String(d.nombre_completo||[d.nombres,d.apellido_paterno,d.apellido_materno].filter(Boolean).join(" ")).trim().slice(0,160);
   if(name.length<2)return response({status:"manual",reason:"not_found"},200,origin);
