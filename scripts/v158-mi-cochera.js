@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id),ses=()=>window.CC_V53_SESSION;
 const esc=x=>String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const num=x=>Number(x||0),currency=(v,c)=>({PEN:"S/",USD:"US$",EUR:"€",COP:"COP",MXN:"MXN",ARS:"ARS",CLP:"CLP",BOB:"Bs.",BRL:"R$",UYU:"UYU",PYG:"PYG",CRC:"CRC",DOP:"DOP",CAD:"CAD",GBP:"£"}[c]||c)+" "+num(v).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2});
 const api=(p,b)=>window.cc80.api(p,"POST",b||{});
-let account=null,carts=[],moves=[],people=[],accounts=[],walletAvailable=null,busy=false,filter="",cartState="ALL",ownerId=null,loadSequence=0;
+let account=null,carts=[],people=[],accounts=[],cartBalances=new Map(),walletAvailable=null,busy=false,filter="",cartState="ALL",ownerId=null,loadSequence=0;
 const normalize=value=>String(value||" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 function host(){let root=$("mc158layer");if(root)return root;root=document.createElement("div");root.id="mc158layer";
  root.innerHTML='<div class="mc158wrap"><header class="mc158head"><div><small>CLAN CARTAN · MI COCHERA</small><h2><img src="assets/mi-cochera-logo.svg" alt="Logotipo original MI COCHERA"> MI COCHERA</h2><p>Carritos, alquiler diario, hielo, deudas e historial.</p></div><button type="button" id="mc158close">← Volver a CLAN CARTAN</button></header><div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';
@@ -19,35 +19,77 @@ function close(){$("mc158dialog")?.remove();let layer=$("mc158layer");if(layer)l
 function note(msg){let el=$("mc158notice");if(el)el.textContent=msg;else alert(msg);}
 function active(){return ses()?.isAdmin || account && !account.suspended && new Date(account.subscription_until)>new Date();}
 function header(){let date=account?.subscription_until?new Date(account.subscription_until).toLocaleDateString("es-PE"):"Sin activar"; const bonus=num(account?.bonus_pen);
- return '<section class="mc158status"><div><strong>Código: '+esc(account?.invite_code||"—")+'</strong><p>Suscripción S/ 15 por 30 días · renovación voluntaria</p><small>Vigencia: '+esc(date)+'</small></div><div><strong>Bono de activación MI COCHERA: S/ '+bonus.toFixed(2)+'</strong><p>Promocional e intransferible. No es dinero real.</p></div></section>';}
+ return '<section class="mc158status"><div><strong>Código: '+esc(account?.invite_code||"—")+'</strong><p>Membresía mensual · renovación voluntaria</p><small>Vigencia: '+esc(date)+'</small></div><div><strong>Bono de activación MI COCHERA: S/ '+bonus.toFixed(2)+'</strong><p>Promocional e intransferible. No es dinero real.</p></div></section>';}
 async function open(){
  if(!ses()?.jwt){if(typeof window.cc77Auth==="function")window.cc77Auth(false);return;}
  const r=host();r.style.display="block";if($("cc77home"))$("cc77home").style.display="none";
  $("mc158body").innerHTML="<p>Cargando MI COCHERA…</p>";
  const actor=ses()?.userId,jwt=ses()?.jwt,expected=loadSequence+1;
- try{await load();}catch(e){if(ses()?.userId!==actor||ses()?.jwt!==jwt||loadSequence!==expected)return;$("mc158body").textContent="No se pudo abrir MI COCHERA: "+String(e.message||e);}
+ try{await load();}catch(e){if(ses()?.userId!==actor||ses()?.jwt!==jwt||loadSequence!==expected)return;
+  $("mc158body").innerHTML='<section class="mc158box"><h3>No se pudo abrir MI COCHERA</h3><p>'+esc(String(e.message||e))+'</p><p>Tus registros se conservan. Puedes volver a consultar.</p><button type="button" data-action="retry-open">Volver a intentar</button></section>';
+ }
 }
 async function load(){
  const session=ses(),id=session?.userId,jwt=session?.jwt,seq=++loadSequence;
  if(!id||!jwt)return;const current=()=>ses()?.userId===id&&ses()?.jwt===jwt&&loadSequence===seq;
- if(ownerId!==id){ownerId=id;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';}
+ if(ownerId!==id){ownerId=id;account=null;carts=[];people=[];cartBalances=new Map();walletAvailable=null;filter='';cartState='ALL';}
  if(session.isAdmin){account=null;return await loadAdmin(current);}
  const rows=await api('rpc/mc_ensure_account');if(!current())return;
  account=Array.isArray(rows)?rows[0]:rows;if(!account)throw Error('Sin cuenta.');
  const uid=encodeURIComponent(id);
  const detail=await window.cc80.api('mc_accounts?select=country&user_id=eq.'+uid);if(!current())return;
  account.country=detail?.[0]?.country||'PE';
- const wallet=await api('rpc/cc_finance_wallet');if(!current())return;
- if(wallet?.available_pen==null||!Number.isFinite(Number(wallet.available_pen)))throw Error('No se pudo verificar tu saldo disponible. Actualiza para continuar.');
- walletAvailable=Number(wallet.available_pen);window.cc326Wallet?.accept({userId:id,jwt,wallet});void refreshHomeWallet();
+ try{const wallet=await api('rpc/cc_finance_wallet');if(!current())return;
+  if(wallet?.available_pen==null||!Number.isFinite(Number(wallet.available_pen)))throw Error('Saldo sin verificar');
+  walletAvailable=Number(wallet.available_pen);window.cc326Wallet?.accept({userId:id,jwt,wallet});
+ }catch(_){if(!current())return;walletAvailable=null;window.cc326Wallet?.accept({userId:id,jwt,wallet:null});}
  if(!active()){showLocked();return;}
  await api('rpc/mc_sync_rents');if(!current())return;
  const items=await Promise.all([
-  window.cc80.api('mc_carts?select=*&reseller_id=eq.'+uid+'&order=id.asc'),
-  window.cc80.api('mc_movements?select=*&reseller_id=eq.'+uid+'&order=created_at.desc&limit=2000'),
-  window.cc80.api('mc_people?select=*&reseller_id=eq.'+uid+'&limit=2000')
+  allRows('mc_carts?select=*&reseller_id=eq.'+uid,current),
+  api('rpc/mc_my_cart_balances_v328'),
+  allRows('mc_people?select=*&reseller_id=eq.'+uid,current)
  ]);
- if(!current())return;[carts,moves,people]=items;renderList();
+ if(!current())return;
+ const [nextCarts,balances,nextPeople]=items;
+ if(!Array.isArray(balances))throw Error('No se pudo verificar la deuda completa. Actualiza antes de cobrar.');
+ const verifiedBalances=new Map();for(const b of balances){if(b?.cart_id==null||b.balance_local==null||!Number.isFinite(Number(b.balance_local)))throw Error('Deuda no verificada');verifiedBalances.set(String(b.cart_id),Number(b.balance_local));}
+ if(nextCarts.some(c=>!verifiedBalances.has(String(c.id))))throw Error('La cochera cambió mientras se consultaba. Pulsa Actualizar antes de cobrar.');
+ carts=nextCarts;people=nextPeople;cartBalances=verifiedBalances;renderList();
+}
+async function allRows(path,current){
+ const out=[],seen=new Set();let cursor=null;
+ for(let page=0;page<1000;page++){
+  const rows=await window.cc80.api(path+'&order=id.asc&limit=200'+(cursor===null?'':'&id=gt.'+encodeURIComponent(cursor)));
+  if(!current())return [];
+  if(!Array.isArray(rows))throw Error('No se pudo cargar la lista completa. Vuelve a actualizar.');
+  if(!rows.length)return out;
+  for(const r of rows){if(r.id==null||seen.has(String(r.id)))throw Error('La lista cambió durante la consulta. Vuelve a actualizar.');seen.add(String(r.id));out.push(r);}
+  cursor=String(rows.at(-1).id);
+ }
+ throw Error('La lista es demasiado grande para esta vista. Contacta con soporte.');
+}
+function history(id){
+ const cart=carts.find(c=>c.id===id);if(!cart)return;
+ drawer('Historial · '+(cart.alias||'C-'+id),'<p>Deuda verificada: '+currency(Math.max(0,balance(id)),cart.currency)+'</p><div class="mc158scroll"><table><thead><tr><th>Fecha</th><th>Movimiento</th><th>Importe</th></tr></thead><tbody id="mc328history"></tbody></table></div><p id="mc328historyStatus" role="status"></p><button type="button" id="mc328more">Ver más movimientos</button>');
+ const target=$('mc158dialog'),actor=ses()?.userId,jwt=ses()?.jwt,seen=new Set();let cursor=null,loading=false;
+ const current=()=>target.isConnected&&$('mc158dialog')===target&&ses()?.userId===actor&&ses()?.jwt===jwt;
+ const more=target.querySelector('#mc328more'),status=target.querySelector('#mc328historyStatus');
+ async function next(){
+  if(loading||!current())return;loading=true;more.disabled=true;status.textContent='Consultando movimientos…';
+  try{
+   const after=cursor?'&or='+encodeURIComponent('(occurred_on.lt.'+cursor.occurred_on+',and(occurred_on.eq.'+cursor.occurred_on+',created_at.lt.'+cursor.created_at+'),and(occurred_on.eq.'+cursor.occurred_on+',created_at.eq.'+cursor.created_at+',id.lt.'+cursor.id+'))'):'';
+   const rows=await window.cc80.api('mc_movements?select=id,occurred_on,label,amount_local,currency,created_at&reseller_id=eq.'+encodeURIComponent(actor)+'&cart_id=eq.'+id+'&order=occurred_on.desc,created_at.desc,id.desc&limit=100'+after);
+   if(!current())return;
+   if(!Array.isArray(rows)||rows.some(m=>!m.id||!Number.isFinite(Date.parse(m.created_at))||seen.has(String(m.id))))throw Error('Historial incompleto');
+   if(!rows.length){more.hidden=true;status.textContent=seen.size?'Historial completo.':'Todavía no hay movimientos para este carrito.';return;}
+   const body=target.querySelector('#mc328history');
+   for(const m of rows){seen.add(String(m.id));body.insertAdjacentHTML('beforeend','<tr><td>'+esc(m.occurred_on)+'</td><td>'+esc(m.label)+'</td><td>'+currency(m.amount_local,m.currency)+'</td></tr>');}
+   cursor=rows.at(-1);status.textContent=seen.size+' movimientos mostrados. Puedes consultar los anteriores con Ver más.';
+  }catch(_){if(current())status.textContent='No pudimos completar el historial. Pulsa Ver más para volver a intentar.';}
+  finally{loading=false;if(current())more.disabled=false;}
+ }
+ more.addEventListener('click',()=>void next());void next();
 }
 function currencyPanel(){return '<section class="mc158status"><div><strong>País: '+esc(account?.country||"PE")+' · Moneda de cobros: '+esc(account?.currency||"PEN")+'</strong><p>No confundimos la moneda de los alquileres con la billetera, que siempre está en PEN.</p></div><button type="button" data-action="currency">Configurar país y moneda</button></section>';}
 function walletPanel(){const balance=walletAvailable;
@@ -64,21 +106,21 @@ async function loadAdmin(current=()=>true){
  $("mc158body").innerHTML=header()+'<section class="mc158box"><h3>ADMIN · Resellers MI COCHERA</h3><p>Consulta las cuentas de MI COCHERA. Los bonos se gestionan desde el panel ADMIN único.</p><button type="button" data-action="bonuses">Gestionar bonos en ADMIN</button><p id="mc158notice" role="status"></p><div class="mc158scroll"><table><thead><tr><th>Código</th><th>Suscripción</th><th>Bono</th><th>Cuenta</th></tr></thead><tbody>'+accounts.map(a=>'<tr><td>'+esc(a.invite_code)+'</td><td>'+esc(a.subscription_until?new Date(a.subscription_until).toLocaleDateString("es-PE"):"No activa")+'</td><td>S/ '+num(a.bonus_pen).toFixed(2)+'</td><td>'+esc(a.user_id.slice(0,8))+'…</td></tr>').join("")+'</tbody></table></div></section>';
 }
 function person(id){return people.find(p=>p.id===id)||{};}
-function balance(id){return moves.filter(m=>m.cart_id===id).reduce((s,m)=>s+num(m.amount_local),0);}
+function balance(id){return cartBalances.get(String(id))??0;}
 function cartHTML(c){
  const owner=person(c.owner_person_id),worker=person(c.worker_person_id),debt=Math.max(0,balance(c.id));
- return '<article class="mc158cart"><div class="mc158carttop"><div><small>C-'+String(c.id).padStart(3,'0')+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||owner.full_name||'Carrito')+'</h3><p>Propietario: '+esc(owner.full_name)+' · '+esc(owner.document_number)+'</p>'+(worker.id?'<p>Trabajador: '+esc(worker.full_name)+'</p>':'')+'<small>Tarifa '+currency(c.daily_rate,c.currency)+' / día</small></div><div><strong class="'+(debt>0?'mc158debt':'')+'">'+currency(debt,c.currency)+'</strong><small>'+esc(c.state==='RETIRED'?'Retirado':'Activo')+'</small></div></div><div class="mc158actions"><button type="button" data-action="payment" data-cart="'+c.id+'" '+(debt>0?'':'disabled title="No hay deuda pendiente"')+'>Cobrar</button><button type="button" data-action="sale" data-cart="'+c.id+'">Hielo / venta</button><details class="mc314-more"><summary>Más acciones</summary><div><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp</button><button type="button" data-action="'+(c.state==='ACTIVE'?'retire':'reactivate')+'" data-cart="'+c.id+'">'+(c.state==='ACTIVE'?'Se retira':'Reactivar')+'</button></div></details></div></article>';
+ return '<article class="mc158cart"><div class="mc158carttop"><div><small>C-'+String(c.id).padStart(3,'0')+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||owner.full_name||'Carrito')+'</h3><p>Propietario: '+esc(owner.full_name)+' · '+esc(owner.document_number)+'</p>'+(worker.id?'<p>Trabajador: '+esc(worker.full_name)+'</p>':'')+'<small>Tarifa '+currency(c.daily_rate,c.currency)+' / día</small></div><div><strong class="'+(debt>0?'mc158debt':'')+'">'+currency(debt,c.currency)+'</strong><small>'+esc(c.state==='RETIRED'?'Retirado':'Activo')+'</small></div></div><div class="mc158actions"><button type="button" data-action="payment" data-cart="'+c.id+'" '+(debt>0?'':'disabled title="No hay deuda pendiente"')+'>Cobrar</button><button type="button" data-action="sale" data-cart="'+c.id+'" '+(c.state==='ACTIVE'?'':'disabled title="Reactiva el carrito antes de agregar productos"')+'>Hielo / venta</button><details class="mc314-more"><summary>Más acciones</summary><div><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp</button><button type="button" data-action="'+(c.state==='ACTIVE'?'retire':'reactivate')+'" data-cart="'+c.id+'">'+(c.state==='ACTIVE'?'Se retira':'Reactivar')+'</button></div></details></div></article>';
 }
 function renderList(listOnly=false){
  const terms=normalize(filter).split(/\s+/).filter(Boolean);
  const shown=carts.filter(c=>{
   const text=normalize([c.alias,c.business_type,person(c.owner_person_id).full_name,person(c.owner_person_id).document_number,person(c.worker_person_id).full_name,person(c.worker_person_id).document_number,String(c.id),'C-'+String(c.id).padStart(3,'0')].join(' '));
-  return (cartState==='ALL'||c.state===cartState)&&terms.every(term=>text.includes(term));
+  return (cartState==='ALL'||cartState==='DEBT'&&balance(c.id)>0||c.state===cartState)&&terms.every(term=>text.includes(term));
  });
  const cards=shown.map(cartHTML).join('')||'<p class="mc314-empty">'+(carts.length?'No hay carritos que coincidan con la búsqueda y el estado seleccionado.':'Todavía no tienes carritos. Pulsa Registrar carrito para añadir el primero.')+'</p>';
  if(listOnly&&$('mc158cards')){$('mc158cards').innerHTML=cards;$('mc158count').textContent=shown.length+' de '+carts.length+' carritos';return;}
  const pending=carts.reduce((s,c)=>s+Math.max(0,balance(c.id)),0);
- $('mc158body').innerHTML=header()+currencyPanel()+walletPanel()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==='ACTIVE').length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><label class="mc314-search">Buscar carrito<input id="mc158search" type="search" aria-label="Buscar por nombre, DNI o código de carrito" placeholder="Alias, nombre, DNI o C-001…" value="'+esc(filter)+'"></label><label>Estado<select id="mc158state"><option value="ALL">Todos</option><option value="ACTIVE">Activos</option><option value="RETIRED">Retirados</option></select></label><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="reload">↻ Actualizar</button></div><p id="mc158notice" role="status"></p><p id="mc158count" role="status">'+shown.length+' de '+carts.length+' carritos</p><div class="mc158cards" id="mc158cards">'+cards+'</div></section>';
+ $('mc158body').innerHTML=header()+currencyPanel()+walletPanel()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==='ACTIVE').length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><label class="mc314-search">Buscar carrito<input id="mc158search" type="search" aria-label="Buscar por nombre, DNI o código de carrito" placeholder="Alias, nombre, DNI o C-001…" value="'+esc(filter)+'"></label><label>Estado<select id="mc158state"><option value="ALL">Todos</option><option value="DEBT">Con deuda</option><option value="ACTIVE">Activos</option><option value="RETIRED">Retirados</option></select></label><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="reload">↻ Actualizar</button></div><p id="mc158notice" role="status"></p><p id="mc158count" role="status">'+shown.length+' de '+carts.length+' carritos</p><div class="mc158cards" id="mc158cards">'+cards+'</div></section>';
  $('mc158state').value=cartState;
  $('mc158search').addEventListener('input',event=>{filter=event.target.value;renderList(true);});
  $('mc158state').addEventListener('change',event=>{cartState=event.target.value;renderList(true);});
@@ -122,20 +164,25 @@ async function lookupDni(input){
 async function submit(e){
  if(!e.target.id?.startsWith("mc158"))return;
  e.preventDefault();if(busy)return;const actor=ses()?.userId,jwt=ses()?.jwt,form=e.target;const current=()=>ses()?.userId===actor&&ses()?.jwt===jwt;busy=true;let button=e.target.querySelector('button[type="submit"]');const label=button?.textContent;if(button){button.disabled=true;button.textContent='Guardando…';}form.setAttribute('aria-busy','true');
+ let saved=false,submitted=false;
  try{
  if(e.target.id==="mc158config"){
-  const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Moneda y país actualizados para esta cochera.");
+  const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});saved=true;if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Moneda y país actualizados para esta cochera.");
  }else if(e.target.id==="mc158new"){
   const f=e.target,x=k=>f.elements.namedItem(k)?.value?.trim()||"";
   const id=await api("rpc/mc_create_cart",{p_alias:x("alias"),p_type:x("business"),p_rate:num(x("rate")),p_owner_kind:x("ownerKind"),p_owner_doc:x("ownerDoc"),p_owner_name:x("ownerName"),p_owner_phone:x("ownerPhone"),p_worker_kind:x("workerKind")||null,p_worker_doc:x("workerDoc")||null,p_worker_name:x("workerName")||null,p_worker_phone:x("workerPhone")||null});
-  if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Carrito registrado: C-"+String(id).padStart(3,"0"));
+  saved=true;if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Carrito registrado: C-"+String(id).padStart(3,"0"));
  }else if(e.target.id==="mc158pay"){
-  const f=e.target;await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PAYMENT",p_label:"Abono recibido",p_quantity:null,p_unit:null,p_amount:-num(f.elements.amount.value),p_method:f.elements.method.value});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Pago registrado.");
+  const f=e.target,amount=num(f.elements.amount.value),debt=balance(Number(f.dataset.cart));
+  if(!Number.isFinite(amount)||amount<=0||amount>debt||Math.abs(amount*100-Math.round(amount*100))>0.000001)throw Error('Ingresa un importe positivo de hasta '+currency(debt,account.currency)+', con máximo dos decimales.');
+  submitted=true;await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PAYMENT",p_label:"Abono recibido",p_quantity:null,p_unit:null,p_amount:-amount,p_method:f.elements.method.value});saved=true;if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Pago registrado.");
  }else if(e.target.id==="mc158sale"){
   const f=e.target,q=num(f.elements.quantity.value),price=num(f.elements.price.value);
-  await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PRODUCT",p_label:f.elements.item.value,p_quantity:q,p_unit:price,p_amount:Math.round(q*price*100)/100,p_method:null});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Producto agregado a la deuda.");
+  if(!Number.isFinite(q)||q<=0||!Number.isFinite(price)||price<=0)throw Error('Ingresa una cantidad y un precio positivos.');
+  const total=Math.round(q*price*100)/100;if(total<=0||total>100000)throw Error('El total debe estar entre '+currency(0.01,account.currency)+' y '+currency(100000,account.currency)+'.');
+  submitted=true;await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PRODUCT",p_label:f.elements.item.value,p_quantity:q,p_unit:price,p_amount:total,p_method:null});saved=true;if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Producto agregado a la deuda.");
  }
- }catch(e){if(!current())return;const el=form.closest("#mc158dialog")?.querySelector("#mc158dialogStatus")||$("mc158notice");if(el)el.textContent="No se completó: "+String(e.message||e);}
+ }catch(e){if(!current())return;const el=(form.isConnected?form.closest("#mc158dialog")?.querySelector("#mc158dialogStatus"):null)||$("mc158notice");if(el)el.textContent=(saved?'El registro se guardó, pero no pudimos actualizar la lista. Pulsa Actualizar antes de repetir. ':submitted?'No pudimos confirmar el registro. Revisa el historial antes de volver a enviarlo. ':'No se completó: ')+String(e.message||e);}
  finally{busy=false;form.removeAttribute('aria-busy');if(button){button.disabled=false;button.textContent=label;}}
 }
 async function click(e){
@@ -143,6 +190,7 @@ async function click(e){
  e.preventDefault();const act=btn.dataset.action,id=Number(btn.dataset.cart),actor=ses()?.userId,jwt=ses()?.jwt;
  try{
  if(act==="close-dialog"){$("mc158dialog")?.remove();return;}
+ if(act==="retry-open"){await open();return;}
  if(act==="reload"){await load();return;}
  if(act==="new"){newCart();return;}
  if(act==="currency"){
@@ -177,8 +225,8 @@ async function click(e){
   return;
  }
  if(act==="payment"){if(balance(id)<=0){note("No hay deuda pendiente para registrar un abono.");return;}drawer("Cobrar · C-"+id,'<form id="mc158pay" data-cart="'+id+'"><p>Deuda pendiente: '+currency(balance(id),account.currency)+'</p><label>Importe recibido<input name="amount" type="number" min=".01" max="'+Math.max(0,balance(id)).toFixed(2)+'" step=".01" required></label><label>Medio<select name="method"><option>Efectivo</option><option>Yape</option><option>Plin</option><option>Transferencia</option></select></label><button type="submit">Registrar abono</button></form>');return;}
- if(act==="sale"){drawer("Agregar hielo o producto · C-"+id,'<form id="mc158sale" data-cart="'+id+'"><label>Producto<input name="item" value="Hielo" required maxlength="120"></label><label>Cantidad<input name="quantity" type="number" min=".001" step="any" value="1" required></label><label>Precio por unidad ('+esc(account.currency)+')<select name="price"><option value="1.50">1.50</option><option value="2">2.00</option><option value="3">3.00</option></select></label><p>Se acumula como deuda del carrito hasta registrar el pago.</p><button type="submit">Agregar producto</button></form>');return;}
- if(act==="history"){const c=carts.find(c=>c.id===id);let records=moves.filter(m=>m.cart_id===id);drawer("Historial · "+(c?.alias||"C-"+id),'<div class="mc158scroll"><table><thead><tr><th>Fecha</th><th>Movimiento</th><th>Importe</th></tr></thead><tbody>'+records.map(m=>'<tr><td>'+esc(m.occurred_on)+'</td><td>'+esc(m.label)+'</td><td>'+currency(m.amount_local,m.currency)+'</td></tr>').join("")+'</tbody></table></div>');return;}
+ if(act==="sale"){if(carts.find(c=>c.id===id)?.state!=='ACTIVE'){note('Reactiva el carrito antes de agregar hielo o productos.');return;}drawer("Agregar hielo o producto · C-"+id,'<form id="mc158sale" data-cart="'+id+'"><label>Producto<input name="item" value="Hielo" required maxlength="120"></label><label>Cantidad<input name="quantity" type="number" min=".001" step="any" value="1" required></label><label>Precio por unidad ('+esc(account.currency)+')<select name="price"><option value="1.50">1.50</option><option value="2">2.00</option><option value="3">3.00</option></select></label><p>Se acumula como deuda del carrito hasta registrar el pago.</p><button type="submit">Agregar producto</button></form>');return;}
+ if(act==="history"){history(id);return;}
  }catch(e){if(ses()?.userId===actor&&ses()?.jwt===jwt)note("Error: "+String(e.message||e));}
 }
 async function refreshHomeWallet(){
@@ -203,7 +251,7 @@ function mountHomeBadge(){
  if(ses()?.jwt)void refreshHomeWallet();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountHomeBadge);else mountHomeBadge();
-document.addEventListener('cc192-session-ended',()=>{loadSequence++;ownerId=null;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';close();const body=$('mc158body');if(body)body.textContent='Inicia sesión para abrir MI COCHERA.';});
+document.addEventListener('cc192-session-ended',()=>{loadSequence++;ownerId=null;account=null;carts=[];people=[];cartBalances=new Map();walletAvailable=null;filter='';cartState='ALL';close();const body=$('mc158body');if(body)body.textContent='Inicia sesión para abrir MI COCHERA.';});
 window.mc158Open=open;
 window.mc158Close=close;
 })();

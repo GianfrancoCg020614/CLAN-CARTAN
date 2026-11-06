@@ -72,6 +72,22 @@ jobs:
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261106024724_v325_activation_post_lock_clock.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v325-activation-regression.sql
           bash scripts/test-v325-concurrency.sh
+      - name: MI COCHERA · deuda completa, RLS y operaciones reales con datos ficticios
+        run: |
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -c 'create database mc328;'
+          export PGDATABASE=mc328
+          sed '/^create role /d' scripts/sql/v328-cochera-foundation.sql | psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261106111322_v328_cochera_complete_balances_read_only.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v328-cochera-regression.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -c 'create database mc328core;'
+          export PGDATABASE=mc328core
+          sed '/^create role /d' scripts/sql/v328-core-foundation.sql | psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261021070000_v158_mi_cochera_foundation.sql
+          for rpc in mc_record_movement mc_sync_rents mc_create_cart mc_change_cart_state mc_configure_currency; do
+            psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f "supabase/recovery/v328_${rpc}.sql"
+          done
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261106111322_v328_cochera_complete_balances_read_only.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v328-core-regression.sql
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
