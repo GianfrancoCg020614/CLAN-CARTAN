@@ -24,8 +24,9 @@ No existe precio especial independiente de súper reseller: continúa el precio 
 - SQL aislado: cuatro servicios, reintentos, servicio vigente con otra referencia, saldo exacto, bonos únicos, vigencia anual, renovación anticipada, reactivación, rollback por fallo, saldo insuficiente y acceso ajeno/anónimo.
 - Manejador real con API ficticia: intención, confirmación cancelada, activo sin cobro, saldo cero y doble clic.
 - Navegador aislado móvil: cinco perfiles de catálogo y paneles financiero/administrativo; un precio, checkout ficticio, exportaciones y ausencia de desbordamiento.
-- CI incorpora dos conexiones PostgreSQL simultáneas con referencias distintas; comprobar resultado en la ejecución del commit.
-- Producción: función instalada y permisos verificados mediante consultas sin cargos. La publicación del panel debe comprobarse por commit y versión.
+- PostgreSQL 16 en CI: cuatro negocios, dos conexiones simultáneas y referencias distintas por servicio; un solo cargo, periodo y bono por negocio. Resultado aprobado en ac585f08eca0082a9412846c93660367b94fbe18.
+- La prueba concurrente inicial detectó que `now()` podía conservar una hora anterior al inicio del periodo recién confirmado. La segunda migración valida con `clock_timestamp()` después del bloqueo y una consulta nueva; la prueba fuerza este orden de transacciones.
+- Producción: función corregida instalada y permisos verificados mediante consultas sin cargos. La publicación del panel debe comprobarse por commit y versión.
 
 ## Límites y siguiente conjunto de trabajo
 
