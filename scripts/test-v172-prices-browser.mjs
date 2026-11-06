@@ -36,7 +36,7 @@ try{
    'const expectedAmount='+amount+';',
    'const amountOK=card?.textContent.includes("S/ "+expectedAmount.toFixed(2));',
    'const labelOK=card?.textContent.includes('+JSON.stringify(eligible?'Precio distribuidor':'Precio público')+');',
-   'const publicReference='+JSON.stringify(eligible)+'?card?.textContent.includes("Precio al público: S/ 12.00"):!card?.textContent.includes("Precio al público: S/ 12.00");',
+   'const publicReference=!card?.querySelector(".cc172-public-reference")&&(!'+JSON.stringify(eligible)+'||!card?.textContent.includes("S/ 12.00"));',
    'const rq=window.__catalogRequests;',
    'const rightRpc=rq.length>=1&&rq.every(r=>r.url.includes("cc_portal_public_catalog_v3"));',
    'const bearerCorrect='+JSON.stringify(logged)+'?rq.some(r=>r.headers.Authorization==="Bearer signed-session-TEST"):rq.every(r=>!r.headers.Authorization);',
@@ -68,3 +68,4 @@ try{
   console.log('PASS V172 · '+mode+' ve '+(eligible?'precio distribuidor':'precio público')+' y checkout correcto.');
  }
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+

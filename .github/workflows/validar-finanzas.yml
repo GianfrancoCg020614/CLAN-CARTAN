@@ -65,6 +65,12 @@ jobs:
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261105134223_v322_scheduler_safe_updates.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v322-safe-update-regression.sql
           bash scripts/test-v321-concurrency.sh
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/recovery/v325_cc_finance_pay_membership.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/recovery/v325_cc_business_access_v316.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v325-activation-fixture.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261106023906_v325_activation_without_implicit_renewal.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v325-activation-regression.sql
+          bash scripts/test-v325-concurrency.sh
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -73,3 +79,4 @@ jobs:
           node scripts/test-v321-payment-notices.mjs
           node scripts/test-v322-scheduler.mjs
           node scripts/test-v322-worker.mjs
+          node scripts/test-v325-activation-intent.mjs
