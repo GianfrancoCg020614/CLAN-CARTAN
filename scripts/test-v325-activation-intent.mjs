@@ -20,4 +20,8 @@ x=await scenario({reply:'already'});assert.equal(x.calls.length,1);assert.match(
 x=await scenario({balance:0});assert.equal(x.calls.length,0);
 x=await scenario({confirm:false});assert.equal(x.calls.length,0);
 x=await scenario({double:true});assert.equal(x.calls.length,1);
+const keys=new Map([['cc167:subscription:buyer:STREAM_BULLS','legacy-pending']]);
+const context={user:'buyer',sessionStorage:{getItem:k=>keys.get(k),setItem:(k,v)=>keys.set(k,v),removeItem:k=>keys.delete(k)},window:{crypto:{randomUUID:()=> 'new-request'}}};vm.createContext(context);
+vm.runInContext(source.slice(source.indexOf('function storedKey('),source.indexOf('\nasync function buyProduct(',source.indexOf('function storedKey(')))+';this.key=storedKey;this.done=forgetKey;',context);
+const pending=context.key('subscription-RENEW','STREAM_BULLS');assert.equal(pending.key,'legacy-pending');context.done(pending.name);assert.equal(context.key('subscription-RENEW','STREAM_BULLS').key,'new-request');
 console.log('PASS V325: activación y renovación explícitas, activo sin cobro, saldo cero, cancelación y doble clic.');

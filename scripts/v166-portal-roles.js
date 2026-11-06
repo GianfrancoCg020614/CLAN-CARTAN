@@ -1247,6 +1247,12 @@ function shop(page){
 function storedKey(kind,id){
  const name='cc167:'+kind+':'+user+':'+id;
  let key=null;
+ // Un pago pendiente anterior a V325 debe conservar su referencia al reintentar.
+ // Activar ya está protegido por vigencia; Renovar necesita además esta continuidad.
+ if(kind==='subscription-RENEW'){
+  const legacy='cc167:subscription:'+user+':'+id;
+  try{const prior=sessionStorage.getItem(legacy);if(prior)return {name:legacy,key:prior};}catch(_){}
+ }
  try{key=sessionStorage.getItem(name);}catch(_){}
  if(!key){
   if(!window.crypto?.randomUUID)throw Error('El navegador requiere conexión segura para confirmar compras.');
