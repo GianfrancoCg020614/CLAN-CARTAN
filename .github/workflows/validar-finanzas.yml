@@ -69,6 +69,7 @@ jobs:
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/recovery/v325_cc_business_access_v316.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v325-activation-fixture.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261106023906_v325_activation_without_implicit_renewal.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261106024724_v325_activation_post_lock_clock.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f scripts/sql/v325-activation-regression.sql
           bash scripts/test-v325-concurrency.sh
       - uses: actions/setup-node@v4
