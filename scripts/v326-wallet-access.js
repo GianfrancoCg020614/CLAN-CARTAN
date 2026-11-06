@@ -2,6 +2,7 @@
 (function(){
 'use strict';
 let owner='',generation=0,value=null,updated=0,attempted=0,pending=null,error='',scheduled=false,dialog=null,quote=null,quoting=false,paying=false;
+let needsReview=false;
 const session=()=>window.CC_V53_SESSION;
 const identity=()=>{const s=session();return s?.userId&&s?.jwt?s.userId+'|'+s.jwt:'';};
 const same=k=>!!k&&identity()===k;
@@ -33,7 +34,7 @@ async function refresh(force=false){
  }catch(_){if(same(key)&&generation===seq){value=null;error='Saldo sin verificar';}return null;}
  finally{if(pending===task)pending=null;schedule();}})();pending=task;return task;
 }
-function close(){if(dialog){dialog.close?.();dialog.remove();dialog=null;}quote=null;}
+function close(){if(dialog){dialog.close?.();dialog.remove();dialog=null;}quote=null;quoting=false;needsReview=false;}
 function openWallet(){close();window.cc166OpenWallet?.('manual');}
 function slots(){
  for(const label of document.querySelectorAll('[data-cc-wallet-amount]'))set(label,identity()&&value!==null?money(value):'Saldo sin verificar');
@@ -61,19 +62,28 @@ function catalogAction(){
  if(!b){b=node('button','cc326-distributor-cta','Acceder a precio distribuidor');b.type='button';b.addEventListener('click',()=>void open());host.append(b);}
 }
 function drawDialog(){
- if(!dialog||!quote||!same(quote.key))return;
+ if(!dialog)return;
+ const retry=dialog.querySelector('[data-action=retry]'),pay=dialog.querySelector('[data-action=activate]');
+ const recovery=!quoting&&(needsReview||!quote||value===null);
+ retry.hidden=!recovery;retry.disabled=paying||quoting;
+ pay.hidden=recovery;pay.disabled=true;
+ dialog.querySelector('[data-action=recharge]').hidden=recovery;
+ dialog.querySelector('[data-action=close]').disabled=paying;
+ set(dialog.querySelector('[data-field=balance]'),value===null?(error||'Consultando…'):money(value));
+ if(!quote||!same(quote.key)){set(dialog.querySelector('[data-field=price]'),quoting?'Verificando…':'Por verificar');set(pay,quoting?'Verificando…':'Activar con mi saldo');return;}
  const balance=value,shortfall=balance===null?null:Math.max(0,quote.amount-balance);
- set(dialog.querySelector('[data-field=price]'),money(quote.amount)+' · un año');
+ set(dialog.querySelector('[data-field=price]'),needsReview?'Por verificar':money(quote.amount)+' · un año');
  set(dialog.querySelector('[data-field=balance]'),balance===null?(error||'Consultando…'):money(balance));
- set(dialog.querySelector('[data-field=shortfall]'),shortfall===null?'Por verificar':money(shortfall));
- const pay=dialog.querySelector('[data-action=activate]');pay.disabled=paying||quoting||balance===null||shortfall>0;
+ set(dialog.querySelector('[data-field=shortfall]'),needsReview||shortfall===null?'Por verificar':money(shortfall));
+ pay.disabled=paying||quoting||needsReview||balance===null||shortfall>0;
  set(pay,paying?'Procesando…':'Activar con mi saldo');
- const recharge=dialog.querySelector('[data-action=recharge]');recharge.hidden=shortfall===0;recharge.disabled=paying;
+ const recharge=dialog.querySelector('[data-action=recharge]');recharge.hidden=recovery||shortfall===0;recharge.disabled=paying;
  dialog.querySelector('[data-action=close]').disabled=paying;
  set(dialog.querySelector('[data-pending]'),context()?.pendingRecharge?'Recarga en verificación. Solo puedes utilizar el saldo ya confirmado.':'');
 }
 async function loadQuote(){
- const target=dialog,key=identity();if(!target||!key)return;quoting=true;quote=null;
+ const target=dialog,key=identity();if(!target||!key||quoting||paying)return;quoting=true;quote=null;needsReview=false;
+ set(target.querySelector('[data-field=price]'),'Verificando…');set(target.querySelector('[data-field=shortfall]'),'Por verificar');drawDialog();
  target.querySelector('[data-action=activate]').disabled=true;set(target.querySelector('[data-message]'),'Verificando tarifa y vigencia…');
  try{
   const [rates,access]=await Promise.all([api('cc_finance_rates'),api('cc_portal_my_business_access_v316'),refresh(true)]);
@@ -81,16 +91,16 @@ async function loadQuote(){
   const rate=Array.isArray(rates)&&rates.find(r=>r.service==='STREAM_BULLS');
   const rows=access?.business_access;
   const stream=Array.isArray(rows)&&rows.find(r=>r.service==='STREAM_BULLS');
-  if(!rate||!Number.isFinite(Number(rate.amount_pen))||Number(rate.amount_pen)<=0||!stream)throw Error('No se pudo verificar la tarifa y el acceso. Cierra y vuelve a intentar.');
+  if(!rate||!Number.isFinite(Number(rate.amount_pen))||Number(rate.amount_pen)<=0||!stream)throw Error('No se pudo verificar la tarifa y el acceso. Pulsa «Volver a verificar» para intentar nuevamente.');
   if(stream.status==='ACTIVE'&&Date.parse(stream.active_until)>Date.now()){close();window.cc169RefreshCatalog?.();return;}
   if(['SUSPENDED','PENDING'].includes(stream.status))throw Error('Tu membresía necesita revisión. Contacta con CLAN CARTAN antes de activar.');
   quote={key,amount:Number(rate.amount_pen)};
-  set(target.querySelector('[data-message]'),value===null?'No pudimos verificar tu saldo. Cierra y vuelve a consultar.':'La activación es voluntaria y se cobra una sola vez al confirmar.');
- }catch(e){if(target===dialog&&same(key))set(target.querySelector('[data-message]'),String(e.message||e));}
+  set(target.querySelector('[data-message]'),value===null?'No pudimos verificar tu saldo. Pulsa «Volver a verificar» para intentar nuevamente.':'La activación es voluntaria y se cobra una sola vez al confirmar.');
+ }catch(e){if(target===dialog&&same(key)){const message=String(e.message||e);set(target.querySelector('[data-message]'),/network|offline|failed to fetch|load failed/i.test(message)?'No pudimos completar la consulta. Revisa tu conexión y pulsa «Volver a verificar».':message);}}
  finally{if(target===dialog){quoting=false;drawDialog();}}
 }
 async function pay(){
- if(paying||quoting||!quote||!same(quote.key)||value===null||value<quote.amount)return;
+ if(paying||quoting||needsReview||!quote||!same(quote.key)||value===null||value<quote.amount)return;
  const target=dialog,selected=quote,key=selected.key;paying=true;drawDialog();
  try{
   if(typeof window.cc166ActivateStreamFromDialog!=='function')throw Error('El panel todavía está preparando tu cuenta. Intenta nuevamente en unos segundos.');
@@ -100,8 +110,8 @@ async function pay(){
   if(result?.active_until&&result.status!=='REFUNDED'){
    close();await refresh(true);if(!same(key))return;window.cc169OpenCatalog?.();window.cc169RefreshCatalog?.();return;
   }
-  set(target.querySelector('[data-message]'),'No se confirmó la activación. Revisa tus movimientos antes de reintentar.');
- }catch(e){if(target===dialog&&same(key))set(target.querySelector('[data-message]'),String(e.message||e));}
+  needsReview=true;set(target.querySelector('[data-message]'),'No se confirmó la activación. Revisa tus movimientos y vuelve a verificar antes de reintentar.');
+ }catch(e){if(target===dialog&&same(key)){needsReview=true;set(target.querySelector('[data-message]'),String(e.message||e));}}
  finally{if(target===dialog&&same(key)){paying=false;drawDialog();}else if(!dialog)paying=false;}
 }
 async function open(){
@@ -115,7 +125,7 @@ async function open(){
  const facts=node('dl','cc326-facts');for(const [field,label] of [['price','Activación'],['balance','Saldo disponible'],['shortfall','Importe faltante']]){const line=node('div','');line.append(node('dt','',label));const dd=node('dd','','Consultando…');dd.dataset.field=field;line.append(dd);facts.append(line);}dialog.append(facts);
  const message=node('p','cc326-message','');message.dataset.message='';message.setAttribute('role','status');dialog.append(message);
  const pendingNote=node('p','cc326-message','');pendingNote.dataset.pending='';dialog.append(pendingNote);
- const actions=node('div','cc326-actions');for(const [action,label,fn] of [['recharge','Recargar',openWallet],['activate','Activar con mi saldo',()=>void pay()],['close','Cerrar',close]]){const b=node('button','',label);b.type='button';b.dataset.action=action;b.addEventListener('click',fn);if(action==='activate')b.disabled=true;actions.append(b);}dialog.append(actions,node('small','cc326-credit','Creado por CLAN CARTAN'));
+ const actions=node('div','cc326-actions');for(const [action,label,fn] of [['recharge','Recargar',openWallet],['activate','Activar con mi saldo',()=>void pay()],['retry','Volver a verificar',()=>void loadQuote()],['close','Cerrar',close]]){const b=node('button','',label);b.type='button';b.dataset.action=action;b.addEventListener('click',fn);if(action==='activate')b.disabled=true;if(action==='retry')b.hidden=true;actions.append(b);}dialog.append(actions,node('small','cc326-credit','Creado por CLAN CARTAN'));
  const target=dialog;target.addEventListener('cancel',e=>{if(paying){e.preventDefault();return;}close();});
  document.body.append(target);
  if(typeof target.showModal!=='function'){close();window.cc166OpenBusiness?.('STREAM_BULLS');return;}
