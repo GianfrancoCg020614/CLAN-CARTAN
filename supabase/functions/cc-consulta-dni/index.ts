@@ -3,6 +3,7 @@ const base=Deno.env.get("SUPABASE_URL")||"";
 const anon=Deno.env.get("SUPABASE_ANON_KEY")||"";
 const service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
 const token=Deno.env.get("APIPERU_TOKEN")||"";
+console.info(JSON.stringify({event:'cc_dni_runtime',module:'cc-consulta-dni',provider_configured:Boolean(token)}));
 const allowed=new Set(["https://www.clancartan.com","https://clancartan.com","https://clan-cartan.pages.dev"]);
 function respond(body:Record<string,unknown>,status=200,origin=""){return new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":allowed.has(origin)?origin:"https://www.clancartan.com","Access-Control-Allow-Headers":"authorization,apikey,content-type","Access-Control-Allow-Methods":"POST,OPTIONS","Cache-Control":"no-store","Vary":"Origin"}});}
 Deno.serve(async(req:Request)=>{
@@ -28,6 +29,8 @@ Deno.serve(async(req:Request)=>{
  if(!permResp?.ok)return respond({status:"manual",reason:"authorization_unavailable"},200,origin);
  const permission=await permResp.json().catch(()=>false);
  if(permission!==true)return respond({status:"manual",reason:"operator_not_approved"},200,origin);
+ const cache=await fetch(base+"/rest/v1/cc_dni_verified_identity_cache?select=full_name&user_id=eq."+encodeURIComponent(user.id)+"&dni=eq."+dni+"&limit=1",{headers}).catch(()=>null);
+ if(cache?.ok){const rows=await cache.json().catch(()=>[]);if(rows?.[0]?.full_name)return respond({status:"saved",full_name:rows[0].full_name},200,origin);}
  if(!token)return respond({status:"manual",reason:"provider_not_configured"},200,origin);
  const quotaResp=await fetch(base+"/rest/v1/rpc/cc_claim_dni_quota",{method:"POST",headers,body:JSON.stringify({p_user:user.id})}).catch(()=>null);
  if(!quotaResp?.ok)return respond({status:"manual",reason:"quota_unavailable"},200,origin);
@@ -46,6 +49,7 @@ Deno.serve(async(req:Request)=>{
   const d=data.data||{};
   const full=String(d.nombre_completo||[d.nombres,d.apellido_paterno,d.apellido_materno].filter(Boolean).join(" ")).trim().slice(0,160);
   if(!full)return respond({status:"manual",reason:"not_found",remaining:slot.remaining},200,origin);
+  await fetch(base+"/rest/v1/cc_dni_verified_identity_cache?on_conflict=user_id,dni",{method:"POST",headers:{...headers,Prefer:"resolution=merge-duplicates"},body:JSON.stringify({user_id:user.id,dni,full_name:full,source:"API_PERU"})});
   return respond({status:"found",full_name:full,remaining:slot.remaining},200,origin);
  }catch(_){return respond({status:"manual",reason:"provider_unavailable",remaining:slot.remaining},200,origin);}
  finally{clearTimeout(stop);}

@@ -5,6 +5,7 @@ const base=Deno.env.get("SUPABASE_URL")||"";
 const key=Deno.env.get("SUPABASE_ANON_KEY")||"";
 const service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
 const token=Deno.env.get("APIPERU_TOKEN")||"";
+console.info(JSON.stringify({event:'cc_dni_runtime',module:'mc-verify-dni',provider_configured:Boolean(token)}));
 const allowed=new Set(["https://www.clancartan.com","https://clancartan.com","https://clan-cartan.pages.dev"]);
 const response=(o:Record<string,unknown>,status=200,origin="")=>new Response(JSON.stringify(o),{status,headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":allowed.has(origin)?origin:"https://www.clancartan.com","Access-Control-Allow-Headers":"authorization,apikey,content-type","Access-Control-Allow-Methods":"POST,OPTIONS","Cache-Control":"no-store","Vary":"Origin"}});
 Deno.serve(async req=>{
@@ -28,6 +29,8 @@ Deno.serve(async req=>{
  if(!account||account.suspended||Date.parse(account.subscription_until||"")<=Date.now())return response({status:"manual",reason:"subscription_inactive"},200,origin);
  const perm=await fetch(base+"/rest/v1/rpc/cc_dni_auto_permission",{method:"POST",headers,body:JSON.stringify({p_user:user.id})}).catch(()=>null);
  if(!perm?.ok||await perm.json().catch(()=>false)!==true)return response({status:"manual",reason:"operator_not_approved"},200,origin);
+ const cache=await fetch(base+"/rest/v1/cc_dni_verified_identity_cache?select=full_name&user_id=eq."+encodeURIComponent(user.id)+"&dni=eq."+dni+"&limit=1",{headers}).catch(()=>null);
+ if(cache?.ok){const rows=await cache.json().catch(()=>[]);if(rows?.[0]?.full_name)return response({status:"saved",full_name:rows[0].full_name},200,origin);}
  if(!token)return response({status:"manual",reason:"provider_not_configured"},200,origin);
  const claim=await fetch(base+"/rest/v1/rpc/cc_claim_dni_quota",{method:"POST",headers,body:JSON.stringify({p_user:user.id})}).catch(()=>null);
  const slot=claim?.ok?await claim.json().catch(()=>null):null;
@@ -37,7 +40,7 @@ Deno.serve(async req=>{
  try{
   const remote=await fetch("https://api.apiperu.dev/dni",{method:"POST",signal:ctl.signal,headers:{Authorization:"Bearer "+token,"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({dni})});
   const data=await remote.json().catch(()=>({}));
-  if(remote.status===429||/quota|credit|limit/i.test(String(data?.code||"")+" "+String(data?.message||"")))return response({status:"manual",reason:"quota_exhausted"},200,origin);
+  if(remote.status===429||/quota|credit|limit/i.test(String(data?.code||"")+" "+String(data?.message||""))){await fetch(base+"/rest/v1/rpc/cc_mark_dni_provider_exhausted",{method:"POST",headers,body:"{}"}).catch(()=>{});return response({status:"manual",reason:"quota_exhausted"},200,origin);}
   if(!remote.ok||data?.success!==true)return response({status:"manual",reason:"provider_unavailable"},200,origin);
   const d=data.data||{},name=String(d.nombre_completo||[d.nombres,d.apellido_paterno,d.apellido_materno].filter(Boolean).join(" ")).trim().slice(0,160);
   if(name.length<2)return response({status:"manual",reason:"not_found"},200,origin);
@@ -51,6 +54,7 @@ Deno.serve(async req=>{
    const put=await fetch(base+"/rest/v1/mc_people",{method:"POST",headers,body:JSON.stringify({reseller_id:user.id,document_type:"DNI",document_number:dni,full_name:name,verification_source:"API_PERU"})});
    if(!put.ok)return response({status:"manual",reason:"save_unavailable"},200,origin);
   }
+  await fetch(base+"/rest/v1/cc_dni_verified_identity_cache?on_conflict=user_id,dni",{method:"POST",headers:{...headers,Prefer:"resolution=merge-duplicates"},body:JSON.stringify({user_id:user.id,dni,full_name:name,source:"API_PERU"})});
   return response({status:"found",full_name:name,remaining:dataSlot.remaining??null},200,origin);
  }catch(_){return response({status:"manual",reason:"provider_unavailable"},200,origin);}
  finally{clearTimeout(tm);}
