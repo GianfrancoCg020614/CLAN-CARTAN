@@ -95,9 +95,6 @@
     const amount=text('div','');
     amount.append(text('small','',tier?'Precio distribuidor':'Precio público'));
     amount.append(text('strong','',money(product.price_pen)));
-    if(tier&&Number(product.public_price_pen)>Number(product.price_pen)){
-      amount.append(text('small','cc172-public-reference','Precio al público: '+money(product.public_price_pen)));
-    }
     priceBox.append(amount);body.append(priceBox);
     const actions=text('div','product-actions cc117-one-action');
     actions.append(button(window.CC_V53_SESSION?.jwt?'Comprar con billetera':'Regístrate gratis para comprar',

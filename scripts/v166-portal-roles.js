@@ -82,7 +82,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V324 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V325 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -1088,24 +1088,30 @@ function realBalance(){return Math.max(0,data.real.reduce((n,r)=>n+Number(r.bala
 function businessPayButtons(box,code,active){
  if(data.admin)return;const cost=monthlyPrice(code);
  box.append(make('p','cc166-note','Un mes · '+price(cost)+' · Saldo disponible CLAN CARTAN: '+price(realBalance())));
- const actions=make('div','cc166-actions');const b=button(active?'Renovar un mes · '+price(cost):'Activar un mes · '+price(cost),()=>void activateBusiness(code,b),'cc166-primary');
+ const actions=make('div','cc166-actions');const b=button(active?'Renovar un mes · '+price(cost):'Activar un mes · '+price(cost),()=>void activateBusiness(code,b,active?'RENEW':'ACTIVATE'),'cc166-primary');
  b.disabled=!verified||!!businessActivationPending;actions.append(b);
  if(realBalance()<cost)actions.append(button('Saldo insuficiente · Recargar billetera',()=>finance('manual'),'cc166-secondary'));box.append(actions);
 }
-async function activateBusiness(code,b){
+async function activateBusiness(code,b,intent='ACTIVATE'){
  if(!verified||data.admin||businessActivationPending||!services.some(([id])=>id===code))return;
+ if(!['ACTIVATE','RENEW'].includes(intent))return;
+ if(intent==='ACTIVATE'&&access(code).ok){notice('Este servicio ya está activo. No se realizó ningún cobro.');return;}
  const cost=monthlyPrice(code);if(!Number.isFinite(cost)||cost<=0){notice('Actualiza para consultar la tarifa vigente.');return;}
  if(realBalance()<cost){notice('Necesitas '+price(cost)+' de saldo disponible. Recarga primero tu billetera.');return;}
- if(!window.confirm('¿Pagar '+price(cost)+' con tu billetera y '+(access(code).ok?'RENOVAR':'ACTIVAR')+' '+serviceName(code)+' por '+(code==='STREAM_BULLS'?'un año':'un mes')+'? Se conserva el tiempo ya pagado.'))return;
- let keyInfo;try{keyInfo=storedKey('subscription',code);}catch(e){notice(String(e?.message||e));return;}
+ if(!window.confirm('¿Pagar '+price(cost)+' con tu billetera y '+(intent==='RENEW'?'RENOVAR':'ACTIVAR')+' '+serviceName(code)+' por '+(code==='STREAM_BULLS'?'un año':'un mes')+'? Se conserva el tiempo ya pagado.'))return;
+ let keyInfo;try{keyInfo=storedKey('subscription-'+intent,code);}catch(e){notice(String(e?.message||e));return;}
  const uid=user,jwt=token;businessActivationPending=code;if(b?.isConnected){b.disabled=true;b.textContent='Procesando…';}
- try{const reply=await api('rpc/cc_finance_pay_membership','POST',{p_service:code,p_request:keyInfo.key,p_expected_amount_pen:cost});
+ try{const reply=await api(intent==='RENEW'?'rpc/cc_finance_pay_membership':'rpc/cc_finance_activate_membership','POST',{p_service:code,p_request:keyInfo.key,p_expected_amount_pen:cost});
   if(session()?.userId!==uid||session()?.jwt!==jwt)return;
+  if(intent==='ACTIVATE'&&reply?.service===code&&reply.status==='ALREADY_ACTIVE'&&reply.charged===false&&Number(reply.amount_pen)===0){
+   forgetKey(keyInfo.name);await load();if(session()?.userId!==uid||session()?.jwt!==jwt)return;
+   notice('Tu servicio ya está activo. No se realizó ningún cobro adicional.');return;
+  }
   if(reply?.service!==code||!reply?.active_until||Number(reply.amount_pen)!==cost||reply.status==='REFUNDED')throw Error('El servidor no confirmó la membresía. Revisa los movimientos antes de reintentar.');
   forgetKey(keyInfo.name);await load();if(session()?.userId!==uid)return;view='business:'+code;app.hidden=false;render();
   notice('✅ '+serviceName(code)+' verificado hasta '+new Date(reply.active_until).toLocaleDateString('es-PE',{timeZone:'America/Lima'})+'. Pago: '+price(cost)+'.');
  }catch(e){if(session()?.userId===uid)notice('No se confirmó: '+String(e?.message||e)+'. Revisa el historial antes de reintentar.');}
- finally{businessActivationPending=null;if(b?.isConnected){b.disabled=false;b.textContent='Activar o renovar · '+price(cost);}}
+ finally{businessActivationPending=null;if(b?.isConnected){b.disabled=false;b.textContent=(intent==='RENEW'?'Renovar':'Activar')+' · '+price(cost);}}
 }
 function memberships(page){
  title(page,'Negocios · activar y pagar con billetera',
@@ -1121,7 +1127,7 @@ function memberships(page){
    const cost=monthlyPrice('STREAM_BULLS');
    cardEl.append(make('p','cc166-note','Plan anual · 365 días · '+(cost>0?price(cost):'Precio no verificado')));
    if(verified&&cost>0&&!data.admin){
-    cardEl.append(button(active?'Renovar suscripción · '+price(cost):'Pagar suscripción · '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary'));
+    cardEl.append(button(active?'Renovar suscripción · '+price(cost):'Pagar suscripción · '+price(cost),()=>void buyStreamMembership(cost,active?'RENEW':'ACTIVATE'),'cc166-primary'));
     if(realBalance()<cost)cardEl.append(button('Saldo insuficiente · Recargar billetera',()=>finance('manual'),'cc166-secondary'));
    }
   }else businessPayButtons(cardEl,code,active);
@@ -1177,7 +1183,7 @@ function businessPage(page,code){
    shell.append(metric('Membresía anual · 365 días',Number.isFinite(cost)&&cost>0?price(cost):'Precio no verificado','gold'));
    if(!data.admin){const pay=button('Pagar suscripción · '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary');pay.disabled=!(Number.isFinite(cost)&&cost>0&&verified);actions.append(pay);}
   }
-  if(info.ok&&!data.admin){const cost=monthlyPrice('STREAM_BULLS');if(cost>0)actions.append(button('Renovar suscripción · '+price(cost),()=>void buyStreamMembership(cost),'cc166-secondary'));}
+  if(info.ok&&!data.admin){const cost=monthlyPrice('STREAM_BULLS');if(cost>0)actions.append(button('Renovar suscripción · '+price(cost),()=>void buyStreamMembership(cost,'RENEW'),'cc166-secondary'));}
   shell.append(actions);page.append(shell);
  }else{
   const shell=card(info.ok?'Membresía activa':'Activar con saldo real',
@@ -1241,6 +1247,12 @@ function shop(page){
 function storedKey(kind,id){
  const name='cc167:'+kind+':'+user+':'+id;
  let key=null;
+ // Un pago pendiente anterior a V325 debe conservar su referencia al reintentar.
+ // Activar ya está protegido por vigencia; Renovar necesita además esta continuidad.
+ if(kind==='subscription-RENEW'){
+  const legacy='cc167:subscription:'+user+':'+id;
+  try{const prior=sessionStorage.getItem(legacy);if(prior)return {name:legacy,key:prior};}catch(_){}
+ }
  try{key=sessionStorage.getItem(name);}catch(_){}
  if(!key){
   if(!window.crypto?.randomUUID)throw Error('El navegador requiere conexión segura para confirmar compras.');
@@ -1304,7 +1316,7 @@ async function purchaseFromPublicCatalog(productId,buttonEl,displayedPrice){
 }
 
 function receiptFocus(){el('cc166-content')?.querySelector('.cc167-receipt')?.scrollIntoView({behavior:'smooth',block:'start'});}
-async function buyStreamMembership(amount){return activateBusiness('STREAM_BULLS');}
+async function buyStreamMembership(amount,intent='ACTIVATE'){return activateBusiness('STREAM_BULLS',null,intent);}
 function orderStatusName(status){
  return {PAID_AWAITING_DELIVERY:'Pendiente de entrega',FULFILLED:'Entregado',REFUNDED:'Reembolsado'}[status]||String(status||'Sin estado').replaceAll('_',' ');
 }
