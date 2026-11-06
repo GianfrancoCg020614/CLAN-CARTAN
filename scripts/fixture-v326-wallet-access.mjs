@@ -3,6 +3,8 @@ import fs from 'node:fs';import {panelFixture} from './fixture-v308-panel.mjs';
 export function walletAccessFixture(mode='insufficient'){
  let html=panelFixture(mode==='admin'?'admin':'reseller');html=html.slice(0,html.lastIndexOf('<script>'));
  const setup=`
+ if(${JSON.stringify(mode)}==='light')document.documentElement.dataset.ccTheme='light';
+ const home=document.querySelector('#cc77home');home.classList.add('cc304-home');home.insertAdjacentHTML('beforeend','<div class="cc77cards"><article class="cc217-stream"><div class="cc77actions"><button>Ver catálogo</button><button id="fixture-stream-activation">Acceder como distribuidor</button></div></article></div>');
  window.__balance=${mode==='zero'?0:mode==='exact'?25:['insufficient','pending','credited'].includes(mode)?8:30};window.__cost=25;window.__stream=${mode==='active'};window.__writes=[];window.__confirm=true;window.__login=0;window.__catalog=0;window.__walletCalls=0;window.__walletFail=false;window.__hold=false;window.__waiting=[];
  window.confirm=()=>__confirm;window.alert=()=>{};window.cc77Auth=()=>__login++;window.cc169OpenCatalog=()=>__catalog++;window.cc169RefreshCatalog=()=>{};
  try{sessionStorage.getItem('test');}catch(_){const mem=new Map();Object.defineProperty(window,'sessionStorage',{value:{getItem:k=>mem.get(k)||null,setItem:(k,v)=>mem.set(k,v),removeItem:k=>mem.delete(k)}});}
@@ -21,6 +23,7 @@ export function walletAccessFixture(mode='insufficient'){
  checks.allHeaders=all('.cc326-wallet-summary').length>=5;
  checks.netBalance=all('.cc326-wallet-summary').every(e=>e.textContent.includes('S/ '+__balance.toFixed(2)));
  checks.mainAvailable=${JSON.stringify(mode)}==='admin'||q('.cc166-metric [data-cc-wallet-amount]')?.textContent==='S/ '+__balance.toFixed(2);
+ checks.homeAction=getComputedStyle(q('#fixture-stream-activation')).display===(${JSON.stringify(mode)}==='active'||${JSON.stringify(mode)}==='admin'?'none':'flex');
  checks.otherPlatformDoesNotUnlock=__stream||${JSON.stringify(mode)}==='admin'||!!q('.cc326-distributor-cta');
  if(${JSON.stringify(mode)}==='active'||${JSON.stringify(mode)}==='admin'){
   checks.noActivation=q('.cc326-distributor-cta')===null;await cc326OpenStreamActivation();checks.noModal=!q('#cc326-activation');
@@ -33,6 +36,7 @@ export function walletAccessFixture(mode='insufficient'){
  }else{
   q('.cc326-distributor-cta').click();await wait(130);
   checks.compact=!!q('#cc326-activation')&&q('[data-field=price]').textContent.includes('S/ 25.00');
+  if(${JSON.stringify(mode)}==='light')checks.dayTheme=getComputedStyle(q('#cc326-activation')).backgroundColor==='rgb(247, 252, 255)';
   checks.shortfall=q('[data-field=shortfall]').textContent==='S/ '+Math.max(0,25-__balance).toFixed(2);
   if(${JSON.stringify(mode)}==='credited'){__balance=30;await cc326Wallet.refresh(true);await wait(40);checks.creditConfirmed=!q('[data-action=activate]').disabled&&q('[data-field=shortfall]').textContent==='S/ 0.00';}
   if(['insufficient','zero','pending'].includes(${JSON.stringify(mode)})){
@@ -51,5 +55,5 @@ export function walletAccessFixture(mode='insufficient'){
  const d=q('#cc326-activation');if(d){const r=d.getBoundingClientRect();checks.dialogFits=r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1;}
  }catch(e){checks.error=String(e.stack||e)}const out=document.createElement('output');out.id='cc326-result';out.dataset.status=Object.values(checks).every(x=>x===true)?'pass':'fail';out.textContent=JSON.stringify(checks);document.body.append(out);})();`;
  const hosts='<div id="app"><header class="cc117-header"></header><section id="productos"><div class="v23-catalog-section"><div class="section-head"></div></div></section></div><div id="mc158layer"><header class="mc158head"><div>MI COCHERA</div></header></div><div id="ma1611layer"><div class="ma1611-brand"><div>MI ALQUILER</div></div></div><div id="cy53layer"><div class="cc127-cobra-brand"><div>COBRA YA</div></div></div>';
- return html+hosts+'<style>'+fs.readFileSync('styles/v326-wallet-access.css','utf8')+'</style><script>'+setup+'</script><script>'+fs.readFileSync('scripts/v326-wallet-access.js','utf8')+'</script><script>'+probe+'</script></body></html>';
+ return html+hosts+'<style>'+fs.readFileSync('styles/v217-home.css','utf8')+fs.readFileSync('styles/v326-wallet-access.css','utf8')+'</style><script>'+setup+'</script><script>'+fs.readFileSync('scripts/v326-wallet-access.js','utf8')+'</script><script>'+probe+'</script></body></html>';
 }
