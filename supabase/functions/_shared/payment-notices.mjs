@@ -3,7 +3,7 @@ const email=value=>(String(value||'').match(/<([^<>]+)>/)?.[1]||String(value||''
 const authWords=/\b(otp|totp|2fa|mfa|password|passcode|login|sign[ -]?in|recovery|authenticat\w*|verification|verify|contraseñ\w*|autentica\w*|verificaci[oó]n|recuperaci[oó]n)\b/i;
 export function parseDepositNotice(message,allowedSenders){
  const sender=email(message.from),text=String(message.text||'').slice(0,65536),subject=String(message.subject||'').slice(0,1000);
- if(!allowedSenders.includes(sender)||authWords.test(subject+' '+text)||!/dep[oó]sit|deposit|transferencia|received|recibid|payment|pago/i.test(subject+' '+text))return null;
+ if(!allowedSenders.includes(sender)||authWords.test(subject+' '+text)||!/dep[oó]sit|deposit|transferencia|received|recibid|recibiste|payment|pago/i.test(subject+' '+text))return null;
  const domain=sender.split('@').at(-1),authentication=String(message.authentication||'');
  const authenticated=/\bdkim=pass\b/i.test(authentication)&&/\bdmarc=pass\b/i.test(authentication)&&authentication.match(/\bheader\.from="?([A-Za-z0-9.-]+)/i)?.[1]?.toLowerCase()===domain;
  const amounts=[...text.matchAll(/(?:\b(PEN|USDT)\s*|S\/\s*)(\d{1,9}(?:[.,]\d{1,8})?)(?!\d|[.,]\d)/g)].map(m=>({currency:m[1]||'PEN',amount:m[2].replace(',','.')}));
@@ -11,7 +11,7 @@ export function parseDepositNotice(message,allowedSenders){
  const transaction=text.match(/(?:transaction\s*(?:id|number)|(?:id|n[uú]mero)\s*(?:de\s*)?(?:operaci[oó]n|transacci[oó]n))\s*[:#]\s*([A-Za-z0-9_-]{8,128})/i)?.[1]||null;
  const rec=text.match(/\bREC-\d{6,15}\b/i)?.[0]?.toUpperCase()||null;
  const received=Date.parse(message.received_at);return {message_id:String(message.id).slice(0,500),sender,subject:subject.slice(0,180),sender_authenticated:authenticated,
- provider_hint:domain==='binance.com'||domain.endsWith('.binance.com')?'BINANCE':domain==='lemon.me'||domain.endsWith('.lemon.me')?'LEMON':'UNKNOWN',
+ provider_hint:domain==='binance.com'||domain.endsWith('.binance.com')?'BINANCE':domain==='lemon.me'||domain.endsWith('.lemon.me')||domain==='lemoncash.com.ar'||domain.endsWith('.lemoncash.com.ar')?'LEMON':'UNKNOWN',
  amount_hint:amount?.amount||null,currency_hint:amount?.currency||null,transaction_hint:transaction,rec_hint:rec,received_at:Number.isFinite(received)?new Date(received).toISOString():null};
 }
 function textBody(payload){if(!payload)return '';if(payload.mimeType==='text/plain'){try{const raw=atob(String(payload.body?.data||'').replace(/-/g,'+').replace(/_/g,'/'));return new TextDecoder().decode(Uint8Array.from(raw,c=>c.charCodeAt(0)));}catch{return '';}}return(payload.parts||[]).filter(p=>p.mimeType==='text/plain').map(textBody).join('\n');}
