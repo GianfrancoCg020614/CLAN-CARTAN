@@ -15,7 +15,7 @@ async function scenario({active=false,intent='ACTIVATE',reply='paid',balance=100
 }
 let x=await scenario();assert.equal(x.calls[0].p,'rpc/cc_finance_activate_membership');assert.match(x.confirmations[0],/ACTIVAR/);
 x=await scenario({active:true});assert.equal(x.calls.length,0);assert.match(x.messages[0],/ya está activo/);
-x=await scenario({active:true,intent:'RENEW'});assert.equal(x.calls[0].p,'rpc/cc_finance_pay_membership');assert.match(x.confirmations[0],/RENOVAR/);assert.equal(x.keys[0],'subscription-RENEW');
+x=await scenario({active:true,intent:'RENEW'});assert.equal(x.calls[0].p,'rpc/cc_finance_pay_membership');assert.match(x.confirmations[0],/RENOVAR/);assert.equal(x.keys[0],'subscription-RENEW-REAL');
 x=await scenario({reply:'already'});assert.equal(x.calls.length,1);assert.match(x.messages.at(-1),/ningún cobro adicional/);
 x=await scenario({balance:0});assert.equal(x.calls.length,0);
 x=await scenario({confirm:false});assert.equal(x.calls.length,0);
