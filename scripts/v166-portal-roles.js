@@ -795,7 +795,7 @@ function personalAutoRecharge(page){
  for(const [title,description] of [
   ['01 · Solicita','Elige el importe y recibe tu código REC vinculado a tu cuenta CLAN.'],
   ['02 · Deposita','Paga el monto exacto desde tu cuenta personal dentro de 15 minutos.'],
-  ['03 · Recibe','El servidor comprueba el depósito y acredita una sola vez tu saldo real.']
+  ['03 · Validación','ADMIN verifica el depósito y acredita una sola vez el saldo.']
  ]){
   const item=make('div','cc177-auto-step');item.style.cssText='border:1px solid var(--cc-border,rgba(130,145,165,.25));border-radius:14px;padding:14px;min-width:0';
   item.append(make('strong','',title),make('p','cc166-note',description));intro.append(item);
@@ -806,24 +806,29 @@ function personalAutoRecharge(page){
  const amountLabel=make('label','','Monto de recarga (S/)');
  const amountInput=document.createElement('input');amountInput.type='number';amountInput.min='5';amountInput.max='1000';amountInput.step='0.01';amountInput.value='10';amountInput.required=true;amountInput.setAttribute('aria-label','Monto de recarga automática');amountInput.style.cssText='width:100%;min-height:40px';
  amountLabel.append(amountInput);entry.append(amountLabel);
- const qrAction=button('Ver QR Lemon',()=>{
+ const qrAction=button('Generar REC y ver QR Lemon',async()=>{
   const v=Number(amountInput.value);
   if(!Number.isFinite(v)||v<5||v>1000||Math.abs(v*100-Math.round(v*100))>0.0001){notice('El importe debe estar entre S/ 5 y S/ 1,000.');return;}
-  const modal=make('dialog','cc183-qr-dialog');
-  modal.setAttribute('aria-label','QR Lemon / DALE');
-  modal.append(make('h3','','QR Lemon / DALE'));
-  const img=document.createElement('img');
-  img.src='assets/qr-dale-gianfranco.svg';img.alt='QR Lemon / DALE del titular';img.width=320;img.height=320;
-  img.style.cssText='width:min(100%,320px);height:auto;display:block;margin:12px auto;background:white;border-radius:12px';
-  modal.append(img,make('strong','',price(v)));
-  modal.append(make('p','cc183-qr-warning','QR personal del titular. La conciliación automática todavía NO está habilitada. No envíes dinero esperando acreditación automática; el código REC no está incluido en el QR ni en el aviso bancario.'));
-  modal.append(button('Cerrar',()=>{modal.close();modal.remove();},'cc166-secondary'));
-  modal.addEventListener('close',()=>modal.remove(),{once:true});
-  document.body.append(modal);
-  if(typeof modal.showModal==='function')modal.showModal();else modal.open=true;
+  if(qrAction.disabled)return;
+  qrAction.disabled=true;qrAction.textContent='Generando solicitud…';
+  try{
+   const requestId=crypto.randomUUID();
+   const rec=await api('rpc/cc_recharge_create','POST',{p_request:requestId,p_amount_pen:v,p_receiver:'LEMON_DALE'});
+   if(!rec||!rec.rec_code)throw Error('No se generó el código REC');
+   const modal=make('dialog','cc183-qr-dialog');modal.setAttribute('aria-label','Solicitud Lemon '+rec.rec_code);
+   modal.append(make('h3','','Solicitud Lemon / DALE'),make('strong','',String(rec.rec_code)),make('p','',price(v)));
+   const img=document.createElement('img');img.src='assets/qr-dale-gianfranco.svg';img.alt='QR Lemon / DALE del titular';img.width=320;img.height=320;
+   img.style.cssText='width:min(100%,320px);height:auto;display:block;margin:12px auto;background:white;border-radius:12px';modal.append(img);
+   modal.append(make('p','cc166-qr-warning','Verifica en tu aplicación el nombre del destinatario antes de pagar. Deposita el importe exacto dentro de 15 minutos. Guarda el comprobante y código de operación. El código REC no se transmite en el QR ni en el correo: ADMIN verificará el depósito antes de acreditar saldo. Si vence, no pagues con este REC.'));
+   modal.append(button('Cerrar',()=>{modal.close();modal.remove();},'cc166-secondary'));
+   modal.addEventListener('close',()=>modal.remove(),{once:true});document.body.append(modal);
+   if(typeof modal.showModal==='function')modal.showModal();else modal.open=true;
+   autoRecState='idle';void loadAutoRecRows(true);
+  }catch(e){notice('No se pudo generar la solicitud: '+String(e?.message||e));}
+  finally{qrAction.disabled=false;qrAction.textContent='Generar REC y ver QR Lemon';}
  },'cc166-primary');
  entry.append(qrAction);box.append(entry);
- box.append(make('p','cc166-note','Puedes visualizar el QR Lemon aquí. Mostrarlo no genera una orden REC ni confirma un depósito: la acreditación automática seguirá desactivada hasta completar la conciliación.'));
+ box.append(make('p','cc166-note','Lemon asistido: solicitud REC real, depósito a QR personal y validación por ADMIN. No existe acreditación automática por correo.'));
  const warning=make('p','cc166-note','Seguridad: una solicitud pendiente por usuario, un depósito por REC y un ID de operación que no se reutiliza. Si el pago es ambiguo o llega fuera de plazo, lo revisa el ADMIN.');
  box.append(warning);
  if(autoState==='idle'||autoState==='loading')box.append(make('p','cc166-note','Comprobando conexiones de pago…'));
@@ -850,7 +855,7 @@ function personalAutoRecharge(page){
  actions.append(button('Actualizar disponibilidad',()=>void loadAutoRechargeMethods(true),'cc166-secondary'));
  actions.append(button('Recargar manualmente',()=>{walletTab='manual';render();},'cc166-primary'));
  box.append(actions);
- box.append(make('small','cc166-note','Los 15 minutos aplicarán a las nuevas órdenes REC automáticas cuando el procesamiento seguro esté habilitado. No deposites por este medio mientras figure no disponible.'));
+ box.append(make('small','cc166-note','Las solicitudes Lemon asistidas vencen a los 15 minutos. El estado automático del proveedor es independiente de esta modalidad con aprobación administrativa.'));
  page.append(box);
 }
 
