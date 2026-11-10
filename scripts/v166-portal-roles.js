@@ -212,7 +212,7 @@ function renderNav(){
   ['GENERAL',[['home','◫',admin?'Resumen':'Inicio']]],
   ['OPERACIONES',[
    ...(admin?[['admin','♙','Usuarios'],['approvals','✓','Súper reseller'],
-     ['sales','◈','Supervisar pedidos'],['recharges','↥','Control de recargas'],['finance','▤','Ventas y liquidaciones'],['delivery-admin','⌁','Entregas y códigos'],['bonuses','◇','Bonos']]:[]),
+     ['sales','◈','Supervisar pedidos'],['recharges','↥','Control de recargas'],['recharge-mail','✉','Correos de depósitos'],['finance','▤','Ventas y liquidaciones'],['delivery-admin','⌁','Entregas y códigos'],['bonuses','◇','Bonos']]:[]),
    ...(superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas'],['delivery','▦','Mis cuentas'],['mailboxes','✉','Mis correos'],['delivery-requests','◷','Solicitudes pendientes']]:[]),
    ...(!admin?[['codes','⌁','Obtener código'],['shop','▣','Catálogo'],['orders','◱','Mis compras']]:[]),
    ['wallet','▤','Billetera']]],
