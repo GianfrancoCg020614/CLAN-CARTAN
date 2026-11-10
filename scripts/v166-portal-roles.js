@@ -88,7 +88,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V342 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V343 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -2398,10 +2398,15 @@ function safePanelRender(){
   box.append(button('Volver a cargar el panel',()=>{page.replaceChildren();safePanelRender();if(user&&!busy)void load();},'cc166-primary'));
   page.append(box);
  }
- // Autorreparación: nunca dejar la navegación o el área principal vacías.
+ // V343: recover navigation ONLY through the validated role-aware renderer.
+ // Never inject generic links: permissions and options differ by account role.
  if(!menu.children.length){
-  const links=[['home','Inicio'],['wallet','Billetera'],['businesses','Negocios'],['shop','Catálogo'],['orders','Mis compras'],['profile','Mi perfil']];
-  for(const [id,label] of links)menu.append(button(label,()=>nav(id),'cc166-navitem'));
+  try{renderNav();}catch(error){
+   console.error('[CLAN CARTAN V343] No se pudo reconstruir la navegación autorizada:',error);
+   const warning=make('p','cc166-note','No se pudo verificar el menú de tu rol. Reintenta cargar el panel.');
+   warning.setAttribute('role','alert');
+   page.prepend(warning);
+  }
  }
  if(!page.children.length){
   const box=make('section','cc166-card');
@@ -2412,7 +2417,7 @@ function safePanelRender(){
   page.append(box);
  }
  const version=app.querySelector('.cc166-top small');
- if(version)version.textContent='CLAN CARTAN · V342 · PANEL ÚNICO';
+ if(version)version.textContent='CLAN CARTAN · V343 · PANEL ÚNICO';
  cc342VisibleShell();
 }
 function sync(){
