@@ -1182,17 +1182,34 @@ function walletBalancesPanel(compact=false){
 function businessPayButtons(box,code,active){
  if(data.admin)return;
  const cost=monthlyPrice(code),bonus=bonusBalance(code),real=realBalance();
- box.append(make('p','cc166-note','Plan mensual · '+(cost>0?price(cost):'Tarifa pendiente de verificar')+' · Bono compartido: '+(verified?price(Math.max(0,bonus)):'Consultando…')));
+ const valid=verified&&Number.isFinite(cost)&&cost>0;
+ const titleText=active?'Renovar membresía':'Pagar para activar';
+ box.append(make('p','cc166-note','Plan mensual · '+(cost>0?price(cost):'Tarifa pendiente de verificar')));
  const actions=make('div','cc166-actions');
- const realButton=button((active?'Renovar':'Activar')+' con saldo real · '+price(cost),()=>void activateBusiness(code,realButton,active?'RENEW':'ACTIVATE','REAL'),'cc166-primary');
- realButton.disabled=!verified||!!businessActivationPending||!Number.isFinite(cost)||cost<=0||real<cost;
- actions.append(realButton);
- const bonusButton=button((active?'Renovar':'Activar')+' con bono · '+price(cost),()=>void activateBusiness(code,bonusButton,active?'RENEW':'ACTIVATE','BONUS'),'cc166-secondary');
- bonusButton.disabled=!verified||!!businessActivationPending||!Number.isFinite(cost)||cost<=0||bonus<cost;
- actions.append(bonusButton);
- if(verified&&cost>0&&real<cost&&bonus<cost)actions.append(button('Recargar saldo real',()=>finance('manual'),'cc166-secondary'));
- box.append(actions);
+ const fundingLabel=make('label','cc166-note','¿Con qué saldo deseas pagar?');
+ const funding=document.createElement('select');
+ funding.setAttribute('aria-label','Elegir saldo para '+serviceName(code));
+ funding.style.cssText='padding:10px;border-radius:9px;max-width:100%;background:#122d3d;color:#fff;border:1px solid #648392';
+ for(const [value,label] of [['REAL','Saldo real'],['BONUS','Bono administrativo compartido']]){
+  const option=document.createElement('option');option.value=value;option.textContent=label;funding.append(option);
+ }
+ fundingLabel.append(funding);box.append(fundingLabel);
+ const detail=make('p','cc166-note','');
+ const pay=button(titleText,()=>void activateBusiness(code,pay,active?'RENEW':'ACTIVATE',funding.value),'cc166-primary');
+ const recharge=button('Recargar saldo',()=>finance('manual'),'cc166-secondary');
+ const update=()=>{
+  const balance=funding.value==='BONUS'?bonus:real;
+  const missing=valid?Math.max(0,cost-balance):null;
+  detail.textContent='Saldo '+(funding.value==='BONUS'?'bono':'real')+': '+(verified?price(balance):'Consultando…')+' · Faltante: '+(missing===null?'Por verificar':price(missing));
+  pay.textContent=titleText+' · '+(funding.value==='BONUS'?'bono':'saldo real')+' · '+(valid?price(cost):'Por verificar');
+  pay.disabled=!valid||!!businessActivationPending||missing>0;
+  recharge.hidden=!valid||missing===0;
+  recharge.textContent=funding.value==='BONUS'?'Recargar saldo real (los bonos los otorga el administrador)':'Recargar saldo · faltan '+price(missing||0);
+ };
+ funding.addEventListener('change',update);
+ actions.append(pay,recharge);box.append(detail,actions);update();
 }
+
 async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
  if(!verified||data.admin||businessActivationPending||!services.some(([id])=>id===code))return;
  if(!['ACTIVATE','RENEW'].includes(intent)||!['REAL','BONUS'].includes(funding))return;
