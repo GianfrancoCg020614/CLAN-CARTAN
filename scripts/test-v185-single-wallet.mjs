@@ -12,7 +12,7 @@ assert.ok(!manual.includes("const service=document.createElement('select')"),'No
 assert.ok(!manual.includes("serviceLabel"),'No se admiten billeteras particulares');
 assert.ok(manual.includes("submitAccountRecharge('STREAM_BULLS'"),'Asiento contable canónico sin duplicación');
 assert.ok(manual.includes("ownPending?.status==='PENDING'"),'PENDIENTE global independientemente del origen');
-assert.match(js,/const real=realBalance\(\)/,'Un solo disponible compartido');
+assert.match(js,/tile\('Saldo real',realBalance\(\)/,'Un solo disponible compartido');
 assert.match(js,/function realBalance\(\).*data\.real\.reduce.*pending_reversal_pen/,'Disponible neto de reversiones pendientes');
 assert.ok(!js.includes("Saldo por negocio"),'Oculta balances por negocio');
 assert.ok(!js.includes("const [code] of services){\n  const line=make('div','cc177-balance-row')"),'No desglosar balances');
