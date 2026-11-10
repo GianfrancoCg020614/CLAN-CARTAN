@@ -4,6 +4,12 @@
 (function(){
 'use strict';
 const el=id=>document.getElementById(id);
+(function installPanelPolish(){
+ if(document.getElementById('cc328-panel-polish'))return;
+ const style=document.createElement('style');style.id='cc328-panel-polish';style.textContent="\n/* Refinamiento visual V328: solo panel, sin módulos ni dependencias adicionales. */\n#cc166-app{--cc-glow:#4ed6d1;--cc-border:rgba(138,191,212,.16);color-scheme:dark}\n#cc166-app .cc166-navitem{border:1px solid transparent;border-radius:11px;transition:background .2s,border-color .2s,transform .2s;min-height:39px}\n#cc166-app .cc166-navitem:hover{background:rgba(74,213,210,.09);border-color:rgba(74,213,210,.19);transform:translateX(2px)}\n#cc166-app .cc166-navitem.selected{background:linear-gradient(105deg,rgba(37,177,180,.22),rgba(43,147,165,.10));border-color:rgba(75,222,215,.53);box-shadow:inset 3px 0 0 #4ed6d1,0 4px 20px rgba(0,0,0,.09)}\n#cc166-app .cc166-navitem:focus-visible,#cc166-app button:focus-visible,#cc166-app input:focus-visible,#cc166-app select:focus-visible{outline:2px solid #6de9e2;outline-offset:3px}\n#cc166-app .cc166-nav-heading{letter-spacing:.12em;font-size:10px;font-weight:750;color:#86a9bb}\n#cc166-app .cc166-card,#cc166-app .cc166-movement,#cc166-app .cc166-list>div{border-radius:14px;border-color:var(--cc-border);transition:border-color .2s,box-shadow .2s}\n#cc166-app .cc166-card:hover,#cc166-app .cc166-movement:hover{border-color:rgba(87,197,206,.29)}\n#cc166-app button:not(.cc166-navitem){transition:filter .18s,transform .18s,box-shadow .18s}\n#cc166-app button:not(.cc166-navitem):not(:disabled):hover{filter:brightness(1.12)}\n#cc166-app button:not(.cc166-navitem):not(:disabled):active{transform:scale(.985)}\n#cc166-app input,#cc166-app select,#cc166-app textarea{border-radius:9px;max-width:100%}\n#cc166-app .cc166-top{border-bottom:1px solid rgba(120,185,204,.14)}\n@media(prefers-reduced-motion:reduce){#cc166-app *,#cc166-app *:before,#cc166-app *:after{transition:none!important;animation:none!important}}\n";
+ (document.head||document.documentElement).append(style);
+})();
+
 const api=(p,m,b)=>window.cc80.api(p,m,b);
 const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'COBRA YA',MI_COCHERA:'MI COCHERA',MI_ALQUILER:'MI ALQUILER',CLAN_CARTAN:'CLAN CARTAN'})[k]||k;
 const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],['MI_ALQUILER','⌂']];
