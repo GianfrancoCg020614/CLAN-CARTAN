@@ -800,14 +800,24 @@ function personalAutoRecharge(page){
  const amountLabel=make('label','','Monto de recarga (S/)');
  const amountInput=document.createElement('input');amountInput.type='number';amountInput.min='5';amountInput.max='1000';amountInput.step='0.01';amountInput.value='10';amountInput.required=true;amountInput.setAttribute('aria-label','Monto de recarga automática');amountInput.style.cssText='width:100%;min-height:40px';
  amountLabel.append(amountInput);entry.append(amountLabel);
- const qrAction=button('Ver QR',()=>{
+ const qrAction=button('Ver QR Lemon',()=>{
   const v=Number(amountInput.value);
-  if(!Number.isFinite(v)||v<5||v>1000||Math.round(v*100)!==v*100){notice('El importe debe estar entre S/ 5 y S/ 1,000.');return;}
-  notice('El QR automático estará disponible cuando Lemon confirme la conexión y conciliación segura. No deposites todavía.');
+  if(!Number.isFinite(v)||v<5||v>1000||Math.abs(v*100-Math.round(v*100))>0.0001){notice('El importe debe estar entre S/ 5 y S/ 1,000.');return;}
+  const modal=make('dialog','cc183-qr-dialog');
+  modal.setAttribute('aria-label','QR Lemon / DALE');
+  modal.append(make('h3','','QR Lemon / DALE'));
+  const img=document.createElement('img');
+  img.src='assets/qr-dale-gianfranco.svg';img.alt='QR Lemon / DALE del titular';img.width=320;img.height=320;
+  img.style.cssText='width:min(100%,320px);height:auto;display:block;margin:12px auto;background:white;border-radius:12px';
+  modal.append(img,make('strong','',price(v)));
+  modal.append(make('p','cc183-qr-warning','QR personal del titular. La conciliación automática todavía NO está habilitada. No envíes dinero esperando acreditación automática; el código REC no está incluido en el QR ni en el aviso bancario.'));
+  modal.append(button('Cerrar',()=>{modal.close();modal.remove();},'cc166-secondary'));
+  modal.addEventListener('close',()=>modal.remove(),{once:true});
+  document.body.append(modal);
+  if(typeof modal.showModal==='function')modal.showModal();else modal.open=true;
  },'cc166-primary');
- qrAction.disabled=true;qrAction.title='Pendiente de conexión y validación bancaria';
  entry.append(qrAction);box.append(entry);
- box.append(make('p','cc166-note','El QR se mostrará aquí, sin abrir otra página, cuando el medio automático esté verificado. Por ahora está bloqueado para evitar depósitos sin conciliación.'));
+ box.append(make('p','cc166-note','Puedes visualizar el QR Lemon aquí. Mostrarlo no genera una orden REC ni confirma un depósito: la acreditación automática seguirá desactivada hasta completar la conciliación.'));
  const warning=make('p','cc166-note','Seguridad: una solicitud pendiente por usuario, un depósito por REC y un ID de operación que no se reutiliza. Si el pago es ambiguo o llega fuera de plazo, lo revisa el ADMIN.');
  box.append(warning);
  if(autoState==='idle'||autoState==='loading')box.append(make('p','cc166-note','Comprobando conexiones de pago…'));
