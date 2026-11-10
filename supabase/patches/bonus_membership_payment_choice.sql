@@ -43,7 +43,7 @@ begin
   return jsonb_build_object('service',p_service,'amount_pen',previous.amount_pen,'active_until',previous.period_end,'already_processed',true,'funding','BONUS');
  end if;
  if exists(select 1 from cc_internal.finance_membership_payments where request_id=p_request) or exists(select 1 from public.cc_portal_stream_memberships_paid where checkout_key=p_request) then raise exception 'Referencia utilizada en otro pago';end if;
- select amount_pen into rate from cc_internal.finance_rates where service=p_service order by id desc limit 1;
+ select amount_pen into rate from cc_internal.finance_rates where service=p_service order by id desc limit 1 for share;
  if rate is null or rate is distinct from p_expected_amount_pen then raise exception 'La tarifa cambió. Actualiza la página';end if;
  select id into biz from public.cc_businesses where code=p_service;
  if biz is null then raise exception 'Negocio inexistente';end if;
@@ -75,6 +75,7 @@ begin
  else
   update public.cc_cobra_welcome_bonus_wallets set balance_pen=balance_pen-rate,updated_at=now() where user_id=u;
   insert into public.cc_cobra_welcome_bonus_activations(user_id,amount_pen,period_start,period_end) values(u,rate,starts,finishes);
+  -- The shared access reader must include these bonus activations; see integration note.
  end if;
  if member is null then
   insert into public.cc_memberships(user_id,business_id,role,status,activated_at) values(u,biz,'RESELLER','ACTIVE',now());
@@ -86,3 +87,36 @@ begin
 end $$;
 revoke all on function public.cc_bonus_activate_membership(text,uuid,numeric,uuid) from public,anon;
 grant execute on function public.cc_bonus_activate_membership(text,uuid,numeric,uuid) to authenticated;
+
+-- COBRA YA must show active access purchased with its bonus, not only real payments.
+create or replace function cc_internal.cc_business_access_v316(p_user uuid)
+returns jsonb language sql stable set search_path='' as $fn$
+with stream as (
+ select max(s.end_at) filter(where m.status='ACTIVE' and s.status='ACTIVE' and s.start_at<=now() and s.end_at>now()) as current_end,
+ max(s.end_at) filter(where s.status='ACTIVE' and s.start_at<=now()) as last_end
+ from public.cc_memberships m join public.cc_businesses b on b.id=m.business_id and b.code='STREAM_BULLS'
+ join public.cc_subscriptions s on s.membership_id=m.id join public.cc_plans p on p.id=s.plan_id
+ where m.user_id=p_user and p.code in ('STREAM_365','STREAM_MONTHLY') and p.price_pen>0
+), cobra_real as (
+ select max(period_end) filter(where status='ACTIVE' and period_start<=now()) as until_date
+ from public.cc_cobra_real_access_periods where user_id=p_user
+), cobra_bonus as (
+ select max(period_end) filter(where period_start<=now()) as until_date
+ from public.cc_cobra_welcome_bonus_activations where user_id=p_user
+), cobra as (
+ select greatest(r.until_date,b.until_date) until_date,
+ case when b.until_date>coalesce(r.until_date,'-infinity'::timestamptz) then 'BONUS' else 'VERIFIED_REAL' end funding
+ from cobra_real r cross join cobra_bonus b
+), sources as (
+ select 1 ord,'STREAM_BULLS'::text service,coalesce(current_end,last_end) until_date,
+ current_end is not null enabled,false suspended,'VERIFIED_REAL'::text funding from stream
+ union all select 2,'COBRA_YA',until_date,until_date>now(),false,funding from cobra
+ union all select 3,'MI_COCHERA',a.subscription_until,a.subscription_until>now(),coalesce(a.suspended,false),
+ (select e.paid_with from public.mc_subscription_events e where e.reseller_id=p_user and e.active_until=a.subscription_until order by e.created_at desc,e.id desc limit 1)
+ from (select p_user user_id) x left join public.mc_accounts a on a.user_id=x.user_id
+ union all select 4,'MI_ALQUILER',a.subscription_until,a.subscription_until>now(),coalesce(a.suspended,false),
+ (select e.funding from public.ma_subscription_events e where e.reseller_id=p_user and e.active_until=a.subscription_until order by e.created_at desc,e.id desc limit 1)
+ from (select p_user user_id) x left join public.ma_accounts a on a.user_id=x.user_id
+)
+select jsonb_agg(jsonb_build_object('service',service,'status',case when suspended then 'SUSPENDED' when enabled then 'ACTIVE' when until_date<=now() then 'EXPIRED' when until_date>now() then 'PENDING' else 'INACTIVE' end,'active_until',until_date,'funding',case when until_date is null then null else funding end) order by ord) from sources;
+$fn$;
