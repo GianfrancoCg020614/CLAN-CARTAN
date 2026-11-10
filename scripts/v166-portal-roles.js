@@ -198,7 +198,7 @@ function appendBusinessStatus(parent,rows){
  const list=make('ul','cc316-business-status');list.setAttribute('aria-label','Activación por negocio');
  for(const row of rows){const item=make('li',businessLive(row)?'cc316-live':'');
   item.append(make('strong','',serviceName(row.service)),make('span','',businessStateLabel(row)));
-  if(businessLive(row)){const days=Math.ceil((Date.parse(row.active_until)-Date.now())/86400000);if(days<=7)item.append(make('small','cc316-renew-soon','Renovación próxima · '+days+' día(s)'));}
+  if(businessLive(row)){const days=Math.ceil((Date.parse(row.active_until)-Date.now())/86400000);if(days<=7)item.append(make('small','cc316-renew-soon',days<=1?'Vence en menos de 24 horas':'Vence en '+days+' días'));}
   if(businessLive(row)&&row.funding)item.append(make('small','',row.funding==='BONUS'?'Última activación con bono promocional':row.funding==='VERIFIED_REAL'||row.funding==='REAL_WALLET'?'Activación con saldo real':'Origen de activación registrado'));
   list.append(item);
  }parent.append(list);
@@ -1080,11 +1080,11 @@ function walletBalancesPanel(compact=false){
   if(sub){const d=make('p','',sub);d.style.cssText='font-size:12px;opacity:.83;margin:0';c.append(d);}return c;
  };
  wrap.append(tile('Saldo real',realBalance(),'Recargas confirmadas y ganancias por referidos · cuatro negocios','#168fa2'));
- const bonusTotal=['COBRA_YA','MI_COCHERA','MI_ALQUILER'].reduce((n,code)=>n+bonusBalance(code),0);
- wrap.append(tile('Bonos promocionales',bonusTotal,'Total informativo · no es dinero real ni transferible','#b58b42'));
+ const bonusTotal=['COBRA_YA','MI_COCHERA','MI_ALQUILER'].reduce((n,code)=>n+Math.max(0,bonusBalance(code)),0);
+ wrap.append(tile('Bonos promocionales',bonusTotal,'Suma informativa de bonos separados por negocio','#b58b42'));
  const detail=make('div','');detail.style.cssText='grid-column:1/-1;display:flex;gap:9px;flex-wrap:wrap';
  for(const code of ['COBRA_YA','MI_COCHERA','MI_ALQUILER']){
-  const chip=make('span','',serviceName(code)+': '+(verified?price(bonusBalance(code)):'Consultando…'));
+  const chip=make('span','',serviceName(code)+': '+(verified?price(Math.max(0,bonusBalance(code))):'Consultando…'));
   chip.style.cssText='border:1px solid rgba(122,205,224,.3);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600';detail.append(chip);
  }
  wrap.append(detail);
@@ -1094,7 +1094,7 @@ function walletBalancesPanel(compact=false){
 function businessPayButtons(box,code,active){
  if(data.admin)return;
  const cost=monthlyPrice(code),bonus=bonusBalance(code),real=realBalance();
- box.append(make('p','cc166-note','Plan mensual · '+(cost>0?price(cost):'Tarifa pendiente de verificar')+' · Saldo real: '+(verified?price(real):'Consultando…')+' · Bono disponible: '+(verified?price(bonus):'Consultando…')));
+ box.append(make('p','cc166-note','Plan mensual · '+(cost>0?price(cost):'Tarifa pendiente de verificar')+' · Bono '+serviceName(code)+': '+(verified?price(Math.max(0,bonus)):'Consultando…')));
  const actions=make('div','cc166-actions');
  const realButton=button((active?'Renovar':'Activar')+' con saldo real · '+price(cost),()=>void activateBusiness(code,realButton,active?'RENEW':'ACTIVATE','REAL'),'cc166-primary');
  realButton.disabled=!verified||!!businessActivationPending||!Number.isFinite(cost)||cost<=0||real<cost;
@@ -1102,7 +1102,7 @@ function businessPayButtons(box,code,active){
  const bonusButton=button((active?'Renovar':'Activar')+' con bono · '+price(cost),()=>void activateBusiness(code,bonusButton,active?'RENEW':'ACTIVATE','BONUS'),'cc166-secondary');
  bonusButton.disabled=!verified||!!businessActivationPending||!Number.isFinite(cost)||cost<=0||bonus<cost;
  actions.append(bonusButton);
- if(verified&&cost>0&&real<cost)actions.append(button('Recargar saldo real',()=>finance('manual'),'cc166-secondary'));
+ if(verified&&cost>0&&real<cost&&bonus<cost)actions.append(button('Recargar saldo real',()=>finance('manual'),'cc166-secondary'));
  box.append(actions);
 }
 async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
