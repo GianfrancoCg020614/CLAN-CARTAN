@@ -88,6 +88,37 @@ end $$;
 revoke all on function public.cc_bonus_activate_membership(text,uuid,numeric,uuid) from public,anon;
 grant execute on function public.cc_bonus_activate_membership(text,uuid,numeric,uuid) to authenticated;
 
+-- The existing real-money activation checks only real COBRA periods.
+-- Replace that guard so bonus activations also prevent a second initial charge.
+create or replace function public.cc_finance_activate_membership(p_service text,p_request uuid,p_expected_amount_pen numeric)
+returns jsonb language plpgsql security definer set search_path='' as $guard$
+declare actor uuid:=auth.uid(); checked_at timestamptz; until_date timestamptz;
+begin
+ if actor is null or p_request is null then raise exception 'Inicia sesión y confirma la activación' using errcode='42501';end if;
+ if p_service is null or p_service not in ('COBRA_YA','MI_COCHERA','MI_ALQUILER','STREAM_BULLS') or p_expected_amount_pen is null or p_expected_amount_pen<=0 then raise exception 'Servicio o tarifa inválidos';end if;
+ perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('CC-FINANCE-V320',0));
+ if exists(select 1 from cc_internal.finance_membership_payments where request_id=p_request) or exists(select 1 from public.cc_portal_stream_memberships_paid where checkout_key=p_request) then
+  return public.cc_finance_pay_membership(p_service,p_request,p_expected_amount_pen);
+ end if;
+ checked_at:=pg_catalog.clock_timestamp();
+ if p_service='STREAM_BULLS' then
+  select max(s.end_at) into until_date from public.cc_memberships m
+  join public.cc_businesses b on b.id=m.business_id and b.code='STREAM_BULLS'
+  join public.cc_subscriptions s on s.membership_id=m.id
+  join public.cc_plans p on p.id=s.plan_id and p.code in ('STREAM_365','STREAM_MONTHLY') and p.price_pen>0
+  where m.user_id=actor and m.status='ACTIVE' and s.status='ACTIVE' and s.start_at<=checked_at;
+ elsif p_service='COBRA_YA' then
+  select greatest((select max(period_end) from public.cc_cobra_real_access_periods where user_id=actor and status='ACTIVE' and period_start<=checked_at),
+                  (select max(period_end) from public.cc_cobra_welcome_bonus_activations where user_id=actor and period_start<=checked_at)) into until_date;
+ elsif p_service='MI_COCHERA' then
+  select subscription_until into until_date from public.mc_accounts where user_id=actor and not suspended;
+ else
+  select subscription_until into until_date from public.ma_accounts where user_id=actor and not suspended;
+ end if;
+ if until_date>checked_at then return jsonb_build_object('service',p_service,'status','ALREADY_ACTIVE','amount_pen',0,'active_until',until_date,'charged',false);end if;
+ return public.cc_finance_pay_membership(p_service,p_request,p_expected_amount_pen);
+end $guard$;
+
 -- COBRA YA must show active access purchased with its bonus, not only real payments.
 create or replace function cc_internal.cc_business_access_v316(p_user uuid)
 returns jsonb language sql stable set search_path='' as $fn$
