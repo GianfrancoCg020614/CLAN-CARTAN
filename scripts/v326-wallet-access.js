@@ -70,13 +70,13 @@ function drawDialog(){
  dialog.querySelector('[data-action=recharge]').hidden=recovery;
  dialog.querySelector('[data-action=close]').disabled=paying;
  set(dialog.querySelector('[data-field=balance]'),value===null?(error||'Consultando…'):money(value));
- if(!quote||!same(quote.key)){set(dialog.querySelector('[data-field=price]'),quoting?'Verificando…':'Por verificar');set(pay,quoting?'Verificando…':'Activar con mi saldo');return;}
+ if(!quote||!same(quote.key)){set(dialog.querySelector('[data-field=price]'),quoting?'Verificando…':'Por verificar');set(pay,quoting?'Verificando…':'Pagar para activar · saldo real');return;}
  const balance=value,shortfall=balance===null?null:Math.max(0,quote.amount-balance);
  set(dialog.querySelector('[data-field=price]'),needsReview?'Por verificar':money(quote.amount)+' · un año');
  set(dialog.querySelector('[data-field=balance]'),balance===null?(error||'Consultando…'):money(balance));
  set(dialog.querySelector('[data-field=shortfall]'),needsReview||shortfall===null?'Por verificar':money(shortfall));
  pay.disabled=paying||quoting||needsReview||balance===null||shortfall>0;
- set(pay,paying?'Procesando…':'Activar con mi saldo');
+ set(pay,paying?'Procesando…':'Pagar para activar · saldo real');
  const recharge=dialog.querySelector('[data-action=recharge]');recharge.hidden=recovery||shortfall===0;recharge.disabled=paying;
  dialog.querySelector('[data-action=close]').disabled=paying;
  set(dialog.querySelector('[data-pending]'),context()?.pendingRecharge?'Recarga en verificación. Solo puedes utilizar el saldo ya confirmado.':'');
@@ -125,7 +125,7 @@ async function open(){
  const facts=node('dl','cc326-facts');for(const [field,label] of [['price','Activación'],['balance','Saldo disponible'],['shortfall','Importe faltante']]){const line=node('div','');line.append(node('dt','',label));const dd=node('dd','','Consultando…');dd.dataset.field=field;line.append(dd);facts.append(line);}dialog.append(facts);
  const message=node('p','cc326-message','');message.dataset.message='';message.setAttribute('role','status');dialog.append(message);
  const pendingNote=node('p','cc326-message','');pendingNote.dataset.pending='';dialog.append(pendingNote);
- const actions=node('div','cc326-actions');for(const [action,label,fn] of [['recharge','Recargar',openWallet],['activate','Activar con mi saldo',()=>void pay()],['retry','Volver a verificar',()=>void loadQuote()],['close','Cerrar',close]]){const b=node('button','',label);b.type='button';b.dataset.action=action;b.addEventListener('click',fn);if(action==='activate')b.disabled=true;if(action==='retry')b.hidden=true;actions.append(b);}dialog.append(actions,node('small','cc326-credit','Creado por CLAN CARTAN'));
+ const actions=node('div','cc326-actions');for(const [action,label,fn] of [['recharge','Recargar saldo',openWallet],['activate','Pagar para activar',()=>void pay()],['retry','Volver a verificar',()=>void loadQuote()],['close','Cerrar',close]]){const b=node('button','',label);b.type='button';b.dataset.action=action;b.addEventListener('click',fn);if(action==='activate')b.disabled=true;if(action==='retry')b.hidden=true;actions.append(b);}dialog.append(actions,node('small','cc326-credit','Creado por CLAN CARTAN'));
  const target=dialog;target.addEventListener('cancel',e=>{if(paying){e.preventDefault();return;}close();});
  document.body.append(target);
  if(typeof target.showModal!=='function'){close();window.cc166OpenBusiness?.('STREAM_BULLS');return;}
