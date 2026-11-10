@@ -1067,8 +1067,8 @@ const businessMonthlyPrice=15;
 function monthlyPrice(code){return Number(data.financeRates?.find(r=>r.service===code)?.amount_pen||(code==='STREAM_BULLS'?data.plan?.price_pen:businessMonthlyPrice));}
 function realBalance(){const confirmed=data.financeWallet?.available_pen;return confirmed!=null&&Number.isFinite(Number(confirmed))?Math.max(0,Number(confirmed)):Math.max(0,data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0)-Number(data.financeWallet?.pending_reversal_pen||0));}
 function bonusBalance(code){
- const label={'COBRA_YA':'Bono COBRA YA','MI_COCHERA':'Bono MI COCHERA','MI_ALQUILER':'Bono MI ALQUILER'}[code];
- return label?Number(data.bonuses?.find(x=>x.label===label)?.amount||0):0;
+ if(!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(code))return 0;
+ return ['Bono COBRA YA','Bono MI COCHERA','Bono MI ALQUILER'].reduce((sum,label)=>sum+Math.max(0,Number(data.bonuses?.find(x=>x.label===label)?.amount||0)),0);
 }
 function walletBalancesPanel(compact=false){
  const wrap=make('section','cc-wallet-overview');
@@ -1080,21 +1080,15 @@ function walletBalancesPanel(compact=false){
   if(sub){const d=make('p','',sub);d.style.cssText='font-size:12px;opacity:.83;margin:0';c.append(d);}return c;
  };
  wrap.append(tile('Saldo real',realBalance(),'Recargas confirmadas y ganancias por referidos · cuatro negocios','#168fa2'));
- const bonusTotal=['COBRA_YA','MI_COCHERA','MI_ALQUILER'].reduce((n,code)=>n+Math.max(0,bonusBalance(code)),0);
- wrap.append(tile('Bonos promocionales',bonusTotal,'Suma informativa de bonos separados por negocio','#b58b42'));
- const detail=make('div','');detail.style.cssText='grid-column:1/-1;display:flex;gap:9px;flex-wrap:wrap';
- for(const code of ['COBRA_YA','MI_COCHERA','MI_ALQUILER']){
-  const chip=make('span','',serviceName(code)+': '+(verified?price(Math.max(0,bonusBalance(code))):'Consultando…'));
-  chip.style.cssText='border:1px solid rgba(122,205,224,.3);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600';detail.append(chip);
- }
- wrap.append(detail);
- if(!compact){const note=make('p','cc166-note','Los bonos pertenecen a cada negocio: no se suman al saldo real ni se pueden usar en STREAM BULL’S.');note.style.cssText='grid-column:1/-1;margin:0';wrap.append(note);}
+ const bonusTotal=bonusBalance('COBRA_YA');
+ wrap.append(tile('Bono compartido',bonusTotal,'Para COBRA YA, MI COCHERA y MI ALQUILER','#b58b42'));
+ if(!compact){const note=make('p','cc166-note','El bono es un único saldo promocional para los tres negocios permitidos. STREAM BULL’S acepta únicamente saldo real.');note.style.cssText='grid-column:1/-1;margin:0';wrap.append(note);}
  return wrap;
 }
 function businessPayButtons(box,code,active){
  if(data.admin)return;
  const cost=monthlyPrice(code),bonus=bonusBalance(code),real=realBalance();
- box.append(make('p','cc166-note','Plan mensual · '+(cost>0?price(cost):'Tarifa pendiente de verificar')+' · Bono '+serviceName(code)+': '+(verified?price(Math.max(0,bonus)):'Consultando…')));
+ box.append(make('p','cc166-note','Plan mensual · '+(cost>0?price(cost):'Tarifa pendiente de verificar')+' · Bono compartido: '+(verified?price(Math.max(0,bonus)):'Consultando…')));
  const actions=make('div','cc166-actions');
  const realButton=button((active?'Renovar':'Activar')+' con saldo real · '+price(cost),()=>void activateBusiness(code,realButton,active?'RENEW':'ACTIVATE','REAL'),'cc166-primary');
  realButton.disabled=!verified||!!businessActivationPending||!Number.isFinite(cost)||cost<=0||real<cost;
@@ -1112,7 +1106,7 @@ async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
  if(intent==='ACTIVATE'&&access(code).ok){notice('Este servicio ya está activo. No se realizó ningún cobro.');return {service:code,status:'ALREADY_ACTIVE',charged:false,amount_pen:0,active_until:businessPeriod(code)?.end};}
  const cost=monthlyPrice(code);if(!Number.isFinite(cost)||cost<=0){notice('Actualiza para consultar la tarifa vigente.');return;}
  if(funding==='REAL'&&realBalance()<cost){notice('Saldo real insuficiente.');return;}
- if(funding==='BONUS'&&bonusBalance(code)<cost){notice('Bono insuficiente para este negocio.');return;}
+ if(funding==='BONUS'&&bonusBalance(code)<cost){notice('Saldo promocional compartido insuficiente.');return;}
  if(!window.confirm('¿'+(intent==='RENEW'?'RENOVAR':'ACTIVAR')+' '+serviceName(code)+' por '+price(cost)+' usando '+(funding==='BONUS'?'BONO':'SALDO REAL')+'? Solo se descontará el medio elegido.'))return {status:'CANCELLED'};
  let keyInfo;try{keyInfo=storedKey('subscription-'+intent+'-'+funding,code);}catch(e){notice(String(e?.message||e));return;}
  const uid=user,jwt=token;businessActivationPending=code;if(b?.isConnected){b.disabled=true;b.textContent='Procesando…';}
