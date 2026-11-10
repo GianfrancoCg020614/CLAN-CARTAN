@@ -524,7 +524,7 @@ async function submitAdminAssistedRecharge(target,service,amount,reference,butto
  const value=Number(amount),ref=String(reference||'').trim();
  if(ref&&(ref.length<4||ref.length>120)){notice('La referencia opcional debe tener entre 4 y 120 caracteres.');return;}
  if(!recipient||service!=='STREAM_BULLS'||
- !Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.00001){
+ !Number.isFinite(value)||value<5||value>1000||Math.abs(value*100-Math.round(value*100))>0.00001){
   notice('Selecciona un usuario no ADMIN, billetera compatible e importe entre S/ 1 y S/ 1000.');return;
  }
  if(!window.crypto?.randomUUID){notice('Es necesaria una conexión segura.');return;}
@@ -576,7 +576,7 @@ function adminAssistedRechargeForm(page){
    // El cliente y ADMIN no eligen billeteras por negocio: el saldo es compartido.
    form.append(make('p','cc185-unified-explain','Destino: billetera única CLAN CARTAN · disponible para los cuatro negocios.'));
    const priceLabel=make('label','','Monto de recarga (S/)');
-   const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
+   const amount=document.createElement('input');amount.type='number';amount.min='5';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
    priceLabel.append(amount);form.append(priceLabel);
    const refLabel=make('label','','Referencia declarada (opcional)');
    const reference=document.createElement('input');reference.maxLength=120;reference.minLength=4;reference.placeholder='ID de depósito si existe';
@@ -783,7 +783,7 @@ function autoRecHistory(box){
 }
 function personalAutoRecharge(page){
  if(autoState==='idle')void loadAutoRechargeMethods();
- const box=card('Recarga automática','Tu billetera única CLAN CARTAN · sin enviar comprobantes cuando el proveedor esté verificado.');
+ const box=card('Recarga automática','Solicita una recarga desde S/ 5. Todo el proceso se mantiene dentro de esta pestaña.');
  const intro=make('div','cc177-auto-intro');
  intro.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:14px 0';
  for(const [title,description] of [
@@ -795,6 +795,19 @@ function personalAutoRecharge(page){
   item.append(make('strong','',title),make('p','cc166-note',description));intro.append(item);
  }
  box.append(intro);
+ const entry=make('div','cc177-auto-entry');
+ entry.style.cssText='display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;margin:16px 0';
+ const amountLabel=make('label','','Monto de recarga (S/)');
+ const amountInput=document.createElement('input');amountInput.type='number';amountInput.min='5';amountInput.max='1000';amountInput.step='0.01';amountInput.value='10';amountInput.required=true;amountInput.setAttribute('aria-label','Monto de recarga automática');amountInput.style.cssText='width:100%;min-height:40px';
+ amountLabel.append(amountInput);entry.append(amountLabel);
+ const qrAction=button('Ver QR',()=>{
+  const v=Number(amountInput.value);
+  if(!Number.isFinite(v)||v<5||v>1000||Math.round(v*100)!==v*100){notice('El importe debe estar entre S/ 5 y S/ 1,000.');return;}
+  notice('El QR automático estará disponible cuando Lemon confirme la conexión y conciliación segura. No deposites todavía.');
+ },'cc166-primary');
+ qrAction.disabled=true;qrAction.title='Pendiente de conexión y validación bancaria';
+ entry.append(qrAction);box.append(entry);
+ box.append(make('p','cc166-note','El QR se mostrará aquí, sin abrir otra página, cuando el medio automático esté verificado. Por ahora está bloqueado para evitar depósitos sin conciliación.'));
  const warning=make('p','cc166-note','Seguridad: una solicitud pendiente por usuario, un depósito por REC y un ID de operación que no se reutiliza. Si el pago es ambiguo o llega fuera de plazo, lo revisa el ADMIN.');
  box.append(warning);
  if(autoState==='idle'||autoState==='loading')box.append(make('p','cc166-note','Comprobando conexiones de pago…'));
@@ -969,8 +982,8 @@ async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
  }
  const value=Number(amount),name=String(otherPayer||data.profile?.full_name||session()?.displayName||'').trim().replace(/\s+/g,' ');
  if(service!=='STREAM_BULLS'
-  ||!Number.isFinite(value)||value<1||value>1000||Math.abs(value*100-Math.round(value*100))>0.0001){
-  notice('Ingresa un importe válido de S/ 1 a S/ 1,000 para tu billetera única.');return;
+  ||!Number.isFinite(value)||value<5||value>1000||Math.abs(value*100-Math.round(value*100))>0.0001){
+  notice('Ingresa un importe válido de S/ 5 a S/ 1,000 para tu billetera única.');return;
  }
  if(name.length<5||name.length>120||!name.includes(' ')){
   notice('Completa tu nombre y apellido una sola vez en Mi perfil para registrar recargas.');return;
@@ -1038,7 +1051,7 @@ function personalManualRecharge(page){
  const form=make('form','cc177-recharge-form');
  form.append(make('p','cc185-unified-explain','Se recarga una sola vez a tu billetera CLAN CARTAN. El saldo disponible es el mismo para comprar y activar servicios de los cuatro negocios.'));
  const amountLabel=make('label','','Importe (S/)');
- const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
+ const amount=document.createElement('input');amount.type='number';amount.min='5';amount.max='1000';amount.step='0.01';amount.value='5';amount.required=true;
  amountLabel.append(amount);form.append(amountLabel);
  const referenceLabel=make('label','','Referencia bancaria (si ya depositaste)');
  const reference=document.createElement('input');reference.maxLength=120;reference.placeholder='Número de operación';
