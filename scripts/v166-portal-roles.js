@@ -5,7 +5,7 @@
 'use strict';
 const el=id=>document.getElementById(id);
 const api=(p,m,b)=>window.cc80.api(p,m,b);
-const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'COBRA YA',MI_COCHERA:'MI COCHERA',MI_ALQUILER:'MI ALQUILER',CLAN_CARTAN:'CLAN CARTAN'})[k]||k;
+const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'CLAN CARTAN',MI_COCHERA:'MI COCHERA',MI_ALQUILER:'MI ALQUILER',CLAN_CARTAN:'CLAN CARTAN'})[k]||k;
 const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],['MI_ALQUILER','⌂']];
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
@@ -1084,7 +1084,7 @@ const businessMonthlyPrice=15;
 function monthlyPrice(code){return Number(data.financeRates?.find(r=>r.service===code)?.amount_pen||(code==='STREAM_BULLS'?data.plan?.price_pen:businessMonthlyPrice));}
 function realBalance(){const confirmed=data.financeWallet?.available_pen;return confirmed!=null&&Number.isFinite(Number(confirmed))?Math.max(0,Number(confirmed)):Math.max(0,data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0)-Number(data.financeWallet?.pending_reversal_pen||0));}
 function bonusBalance(code){
- const label={'COBRA_YA':'Bono COBRA YA','MI_COCHERA':'Bono MI COCHERA','MI_ALQUILER':'Bono MI ALQUILER'}[code];
+ const label={'COBRA_YA':'Bono CLAN CARTAN','MI_COCHERA':'Bono MI COCHERA','MI_ALQUILER':'Bono MI ALQUILER'}[code];
  return label?Number(data.bonuses?.find(x=>x.label===label)?.amount||0):0;
 }
 function businessPayButtons(box,code,active){
@@ -1774,7 +1774,7 @@ function adminApprovals(page){
 function adminBonuses(page){
  if(!data.admin)return overview(page);
  if(adminAccountsState==='idle')void loadAdminAccounts();
- title(page,'Bonos para activaciones','Únicamente activaciones de COBRA YA, MI COCHERA y MI ALQUILER; nunca se usan en STREAM BULL’S.');
+ title(page,'Bonos para activaciones','Únicamente activaciones de CLAN CARTAN, MI COCHERA y MI ALQUILER; nunca se usan en STREAM BULL’S.');
  const intro=card('Otorgar bono de activación','Solo para activaciones comerciales de los tres negocios compatibles. Nunca se suma a la billetera única de dinero real.');
  if(adminAccountsState==='loading'||adminAccountsState==='idle'){
   intro.append(make('p','cc166-note','Cargando usuarios registrados…'));page.append(intro);return;
@@ -1799,7 +1799,7 @@ function adminBonuses(page){
  label.append(recipient);form.append(label);
  const business=make('label','','Negocio que recibe el bono');
  const service=document.createElement('select');
- for(const [code,title] of [['COBRA_YA','COBRA YA · activación'],['MI_COCHERA','MI COCHERA · activación'],['MI_ALQUILER','MI ALQUILER · activación']]){
+ for(const [code,title] of [['COBRA_YA','CLAN CARTAN · activación'],['MI_COCHERA','MI COCHERA · activación'],['MI_ALQUILER','MI ALQUILER · activación']]){
   const item=make('option','',title);item.value=code;service.append(item);
  }
  business.append(service);form.append(business);
@@ -1810,7 +1810,7 @@ function adminBonuses(page){
  const reason=document.createElement('input');reason.type='text';reason.maxLength=180;reason.minLength=5;reason.required=true;reason.value='Bono de bienvenida';
  why.append(reason);form.append(why);
  const save=make('button','cc166-primary','Otorgar bono gratuito');save.type='submit';form.append(save);
- const hint=make('p','cc166-note','Los bonos de activación sólo funcionan en COBRA YA, MI COCHERA o MI ALQUILER. No son saldo real, no recargan la billetera y nunca compran productos o membresías de STREAM BULL’S.');
+ const hint=make('p','cc166-note','Los bonos de activación sólo funcionan en CLAN CARTAN, MI COCHERA o MI ALQUILER. No son saldo real, no recargan la billetera y nunca compran productos o membresías de STREAM BULL’S.');
  form.append(hint);
  form.addEventListener('submit',e=>{
   e.preventDefault();
