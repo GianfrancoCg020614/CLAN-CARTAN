@@ -2354,6 +2354,15 @@ async function load(){
  }catch(e){if(active(id,jwt,n)){verified=false;try{render();}catch(_){const page=el('cc166-content');if(page){page.replaceChildren();const box=make('section','cc166-card');box.style.cssText='margin:24px;padding:22px;border:1px solid #35566a;border-radius:14px;color:#e7f4fa';box.append(make('h2','','No pudimos cargar tu panel'));box.append(make('p','','La sesión inició, pero no se pudieron verificar los datos de tu cuenta. Actualiza la página. Si continúa, contacta a ADMIN.'));box.append(button('Reintentar',()=>void load(),'cc166-primary'));page.append(box);}}}}
  finally{if(user===id&&token===jwt)busy=false;}
 }
+function safePanelRender(){
+ try{render();}
+ catch(error){
+  console.error('[CLAN CARTAN] Error al renderizar el panel:',error);
+  const page=el('cc166-content'),menu=el('cc166-nav');
+  if(page){page.replaceChildren();const box=make('section','cc166-card');box.style.cssText='margin:24px;padding:22px;border:1px solid #b77935;border-radius:14px;color:#e7f4fa;background:#122536';box.append(make('h2','','No se pudo cargar el contenido del panel'));box.append(make('p','','Se produjo un error al construir la pantalla. El inicio de sesión sí se reconoció.'));box.append(make('p','','Detalle técnico: '+String(error?.message||error).slice(0,240)));box.append(button('Reintentar carga',()=>{safePanelRender();if(user&&!busy)void load();},'cc166-primary'));page.append(box);}
+  if(menu&&!menu.children.length){const item=button('Reintentar panel',()=>{safePanelRender();if(user&&!busy)void load();},'cc166-navitem');menu.append(item);}
+ }
+}
 function sync(){
  const s=session();
  if(!s?.jwt||!s.userId){if(app||user)reset();return;}
@@ -2367,14 +2376,14 @@ function sync(){
   // Invalidar solo solicitudes antiguas; ninguna compra queda autorizada
   // hasta volver a verificar sus permisos y saldo.
   token=s.jwt;serial++;busy=false;verified=false;
-  render();void load();return;
+  safePanelRender();void load();return;
  }
  const sameUser=s.userId===user,previouslyHidden=app?.hidden===true;
  const previous=restorePanelState(s.userId);
  reset();user=s.userId;token=s.jwt;shell();
  if(previous){view=previous.view;walletTab=previous.walletTab;navigationHistory=previous.history;app.hidden=!previous.open;}
  else app.hidden=!!(sameUser&&previouslyHidden);
- render();void load();
+ safePanelRender();void load();
 }
 function init(){
  sync();let queued=false;
