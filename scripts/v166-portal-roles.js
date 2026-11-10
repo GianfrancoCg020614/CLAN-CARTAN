@@ -1094,15 +1094,15 @@ function walletBalancesPanel(compact=false){
 function businessPayButtons(box,code,active){
  if(data.admin)return;
  const cost=monthlyPrice(code),bonus=bonusBalance(code),real=realBalance();
- box.append(make('p','cc166-note','Un mes · '+price(cost)+' · Saldo real: '+price(real)+' · Bono '+serviceName(code)+': '+price(bonus)));
+ box.append(make('p','cc166-note','Plan mensual · '+(cost>0?price(cost):'Tarifa pendiente de verificar')+' · Saldo real: '+(verified?price(real):'Consultando…')+' · Bono disponible: '+(verified?price(bonus):'Consultando…')));
  const actions=make('div','cc166-actions');
  const realButton=button((active?'Renovar':'Activar')+' con saldo real · '+price(cost),()=>void activateBusiness(code,realButton,active?'RENEW':'ACTIVATE','REAL'),'cc166-primary');
- realButton.disabled=!verified||!!businessActivationPending||real<cost;
+ realButton.disabled=!verified||!!businessActivationPending||!Number.isFinite(cost)||cost<=0||real<cost;
  actions.append(realButton);
  const bonusButton=button((active?'Renovar':'Activar')+' con bono · '+price(cost),()=>void activateBusiness(code,bonusButton,active?'RENEW':'ACTIVATE','BONUS'),'cc166-secondary');
- bonusButton.disabled=!verified||!!businessActivationPending||bonus<cost;
+ bonusButton.disabled=!verified||!!businessActivationPending||!Number.isFinite(cost)||cost<=0||bonus<cost;
  actions.append(bonusButton);
- if(real<cost&&bonus<cost)actions.append(button('Saldo insuficiente · Recargar billetera',()=>finance('manual'),'cc166-secondary'));
+ if(verified&&cost>0&&real<cost)actions.append(button('Recargar saldo real',()=>finance('manual'),'cc166-secondary'));
  box.append(actions);
 }
 async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
@@ -1133,8 +1133,8 @@ async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
  finally{businessActivationPending=null;if(b?.isConnected)b.disabled=false;}
 }
 function memberships(page){
- title(page,'Negocios · activar y pagar con billetera',
-   'Activa COBRA YA, MI COCHERA y MI ALQUILER directamente con el saldo REAL que ADMIN ya acreditó.');
+ title(page,'Negocios · activaciones y renovaciones',
+   'Elige saldo real o bono promocional para COBRA YA, MI COCHERA y MI ALQUILER. STREAM BULL’S acepta solo saldo real.');
  page.append(walletBalancesPanel(true));
  page.append(button('Recargar billetera',()=>finance('manual'),'cc166-secondary'));
  const list=make('div','cc176-attention-grid');
@@ -1144,9 +1144,9 @@ function memberships(page){
   if(code==='STREAM_BULLS'){
    const cost=monthlyPrice('STREAM_BULLS');
    cardEl.append(make('p','cc166-note','Plan anual · 365 días · '+(cost>0?price(cost):'Precio no verificado')));
-   if(verified&&cost>0&&!data.admin){
+   if(verified&&Number.isFinite(cost)&&cost>0&&!data.admin){
     cardEl.append(button(active?'Renovar suscripción · '+price(cost):'Pagar suscripción · '+price(cost),()=>void buyStreamMembership(cost,active?'RENEW':'ACTIVATE'),'cc166-primary'));
-    if(realBalance()<cost)cardEl.append(button('Saldo insuficiente · Recargar billetera',()=>finance('manual'),'cc166-secondary'));
+    if(realBalance()<cost)cardEl.append(button('Recargar saldo real',()=>finance('manual'),'cc166-secondary'));
    }
   }else businessPayButtons(cardEl,code,active);
   cardEl.append(button(active?'Ingresar a '+serviceName(code):'Ver suscripción',()=>{view='business:'+code;render();},active?'cc166-primary':'cc166-secondary'));
@@ -1199,13 +1199,13 @@ function businessPage(page,code){
   }else{
    const cost=monthlyPrice('STREAM_BULLS');
    shell.append(metric('Membresía anual · 365 días',Number.isFinite(cost)&&cost>0?price(cost):'Precio no verificado','gold'));
-   if(!data.admin){const pay=button('Pagar suscripción · '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary');pay.disabled=!(Number.isFinite(cost)&&cost>0&&verified);actions.append(pay);}
+   if(!data.admin){const pay=button('Pagar suscripción · '+price(cost),()=>void buyStreamMembership(cost),'cc166-primary');pay.disabled=!(Number.isFinite(cost)&&cost>0&&verified&&realBalance()>=cost);actions.append(pay);if(verified&&realBalance()<cost)actions.append(button('Recargar saldo real',()=>finance('manual'),'cc166-secondary'));}
   }
   if(info.ok&&!data.admin){const cost=monthlyPrice('STREAM_BULLS');if(cost>0)actions.append(button('Renovar suscripción · '+price(cost),()=>void buyStreamMembership(cost,'RENEW'),'cc166-secondary'));}
   shell.append(actions);page.append(shell);
  }else{
-  const shell=card(info.ok?'Membresía activa':'Activar con saldo real',
-   info.ok?'Tu membresía está vigente.':'Paga la tarifa vigente por un mes desde tu billetera única. La activación es inmediata al confirmar el descuento.');
+  const shell=card(info.ok?'Membresía activa':'Activa tu membresía',
+   info.ok?'Tu membresía está vigente.':'Elige saldo real o bono promocional disponible para este negocio. Solo se descontará el medio confirmado.');
   businessPeriodInfo(shell,code);
   businessPayButtons(shell,code,info.ok);
   if(info.ok||data.admin)shell.append(button('Ingresar a '+serviceName(code),()=>{
