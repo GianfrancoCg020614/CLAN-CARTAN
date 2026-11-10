@@ -216,7 +216,7 @@ function renderNav(){
    ...(superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas'],['delivery','▦','Mis cuentas'],['mailboxes','✉','Mis correos'],['delivery-requests','◷','Solicitudes pendientes']]:[]),
    ...(!admin?[['codes','⌁','Obtener código'],['shop','▣','Catálogo'],['orders','◱','Mis compras']]:[]),
    ['wallet','▤','Billetera']]],
-  ['MI CUENTA',[['referrals','◇','Mis referidos y bonos'],['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
+  ['MI CUENTA',[['referrals','◇','Mis referidos y ganancias'],['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
  ];
  const primaryIds=admin?['home','admin','wallet']:superRole?['home','codes','sales']:['home','codes','shop'];
  const primary=make('div','cc308-nav-primary');
@@ -1042,7 +1042,7 @@ function wallet(page){
  const box=make('section','cc167-hero');
  box.append(make('h2','','Saldo real disponible'));
  const available=make('strong','cc167-balance',verified?price(real):'Consultando…');available.setAttribute('data-cc-wallet-amount','');box.append(available);
- box.append(make('p','','El saldo incluye recargas confirmadas y bonos recurrentes por referidos. Puedes usarlo en los cuatro negocios. Los bonos promocionales de activación se muestran aparte.'));
+ box.append(make('p','','El saldo real incluye recargas confirmadas y ganancias por referidos. Puedes usarlo en los cuatro negocios. Los bonos promocionales de activación son independientes y se muestran aparte.'));
  const actions=make('div','cc167-actions');
  actions.append(button('Recargar',()=>finance('manual'),'cc166-primary'));
  box.append(actions);if(Number(data.financeWallet?.pending_reversal_pen)>0)box.append(make('p','cc166-note','El disponible ya descuenta '+price(data.financeWallet.pending_reversal_pen)+' por operaciones anuladas.'));page.append(box);
