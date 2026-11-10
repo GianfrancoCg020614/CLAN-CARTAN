@@ -88,7 +88,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V340 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V342 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -2243,9 +2243,11 @@ function render(startAtTop=false){
   if(workspace)workspace.scrollTop=0;
  }
  renderedLocation=location;
- const rechargeDrafts=saveAdminReviewDrafts();
- const grantDraft=saveAdminGrantDraft();
- const bonusDraft=saveAdminBonusDraft();
+ // V342: a saved form must never prevent the unified page from rendering.
+ const guardedDraft=(fn,label)=>{try{return fn();}catch(e){console.warn('[CLAN CARTAN V342] Form draft skipped:',label,e);return null;}};
+ const rechargeDrafts=guardedDraft(saveAdminReviewDrafts,'recharges');
+ const grantDraft=guardedDraft(saveAdminGrantDraft,'grants');
+ const bonusDraft=guardedDraft(saveAdminBonusDraft,'bonuses');
  const publishDraft=view==='publish'&&data.super&&!data.admin&&!discardPublishDraft?el('cc166-publish-form'):null;
  el('cc177-return-panel')?.remove();
  mountLauncher();renderNav();const page=el('cc166-content');page.dataset.cc316StreamOperations=String(view==='stream-operations'||view==='business:STREAM_BULLS');page.replaceChildren();
@@ -2354,6 +2356,33 @@ async function load(){
  }catch(e){if(active(id,jwt,n)){verified=false;console.error('[CLAN CARTAN] Error cargando datos del panel',e);try{safePanelRender();}catch(_){const page=el('cc166-content');if(page){page.replaceChildren();const box=make('section','cc166-card');box.style.cssText='margin:24px;padding:22px;border:1px solid #35566a;border-radius:14px;color:#e7f4fa';box.append(make('h2','','No pudimos cargar tu panel'));box.append(make('p','','La sesión inició, pero no se pudieron verificar los datos de tu cuenta. Actualiza la página. Si continúa, contacta a ADMIN.'));box.append(button('Reintentar',()=>void load(),'cc166-primary'));page.append(box);}}}}
  finally{if(user===id&&token===jwt)busy=false;}
 }
+// V342: force the original single-page panel to remain visible, never create a second panel.
+function cc342VisibleShell(){
+ if(!app||app.hidden)return;
+ const nav=el('cc166-nav'),page=el('cc166-content'),sidebar=app.querySelector('.cc166-sidebar'),workspace=app.querySelector('.cc166-workspace');
+ if(!nav||!page||!sidebar||!workspace)return;
+ app.style.setProperty('display','grid','important');
+ app.style.setProperty('visibility','visible','important');
+ workspace.style.setProperty('display','block','important');
+ workspace.style.setProperty('visibility','visible','important');
+ sidebar.style.setProperty('visibility','visible','important');
+ sidebar.style.setProperty('display','flex','important');
+ nav.style.setProperty('visibility','visible','important');
+ nav.style.setProperty('opacity','1','important');
+ page.style.setProperty('display','block','important');
+ page.style.setProperty('visibility','visible','important');
+ page.style.setProperty('opacity','1','important');
+ if(window.matchMedia('(max-width:680px)').matches){
+  sidebar.style.setProperty('position','fixed','important');
+  sidebar.style.setProperty('bottom','0','important');
+  sidebar.style.setProperty('left','0','important');
+  sidebar.style.setProperty('right','0','important');
+  sidebar.style.setProperty('z-index','2147483647','important');
+  nav.style.setProperty('display','flex','important');
+  nav.style.setProperty('overflow-x','auto','important');
+  nav.style.setProperty('min-width','0','important');
+ }
+}
 function safePanelRender(){
  const page=el('cc166-content'),menu=el('cc166-nav');
  if(!app||!user||!page||!menu)return;
@@ -2383,7 +2412,8 @@ function safePanelRender(){
   page.append(box);
  }
  const version=app.querySelector('.cc166-top small');
- if(version)version.textContent='CLAN CARTAN · V340 · PANEL ÚNICO';
+ if(version)version.textContent='CLAN CARTAN · V342 · PANEL ÚNICO';
+ cc342VisibleShell();
 }
 function sync(){
  const s=session();
@@ -2507,6 +2537,7 @@ function cc340Watchdog(){
  const empty=!page.children.length||!menu.children.length;
  const pageHidden=page.getClientRects().length===0||getComputedStyle(page).visibility==='hidden';
  const menuHidden=menu.getClientRects().length===0||getComputedStyle(menu).visibility==='hidden';
+ cc342VisibleShell();
  if(!empty&&!pageHidden&&!menuHidden)return;
  cc340Repairing=true;
  try{
@@ -2517,6 +2548,7 @@ function cc340Watchdog(){
   menu.style.setProperty('display','block','important');
   menu.style.setProperty('visibility','visible','important');
   if(empty)safePanelRender();
+  cc342VisibleShell();
   if(!page.children.length||!menu.children.length){
    const info=make('section','cc166-card');
    info.style.cssText='display:block!important;visibility:visible!important;padding:20px;margin:16px;background:#143148;color:white;border:1px solid #54c9d1';
