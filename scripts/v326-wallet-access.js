@@ -134,14 +134,7 @@ async function open(){
 function render(){if(owner!==identity())reset();slots();catalogAction();drawDialog();if(identity()&&(!attempted||Date.now()-attempted>30000))void refresh();}
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;render();});}
 window.cc326Wallet={refresh,accept};window.cc326OpenStreamActivation=open;
-// V342: watch structural changes only. Wallet style/class mutations must not
-// continuously reschedule the unified panel and compete with its renderer.
-new MutationObserver(records=>{
- if(records.some(record=>{
-  const t=record.target;
-  return !(t?.nodeType===1&&t.closest?.('.cc326-wallet-summary'));
- }))schedule();
-}).observe(document.body,{childList:true,subtree:true});
+new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden']});
 window.addEventListener('focus',()=>{if(!document.hidden)void refresh(true);});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh(true);});
 document.addEventListener('cc192-session-ended',()=>{reset();schedule();});
