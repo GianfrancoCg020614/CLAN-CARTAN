@@ -21,7 +21,7 @@ assert.ok(js.includes("submitAdminAssistedRecharge(selector.value,'STREAM_BULLS'
 assert.ok(js.includes("form.append(make('p','cc185-unified-explain'"),'El cliente ve un destino unificado');
 assert.match(js,/for\(const \[code,title\] of \[\['COBRA_YA'.*'MI_COCHERA'.*'MI_ALQUILER'/,'Bonos en los tres servicios de activaciones');
 assert.match(js,/if\(!\['COBRA_YA','MI_COCHERA','MI_ALQUILER'\]\.includes\(service\)\)return/,'Solo 3 negocios reciben bono promocional gratuito');
-assert.match(js,/NO se aceptan en STREAM BULL’S/,'No se usan bonos promocionales en STREAM BULL’S');
+assert.match(js,/STREAM BULL’S no acepta bonos/,'No se usan bonos promocionales en STREAM BULL’S');
 assert.match(sql,/create or replace function cc_internal\.cc_wallet_prepare_service/,'Preparación centralizada');
 assert.match(sql,/pg_advisory_xact_lock/,'Bloqueo transaccional');
 assert.match(sql,/if total<p_amount then raise exception/,'No hay doble crédito');
