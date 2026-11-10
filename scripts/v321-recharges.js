@@ -94,6 +94,7 @@ async function autoWallet(s){
  const amount=field(form,'Importe a recargar · S/','number','amount','5');amount.min=5;amount.max=1000;amount.step='0.01';amount.required=true;
  const method=select(form,'Medio','receiver',[['LEMON_DALE','Lemon / DALE · notificación Gmail']]);
  const create=E('button','cc166-primary','Generar REC automático');create.type='submit';create.disabled=true;form.append(create);
+ const qrDetails=E('details','cc321-details');qrDetails.append(E('summary','','Ver QR Lemon / DALE'));const qrImg=E('img');qrImg.src='assets/qr-dale-gianfranco.svg';qrImg.alt='QR Lemon / DALE para depósitos en soles';qrImg.loading='lazy';qrImg.style.cssText='width:min(100%,320px);height:auto;display:block;margin:12px auto;background:white;border-radius:12px';qrDetails.append(qrImg);note(qrDetails,'QR de referencia. No deposites para una recarga automática hasta que puedas generar un REC automático válido. La lectura Gmail y la acreditación automática siguen pendientes de verificación.');box.append(qrDetails);
  const history=E('div');box.append(history);
  note(box,'No se acredita dinero por coincidencias de importe, nombre u horario. Si dos clientes depositan S/ 5, ambos avisos permanecen pendientes hasta tener una vinculación verificable.');
  note(box,'Mientras no esté verificada la conciliación automática, utiliza Recarga manual para depositar.');
