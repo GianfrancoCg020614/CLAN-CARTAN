@@ -88,7 +88,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V328 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V334 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -2351,7 +2351,7 @@ async function load(){
   if(!data.admin&&ownPendingState==='idle')void loadOwnPendingRequest(false,true);
   if(data.profile?.full_name&&session()?.userId===id){session().displayName=data.profile.full_name;window.cc95RenderUser?.();}
   render();
- }catch(e){if(active(id,jwt,n)){verified=false;render();notice('No fue posible verificar los datos reales. Compras y activaciones permanecerán bloqueadas hasta actualizar.');}}
+ }catch(e){if(active(id,jwt,n)){verified=false;try{render();}catch(_){const page=el('cc166-content');if(page){page.replaceChildren();const box=make('section','cc166-card');box.style.cssText='margin:24px;padding:22px;border:1px solid #35566a;border-radius:14px;color:#e7f4fa';box.append(make('h2','','No pudimos cargar tu panel'));box.append(make('p','','La sesión inició, pero no se pudieron verificar los datos de tu cuenta. Actualiza la página. Si continúa, contacta a ADMIN.'));box.append(button('Reintentar',()=>void load(),'cc166-primary'));page.append(box);}}}}
  finally{if(user===id&&token===jwt)busy=false;}
 }
 function sync(){
