@@ -1155,7 +1155,10 @@ function businessPeriodInfo(box,code){
  const period=businessPeriod(code);
  if(!period)return;
  const fmt=x=>x&&Number.isFinite(Date.parse(x))?new Date(x).toLocaleDateString('es-PE',{timeZone:'America/Lima'}):'No registrada';
- box.append(make('p','cc166-note',(period.start?'Inicio: '+fmt(period.start)+' · ':'')+'Vencimiento: '+fmt(period.end)));
+ const remaining=Math.max(0,Math.ceil((Date.parse(period.end)-Date.now())/86400000));
+ const active=access(code).ok&&Number.isFinite(Date.parse(period.end))&&Date.parse(period.end)>Date.now();
+ const status=active?'✅ Activa · '+remaining+' día'+(remaining===1?'':'s')+' restante'+(remaining===1?'':'s'):'Membresía vencida';
+ box.append(make('p','cc166-note',status+' · '+(period.start?'Inicio: '+fmt(period.start)+' · ':'')+'Vencimiento: '+fmt(period.end)));
 }
 const businessMonthlyPrice=15;
 function monthlyPrice(code){return Number(data.financeRates?.find(r=>r.service===code)?.amount_pen||(code==='STREAM_BULLS'?data.plan?.price_pen:businessMonthlyPrice));}
@@ -1179,6 +1182,23 @@ function walletBalancesPanel(compact=false){
  if(!compact){const note=make('p','cc166-note','El bono es un único saldo promocional para los tres negocios permitidos. STREAM BULL’S acepta únicamente saldo real.');note.style.cssText='grid-column:1/-1;margin:0';wrap.append(note);}
  return wrap;
 }
+let pendingMembershipRecharge=null;
+function beginMembershipRecharge(code,funding){
+ pendingMembershipRecharge={user,code,funding};
+ finance('manual');
+}
+function pendingMembershipReturn(page){
+ const p=pendingMembershipRecharge;
+ if(!p||p.user!==user)return;
+ const note=make('p','cc166-note','Activación pendiente: '+serviceName(p.code)+'. Cuando se acredite tu recarga, vuelve aquí para comprobar el saldo y confirmar el pago.');
+ page.append(note);
+ page.append(button('Volver a activar '+serviceName(p.code),async()=>{
+  if(busy)return;
+  await load();
+  if(user!==p.user)return;
+  view='business:'+p.code;render(true);
+ },'cc166-secondary'));
+}
 function businessPayButtons(box,code,active){
  if(data.admin)return;
  const cost=monthlyPrice(code),bonus=bonusBalance(code),real=realBalance();
@@ -1196,7 +1216,7 @@ function businessPayButtons(box,code,active){
  fundingLabel.append(funding);box.append(fundingLabel);
  const detail=make('p','cc166-note','');
  const pay=button(titleText,()=>void activateBusiness(code,pay,active?'RENEW':'ACTIVATE',funding.value),'cc166-primary');
- const recharge=button('Recargar saldo',()=>finance('manual'),'cc166-secondary');
+ const recharge=button('Recargar saldo',()=>beginMembershipRecharge(code,funding.value),'cc166-secondary');
  const update=()=>{
   const balance=funding.value==='BONUS'?bonus:real;
   const missing=valid?Math.max(0,cost-balance):null;
@@ -1241,6 +1261,7 @@ function memberships(page){
  title(page,'Negocios · activaciones y renovaciones',
    'Elige saldo real o bono promocional para COBRA YA, MI COCHERA y MI ALQUILER. STREAM BULL’S acepta solo saldo real.');
  page.append(walletBalancesPanel(true));
+ pendingMembershipReturn(page);
  page.append(button('Recargar billetera',()=>finance('manual'),'cc166-secondary'));
  const list=make('div','cc176-attention-grid');
  for(const [code] of services){
