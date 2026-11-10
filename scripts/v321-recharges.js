@@ -43,8 +43,12 @@ async function mail(s){const box=s.card('Correos de depósitos','Conecta el corr
  const status=E('div','cc321-mail-status');status.style.cssText='padding:12px 14px;border:1px solid rgba(92,201,204,.24);border-radius:12px;background:rgba(28,80,91,.20);margin:12px 0 16px';
  status.append(E('strong','',connected.length?'✓ '+connected.length+' correo(s) conectado(s)':'○ Gmail aún no conectado'));
  status.append(E('p','cc166-subline',connected.length?'Puedes consultar avisos recientes y revisar coincidencias.':'Conecta tu cuenta de Gmail para comenzar a recibir avisos de depósitos.'));content.append(status);
- const checkbox=field(content,'Autorizo la lectura limitada de notificaciones de depósitos.','checkbox','ack');checkbox.checked=consentChecked;checkbox.onchange=()=>{consentChecked=checkbox.checked;};
- const actions=E('div','cc321-actions');actions.style.cssText='display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 6px';content.append(actions);
+ const connectionActions=E('div','cc321-connect-panel');connectionActions.style.cssText='margin-top:12px';content.append(connectionActions);
+ const showConnect=!connected.length;
+ const connectionHost=showConnect?connectionActions:E('details','cc321-mail-add-more');
+ if(!showConnect){connectionHost.style.cssText='margin-top:12px';const summary=E('summary','','Conectar otro correo');summary.style.cssText='cursor:pointer;color:#91d8d8;font-size:13px;padding:6px 0';connectionHost.append(summary);connectionActions.append(connectionHost);}
+ const checkbox=field(connectionHost,'Autorizo la lectura limitada de notificaciones de depósitos.','checkbox','ack');checkbox.checked=consentChecked;checkbox.onchange=()=>{consentChecked=checkbox.checked;};
+ const actions=E('div','cc321-actions');actions.style.cssText='display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 6px';connectionHost.append(actions);
  for(const[p,name]of [['google','Conectar Gmail'],['microsoft','Conectar Outlook']]){const configured=!!data.providers?.[p]?.configured;const b=B(name,()=>void connect(p,b,checkbox),p==='google');b.disabled=!data.can_connect||!configured;b.title=!data.can_connect?'Requiere una cuenta ADMIN':!configured?'Faltan las credenciales OAuth de '+(p==='google'?'Google':'Microsoft')+' en Supabase':'Autorizar acceso de solo lectura';actions.append(b);}
  if(data.can_connect&&!data.providers?.google?.configured){const hint=E('p','cc166-subline','Gmail no está configurado en el servidor. Para habilitarlo, configura en Supabase los secretos CC_STREAM_GOOGLE_CLIENT_ID y CC_STREAM_GOOGLE_CLIENT_SECRET con los datos del cliente OAuth de Google Cloud. No compartas aquí el secreto.');hint.style.cssText='margin:10px 0;line-height:1.6;color:#efc78c';content.append(hint);}
  else if(!data.can_connect){const hint=E('p','cc166-subline','Esta cuenta no tiene permisos ADMIN para conectar Gmail.');content.append(hint);}
