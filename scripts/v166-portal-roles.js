@@ -1038,26 +1038,9 @@ function wallet(page){
  if(walletTab==='manual'){personalManualRecharge(page);return;}
  if(walletTab==='automatic'){personalAutoRecharge(page);return;}
  if(walletTab==='movements'){movementList(page,120);return;}
- const real=realBalance();
- const box=make('section','cc167-hero');
- box.append(make('h2','','Saldo real disponible'));
- const available=make('strong','cc167-balance',verified?price(real):'Consultando…');available.setAttribute('data-cc-wallet-amount','');box.append(available);
- box.append(make('p','','El saldo real incluye recargas confirmadas y ganancias por referidos. Puedes usarlo en los cuatro negocios. Los bonos promocionales de activación son independientes y se muestran aparte.'));
- const actions=make('div','cc167-actions');
- actions.append(button('Recargar',()=>finance('manual'),'cc166-primary'));
- box.append(actions);if(Number(data.financeWallet?.pending_reversal_pen)>0)box.append(make('p','cc166-note','El disponible ya descuenta '+price(data.financeWallet.pending_reversal_pen)+' por operaciones anuladas.'));page.append(box);
- const unified=card('Una sola billetera · cuatro negocios',
-  'El saldo real disponible se muestra una sola vez, sin repartirlo ni duplicarlo entre plataformas.');
- unified.append(make('p','cc185-unified-explain','STREAM BULL’S · COBRA YA · MI COCHERA · MI ALQUILER'));
- page.append(unified);
- if(data.bonuses.length){
-  const promos=card('Bonos únicamente para activaciones','Son ayudas promocionales para activar o renovar COBRA YA, MI COCHERA y MI ALQUILER. No son dinero real, no se transfieren y NO se aceptan en STREAM BULL’S.');
-  const detail=make('div','cc177-business-balances');
-  for(const b of data.bonuses){
-   const line=make('div','cc177-balance-row');line.append(make('span','',b.label),make('strong','',price(b.amount)));detail.append(line);
-  }
-  promos.append(detail);page.append(promos);
- }
+ const summary=walletBalancesPanel(false);page.append(summary);
+ const actions=make('div','cc167-actions');actions.append(button('Recargar saldo real',()=>finance('manual'),'cc166-primary'));page.append(actions);
+ if(Number(data.financeWallet?.pending_reversal_pen)>0)page.append(make('p','cc166-note','El saldo real disponible ya descuenta '+price(data.financeWallet.pending_reversal_pen)+' por operaciones anuladas.'));
  const latest=card('Últimos movimientos','Los depósitos pendientes no aumentan tu saldo.');
  movementList(latest,8);page.append(latest);
 }
@@ -1086,6 +1069,27 @@ function realBalance(){const confirmed=data.financeWallet?.available_pen;return 
 function bonusBalance(code){
  const label={'COBRA_YA':'Bono COBRA YA','MI_COCHERA':'Bono MI COCHERA','MI_ALQUILER':'Bono MI ALQUILER'}[code];
  return label?Number(data.bonuses?.find(x=>x.label===label)?.amount||0):0;
+}
+function walletBalancesPanel(compact=false){
+ const wrap=make('section','cc-wallet-overview');
+ wrap.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0 18px';
+ const tile=(heading,value,sub,accent)=>{
+  const c=make('div','cc-wallet-tile');c.style.cssText='padding:18px 20px;border:1px solid '+accent+';border-radius:15px;background:linear-gradient(130deg,#103947,#10243b);color:#eaffff;min-width:0';
+  const h=make('div','',heading);h.style.cssText='font-size:14px;font-weight:700;opacity:.92';c.append(h);
+  const v=make('strong','',verified?price(value):'Consultando…');v.style.cssText='display:block;font-size:clamp(24px,3vw,34px);margin:7px 0;line-height:1.2';if(heading==='Saldo real')v.setAttribute('data-cc-wallet-amount','');c.append(v);
+  if(sub){const d=make('p','',sub);d.style.cssText='font-size:12px;opacity:.83;margin:0';c.append(d);}return c;
+ };
+ wrap.append(tile('Saldo real',realBalance(),'Recargas confirmadas y ganancias por referidos · cuatro negocios','#168fa2'));
+ const bonusTotal=['COBRA_YA','MI_COCHERA','MI_ALQUILER'].reduce((n,code)=>n+bonusBalance(code),0);
+ wrap.append(tile('Bonos promocionales',bonusTotal,'Total informativo · no es dinero real ni transferible','#b58b42'));
+ const detail=make('div','');detail.style.cssText='grid-column:1/-1;display:flex;gap:9px;flex-wrap:wrap';
+ for(const code of ['COBRA_YA','MI_COCHERA','MI_ALQUILER']){
+  const chip=make('span','',serviceName(code)+': '+(verified?price(bonusBalance(code)):'Consultando…'));
+  chip.style.cssText='border:1px solid rgba(122,205,224,.3);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600';detail.append(chip);
+ }
+ wrap.append(detail);
+ if(!compact){const note=make('p','cc166-note','Los bonos pertenecen a cada negocio: no se suman al saldo real ni se pueden usar en STREAM BULL’S.');note.style.cssText='grid-column:1/-1;margin:0';wrap.append(note);}
+ return wrap;
 }
 function businessPayButtons(box,code,active){
  if(data.admin)return;
@@ -1131,10 +1135,8 @@ async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
 function memberships(page){
  title(page,'Negocios · activar y pagar con billetera',
    'Activa COBRA YA, MI COCHERA y MI ALQUILER directamente con el saldo REAL que ADMIN ya acreditó.');
- const balance=card('Saldo real disponible',verified?price(realBalance()):'Consultando…');
- balance.querySelector('p')?.setAttribute('data-cc-wallet-amount','');
- balance.append(button('Recargar billetera',()=>finance('manual'),'cc166-secondary'));
- page.append(balance);
+ page.append(walletBalancesPanel(true));
+ page.append(button('Recargar billetera',()=>finance('manual'),'cc166-secondary'));
  const list=make('div','cc176-attention-grid');
  for(const [code] of services){
   const active=access(code).ok,cardEl=card(serviceName(code),active?'✅ Membresía activa':'○ No habilitado · Activar');
