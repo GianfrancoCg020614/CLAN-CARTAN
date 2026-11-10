@@ -1029,6 +1029,8 @@ async function submitAccountRecharge(service,amount,reference,otherPayer,btn){
  }finally{personalTopupSaving=false;btn.disabled=false;}
 }
 function personalManualRecharge(page){
+ if(typeof window.cc321Render==='function'){window.cc321Render(page,'manual',{uid:user,jwt:token,root:session()?.root,key:session()?.key,api,nav,openRecharge:mode=>finance(mode),admin:false});return;}
+
  if(ownPendingState==='idle')void loadOwnPendingRequest();
  if(ownPending?.status==='PENDING'&&ownIdentityState==='idle')void loadOwnRechargeIdentity();
  const box=card('Solicitar recarga manual',
@@ -1068,7 +1070,7 @@ function personalManualRecharge(page){
   rejected.append(make('small','','Esta solicitud se cerró sin acreditar saldo. Puedes registrar otra.'));
   box.append(rejected);
  }
- box.append(qrReferenceCards());
+
  const form=make('form','cc177-recharge-form');
  form.append(make('p','cc185-unified-explain','Se recarga una sola vez a tu billetera CLAN CARTAN. El saldo disponible es el mismo para comprar y activar servicios de los cuatro negocios.'));
  const amountLabel=make('label','','Importe (S/)');
