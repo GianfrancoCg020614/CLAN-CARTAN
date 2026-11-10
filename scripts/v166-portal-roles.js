@@ -743,6 +743,44 @@ async function loadAutoRechargeMethods(force=false){
  }catch(e){if(uid===user&&jwt===token){autoState='error';autoError=String(e?.message||e);}}
  finally{if(uid===user&&jwt===token&&view==='wallet'&&walletTab==='automatic')render();}
 }
+let autoRecRows=[],autoRecState='idle',autoRecError='',autoRecBusy=false;
+async function loadAutoRecRows(force=false){
+ if(!verified||!user||!session()?.jwt||autoRecBusy||autoRecState==='ready'&&!force)return;
+ autoRecBusy=true;autoRecState='loading';autoRecError='';
+ const uid=user,jwt=token;
+ try{
+  const response=await api('rpc/cc_recharge_my_requests','POST',{});
+  if(uid!==user||jwt!==token||session()?.jwt!==jwt)return;
+  if(!response||!Array.isArray(response.requests))throw Error('Historial REC no disponible');
+  autoRecRows=response.requests.filter(r=>r.origin==='TOPUP').slice(0,12);
+  autoRecState='ready';
+ }catch(e){if(uid===user&&jwt===token){autoRecState='error';autoRecError=String(e?.message||e);}}
+ finally{autoRecBusy=false;if(uid===user&&jwt===token&&view==='wallet'&&walletTab==='automatic')render();}
+}
+function autoRecHistory(box){
+ if(autoRecState==='idle')void loadAutoRecRows();
+ const title=make('h3','','Mis solicitudes REC');title.style.marginTop='18px';box.append(title);
+ if(autoRecState==='loading')box.append(make('p','cc166-note','Consultando solicitudes vinculadas a tu cuenta…'));
+ else if(autoRecState==='error')box.append(make('p','cc166-notice','No se pudo consultar el historial: '+autoRecError));
+ else if(!autoRecRows.length)box.append(make('p','cc166-note','Todavía no tienes solicitudes REC registradas.'));
+ else{
+  const list=make('div','cc177-auto-methods');
+  for(const r of autoRecRows){
+   const item=make('article','cc177-provider');
+   const top=make('div','cc166-actions');
+   top.append(make('strong','',String(r.rec_code||'REC')));
+   top.append(make('strong','',price(r.requested_pen)));
+   item.append(top);
+   const state=String(r.status||'PENDING').toUpperCase();
+   const stateName=state==='CREDITED'||state==='APPROVED'?'Acreditada':state==='PENDING'?'Pendiente de verificación':state==='EXPIRED'?'Vencida':state==='REJECTED'?'Rechazada':'Estado: '+state;
+   item.append(make('small','',stateName+' · '+safeDate(r.created_at)));
+   if(state==='PENDING')item.append(make('p','cc166-note','Solicitud en revisión. No realices un nuevo depósito usando una referencia anterior.'));
+   list.append(item);
+  }
+  box.append(list);
+ }
+ box.append(button('Actualizar mis solicitudes',()=>void loadAutoRecRows(true),'cc166-secondary'));
+}
 function personalAutoRecharge(page){
  if(autoState==='idle')void loadAutoRechargeMethods();
  const box=card('Recarga automática','Tu billetera única CLAN CARTAN · sin enviar comprobantes cuando el proveedor esté verificado.');
@@ -778,6 +816,7 @@ function personalAutoRecharge(page){
   if(!autoMethods.length)grid.append(make('p','cc166-empty','Aún no hay medios automáticos conectados.'));
   box.append(grid);
  }
+ autoRecHistory(box);
  const actions=make('div','cc166-actions');
  actions.append(button('Actualizar disponibilidad',()=>void loadAutoRechargeMethods(true),'cc166-secondary'));
  actions.append(button('Recargar manualmente',()=>{walletTab='manual';render();},'cc166-primary'));
