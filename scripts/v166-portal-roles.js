@@ -216,7 +216,7 @@ function renderNav(){
    ...(superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas'],['delivery','▦','Mis cuentas'],['mailboxes','✉','Mis correos'],['delivery-requests','◷','Solicitudes pendientes']]:[]),
    ...(!admin?[['codes','⌁','Obtener código'],['shop','▣','Catálogo'],['orders','◱','Mis compras']]:[]),
    ['wallet','▤','Billetera']]],
-  ['MI CUENTA',[['referrals','◇','Mis referidos y bonos'],['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
+  ['MI CUENTA',[['referrals','◇','Mis referidos y ganancias'],['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
  ];
  const primaryIds=admin?['home','admin','wallet']:superRole?['home','codes','sales']:['home','codes','shop'];
  const primary=make('div','cc308-nav-primary');
@@ -1042,7 +1042,7 @@ function wallet(page){
  const box=make('section','cc167-hero');
  box.append(make('h2','','Saldo real disponible'));
  const available=make('strong','cc167-balance',verified?price(real):'Consultando…');available.setAttribute('data-cc-wallet-amount','');box.append(available);
- box.append(make('p','','El saldo incluye recargas confirmadas y bonos recurrentes por referidos. Puedes usarlo en los cuatro negocios. Los bonos promocionales de activación se muestran aparte.'));
+ box.append(make('p','','El saldo real incluye recargas confirmadas y ganancias por referidos. Puedes usarlo en los cuatro negocios. Los bonos promocionales de activación son independientes y se muestran aparte.'));
  const actions=make('div','cc167-actions');
  actions.append(button('Recargar',()=>finance('manual'),'cc166-primary'));
  box.append(actions);if(Number(data.financeWallet?.pending_reversal_pen)>0)box.append(make('p','cc166-note','El disponible ya descuenta '+price(data.financeWallet.pending_reversal_pen)+' por operaciones anuladas.'));page.append(box);
@@ -1083,34 +1083,50 @@ function businessPeriodInfo(box,code){
 const businessMonthlyPrice=15;
 function monthlyPrice(code){return Number(data.financeRates?.find(r=>r.service===code)?.amount_pen||(code==='STREAM_BULLS'?data.plan?.price_pen:businessMonthlyPrice));}
 function realBalance(){const confirmed=data.financeWallet?.available_pen;return confirmed!=null&&Number.isFinite(Number(confirmed))?Math.max(0,Number(confirmed)):Math.max(0,data.real.reduce((n,r)=>n+Number(r.balance_pen||0),0)-Number(data.financeWallet?.pending_reversal_pen||0));}
-function businessPayButtons(box,code,active){
- if(data.admin)return;const cost=monthlyPrice(code);
- box.append(make('p','cc166-note','Un mes · '+price(cost)+' · Saldo disponible CLAN CARTAN: '+price(realBalance())));
- const actions=make('div','cc166-actions');const b=button(active?'Renovar un mes · '+price(cost):'Activar un mes · '+price(cost),()=>void activateBusiness(code,b,active?'RENEW':'ACTIVATE'),'cc166-primary');
- b.disabled=!verified||!!businessActivationPending;actions.append(b);
- if(realBalance()<cost)actions.append(button('Saldo insuficiente · Recargar billetera',()=>finance('manual'),'cc166-secondary'));box.append(actions);
+function bonusBalance(code){
+ const label={'COBRA_YA':'Bono COBRA YA','MI_COCHERA':'Bono MI COCHERA','MI_ALQUILER':'Bono MI ALQUILER'}[code];
+ return label?Number(data.bonuses?.find(x=>x.label===label)?.amount||0):0;
 }
-async function activateBusiness(code,b,intent='ACTIVATE'){
+function businessPayButtons(box,code,active){
+ if(data.admin)return;
+ const cost=monthlyPrice(code),bonus=bonusBalance(code),real=realBalance();
+ box.append(make('p','cc166-note','Un mes · '+price(cost)+' · Saldo real: '+price(real)+' · Bono '+serviceName(code)+': '+price(bonus)));
+ const actions=make('div','cc166-actions');
+ const realButton=button((active?'Renovar':'Activar')+' con saldo real · '+price(cost),()=>void activateBusiness(code,realButton,active?'RENEW':'ACTIVATE','REAL'),'cc166-primary');
+ realButton.disabled=!verified||!!businessActivationPending||real<cost;
+ actions.append(realButton);
+ const bonusButton=button((active?'Renovar':'Activar')+' con bono · '+price(cost),()=>void activateBusiness(code,bonusButton,active?'RENEW':'ACTIVATE','BONUS'),'cc166-secondary');
+ bonusButton.disabled=!verified||!!businessActivationPending||bonus<cost;
+ actions.append(bonusButton);
+ if(real<cost&&bonus<cost)actions.append(button('Saldo insuficiente · Recargar billetera',()=>finance('manual'),'cc166-secondary'));
+ box.append(actions);
+}
+async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
  if(!verified||data.admin||businessActivationPending||!services.some(([id])=>id===code))return;
- if(!['ACTIVATE','RENEW'].includes(intent))return;
+ if(!['ACTIVATE','RENEW'].includes(intent)||!['REAL','BONUS'].includes(funding))return;
+ if(funding==='BONUS'&&code==='STREAM_BULLS'){notice('STREAM BULL’S no acepta bonos.');return;}
  if(intent==='ACTIVATE'&&access(code).ok){notice('Este servicio ya está activo. No se realizó ningún cobro.');return {service:code,status:'ALREADY_ACTIVE',charged:false,amount_pen:0,active_until:businessPeriod(code)?.end};}
  const cost=monthlyPrice(code);if(!Number.isFinite(cost)||cost<=0){notice('Actualiza para consultar la tarifa vigente.');return;}
- if(realBalance()<cost){notice('Necesitas '+price(cost)+' de saldo disponible. Recarga primero tu billetera.');return;}
- if(!window.confirm('¿Pagar '+price(cost)+' con tu billetera y '+(intent==='RENEW'?'RENOVAR':'ACTIVAR')+' '+serviceName(code)+' por '+(code==='STREAM_BULLS'?'un año':'un mes')+'? Se conserva el tiempo ya pagado.'))return {status:'CANCELLED'};
- let keyInfo;try{keyInfo=storedKey('subscription-'+intent,code);}catch(e){notice(String(e?.message||e));return;}
+ if(funding==='REAL'&&realBalance()<cost){notice('Saldo real insuficiente.');return;}
+ if(funding==='BONUS'&&bonusBalance(code)<cost){notice('Bono insuficiente para este negocio.');return;}
+ if(!window.confirm('¿'+(intent==='RENEW'?'RENOVAR':'ACTIVAR')+' '+serviceName(code)+' por '+price(cost)+' usando '+(funding==='BONUS'?'BONO':'SALDO REAL')+'? Solo se descontará el medio elegido.'))return {status:'CANCELLED'};
+ let keyInfo;try{keyInfo=storedKey('subscription-'+intent+'-'+funding,code);}catch(e){notice(String(e?.message||e));return;}
  const uid=user,jwt=token;businessActivationPending=code;if(b?.isConnected){b.disabled=true;b.textContent='Procesando…';}
- try{const reply=await api(intent==='RENEW'?'rpc/cc_finance_pay_membership':'rpc/cc_finance_activate_membership','POST',{p_service:code,p_request:keyInfo.key,p_expected_amount_pen:cost});
+ try{
+  const path=funding==='BONUS'?'rpc/cc_bonus_activate_membership':(intent==='RENEW'?'rpc/cc_finance_pay_membership':'rpc/cc_finance_activate_membership');
+  const body={p_service:code,p_request:keyInfo.key,p_expected_amount_pen:cost};
+  if(funding==='BONUS')body.p_recipient=null;
+  const reply=await api(path,'POST',body);
   if(session()?.userId!==uid||session()?.jwt!==jwt)return;
   if(intent==='ACTIVATE'&&reply?.service===code&&reply.status==='ALREADY_ACTIVE'&&reply.charged===false&&Number(reply.amount_pen)===0){
-   forgetKey(keyInfo.name);await load();if(session()?.userId!==uid||session()?.jwt!==jwt)return;
-   notice('Tu servicio ya está activo. No se realizó ningún cobro adicional.');return reply;
+   forgetKey(keyInfo.name);await load();notice('Servicio ya activo, sin cobro.');return reply;
   }
   if(reply?.service!==code||!reply?.active_until||Number(reply.amount_pen)!==cost||reply.status==='REFUNDED')throw Error('El servidor no confirmó la membresía. Revisa los movimientos antes de reintentar.');
   forgetKey(keyInfo.name);await load();if(session()?.userId!==uid)return;view='business:'+code;app.hidden=false;render();
-  notice('✅ '+serviceName(code)+' verificado hasta '+new Date(reply.active_until).toLocaleDateString('es-PE',{timeZone:'America/Lima'})+'. Pago: '+price(cost)+'.');
+  notice('✅ '+serviceName(code)+' activo hasta '+new Date(reply.active_until).toLocaleDateString('es-PE',{timeZone:'America/Lima'})+'. Medio: '+(funding==='BONUS'?'BONO':'SALDO REAL')+'.');
   return reply;
- }catch(e){if(session()?.userId===uid)notice('No se confirmó: '+String(e?.message||e)+'. Revisa el historial antes de reintentar.');}
- finally{businessActivationPending=null;if(b?.isConnected){b.disabled=false;b.textContent=(intent==='RENEW'?'Renovar':'Activar')+' · '+price(cost);}}
+ }catch(e){if(session()?.userId===uid)notice('No se confirmó: '+String(e?.message||e)+'. No reintentes sin revisar movimientos.');}
+ finally{businessActivationPending=null;if(b?.isConnected)b.disabled=false;}
 }
 function memberships(page){
  title(page,'Negocios · activar y pagar con billetera',
@@ -1801,7 +1817,20 @@ function adminBonuses(page){
   const userOption=options.find(p=>p.email===recipient.value);
   void adminGrantBonus(userOption,service.value,amount.value,reason.value,save);
  });
- intro.append(form);page.append(intro);
+ const adminActivate=button('Activar con bono al usuario seleccionado',async()=>{
+ const person=options.find(p=>p.email===recipient.value),cost=monthlyPrice(service.value);
+ if(!person?.user_id||!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(service.value)||!Number.isFinite(cost)||cost<=0)return notice('Selecciona usuario y negocio válidos.');
+ if(!window.confirm('¿Activar '+serviceName(service.value)+' para '+person.registry_code+' usando SOLO su bono por '+price(cost)+'?'))return;
+ const key=storedKey('admin-bonus-activation-'+person.user_id,service.value);
+ adminActivate.disabled=true;
+ try{
+  const result=await api('rpc/cc_bonus_activate_membership','POST',{p_service:service.value,p_request:key.key,p_expected_amount_pen:cost,p_recipient:person.user_id});
+  if(!result?.active_until)throw Error('Activación no confirmada');
+  forgetKey(key.name);notice('Activación confirmada hasta '+new Date(result.active_until).toLocaleDateString('es-PE')+'. Referencia '+key.key);
+ }catch(e){notice('No se activó: '+String(e?.message||e)+'. Verifica antes de reintentar.');}
+ finally{adminActivate.disabled=false;}
+},'cc166-secondary');
+intro.append(form);intro.append(adminActivate);page.append(intro);
 }
 async function adminGrantBonus(person,service,rawAmount,rawReason,btn){
  if(!data.admin||!verified||bonusSaving||!person||person.is_admin)return;
