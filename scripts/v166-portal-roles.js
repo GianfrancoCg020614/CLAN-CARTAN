@@ -1235,14 +1235,15 @@ function openBusinessActivationModal(code,active){
  label.append(select);panel.append(label);
  const detail=make('div','cc166-note','');detail.style.cssText='padding:14px;background:#071d2d;border-radius:10px;white-space:pre-line;line-height:1.8';panel.append(detail);
  const actions=make('div','cc166-actions');actions.style.cssText='display:grid;gap:10px;margin-top:18px';
- const close=()=>overlay.remove();
+ const close=()=>{overlay.remove();document.removeEventListener('keydown',onKey);};
+ const onKey=e=>{if(e.key==='Escape'&&overlay.isConnected){e.preventDefault();close();}};
  const pay=button('Pagar para activar',async()=>{if(pay.disabled)return;close();await activateBusiness(code,null,active?'RENEW':'ACTIVATE',select.value);},'cc166-primary');
- const recharge=button('Recargar saldo',()=>{close();beginMembershipRecharge(code,select.value);},'cc166-secondary');
+ const recharge=button('Recargar saldo',()=>{close();beginMembershipRecharge(code,'REAL');},'cc166-secondary');
  const cancel=button('Cerrar',close,'cc166-secondary');
  const update=()=>{
   const balance=select.value==='BONUS'?bonusBalance(code):realBalance();
   const missing=valid?Math.max(0,cost-balance):null;
-  detail.textContent='Saldo '+(select.value==='BONUS'?'bono':'real')+': '+(verified?price(balance):'Por verificar')+'\\nImporte faltante: '+(missing===null?'Por verificar':price(missing));
+  detail.textContent='Saldo '+(select.value==='BONUS'?'bono':'real')+': '+(verified?price(balance):'Por verificar')+'\nImporte faltante: '+(missing===null?'Por verificar':price(missing));
   pay.textContent=(active?'Renovar membresía':'Pagar para activar')+' · '+(select.value==='BONUS'?'bono':'saldo real');
   pay.disabled=!valid||!!businessActivationPending||missing>0;
   recharge.hidden=!valid||missing===0;
@@ -1250,7 +1251,7 @@ function openBusinessActivationModal(code,active){
  };
  select.addEventListener('change',update);actions.append(pay,recharge,cancel);panel.append(actions);overlay.append(panel);
  overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
- document.body.append(overlay);update();
+ document.body.append(overlay);document.addEventListener('keydown',onKey);select.focus();update();
 }
 
 async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
