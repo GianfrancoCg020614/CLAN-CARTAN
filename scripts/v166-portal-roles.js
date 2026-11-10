@@ -88,7 +88,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V344 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V328 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -2350,48 +2350,15 @@ async function load(){
   window.cc326Wallet?.accept({userId:id,jwt,wallet:financeWallet});
   if(!data.admin&&ownPendingState==='idle')void loadOwnPendingRequest(false,true);
   if(data.profile?.full_name&&session()?.userId===id){session().displayName=data.profile.full_name;window.cc95RenderUser?.();}
-  safePanelRender();
- }catch(e){if(active(id,jwt,n)){verified=false;console.error('[CLAN CARTAN] Error cargando datos del panel',e);try{safePanelRender();}catch(_){const page=el('cc166-content');if(page){page.replaceChildren();const box=make('section','cc166-card');box.style.cssText='margin:24px;padding:22px;border:1px solid #35566a;border-radius:14px;color:#e7f4fa';box.append(make('h2','','No pudimos cargar tu panel'));box.append(make('p','','La sesión inició, pero no se pudieron verificar los datos de tu cuenta. Actualiza la página. Si continúa, contacta a ADMIN.'));box.append(button('Reintentar',()=>void load(),'cc166-primary'));page.append(box);}}}}
+  render();
+ }catch(e){if(active(id,jwt,n)){verified=false;render();notice('No fue posible verificar los datos reales. Compras y activaciones permanecerán bloqueadas hasta actualizar.');}}
  finally{if(user===id&&token===jwt)busy=false;}
-}
-function safePanelRender(){
- const page=el('cc166-content'),menu=el('cc166-nav');
- if(!app||!user||!page||!menu)return;
- try{render();}
- catch(error){
-  console.error('[CLAN CARTAN] Error al renderizar el panel:',error);
-  page.replaceChildren();
-  const box=make('section','cc166-card');
-  box.style.cssText='margin:24px;padding:22px;border:1px solid #b77935;border-radius:14px;color:#e7f4fa;background:#122536';
-  box.append(make('h2','','Se recuperó el acceso al panel'));
-  box.append(make('p','','La sesión está reconocida, pero una sección del panel produjo un error. Tus datos y movimientos no se han eliminado.'));
-  box.append(make('p','','Detalle técnico: '+String(error?.message||error).slice(0,240)));
-  box.append(button('Volver a cargar el panel',()=>{page.replaceChildren();safePanelRender();if(user&&!busy)void load();},'cc166-primary'));
-  page.append(box);
- }
- // V344: only the validated, role-aware menu can be rebuilt.
- if(!menu.children.length){
-  try{renderNav();}catch(error){console.error('[CLAN CARTAN V344] Menú autorizado no disponible:',error);}
- }
- if(!page.children.length){
-  const box=make('section','cc166-card');
-  box.style.cssText='margin:24px;padding:22px;border:1px solid #367b87;border-radius:14px;color:#e7f4fa;background:#122536';
-  box.append(make('h2','','Tu panel CLAN CARTAN'));
-  box.append(make('p','','La sesión está conectada. Estamos reconstruyendo la vista principal sin modificar saldos, compras, membresías ni movimientos.'));
-  box.append(button('Reintentar carga de datos',()=>{if(!busy)void load();safePanelRender();},'cc166-primary'));
-  page.append(box);
- }
- const version=app.querySelector('.cc166-top small');
- if(version)version.textContent='CLAN CARTAN · V344 · PANEL ÚNICO';
 }
 function sync(){
  const s=session();
  if(!s?.jwt||!s.userId){if(app||user)reset();return;}
  if(s.userId===user){
   if(s.jwt===token){
-   // Si el panel quedó montado pero vacío, reconstruirlo incluso cuando el JWT no cambió.
-   const panel=el('cc166-panel'),menu=el('cc166-nav'),content=el('cc166-content');
-   if(panel&&!panel.hidden&&(!menu?.children.length||!content?.children.length))safePanelRender();
    if(!verified&&!busy&&window.cc80?.api)void load();
    return;
   }
@@ -2400,14 +2367,14 @@ function sync(){
   // Invalidar solo solicitudes antiguas; ninguna compra queda autorizada
   // hasta volver a verificar sus permisos y saldo.
   token=s.jwt;serial++;busy=false;verified=false;
-  safePanelRender();void load();return;
+  render();void load();return;
  }
  const sameUser=s.userId===user,previouslyHidden=app?.hidden===true;
  const previous=restorePanelState(s.userId);
  reset();user=s.userId;token=s.jwt;shell();
  if(previous){view=previous.view;walletTab=previous.walletTab;navigationHistory=previous.history;app.hidden=!previous.open;}
  else app.hidden=!!(sameUser&&previouslyHidden);
- safePanelRender();void load();
+ render();void load();
 }
 function init(){
  sync();let queued=false;
@@ -2497,41 +2464,6 @@ function init(){
  };
 
 }
-// V340: watchdog de visibilidad. Preserva el panel original y expone el fallo si queda vacío.
-let cc340Repairing=false;
-function cc340Watchdog(){
- if(cc340Repairing||!app||app.hidden||!user)return;
- const page=el('cc166-content'),menu=el('cc166-nav');
- if(!page||!menu)return;
- const empty=!page.children.length||!menu.children.length;
- const pageHidden=page.getClientRects().length===0||getComputedStyle(page).visibility==='hidden';
- const menuHidden=menu.getClientRects().length===0||getComputedStyle(menu).visibility==='hidden';
- if(!empty&&!pageHidden&&!menuHidden)return;
- cc340Repairing=true;
- try{
-  // No se modifican registros: solo se repinta la interfaz existente.
-  app.style.setProperty('visibility','visible','important');
-  page.style.setProperty('display','block','important');
-  page.style.setProperty('visibility','visible','important');
-  menu.style.setProperty('display','block','important');
-  menu.style.setProperty('visibility','visible','important');
-  if(empty)safePanelRender();
-  if(!page.children.length||!menu.children.length){
-   const info=make('section','cc166-card');
-   info.style.cssText='display:block!important;visibility:visible!important;padding:20px;margin:16px;background:#143148;color:white;border:1px solid #54c9d1';
-   info.append(make('h2','','Diagnóstico de recuperación V340'));
-   info.append(make('p','','La interfaz original sigue sin aparecer. La sesión y la billetera están separadas del renderizado. No se han modificado datos.'));
-   info.append(button('Reintentar panel',()=>{safePanelRender();if(!busy)void load();},'cc166-primary'));
-   page.replaceChildren(info);
-  }
- }catch(e){
-  console.error('CLAN CARTAN V340: fallo de recuperación visual',e);
-  page.style.setProperty('display','block','important');
-  page.style.setProperty('visibility','visible','important');
-  page.textContent='Error de interfaz V340: '+String(e?.message||e);
- }finally{cc340Repairing=false;}
-}
-window.setInterval(cc340Watchdog,1800);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
 })();
