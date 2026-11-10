@@ -119,6 +119,21 @@ begin
  return public.cc_finance_pay_membership(p_service,p_request,p_expected_amount_pen);
 end $guard$;
 
+-- Real-wallet renewals must extend from the latest bonus OR real COBRA period.
+-- Preserve the audited finance function and replace only its COBRA date lookup.
+do $upgrade$
+declare old_definition text; new_definition text;
+begin
+ select pg_catalog.pg_get_functiondef('public.cc_finance_pay_membership(text,uuid,numeric)'::regprocedure) into old_definition;
+ if pg_catalog.strpos(old_definition, 'select max(period_end) into untilv from public.cc_cobra_real_access_periods where user_id=u and status=''ACTIVE'';')=0 then
+  raise exception 'Finance payment function changed: abort deployment rather than risk double charging';
+ end if;
+ new_definition:=pg_catalog.replace(old_definition,
+ 'select max(period_end) into untilv from public.cc_cobra_real_access_periods where user_id=u and status=''ACTIVE'';',
+ 'select greatest((select max(period_end) from public.cc_cobra_real_access_periods where user_id=u and status=''ACTIVE''), (select max(period_end) from public.cc_cobra_welcome_bonus_activations where user_id=u)) into untilv;');
+ execute new_definition;
+end $upgrade$;
+
 -- COBRA YA must show active access purchased with its bonus, not only real payments.
 create or replace function cc_internal.cc_business_access_v316(p_user uuid)
 returns jsonb language sql stable set search_path='' as $fn$
