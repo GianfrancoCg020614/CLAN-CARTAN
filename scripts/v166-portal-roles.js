@@ -745,8 +745,21 @@ async function loadAutoRechargeMethods(force=false){
 }
 function personalAutoRecharge(page){
  if(autoState==='idle')void loadAutoRechargeMethods();
- const box=card('Recarga automática','Solo se habilita cuando existe confirmación autenticada del procesador. Un QR o captura no es acreditación automática.');
- if(autoState==='idle'||autoState==='loading')box.append(make('p','cc166-note','Verificando proveedores…'));
+ const box=card('Recarga automática','Tu billetera única CLAN CARTAN · sin enviar comprobantes cuando el proveedor esté verificado.');
+ const intro=make('div','cc177-auto-intro');
+ intro.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:14px 0';
+ for(const [title,description] of [
+  ['01 · Solicita','Elige el importe y recibe tu código REC vinculado a tu cuenta CLAN.'],
+  ['02 · Deposita','Paga el monto exacto desde tu cuenta personal dentro de 15 minutos.'],
+  ['03 · Recibe','El servidor comprueba el depósito y acredita una sola vez tu saldo real.']
+ ]){
+  const item=make('div','cc177-auto-step');item.style.cssText='border:1px solid var(--cc-border,rgba(130,145,165,.25));border-radius:14px;padding:14px;min-width:0';
+  item.append(make('strong','',title),make('p','cc166-note',description));intro.append(item);
+ }
+ box.append(intro);
+ const warning=make('p','cc166-note','Seguridad: una solicitud pendiente por usuario, un depósito por REC y un ID de operación que no se reutiliza. Si el pago es ambiguo o llega fuera de plazo, lo revisa el ADMIN.');
+ box.append(warning);
+ if(autoState==='idle'||autoState==='loading')box.append(make('p','cc166-note','Comprobando conexiones de pago…'));
  else if(autoState==='error'){
   box.append(make('p','cc166-notice','No se pudo verificar disponibilidad: '+autoError));
   box.append(button('Reintentar',()=>void loadAutoRechargeMethods(true),'cc166-secondary'));
@@ -754,19 +767,25 @@ function personalAutoRecharge(page){
   const grid=make('div','cc177-auto-methods');
   for(const provider of autoMethods){
    const line=make('article','cc177-provider');
-   line.append(make('strong','',String(provider.provider||'Proveedor')));
+   const name=String(provider.provider||'Proveedor');
+   line.append(make('strong','',name==='LEMON_DALE'?'Lemon / DALE':name==='BINANCE'?'Binance Pay':name));
    line.append(make('p','',String(provider.status_text||'Sin confirmación del proveedor')));
    line.append(make('span',provider.enabled?'cc177-state-ready':'cc177-state-pending',
-    provider.enabled?'Método informado como habilitado':'No disponible'));
-   // Estado habilitado NO constituye un checkout verificado: no inventar botón para acreditar.
+    provider.enabled?'Conexión informada como disponible':'Pendiente de verificación'));
+   // No habilitar cobros con solo una bandera: se necesita conciliación y liquidación verificadas.
    grid.append(line);
   }
-  if(!autoMethods.length)grid.append(make('p','cc166-empty','No existen métodos automáticos conectados.'));
+  if(!autoMethods.length)grid.append(make('p','cc166-empty','Aún no hay medios automáticos conectados.'));
   box.append(grid);
  }
- box.append(button('Ir a recarga manual',()=>{walletTab='manual';render();},'cc166-secondary'));
+ const actions=make('div','cc166-actions');
+ actions.append(button('Actualizar disponibilidad',()=>void loadAutoRechargeMethods(true),'cc166-secondary'));
+ actions.append(button('Recargar manualmente',()=>{walletTab='manual';render();},'cc166-primary'));
+ box.append(actions);
+ box.append(make('small','cc166-note','Los 15 minutos aplicarán a las nuevas órdenes REC automáticas cuando el procesamiento seguro esté habilitado. No deposites por este medio mientras figure no disponible.'));
  page.append(box);
 }
+
 async function loadOwnPendingRequest(force=false,background=false){
  if(!verified||!user||!session()?.jwt||ownPendingBusy)return;
  if(ownPendingState==='ready'&&!force)return;
