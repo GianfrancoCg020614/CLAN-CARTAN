@@ -16,7 +16,7 @@ function scope(page,ctx){clear();const root=E('section','cc321-root');current=ro
 }
 function whatsapp(r){const method=label(r.receiver),text='Hola, CLAN CARTAN. Solicito verificar mi recarga.\n\nSolicitud: '+r.rec_code+'\nImporte: '+money(r.requested_pen)+'\nMétodo: '+method+'\n\nAdjunto mi comprobante para su validación. Gracias.';const a=E('a','cc166-primary cc321-link','Enviar comprobante por WhatsApp');a.href='https://wa.me/51923319637?text='+encodeURIComponent(text);a.target='_blank';a.rel='noopener noreferrer';return a;}
 function payLink(value){try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='pay.binance.com'?u.href:null;}catch{return null;}}
-async function wallet(s,automatic){const box=s.card(automatic?'Recarga automática':'Recarga manual por WhatsApp',automatic?'Solo se acredita cuando una fuente autorizada confirma el pago y una referencia identifica inequívocamente tu REC.':'El REC pertenece a tu cuenta. Crear la solicitud o abrir WhatsApp no acredita dinero. ADMIN debe cotejar el ingreso real.');const message=note(box,'Consultando tus solicitudes…',true),form=E('form','cc321-form'),records=E('div');box.append(form,records);let rows=[],ready=false,creating=false,cap=null,requestKey=null,reloadSerial=0;
+async function wallet(s,automatic){const box=s.card(automatic?'Recarga manual · Lemon / DALE':'Recarga manual por WhatsApp',automatic?'Genera tu REC, realiza el depósito y envía el comprobante. ADMIN verifica antes de acreditar el saldo.':'El REC pertenece a tu cuenta. Crear la solicitud o abrir WhatsApp no acredita dinero. ADMIN debe cotejar el ingreso real.');const message=note(box,'Consultando tus solicitudes…',true),form=E('form','cc321-form'),records=E('div');box.append(form,records);let rows=[],ready=false,creating=false,cap=null,requestKey=null,reloadSerial=0;
  const amount=field(form,'Importe a recargar · S/','number','amount','20');amount.required=true;amount.min=5;amount.max=1000;amount.step='0.01';
  const method=select(form,'Método','receiver',automatic?[['LEMON_DALE','Lemon / DALE · revisión ADMIN']]:[['MANUAL_BANK','Coordinar medio de depósito con ADMIN']]);
  const submit=E('button','cc166-primary',automatic?'Generar REC y ver QR Lemon':'Crear solicitud REC');submit.type='submit';submit.disabled=true;form.append(submit);
@@ -36,7 +36,7 @@ async function wallet(s,automatic){const box=s.card(automatic?'Recarga automáti
  try{const d=await s.ctx.api('rpc/cc_manual_recharge_public_status','POST',{});if(s.alive()&&(Array.isArray(d)?d[0]:d)?.enabled){const o=E('option','',label('LEMON_DALE'));o.value='LEMON_DALE';method.append(o);}}catch(_){}
  }else{
   form.hidden=false;amount.value='5';submit.disabled=false;
-  note(box,'Lemon asistido habilitado para todos: genera tu REC, paga con el QR y conserva el comprobante. ADMIN debe comprobar el ingreso antes de acreditar el saldo.');
+  note(box,'Recarga manual Lemon: genera tu REC, paga con el QR y conserva el comprobante. ADMIN debe comprobar el ingreso antes de acreditar el saldo.');
   try{cap=await s.edge({action:'methods_status'});if(cap?.binance_merchant?.enabled){const o=E('option','','Binance Merchant · pago oficial');o.value='BINANCE_MERCHANT';method.append(o);}}catch(_){}
   sync();
  }
@@ -87,6 +87,20 @@ async function admin(s){const box=s.card('Control de recargas CLAN CARTAN','Comp
  const audit=details(list,'Registro de auditoría');for(const a of(data.audit||[]).slice(0,150))note(audit,date(a.created_at)+' · '+(a.rec_code||'Configuración')+' · '+a.action+' · '+JSON.stringify(a.details));
  }
  void load();s.footer();}
-window.cc321Render=(page,view,ctx)=>{if(!['manual','automatic','recharges','recharge-mail'].includes(view))return false;const s=scope(page,ctx);if(view==='manual'||view==='automatic')void wallet(s,view==='automatic');else if(view==='recharge-mail')void mail(s);else if(ctx.admin)void admin(s);else{s.card('Acceso restringido','Solo ADMIN puede controlar recargas.');s.footer();}return true;};
+async function autoWallet(s){
+ const box=s.card('Recarga automática · Gmail Lemon','Esta modalidad estará sincronizada con los avisos de Lemon. Para acreditar sin intervención, el depósito debe identificarse de manera única y confirmarse mediante una fuente de pago verificable.');
+ const msg=note(box,'Comprobando estado de la conciliación…',true);
+ const form=E('form','cc321-form');box.append(form);
+ const amount=field(form,'Importe a recargar · S/','number','amount','5');amount.min=5;amount.max=1000;amount.step='0.01';amount.required=true;
+ const method=select(form,'Medio','receiver',[['LEMON_DALE','Lemon / DALE · notificación Gmail']]);
+ const create=E('button','cc166-primary','Generar REC automático');create.type='submit';create.disabled=true;form.append(create);
+ const history=E('div');box.append(history);
+ note(box,'No se acredita dinero por coincidencias de importe, nombre u horario. Si dos clientes depositan S/ 5, ambos avisos permanecen pendientes hasta tener una vinculación verificable.');
+ note(box,'Mientras no esté verificada la conciliación automática, utiliza Recarga manual para depositar.');
+ form.addEventListener('submit',e=>{e.preventDefault();msg.textContent='La acreditación automática aún no tiene una confirmación de pago verificable. Utiliza Recarga manual.';});
+ try{const d=await s.ctx.api('rpc/cc_recharge_my_requests','POST',{});if(!s.alive())return;const rows=(d.requests||[]).filter(r=>r.mode==='AUTOMATIC'&&r.receiver!=='LEMON_DALE');for(const r of rows.slice(0,20))history.append(E('p','cc321-note',r.rec_code+' · '+money(r.requested_pen)+' · '+label(r.status)));msg.textContent='Gmail puede detectar avisos, pero todavía no existe una confirmación bancaria automática suficiente para acreditar saldo. El botón permanece deshabilitado por seguridad.';}catch(e){if(s.alive())msg.textContent='No se pudo consultar el estado: '+(e.message||e);}
+ s.footer();
+}
+window.cc321Render=(page,view,ctx)=>{if(!['manual','automatic','recharges','recharge-mail'].includes(view))return false;const s=scope(page,ctx);if(view==='manual')void wallet(s,true);else if(view==='automatic')void autoWallet(s);else if(view==='recharge-mail')void mail(s);else if(ctx.admin)void admin(s);else{s.card('Acceso restringido','Solo ADMIN puede controlar recargas.');s.footer();}return true;};
 new MutationObserver(()=>{if(current&&(!current.isConnected||current.closest('[hidden]'))){current.replaceChildren();clear();}}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});document.addEventListener('cc192-session-ended',clear);document.dispatchEvent(new Event('cc321-ready'));
 })();
