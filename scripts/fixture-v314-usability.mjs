@@ -11,6 +11,8 @@ export function usabilityFixture(kind='cochera'){
  const carts=[{id:1,alias:'José',state:'ACTIVE',owner_person_id:'p1',worker_person_id:'p2',daily_rate:4,currency:'PEN',business_type:'Emoliente'},{id:2,alias:'Ana',state:'RETIRED',owner_person_id:'p3',daily_rate:4,currency:'PEN',business_type:'Frutas'}];
  const people=[{id:'p1',full_name:'José Pérez',phone:'123'},{id:'p2',full_name:'Trabajador',phone:'+51987654321'},{id:'p3',full_name:'Ana'}];let changeResolve,saveResolve,staleResolve,hold=false,calls=0;
  const base=cc80.api;cc80.api=async(p,m,b)=>{
+ if(p.includes('&id=gt.'))return [];
+ if(p==='rpc/mc_my_cart_balances_v328')return [{cart_id:1,balance_local:12},{cart_id:2,balance_local:0}];
  if(p==='rpc/mc_change_cart_state'){calls++;return new Promise(r=>changeResolve=()=>{carts[0].state=b.p_new_state;r([]);});}
  if(p==='rpc/mc_create_cart'){calls++;return new Promise(r=>saveResolve=()=>r(3));}
  if(p==='rpc/cc_finance_wallet')return {balance_pen:22,pending_reversal_pen:5,available_pen:17};
