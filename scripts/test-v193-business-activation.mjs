@@ -14,7 +14,7 @@ assert.match(js,/function businessPayButtons\(box,code,active\)/);
 assert.match(js,/async function activateBusiness\(code,b,intent='ACTIVATE',funding='REAL'\)/);
 assert.match(js,/businessMonthlyPrice=15/);
 for(const code of ['COBRA_YA','MI_COCHERA','MI_ALQUILER'])assert.ok(js.includes(code));
-assert.match(js,/intent==='RENEW'\?'Renovar':'Activar'/);
+assert.ok(js.includes("(active?'Renovar membresía':'Pagar para activar')"));
 assert.ok(js.includes("window.confirm('¿'+(intent==='RENEW'?'RENOVAR':'ACTIVAR')"));
 assert.match(js,/realBalance\(\)<cost/);
 assert.match(js,/rpc\/cc_finance_pay_membership/);
