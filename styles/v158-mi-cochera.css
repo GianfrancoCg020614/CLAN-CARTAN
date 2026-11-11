@@ -1,62 +1,67 @@
-/* CLAN CARTAN V158 · MI COCHERA: interfaz sencilla del RESELLER */
-#cc77home .cc158-cochera-card{border-color:#a77d27;background:linear-gradient(135deg,rgba(92,63,14,.24),rgba(7,14,24,.94))}
-#cc77home .cc158-cochera-mark{width:84px;height:84px;flex:0 0 84px;border:2px solid #d9ab4b;display:grid;place-items:center;border-radius:18px;background:#161512;font-size:52px}
-#cc77home .cc158-cochera-card h2{color:#ffd176}
-#mc158layer{position:fixed;z-index:1000005;inset:0;overflow:auto;background:#0c111a;color:#f6f4ec;font:15px system-ui,-apple-system,sans-serif;padding:16px}
+/* CLAN CARTAN V342 · MI COCHERA · interfaz limpia y ligera */
+#cc77home .cc158-cochera-card{border:1px solid #dbe3ec;background:linear-gradient(135deg,#fff,#f4f7fb);box-shadow:0 8px 24px rgba(15,35,60,.06)}
+#cc77home .cc158-cochera-mark{width:76px;height:76px;flex:0 0 76px;border:1px solid #d8e0e9;display:grid;place-items:center;border-radius:18px;background:#fff;font-size:44px}
+#cc77home .cc158-cochera-card h2{color:#17365d}
+#mc158layer{position:fixed;z-index:1000005;inset:0;overflow:auto;background:#f5f7fa;color:#243247;font:15px/1.5 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:clamp(12px,2.5vw,28px)}
 #mc158layer *,.mc158dialog *{box-sizing:border-box}
-#mc158layer .mc158wrap{max-width:1080px;margin:auto}
-#mc158layer .mc158head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(120deg,#282012,#0f1a29);border:1px solid #977126;border-radius:19px;padding:18px;margin-bottom:16px}
-#mc158layer .mc158head h2{color:#f9cd65;font-size:27px;margin:2px 0}
-#mc158layer .mc158head h2 span{font-size:12px;color:#aaa}
-#mc158layer .mc158head p{margin:0;color:#bcb7ab}
-#mc158layer button,.mc158dialog button{background:#c99b3e;border:0;border-radius:10px;padding:10px 14px;color:#15100c;cursor:pointer;font-weight:750;min-height:44px}
-#mc158layer button:hover,.mc158dialog button:hover{filter:brightness(1.1)}
-#mc158layer button:disabled,.mc158dialog button:disabled{opacity:.45;cursor:not-allowed}
-#mc158layer .mc158status{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;background:#171e2a;padding:15px;border:1px solid #514631;border-radius:15px;margin-bottom:12px}
-#mc158layer .mc158status p{font-size:13px;color:#b7b5ad}
-#mc158layer .mc158box{background:#182332;border:1px solid #405069;padding:17px;border-radius:16px;margin-bottom:16px}
-#mc158layer .mc158box h3{margin:0 0 12px}
-#mc158layer .mc158stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
-#mc158layer .mc158stats span{background:#1d2a37;padding:14px 12px;border-radius:12px;text-align:center;font-size:12px;color:#b4cbda}
-#mc158layer .mc158stats b{display:block;font-size:21px;color:#fff}
-#mc158layer .mc158tools{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
-#mc158layer .mc158tools input{flex:1 1 280px}
-#mc158layer input,#mc158layer select,#mc158layer textarea,.mc158dialog input,.mc158dialog select{width:100%;background:#0b1622;border:1px solid #566176;border-radius:9px;color:#fff;padding:12px;font:inherit;margin:5px 0 10px}
-#mc158layer label,.mc158dialog label{display:block;font-size:13px}
-#mc158layer .mc158cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,335px),1fr));gap:12px}
-#mc158layer .mc158cart{background:#101c2b;border:1px solid #3b556b;border-radius:14px;padding:14px;min-width:0}
-#mc158layer .mc158carttop{display:flex;justify-content:space-between;gap:10px}
-#mc158layer .mc158carttop h3{font-size:19px;color:#f7d27a}
-#mc158layer .mc158carttop p{font-size:12px;margin:5px 0;color:#b7c8d3}
-#mc158layer .mc158carttop strong{display:block;white-space:nowrap}
-#mc158layer .mc158carttop small{display:block;color:#98aebd}
-#mc158layer .mc158debt{color:#ff9398}
-#mc158layer .mc158actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:13px}
-#mc158layer .mc158actions button{font-size:12px;padding:10px 6px}
+#mc158layer .mc158wrap{max-width:1120px;margin:0 auto}
+#mc158layer .mc158head{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;background:transparent;border:0;border-bottom:1px solid #e1e7ef;border-radius:0;padding:4px 0 18px;margin-bottom:20px}
+#mc158layer .mc158head small{font-size:11px;font-weight:750;letter-spacing:.12em;color:#718096}
+#mc158layer .mc158head h2{display:flex;align-items:center;color:#17365d;font-size:27px;letter-spacing:-.04em;margin:5px 0}
+#mc158layer .mc158head p{margin:0;color:#718096;font-size:13px}
+#mc158layer button,.mc158dialog button{background:#174a7e;border:1px solid #174a7e;border-radius:9px;padding:10px 15px;color:#fff;cursor:pointer;font:600 13px inherit;min-height:40px;transition:background .15s}
+#mc158layer button:hover,.mc158dialog button:hover{background:#10385f}
+#mc158layer button:disabled,.mc158dialog button:disabled{opacity:.4;cursor:not-allowed}
+#mc158layer button[data-action="currency"],#mc158layer button[data-action="wallet"],#mc158layer button[data-action="reload"]{background:#fff;color:#34465c;border-color:#d5dee8}
+#mc158layer button[data-action="currency"]:hover,#mc158layer button[data-action="wallet"]:hover,#mc158layer button[data-action="reload"]:hover{background:#edf3f8}
+#mc158layer .mc158accountbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid #e1e7ef;border-radius:12px;padding:12px 16px;margin:0 0 18px}
+#mc158layer .mc158accountbar>div{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#mc158layer .mc158accountbar strong{color:#26384e}
+#mc158layer .mc158accountbar small{color:#748196}
+#mc158layer .mc158eyebrow{font-size:10px;font-weight:800;letter-spacing:.1em;color:#8491a3}
+#mc158layer .mc158membership{font-size:12px;color:#42658b;background:#edf4fa;border-radius:20px;padding:5px 10px;font-weight:700}
+#mc158layer .mc158box{background:#fff;border:1px solid #e1e7ef;padding:18px;border-radius:13px;margin-bottom:16px;box-shadow:0 3px 12px rgba(23,45,75,.025)}
+#mc158layer .mc158box h3{margin:0 0 12px;color:#233b58;font-size:16px}
+#mc158layer .mc158stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+#mc158layer .mc158stats span{background:#fff;border:1px solid #e1e7ef;padding:13px 16px;border-radius:12px;text-align:left;font-size:12px;color:#718096}
+#mc158layer .mc158stats b{display:block;font-size:22px;line-height:1.3;color:#233b58;margin-bottom:2px}
+#mc158layer .mc158tools{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:12px}
+#mc158layer .mc158tools label{flex:1 1 220px;max-width:340px}
+#mc158layer .mc158tools input{margin-bottom:0}
+#mc158layer input,#mc158layer select,#mc158layer textarea,.mc158dialog input,.mc158dialog select{width:100%;background:#fff;border:1px solid #d6dee8;border-radius:8px;color:#26384e;padding:11px 12px;font:inherit;margin:5px 0 10px;min-height:42px}
+#mc158layer input:focus,#mc158layer select:focus,.mc158dialog input:focus,.mc158dialog select:focus{outline:3px solid rgba(35,112,177,.14);border-color:#4c86b8}
+#mc158layer label,.mc158dialog label{display:block;font-size:12px;font-weight:650;color:#52647a}
+#mc158layer .mc158cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+#mc158layer .mc158cart{background:#fff;border:1px solid #e1e7ef;border-radius:12px;padding:15px;min-width:0;box-shadow:0 3px 12px rgba(23,45,75,.025)}
+#mc158layer .mc158carttop{display:flex;justify-content:space-between;gap:12px}
+#mc158layer .mc158carttop h3{font-size:17px;color:#233b58;margin:3px 0 7px}
+#mc158layer .mc158carttop p{font-size:12px;margin:4px 0;color:#64748b;overflow-wrap:anywhere}
+#mc158layer .mc158carttop>div:first-child>small{font-size:10px;letter-spacing:.06em;color:#8491a3;font-weight:700}
+#mc158layer .mc158carttop strong{display:block;white-space:nowrap;color:#243b56;font-size:16px}
+#mc158layer .mc158carttop small{display:block;color:#8190a2;font-size:11px}
+#mc158layer .mc158debt{color:#b54747!important}
+#mc158layer .mc158actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:13px;padding-top:12px;border-top:1px solid #edf0f4}
+#mc158layer .mc158actions button{font-size:12px;padding:8px 10px;min-height:36px}
+#mc158layer .mc158actions button[data-action="sale"],#mc158layer .mc314-more button{background:#fff;color:#34465c;border-color:#d5dee8}
+#mc158layer .mc158actions button[data-action="sale"]:hover,#mc158layer .mc314-more button:hover{background:#edf3f8}
+#mc158layer .mc314-more{grid-column:1/-1;border-top:0;padding-top:0}
+#mc158layer .mc314-more>summary{cursor:pointer;min-height:34px;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px;font-weight:700}
+#mc158layer .mc314-more>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:7px}
 #mc158layer .mc158scroll{overflow-x:auto}
 #mc158layer table,.mc158dialog table{width:100%;border-collapse:collapse}
-#mc158layer td,#mc158layer th,.mc158dialog td,.mc158dialog th{border-bottom:1px solid #3a4c5c;padding:10px;text-align:left;font-size:13px}
-.mc158dialog{position:fixed;inset:0;z-index:1000006;background:#030a12da;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:25px 12px;color:#fff;font:15px system-ui}
-.mc158dialog>section{background:#182332;border:1px solid #ad8342;border-radius:16px;padding:20px;width:min(100%,600px);max-height:90vh;overflow:auto}
-.mc158dialog header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-.mc158dialog header h3{color:#ffcd68;margin:0}
-.mc158dialog fieldset{border:1px solid #506272;border-radius:9px;margin:10px 0;padding:12px}
-.mc158dialog legend{color:#f6cc78;font-weight:700}
-.mc158dialog .mc158look{font-size:12px;color:#a3dabc}
-#mc158notice,#mc158dialogStatus{color:#a2e5c3;min-height:1.2em}
-@media(max-width:550px){#mc158layer .mc158stats{grid-template-columns:1fr 1fr}#mc158layer .mc158head h2{font-size:23px}#mc158layer .mc158carttop{flex-wrap:wrap}}
-
-/* Emblema entregado por el titular, conservado como icono compacto. */
-#cc77home .cc158-cochera-mark{background-image:url('../assets/mi-cochera-logo.svg');background-position:center;background-repeat:no-repeat;background-size:cover;font-size:0;color:transparent;}
-#mc158layer .mc158head h2 img{width:52px;height:52px;object-fit:contain;vertical-align:middle;margin-right:7px;border-radius:11px;}
-
-
-/* Lista compacta: operaciones frecuentes a la vista, resto bajo Más acciones. */
-#mc158layer .mc314-search{flex:1 1 240px}
-#mc158layer .mc314-more{grid-column:1/-1;border-top:1px solid #3b556b;padding-top:6px}
-#mc158layer .mc314-more>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;color:#d6e8ed;font-weight:700}
-#mc158layer .mc314-more>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:7px}
-#mc158layer #mc158count{color:#b8ceda;font-size:13px}
-#mc158layer #mc158notice a{color:#80e7df;text-decoration:underline;display:inline-flex;min-height:44px;align-items:center}
-#mc158layer .mc314-empty{grid-column:1/-1;color:#c5d6df}
-@media(max-width:680px){#mc158layer input,#mc158layer select,.mc158dialog input,.mc158dialog select{font-size:16px}}
+#mc158layer td,#mc158layer th,.mc158dialog td,.mc158dialog th{border-bottom:1px solid #e8edf3;padding:10px;text-align:left;font-size:12px;color:#4d5f75}
+#mc158layer th,.mc158dialog th{color:#718096;font-weight:700;background:#f8fafc}
+.mc158dialog{position:fixed;inset:0;z-index:1000006;background:rgba(18,32,50,.42);display:flex;align-items:center;justify-content:center;overflow:auto;padding:18px;color:#26384e;font:14px/1.5 Inter,system-ui,-apple-system,sans-serif;backdrop-filter:blur(3px)}
+.mc158dialog>section{background:#fff;border:1px solid #e1e7ef;border-radius:15px;padding:20px;width:min(100%,600px);max-height:calc(100vh - 36px);overflow:auto;box-shadow:0 18px 60px rgba(18,32,50,.18)}
+.mc158dialog header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #edf0f4}
+.mc158dialog header h3{color:#233b58;margin:0;font-size:17px}
+.mc158dialog header button{background:#f1f4f7;color:#53657b;border-color:#e1e7ef;min-width:40px}
+.mc158dialog fieldset{border:1px solid #e1e7ef;border-radius:10px;margin:12px 0;padding:13px}
+.mc158dialog legend{color:#365575;font-weight:750;padding:0 5px}
+.mc158dialog .mc158look{font-size:11px;color:#567c68}
+#mc158notice,#mc158dialogStatus{color:#26734d;min-height:1.2em;font-size:12px}
+#mc158layer #mc158count{color:#8491a3;font-size:12px;margin:0 0 10px}
+#mc158layer #mc158notice a{color:#176aa3;text-decoration:underline;display:inline-flex;min-height:40px;align-items:center}
+#mc158layer .mc314-empty{grid-column:1/-1;color:#718096;background:#fff;border:1px dashed #d6dee8;border-radius:12px;padding:22px;text-align:center}
+@media(max-width:680px){#mc158layer .mc158stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}#mc158layer .mc158stats span{padding:10px 8px;font-size:10px}#mc158layer .mc158stats b{font-size:18px}#mc158layer .mc158head h2{font-size:23px}#mc158layer .mc158carttop{flex-wrap:wrap}#mc158layer .mc158tools label{max-width:none;flex-basis:100%}}
+@media(max-width:420px){#mc158layer .mc158stats{grid-template-columns:1fr 1fr}#mc158layer .mc158accountbar>div{gap:6px}}
