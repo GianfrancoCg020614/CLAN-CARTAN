@@ -1,0 +1,9 @@
+{
+  "version": "V335",
+  "previous_version": "V334",
+  "scope": "Visible panel version label synchronization only",
+  "production_branch": "main",
+  "backup_branch": "backup/production-v334-2026-11-10",
+  "database_changes": false,
+  "date": "2026-11-10"
+}
