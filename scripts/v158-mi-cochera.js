@@ -19,7 +19,7 @@ function close(){$("mc158dialog")?.remove();let layer=$("mc158layer");if(layer)l
 function note(msg){let el=$("mc158notice");if(el)el.textContent=msg;else alert(msg);}
 function active(){return ses()?.isAdmin || account && !account.suspended && new Date(account.subscription_until)>new Date();}
 function header(){const date=account?.subscription_until?new Date(account.subscription_until).toLocaleDateString("es-PE"):"Sin activar";
- return '<section class="mc158accountbar"><div class="mc158brandline"><img src="assets/mi-cochera-logo.svg" alt="Logo MI COCHERA"><div><span class="mc158eyebrow">CLAN CARTAN · GESTIÓN DE NEGOCIO</span><h2>MI COCHERA</h2><small>Tu operación, organizada en un solo lugar</small></div></div><div class="mc158accountmeta"><strong>'+esc(account?.invite_code||"Cuenta MI COCHERA")+'</strong><small>Vigencia: '+esc(date)+'</small></div></section>';
+ return '<section class="mc158accountbar"><div class="mc158brandline"><img src="assets/mi-cochera-logo.svg" alt="Logo MI COCHERA"><div><span class="mc158eyebrow">CLAN CARTAN · GESTIÓN DE NEGOCIO</span><h2>MI COCHERA</h2><small>Tu operación, organizada en un solo lugar</small></div></div><div class="mc158accountmeta"><strong>'+esc(account?.invite_code||"Cuenta MI COCHERA")+'</strong><small>Vigencia: '+esc(date)+'</small><button type="button" data-action="close-module">Volver al panel</button></div></section>';
 }
 async function open(){
  if(!ses()?.jwt){if(typeof window.cc77Auth==="function")window.cc77Auth(false);return;}
@@ -144,6 +144,7 @@ async function click(e){
  e.preventDefault();const act=btn.dataset.action,id=Number(btn.dataset.cart),actor=ses()?.userId,jwt=ses()?.jwt;
  try{
  if(act==="close-dialog"){$("mc158dialog")?.remove();return;}
+ if(act==="close-module"){close();return;}
  if(act==="reload"){await load();return;}
  if(act==="new"){newCart();return;}
  if(act==="currency"){
