@@ -117,7 +117,19 @@
     }
     notice.textContent = message;
   }
+  let cc338AuthorizedOpen = false;
   function open() {
+    if (!cc338AuthorizedOpen) {
+      if (typeof window.cc337GateBusinessEntry !== 'function') {
+        accessNotice('Verificando membresía. Actualiza la página para continuar.');
+        return;
+      }
+      void window.cc337GateBusinessEntry('MI_ALQUILER', () => {
+        cc338AuthorizedOpen = true;
+        try { open(); } finally { cc338AuthorizedOpen = false; }
+      });
+      return;
+    }
     const current = session();
     if (!current?.jwt || !current?.userId) {
       accessNotice('Debes iniciar sesión con tu cuenta ADMIN o con una membresía vigente antes de ingresar.');

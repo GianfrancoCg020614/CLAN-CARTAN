@@ -1,0 +1,7 @@
+{
+  "version": "V338",
+  "domain": "https://www.clancartan.com",
+  "scope": "Mi Alquiler iOS pointerdown and direct open membership gate",
+  "backup": "backup/production-v337-2026-11-10",
+  "database_changes": false
+}
