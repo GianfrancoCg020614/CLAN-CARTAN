@@ -196,7 +196,7 @@ function init(){
   if(!button||cc337AllowedClicks.has(button))return;
   const card=button.closest('.cc217-cobra,.cc217-cochera,.cc217-alquiler');
   if(!card||!document.getElementById('cc77home')?.contains(card))return;
-  if(!/^Ingresar(?:\\s|$)/i.test(button.textContent.trim()))return;
+  if(!button.textContent.trim().startsWith('Ingresar'))return;
   const code=card.classList.contains('cc217-cobra')?'COBRA_YA':
    card.classList.contains('cc217-cochera')?'MI_COCHERA':'MI_ALQUILER';
   event.preventDefault();event.stopImmediatePropagation();
