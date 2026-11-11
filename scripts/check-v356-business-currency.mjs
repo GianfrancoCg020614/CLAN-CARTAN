@@ -17,7 +17,7 @@ assert.match(html,/scripts\/v356-business-currency\.js\?v=356/);
 assert.match(helper,/cc_set_business_currency/);
 assert.match(helper,/cc_profiles\?select=business_country,business_currency/);
 assert.match(helper,/cy53loan/);
-assert.match(helper,/No se realizan conversiones/);
+assert.match(helper,/No hay tipo de cambio ni conversión automática/);
 assert.match(cochera,/MI COCHERA, MI ALQUILER y COBRA YA/);
 assert.match(cochera,/ccLoadBusinessCurrency/);
 assert.match(alquiler2,/ccFormatBusinessCurrency/);
