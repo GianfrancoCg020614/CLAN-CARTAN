@@ -1,4 +1,4 @@
-/* CLAN CARTAN V342 / MI COCHERA: modulo multiempresa protegido en Supabase.
+/* CLAN CARTAN V343 / MI COCHERA: modulo multiempresa protegido en Supabase.
  No intenta cobrar pagos comerciales ni transferir bonos. */
 (function(){
 "use strict";
@@ -19,7 +19,7 @@ function close(){$("mc158dialog")?.remove();let layer=$("mc158layer");if(layer)l
 function note(msg){let el=$("mc158notice");if(el)el.textContent=msg;else alert(msg);}
 function active(){return ses()?.isAdmin || account && !account.suspended && new Date(account.subscription_until)>new Date();}
 function header(){const date=account?.subscription_until?new Date(account.subscription_until).toLocaleDateString("es-PE"):"Sin activar";
- return '<section class="mc158accountbar"><div><span class="mc158eyebrow">MI CUENTA</span><strong>'+esc(account?.invite_code||"Cuenta MI COCHERA")+'</strong><small>Suscripción hasta '+esc(date)+'</small></div><span class="mc158membership">30 días · S/ 15</span></section>';
+ return '<section class="mc158accountbar"><div class="mc158brandline"><img src="assets/mi-cochera-logo.svg" alt="Logo MI COCHERA"><div><span class="mc158eyebrow">CLAN CARTAN · GESTIÓN DE NEGOCIO</span><h2>MI COCHERA</h2><small>Tu operación, organizada en un solo lugar</small></div></div><div class="mc158accountmeta"><strong>'+esc(account?.invite_code||"Cuenta MI COCHERA")+'</strong><small>Vigencia: '+esc(date)+'</small></div></section>';
 }
 async function open(){
  if(!ses()?.jwt){if(typeof window.cc77Auth==="function")window.cc77Auth(false);return;}
@@ -79,7 +79,7 @@ function renderList(listOnly=false){
  const cards=shown.map(cartHTML).join('')||'<p class="mc314-empty">'+(carts.length?'No hay carritos que coincidan con la búsqueda y el estado seleccionado.':'Todavía no tienes carritos. Pulsa Registrar carrito para añadir el primero.')+'</p>';
  if(listOnly&&$('mc158cards')){$('mc158cards').innerHTML=cards;$('mc158count').textContent=shown.length+' de '+carts.length+' carritos';return;}
  const pending=carts.reduce((s,c)=>s+Math.max(0,balance(c.id)),0);
- $('mc158body').innerHTML=header()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==='ACTIVE').length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><label class="mc314-search">Buscar carrito<input id="mc158search" type="search" aria-label="Buscar por nombre, DNI o código de carrito" placeholder="Alias, nombre, DNI o C-001…" value="'+esc(filter)+'"></label><label>Estado<select id="mc158state"><option value="ALL">Todos</option><option value="ACTIVE">Activos</option><option value="RETIRED">Retirados</option></select></label><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="currency">Moneda</button><button type="button" data-action="wallet">Billetera</button><button type="button" data-action="reload">Actualizar</button></div><p id="mc158notice" role="status"></p><p id="mc158count" role="status">'+shown.length+' de '+carts.length+' carritos</p><div class="mc158cards" id="mc158cards">'+cards+'</div></section>';
+ $('mc158body').innerHTML=header()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==='ACTIVE').length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><label class="mc314-search">Buscar carrito<input id="mc158search" type="search" aria-label="Buscar por nombre, DNI o código de carrito" placeholder="Alias, nombre, DNI o C-001…" value="'+esc(filter)+'"></label><label>Estado<select id="mc158state"><option value="ALL">Todos</option><option value="ACTIVE">Activos</option><option value="RETIRED">Retirados</option></select></label><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="reload">Actualizar</button></div><p id="mc158notice" role="status"></p><p id="mc158count" role="status">'+shown.length+' de '+carts.length+' carritos</p><div class="mc158cards" id="mc158cards">'+cards+'</div></section>';
  $('mc158state').value=cartState;
  $('mc158search').addEventListener('input',event=>{filter=event.target.value;renderList(true);});
  $('mc158state').addEventListener('change',event=>{cartState=event.target.value;renderList(true);});
