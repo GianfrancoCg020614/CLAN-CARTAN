@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const read=p=>fs.readFileSync(p,'utf8');
+const html=read('index.html');
+const helper=read('scripts/v356-business-currency.js');
+const cochera=read('scripts/v158-mi-cochera.js');
+const alquiler2=read('scripts/v161-2-mi-alquiler.js');
+const alquiler3=read('scripts/v161-3-mi-alquiler.js');
+const alquiler4=read('scripts/v161-4-mi-alquiler.js');
+const cobra=read('index.html');
+const stream=read('scripts/v195-streambulls-live.js');
+const guard=read('supabase/migrations/20261111172000_currency_shared_preference_lock_v356.sql');
+
+assert.match(html,/<meta name="cc-deploy-version" content="V356-20261111">/);
+assert.match(html,/scripts\/v356-business-currency\.js\?v=356/);
+assert.match(helper,/cc_set_business_currency/);
+assert.match(helper,/cc_profiles\?select=business_country,business_currency/);
+assert.match(helper,/cy53loan/);
+assert.match(helper,/No se realizan conversiones/);
+assert.match(cochera,/MI COCHERA, MI ALQUILER y COBRA YA/);
+assert.match(cochera,/ccLoadBusinessCurrency/);
+assert.match(alquiler2,/ccFormatBusinessCurrency/);
+assert.match(alquiler3,/ccFormatBusinessCurrency/);
+assert.match(alquiler4,/ccFormatBusinessCurrency/);
+assert.match(alquiler3,/cashPen/);
+assert.match(cobra,/name="currency"/);
+assert.doesNotMatch(stream,/CC_BUSINESS_CURRENCY|ccLoadBusinessCurrency|cc_set_business_currency/);
+assert.match(guard,/currency IS DISTINCT FROM currency_code/);
+assert.match(guard,/STREAM BULLS queda excluido/);
+console.log('PASS V356: moneda compartida en MI COCHERA, MI ALQUILER y COBRA YA; STREAM BULL’S excluido; sin conversión ni alteración de históricos.');
