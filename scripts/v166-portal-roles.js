@@ -88,7 +88,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V339 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V340 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -1218,40 +1218,61 @@ function openBusinessActivationModal(code,active){
  document.getElementById('cc345-business-modal')?.remove();
  const cost=monthlyPrice(code),valid=verified&&Number.isFinite(cost)&&cost>0;
  const overlay=make('div','cc345-business-modal');overlay.id='cc345-business-modal';
- overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,10,20,.82);backdrop-filter:blur(5px);overflow-y:auto';
- const panel=make('section','cc166-card');panel.style.cssText='width:min(100%,460px);max-height:90dvh;overflow:auto;background:#0d2637;border:1px solid #35b7c0;border-radius:19px;padding:23px;color:#e9f8fa;box-shadow:0 18px 55px #0009';
+ overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,12,22,.78);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);overflow-y:auto';
+ const panel=make('section','cc166-card');panel.style.cssText='box-sizing:border-box;width:min(100%,440px);max-height:90dvh;overflow:auto;background:linear-gradient(155deg,#102c3d 0%,#0b2232 100%);border:1px solid #35c2cc;border-radius:22px;padding:25px 24px 22px;color:#eaf8fb;box-shadow:0 22px 65px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.04);font-family:inherit';
  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Activación de '+serviceName(code));
- panel.append(make('h2','',serviceName(code)));
- panel.append(make('p','cc166-note','Activa o renueva tu membresía mensual. Elige saldo real o bono otorgado por ADMIN. El cobro requiere tu confirmación.'));
+ const title=make('h2','',serviceName(code));title.style.cssText='margin:0 0 13px;font-size:23px;line-height:1.2;font-weight:800;letter-spacing:.01em;color:#f0fbff';
+ panel.append(title);
+ const intro=make('p','cc166-note','Activa o renueva tu membresía mensual. Elige cómo deseas pagar. El cobro requiere tu confirmación.');intro.style.cssText='margin:0 0 18px;color:#b9ccd8;font-size:15px;line-height:1.55';
+ panel.append(intro);
  const period=businessPeriod(code);
  if(active&&period?.end&&Date.parse(period.end)>Date.now()){
   const days=Math.max(0,Math.ceil((Date.parse(period.end)-Date.now())/86400000));
-  panel.append(make('p','cc166-note','Activa · '+days+' día'+(days===1?'':'s')+' restantes'));
+  const remaining=make('p','', 'Membresía vigente · '+days+' día'+(days===1?'':'s')+' restantes');
+  remaining.style.cssText='margin:0 0 14px;color:#7ce5e5;font-size:14px;font-weight:700';panel.append(remaining);
  }
- panel.append(make('p','cc166-note','Activación: '+(valid?price(cost):'Tarifa por verificar')+' · plan mensual'));
- const label=make('label','cc166-note','¿Con qué saldo deseas pagar?');
- const select=document.createElement('select');select.style.cssText='display:block;width:100%;padding:12px;margin:10px 0 16px;background:#071d2d;color:#eaffff;border:1px solid #528c9c;border-radius:10px';
- for(const [value,name] of [['REAL','Saldo real'],['BONUS','Bono otorgado por ADMIN']]){const opt=document.createElement('option');opt.value=value;opt.textContent=name;select.append(opt);}
+ const priceCard=make('div','');priceCard.style.cssText='display:grid;gap:11px;margin:0 0 17px;padding:17px 16px;background:#071b29;border:1px solid rgba(104,178,194,.12);border-radius:15px';
+ const priceRow=(labelText,valueText,emphasis=false)=>{
+  const row=make('div','');row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:14px;line-height:1.35';
+  const left=make('span','',labelText);left.style.cssText='color:#c5d6df';
+  const right=make('strong','',valueText);right.style.cssText='color:#f0fbff;font-size:15px;font-weight:800;text-align:right;white-space:nowrap';
+  if(emphasis){left.style.color='#e7f8fb';right.style.color='#75e5e5';}
+  row.append(left,right);priceCard.append(row);return right;
+ };
+ priceRow('Activación',valid?price(cost)+' · 30 días':'Tarifa por verificar',true);
+ const balanceValue=priceRow('Saldo disponible','—');
+ const missingValue=priceRow('Importe faltante','—');
+ panel.append(priceCard);
+ const label=make('label','cc166-note','¿Con qué saldo deseas pagar?');label.style.cssText='display:block;margin:0 0 8px;color:#d4e4eb;font-size:14px;font-weight:700';
+ const select=document.createElement('select');select.style.cssText='box-sizing:border-box;display:block;width:100%;min-height:48px;padding:12px 14px;margin:0 0 15px;background:#071d2d;color:#eaffff;border:1px solid #438b9b;border-radius:12px;font:inherit;font-size:15px;outline:none;appearance:auto';
+ const bonusAvailable=Number(bonusBalance(code))>0;
+ for(const [value,name] of (bonusAvailable?[['REAL','Saldo real'],['BONUS','Bono otorgado por ADMIN']]:[['REAL','Saldo real']])){const opt=document.createElement('option');opt.value=value;opt.textContent=name;select.append(opt);}
  label.append(select);panel.append(label);
- const detail=make('div','cc166-note','');detail.style.cssText='padding:14px;background:#071d2d;border-radius:10px;white-space:pre-line;line-height:1.8';panel.append(detail);
- const actions=make('div','cc166-actions');actions.style.cssText='display:grid;gap:10px;margin-top:18px';
+ const hint=make('p','');hint.style.cssText='margin:0 0 16px;color:#a9bfcc;font-size:13px;line-height:1.5';hint.textContent='Se descontará únicamente el medio de pago que confirmes.';panel.append(hint);
+ const actions=make('div','');actions.style.cssText='display:grid;gap:10px;margin-top:5px';
  const close=()=>{overlay.remove();document.removeEventListener('keydown',onKey);};
  const onKey=e=>{if(e.key==='Escape'&&overlay.isConnected){e.preventDefault();close();}};
  const pay=button('Pagar para activar',async()=>{if(pay.disabled)return;close();await activateBusiness(code,null,active?'RENEW':'ACTIVATE',select.value);},'cc166-primary');
+ pay.style.cssText='width:100%;min-height:48px;padding:12px 16px;border:1px solid rgba(255,255,255,.16);border-radius:13px;background:linear-gradient(100deg,#31d5cb,#20b8df);color:#042536;font-size:15px;font-weight:800;box-shadow:0 5px 16px rgba(0,190,205,.16);cursor:pointer';
  const recharge=button('Recargar saldo',()=>{close();beginMembershipRecharge(code,'REAL');},'cc166-secondary');
+ recharge.style.cssText='width:100%;min-height:46px;padding:11px 15px;border:1px solid #477080;border-radius:12px;background:#123346;color:#e8f8fb;font-size:14px;font-weight:700;cursor:pointer';
  const cancel=button('Cerrar',close,'cc166-secondary');
+ cancel.style.cssText='width:100%;min-height:42px;padding:9px 14px;border:0;border-radius:10px;background:transparent;color:#e1f2f7;font-size:15px;font-weight:700;cursor:pointer';
  const update=()=>{
   const balance=select.value==='BONUS'?bonusBalance(code):realBalance();
   const missing=valid?Math.max(0,cost-balance):null;
-  detail.textContent='Saldo '+(select.value==='BONUS'?'bono':'real')+': '+(verified?price(balance):'Por verificar')+'\nImporte faltante: '+(missing===null?'Por verificar':price(missing));
-  pay.textContent=(active?'Renovar membresía':'Pagar para activar')+' · '+(select.value==='BONUS'?'bono':'saldo real');
+  balanceValue.textContent=verified?price(balance):'Por verificar';
+  missingValue.textContent=missing===null?'Por verificar':price(missing);
   pay.disabled=!valid||!!businessActivationPending||missing>0;
-  recharge.hidden=!valid||missing===0;
-  recharge.textContent=select.value==='BONUS'?'Recargar saldo real (los bonos solo los otorga ADMIN)':'Recargar saldo';
+  pay.style.opacity=pay.disabled?'.55':'1';pay.style.cursor=pay.disabled?'not-allowed':'pointer';
+  recharge.hidden=select.value==='BONUS'||!valid||missing===0;
+  hint.textContent=select.value==='BONUS'?'El bono promocional es otorgado por ADMIN y no se convierte en saldo real.':'Se descontará únicamente el saldo real que confirmes.';
+  if(select.value==='BONUS'&&missing>0)hint.textContent='El bono disponible no alcanza. Solicita a ADMIN que te otorgue un bono suficiente.';
  };
- select.addEventListener('change',update);actions.append(pay,recharge,cancel);panel.append(actions);overlay.append(panel);
+ select.addEventListener('change',update);
+ actions.append(pay,recharge,cancel);panel.append(actions);overlay.append(panel);
  overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
- document.body.append(overlay);document.addEventListener('keydown',onKey);select.focus();update();
+ document.body.append(overlay);document.addEventListener('keydown',onKey);update();
 }
 
 async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
