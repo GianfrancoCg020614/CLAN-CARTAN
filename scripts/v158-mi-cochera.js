@@ -25,7 +25,7 @@ function active(){return ses()?.isAdmin || account && !account.suspended && new 
 function header(){
  const role=ses()?.isAdmin?'ADMIN':'RESELLER';
  const meta=account?countryMeta[account.country||"PE"]:null;
- const local=account?'<span class="mc158local-currency" title="Moneda configurada para esta cuenta">'+(meta?.[0]||"🌐")+' '+esc(account.country||"PE")+' · '+esc(account.currency||"PEN")+'</span>':'';
+ const local=account?'<span class="mc158local-currency" title="Moneda compartida de MI COCHERA, MI ALQUILER y COBRA YA">'+(meta?.[0]||"🌐")+' '+esc(account.country||"PE")+' · '+esc(account.currency||"PEN")+'</span>':'';
  return '<header class="mc158topbar" aria-label="MI COCHERA · Billetera única · Marca oficial CLAN CARTAN"><div class="mc158top-brand"><img src="assets/clan-cartan-brand-original.webp" alt="Logotipo oficial CLAN CARTAN"></div><div class="mc158top-center"><div class="mc158title-lockup"><img src="assets/mi-cochera-mascota-original.webp" alt="Emblema original del oso de MI COCHERA"><h1>MI COCHERA</h1></div><div class="mc158top-ribbon">Control de Carritos · Alquiler Diario · Productos · Cobros</div></div><div class="mc158top-actions">'+local+'<span class="mc158bell" aria-label="Notificaciones">🔔<i></i></span><span class="mc158role"><span>●</span>'+role+' <b>⌄</b></span></div></header>';
 }
 async function open(){
@@ -36,6 +36,7 @@ async function open(){
  try{await load();}catch(e){if(ses()?.userId!==actor||ses()?.jwt!==jwt||loadSequence!==expected)return;$("mc158body").textContent="No se pudo abrir MI COCHERA: "+String(e.message||e);}
 }
 async function load(){
+ await window.ccLoadBusinessCurrency?.();
  const session=ses(),id=session?.userId,jwt=session?.jwt,seq=++loadSequence;
  if(!id||!jwt)return;const current=()=>ses()?.userId===id&&ses()?.jwt===jwt&&loadSequence===seq;
  if(ownerId!==id){ownerId=id;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';}
@@ -164,7 +165,7 @@ async function submit(e){
  e.preventDefault();if(busy)return;const actor=ses()?.userId,jwt=ses()?.jwt,form=e.target;const current=()=>ses()?.userId===actor&&ses()?.jwt===jwt;busy=true;let button=e.target.querySelector('button[type="submit"]');const label=button?.textContent;if(button){button.disabled=true;button.textContent='Guardando…';}form.setAttribute('aria-busy','true');
  try{
  if(e.target.id==="mc158config"){
-  const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Moneda y país actualizados para esta cochera.");
+  const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Moneda de operación actualizada para MI COCHERA, MI ALQUILER y COBRA YA.");
  }else if(e.target.id==="mc158new"){
   const f=e.target,x=k=>f.elements.namedItem(k)?.value?.trim()||"";
   const id=await api("rpc/mc_create_cart",{p_alias:x("alias"),p_type:x("business"),p_rate:num(x("rate")),p_owner_kind:x("ownerKind"),p_owner_doc:x("ownerDoc"),p_owner_name:x("ownerName"),p_owner_phone:x("ownerPhone"),p_worker_kind:x("workerKind")||null,p_worker_doc:x("workerDoc")||null,p_worker_name:x("workerName")||null,p_worker_phone:x("workerPhone")||null});
@@ -190,7 +191,7 @@ async function click(e){
  if(act==="currency"){
   const currentCurrency=account.currency||"PEN";
   const options=Object.entries(countryMeta).filter(([,meta])=>carts.length===0||meta[2]===currentCurrency).map(([code,meta])=>'<option value="'+code+'" data-currency="'+meta[2]+'" '+((account.country||"PE")===code?"selected":"")+'>'+meta[0]+' '+meta[1]+' · '+meta[2]+'</option>').join("");
-  drawer("País y moneda de tu negocio",'<form id="mc158config"><p class="mc158config-intro">Cada reseller utiliza su propia moneda local. Los precios, alquileres, ventas, pagos, deudas e informes de esta cochera se registran directamente en esa moneda. No se realiza conversión cambiaria.</p><label>País de operación<select name="country" required>'+options+'</select></label><div class="mc158currency-preview"><small>MONEDA CONTABLE DE ESTA COCHERA</small><strong id="mc158currencyPreview">'+esc(currentCurrency)+'</strong><input type="hidden" name="currency" value="'+esc(currentCurrency)+'"></div>'+(carts.length?'<p class="mc158config-lock">La moneda ya está fijada por los carritos existentes. Puedes cambiar el país solo si utiliza la misma moneda. Los registros históricos no se convierten.</p>':'<p class="mc158config-lock">Configura el país antes de crear el primer carrito. Después, la moneda quedará protegida para conservar la integridad de los saldos.</p>')+'<button type="submit">Guardar país y moneda</button></form>');return;
+  drawer("País y moneda de tu negocio",'<form id="mc158config"><p class="mc158config-intro">Cada RESELLER configura una sola moneda de operación compartida por MI COCHERA, MI ALQUILER y COBRA YA. Los importes se registran directamente en esa moneda; no hay conversión cambiaria ni afecta STREAM BULL’S.</p><label>País de operación<select name="country" required>'+options+'</select></label><div class="mc158currency-preview"><small>MONEDA DE OPERACIÓN DE LOS TRES MÓDULOS</small><strong id="mc158currencyPreview">'+esc(currentCurrency)+'</strong><input type="hidden" name="currency" value="'+esc(currentCurrency)+'"></div>'+(carts.length?'<p class="mc158config-lock">La moneda es compartida por los tres módulos. Si ya existen importes en otra moneda, el sistema impedirá cambiarla para proteger los registros históricos. No se realizan conversiones.</p>':'<p class="mc158config-lock">Configura el país y la moneda antes de registrar importes en cualquiera de los tres módulos. Después, el sistema protegerá la moneda para conservar la integridad de los saldos.</p>')+'<button type="submit">Guardar país y moneda</button></form>');return;
  }
  if(act==="bonuses"){close();window.cc166OpenAdminBonuses?.();return;}
  if(act==="wallet"){close();window.cc166OpenWallet?.();return;}

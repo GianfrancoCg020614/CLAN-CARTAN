@@ -5,7 +5,7 @@
 'use strict';
 const $=id=>document.getElementById(id),ss=()=>window.CC_V53_SESSION;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const cash=v=>'S/ '+Number(v||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const cash=v=>window.ccFormatBusinessCurrency?window.ccFormatBusinessCurrency(v):'S/ '+Number(v||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const api=path=>window.cc80.api(path);
 const rpc=(name,body)=>window.cc80.api('rpc/'+name,'POST',body);
 const today=()=>{const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
@@ -29,6 +29,7 @@ function generated(c){
 }
 async function load(c){
  if(loading||loaded&&owner===c.sessionId)return;
+ await window.ccLoadBusinessCurrency?.();
  loading=true;owner=c.sessionId;error='';const started=version;
  try{
   const q='&reseller_id=eq.'+encodeURIComponent(c.sessionId);
@@ -113,9 +114,9 @@ function exportSheets(c){
  ['Unidades',cols(['Código','Tipo','Alias','Piso','Día PEN','Mes PEN','Estado'],c.units.map(u=>({code:code(u),...u})),['code','kind','alias','floor','daily_rate','monthly_rate','state'])],
  ['Inquilinos',cols(['Tipo doc.','Documento','Nombre','WhatsApp','Autorizó avisos'],c.tenants.map(t=>({...t,consent_whatsapp:t.consent_whatsapp?'Sí':'No'})),['document_type','document_number','full_name','whatsapp','consent_whatsapp'])],
  ['Contratos',cols(['Unidad','Inquilino','Modalidad','Tarifa PEN','Inicio','Vencimiento','Estado'],c.leases.map(l=>({...l,unit:code(c.units.find(u=>Number(u.id)===Number(l.unit_id))||{}),tenant:(c.tenants.find(t=>t.id===l.tenant_id)||{}).full_name})),['unit','tenant','mode','rate','start_on','next_due_on','state'])],
- ['Movimientos',cols(['Contrato','Tipo','Concepto','Importe PEN','Vence','Medio'],ledger,['lease_id','kind','label','amount_pen','due_on','method'])],
- ['Garantias',cols(['Contrato','Acción','Importe PEN','Motivo','Fecha'],guarantees,['lease_id','action','amount_pen','reason','created_at'])],
- ['Gastos',cols(['Categoría','Descripción','Importe PEN','Fecha'],expenses,['category','description','amount_pen','occurred_on'])],
+ ['Movimientos',cols(['Contrato','Tipo','Concepto','Importe','Moneda','Vence','Medio'],ledger,['lease_id','kind','label','amount_pen','currency','due_on','method'])],
+ ['Garantias',cols(['Contrato','Acción','Importe','Moneda','Motivo','Fecha'],guarantees,['lease_id','action','amount_pen','currency','reason','created_at'])],
+ ['Gastos',cols(['Categoría','Descripción','Importe','Moneda','Fecha'],expenses,['category','description','amount_pen','currency','occurred_on'])],
  ['Avisos',cols(['Contrato','Teléfono','Vence','Evento','Fecha'],notices,['lease_id','phone_snapshot','due_on','event_type','created_at'])]
  ];
  return workbook(sheets);
