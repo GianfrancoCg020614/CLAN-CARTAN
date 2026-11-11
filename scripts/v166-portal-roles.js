@@ -88,7 +88,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V338 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V339 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -1218,7 +1218,7 @@ function openBusinessActivationModal(code,active){
  document.getElementById('cc345-business-modal')?.remove();
  const cost=monthlyPrice(code),valid=verified&&Number.isFinite(cost)&&cost>0;
  const overlay=make('div','cc345-business-modal');overlay.id='cc345-business-modal';
- overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,10,20,.82);backdrop-filter:blur(5px);overflow-y:auto';
+ overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,10,20,.82);backdrop-filter:blur(5px);overflow-y:auto';
  const panel=make('section','cc166-card');panel.style.cssText='width:min(100%,460px);max-height:90dvh;overflow:auto;background:#0d2637;border:1px solid #35b7c0;border-radius:19px;padding:23px;color:#e9f8fa;box-shadow:0 18px 55px #0009';
  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Activación de '+serviceName(code));
  panel.append(make('h2','',serviceName(code)));
@@ -2478,8 +2478,7 @@ function init(){
    if(typeof openOriginal==='function')openOriginal();
    return;
   }
-  app.hidden=false;
-  nav('business:'+code);
+  // No navegar al panel bloqueado: abrir el mismo diálogo sobre la portada.
   openBusinessActivationModal(code,false);
  };
  window.cc166OpenStreamMembership=()=>{

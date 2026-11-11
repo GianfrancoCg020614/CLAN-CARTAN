@@ -1,0 +1,7 @@
+{
+  "version": "V339",
+  "domain": "https://www.clancartan.com",
+  "scope": "Activation modal overlay above home instead of inline panel",
+  "backup": "backup/production-v338-2026-11-10",
+  "database_changes": false
+}
