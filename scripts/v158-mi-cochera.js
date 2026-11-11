@@ -20,7 +20,7 @@ function note(msg){let el=$("mc158notice");if(el)el.textContent=msg;else alert(m
 function active(){return ses()?.isAdmin || account && !account.suspended && new Date(account.subscription_until)>new Date();}
 function header(){
  const role=ses()?.isAdmin?'ADMIN':'RESELLER';
- return '<header class="mc158topbar"><div class="mc158top-brand"><img src="assets/mi-cochera-logo.svg" alt="CLAN CARTAN"><strong>CLAN<br>CARTAN</strong></div><div class="mc158top-center"><img class="mc158top-title-art" src="assets/logo-cochera-v304.avif" alt="MI COCHERA"><div class="mc158top-ribbon">Control de Carritos · Alquiler Diario · Productos · Cobros</div></div><div class="mc158top-actions"><span class="mc158bell" aria-label="Notificaciones">♟<i></i></span><span class="mc158role"><span>●</span>'+role+' <b>⌄</b></span><button type="button" class="mc158top-back" data-action="close-module" aria-label="Volver al panel">↩</button></div></header>';
+ return '<header class="mc158topbar" aria-label="Billetera única y navegación principal"><div class="mc158top-brand"><img src="assets/mi-cochera-logo.svg" alt="CLAN CARTAN"><strong>CLAN<br>CARTAN</strong></div><div class="mc158top-center"><img class="mc158top-title-art" src="assets/logo-cochera-v304.avif" alt="MI COCHERA"><div class="mc158top-ribbon">Control de Carritos · Alquiler Diario · Productos · Cobros</div></div><div class="mc158top-actions"><span class="mc158bell" aria-label="Notificaciones">♟<i></i></span><span class="mc158role"><span>●</span>'+role+' <b>⌄</b></span><button type="button" class="mc158top-back" data-action="close-module" aria-label="Volver al panel">↩</button></div></header>';
 }
 async function open(){
  if(!ses()?.jwt){if(typeof window.cc77Auth==="function")window.cc77Auth(false);return;}
