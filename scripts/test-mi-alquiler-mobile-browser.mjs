@@ -10,7 +10,7 @@ const js=fs.readFileSync('scripts/v161-1-mi-alquiler.js','utf8');
 const css=fs.readFileSync('styles/v161-1-mi-alquiler.css','utf8');
 const fixture=`<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style></head><body>
 <div id="cc77home"></div>
-<script>window.CC_V53_SESSION={jwt:'jwt-sintetico',userId:'usuario-sintetico'};window.cc80={api:async(path)=>path==='rpc/ma_can_use'?true:[]};window.__writes=[];</script>
+<script>window.CC_V53_SESSION={jwt:'jwt-sintetico',userId:'usuario-sintetico'};window.cc337GateBusinessEntry=(service,callback)=>{callback();return true;};window.cc80={api:async(path)=>path==='rpc/ma_can_use'?true:[]};window.__writes=[];</script>
 <script>${js}</script>
 <script>
 setTimeout(async()=>{
