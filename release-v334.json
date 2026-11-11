@@ -1,0 +1,6 @@
+{
+  "version": "V334",
+  "baseline_commit": "b1a612999fd9606c594a44c65f169829495ec1c9",
+  "note": "Production release marker only. Does not certify UI panel restoration or alter Supabase.",
+  "date": "2026-11-10"
+}
