@@ -88,7 +88,7 @@ function shell(){
  if(app?.isConnected)return app;
  app=make('section','cc166-app');app.id='cc166-panel';app.hidden=true;
  app.setAttribute('aria-label','Panel CLAN CARTAN');
- app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V340 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
+ app.innerHTML='<aside class="cc166-sidebar"><div class="cc166-brand">◈ <span>CLAN CARTAN<small>Panel de control</small></span></div><nav id="cc166-nav" aria-label="Navegación del panel"></nav><div id="cc166-aside-foot"></div></aside><div class="cc166-workspace"><header class="cc166-top"><div><small>CLAN CARTAN · V341 · PANEL ÚNICO</small><h1>Mi panel CLAN CARTAN</h1><p id="cc166-role"></p></div><div id="cc166-top-actions"></div></header><main id="cc166-content"></main></div>';
  app.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&app.classList.contains('cc308-menu-open')){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
@@ -1245,8 +1245,7 @@ function openBusinessActivationModal(code,active){
  panel.append(priceCard);
  const label=make('label','cc166-note','¿Con qué saldo deseas pagar?');label.style.cssText='display:block;margin:0 0 8px;color:#d4e4eb;font-size:14px;font-weight:700';
  const select=document.createElement('select');select.style.cssText='box-sizing:border-box;display:block;width:100%;min-height:48px;padding:12px 14px;margin:0 0 15px;background:#071d2d;color:#eaffff;border:1px solid #438b9b;border-radius:12px;font:inherit;font-size:15px;outline:none;appearance:auto';
- const bonusAvailable=Number(bonusBalance(code))>0;
- for(const [value,name] of (bonusAvailable?[['REAL','Saldo real'],['BONUS','Bono otorgado por ADMIN']]:[['REAL','Saldo real']])){const opt=document.createElement('option');opt.value=value;opt.textContent=name;select.append(opt);}
+ for(const [value,name] of [['REAL','Saldo real'],['BONUS','Bono otorgado por ADMIN']]){const opt=document.createElement('option');opt.value=value;opt.textContent=name;select.append(opt);}
  label.append(select);panel.append(label);
  const hint=make('p','');hint.style.cssText='margin:0 0 16px;color:#a9bfcc;font-size:13px;line-height:1.5';hint.textContent='Se descontará únicamente el medio de pago que confirmes.';panel.append(hint);
  const actions=make('div','');actions.style.cssText='display:grid;gap:10px;margin-top:5px';
