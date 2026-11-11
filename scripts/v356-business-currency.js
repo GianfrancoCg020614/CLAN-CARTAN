@@ -67,11 +67,6 @@ function updateControls(){
   const nav=cy.querySelector('.cy114-nav');
   if(nav){let ctl=nav.querySelector('[data-cc-currency-control]');if(!ctl){ctl=document.createElement('div');ctl.dataset.ccCurrencyControl='true';ctl.className='cc356-currency-control';const txt=document.createElement('span');txt.className='cc356-currency-label';const b=document.createElement('button');b.type='button';b.dataset.ccOpenBusinessCurrency='true';b.textContent='Cambiar moneda';ctl.append(txt,b);nav.prepend(ctl);}const txt=ctl.querySelector('.cc356-currency-label'),next='🌐 '+label;if(txt&&txt.textContent!==next)txt.textContent=next;}
  }
- const mc=$('mc158layer');
- if(mc&&getComputedStyle(mc).display!=='none'){
-  const actions=mc.querySelector('.mc158top-actions');
-  if(actions){let ctl=actions.querySelector('[data-cc-currency-control]');if(!ctl){ctl=document.createElement('div');ctl.dataset.ccCurrencyControl='true';ctl.className='cc356-currency-control';const txt=document.createElement('span');txt.className='cc356-currency-label';const b=document.createElement('button');b.type='button';b.dataset.ccOpenBusinessCurrency='true';b.textContent='Cambiar';ctl.append(txt,b);actions.prepend(ctl);}const txt=ctl.querySelector('.cc356-currency-label');if(txt&&txt.textContent!==label)txt.textContent=label;}
- }
 }
 function closeSettings(){$('cc356-currency-modal')?.remove();}
 function openSettings(){
