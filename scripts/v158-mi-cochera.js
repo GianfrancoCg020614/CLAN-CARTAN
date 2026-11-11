@@ -1,4 +1,4 @@
-/* CLAN CARTAN V158 / MI COCHERA: modulo multiempresa protegido en Supabase.
+/* CLAN CARTAN V342 / MI COCHERA: modulo multiempresa protegido en Supabase.
  No intenta cobrar pagos comerciales ni transferir bonos. */
 (function(){
 "use strict";
@@ -9,7 +9,7 @@ const api=(p,b)=>window.cc80.api(p,"POST",b||{});
 let account=null,carts=[],moves=[],people=[],accounts=[],walletAvailable=null,busy=false,filter="",cartState="ALL",ownerId=null,loadSequence=0;
 const normalize=value=>String(value||" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 function host(){let root=$("mc158layer");if(root)return root;root=document.createElement("div");root.id="mc158layer";
- root.innerHTML='<div class="mc158wrap"><header class="mc158head"><div><small>CLAN CARTAN · MI COCHERA</small><h2><img src="assets/mi-cochera-logo.svg" alt="Logotipo original MI COCHERA"> MI COCHERA</h2><p>Carritos, alquiler diario, hielo, deudas e historial.</p></div><button type="button" id="mc158close">← Volver a CLAN CARTAN</button></header><div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';
+ root.innerHTML='<div class="mc158wrap"><header class="mc158head"><div><small>CLAN CARTAN · MI COCHERA</small><h2><img src="assets/mi-cochera-logo.svg" alt="Logotipo original MI COCHERA"> MI COCHERA</h2><p>Administra carritos, cobros y alquileres desde un solo lugar.</p></div><button type="button" id="mc158close">← Volver a CLAN CARTAN</button></header><div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';
  document.body.append(root);$("mc158close").onclick=close;
  root.addEventListener("click",click);root.addEventListener("submit",submit);
  root.addEventListener("click",dniClick);
@@ -18,8 +18,9 @@ function host(){let root=$("mc158layer");if(root)return root;root=document.creat
 function close(){$("mc158dialog")?.remove();let layer=$("mc158layer");if(layer)layer.style.display="none";if($("cc77home"))$("cc77home").style.display="block";}
 function note(msg){let el=$("mc158notice");if(el)el.textContent=msg;else alert(msg);}
 function active(){return ses()?.isAdmin || account && !account.suspended && new Date(account.subscription_until)>new Date();}
-function header(){let date=account?.subscription_until?new Date(account.subscription_until).toLocaleDateString("es-PE"):"Sin activar"; const bonus=num(account?.bonus_pen);
- return '<section class="mc158status"><div><strong>Código: '+esc(account?.invite_code||"—")+'</strong><p>Suscripción S/ 15 por 30 días · renovación voluntaria</p><small>Vigencia: '+esc(date)+'</small></div><div><strong>Bono de activación MI COCHERA: S/ '+bonus.toFixed(2)+'</strong><p>Promocional e intransferible. No es dinero real.</p></div></section>';}
+function header(){const date=account?.subscription_until?new Date(account.subscription_until).toLocaleDateString("es-PE"):"Sin activar";
+ return '<section class="mc158accountbar"><div><span class="mc158eyebrow">MI CUENTA</span><strong>'+esc(account?.invite_code||"Cuenta MI COCHERA")+'</strong><small>Suscripción hasta '+esc(date)+'</small></div><span class="mc158membership">30 días · S/ 15</span></section>';
+}
 async function open(){
  if(!ses()?.jwt){if(typeof window.cc77Auth==="function")window.cc77Auth(false);return;}
  const r=host();r.style.display="block";if($("cc77home"))$("cc77home").style.display="none";
@@ -49,10 +50,10 @@ async function load(){
  ]);
  if(!current())return;[carts,moves,people]=items;renderList();
 }
-function currencyPanel(){return '<section class="mc158status"><div><strong>País: '+esc(account?.country||"PE")+' · Moneda de cobros: '+esc(account?.currency||"PEN")+'</strong><p>No confundimos la moneda de los alquileres con la billetera, que siempre está en PEN.</p></div><button type="button" data-action="currency">Configurar país y moneda</button></section>';}
-function walletPanel(){const balance=walletAvailable;
- return '<section class="mc158status"><div><strong>Billetera única · saldo real <span data-cc-wallet-amount>'+ (balance===null?'Sin verificar':currency(balance,"PEN"))+'</span></strong><p>Disponible para los cuatro negocios. El bono de activación se muestra por separado.</p></div><button type="button" data-action="wallet">Abrir mi billetera</button></section>';}
-function showLocked(){let el=$("mc158body");el.innerHTML=header()+currencyPanel()+walletPanel()+'<section class="mc158box"><h3>Acceso a MI COCHERA</h3><p>Mientras la mensualidad esté vencida, tus carritos, cobros y deudas permanecen guardados y protegidos.</p><p>Activa la membresía desde Negocios con saldo real verificado, o utiliza un bono de activación autorizado.</p><button type="button" data-action="bonus" '+(num(account.bonus_pen)<15||account.suspended?"disabled":"")+'>Activar 30 días con S/ 15 de bono</button><p id="mc158notice" role="status"></p></section>';}
+function currencyPanel(){return "";}
+function walletPanel(){return "";}
+
+function showLocked(){let el=$("mc158body");el.innerHTML=header()+'<section class="mc158box"><h3>Acceso a MI COCHERA</h3><p>Mientras la mensualidad esté vencida, tus carritos, cobros y deudas permanecen guardados y protegidos.</p><p>Activa la membresía desde Negocios con saldo real verificado, o utiliza un bono de activación autorizado.</p><button type="button" data-action="bonus" '+(num(account.bonus_pen)<15||account.suspended?"disabled":"")+'>Activar 30 días con S/ 15 de bono</button><p id="mc158notice" role="status"></p></section>';}
 async function loadAdmin(current=()=>true){
  const [accountRows,clanUsers]=await Promise.all([
   window.cc80.api("mc_accounts?select=user_id,invite_code,currency,subscription_until,bonus_pen,suspended&order=created_at.desc&limit=300"),
@@ -61,7 +62,7 @@ async function loadAdmin(current=()=>true){
  if(!current())return;
  const names=new Map((Array.isArray(clanUsers)?clanUsers:[]).map(u=>[u.id,u.code]));
  accounts=accountRows.map(a=>({...a,invite_code:names.get(a.user_id)||'CLAN pendiente'}));
- $("mc158body").innerHTML=header()+'<section class="mc158box"><h3>ADMIN · Resellers MI COCHERA</h3><p>Consulta las cuentas de MI COCHERA. Los bonos se gestionan desde el panel ADMIN único.</p><button type="button" data-action="bonuses">Gestionar bonos en ADMIN</button><p id="mc158notice" role="status"></p><div class="mc158scroll"><table><thead><tr><th>Código</th><th>Suscripción</th><th>Bono</th><th>Cuenta</th></tr></thead><tbody>'+accounts.map(a=>'<tr><td>'+esc(a.invite_code)+'</td><td>'+esc(a.subscription_until?new Date(a.subscription_until).toLocaleDateString("es-PE"):"No activa")+'</td><td>S/ '+num(a.bonus_pen).toFixed(2)+'</td><td>'+esc(a.user_id.slice(0,8))+'…</td></tr>').join("")+'</tbody></table></div></section>';
+ $("mc158body").innerHTML=header()+'<section class="mc158box"><h3>Resellers MI COCHERA</h3><p>Consulta de cuentas y vigencias. Los bonos se administran desde el panel ADMIN central.</p><button type="button" data-action="bonuses">Abrir gestión de bonos</button><p id="mc158notice" role="status"></p><div class="mc158scroll"><table><thead><tr><th>Código</th><th>Suscripción</th><th>Bono</th><th>Cuenta</th></tr></thead><tbody>'+accounts.map(a=>'<tr><td>'+esc(a.invite_code)+'</td><td>'+esc(a.subscription_until?new Date(a.subscription_until).toLocaleDateString("es-PE"):"No activa")+'</td><td>S/ '+num(a.bonus_pen).toFixed(2)+'</td><td>'+esc(a.user_id.slice(0,8))+'…</td></tr>').join("")+'</tbody></table></div></section>';
 }
 function person(id){return people.find(p=>p.id===id)||{};}
 function balance(id){return moves.filter(m=>m.cart_id===id).reduce((s,m)=>s+num(m.amount_local),0);}
@@ -78,7 +79,7 @@ function renderList(listOnly=false){
  const cards=shown.map(cartHTML).join('')||'<p class="mc314-empty">'+(carts.length?'No hay carritos que coincidan con la búsqueda y el estado seleccionado.':'Todavía no tienes carritos. Pulsa Registrar carrito para añadir el primero.')+'</p>';
  if(listOnly&&$('mc158cards')){$('mc158cards').innerHTML=cards;$('mc158count').textContent=shown.length+' de '+carts.length+' carritos';return;}
  const pending=carts.reduce((s,c)=>s+Math.max(0,balance(c.id)),0);
- $('mc158body').innerHTML=header()+currencyPanel()+walletPanel()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==='ACTIVE').length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><label class="mc314-search">Buscar carrito<input id="mc158search" type="search" aria-label="Buscar por nombre, DNI o código de carrito" placeholder="Alias, nombre, DNI o C-001…" value="'+esc(filter)+'"></label><label>Estado<select id="mc158state"><option value="ALL">Todos</option><option value="ACTIVE">Activos</option><option value="RETIRED">Retirados</option></select></label><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="reload">↻ Actualizar</button></div><p id="mc158notice" role="status"></p><p id="mc158count" role="status">'+shown.length+' de '+carts.length+' carritos</p><div class="mc158cards" id="mc158cards">'+cards+'</div></section>';
+ $('mc158body').innerHTML=header()+'<div class="mc158stats"><span><b>'+carts.filter(c=>c.state==='ACTIVE').length+'</b> activos</span><span><b>'+carts.filter(c=>balance(c.id)>0).length+'</b> con deuda</span><span><b>'+currency(pending,account.currency)+'</b> por cobrar</span></div><section class="mc158box"><div class="mc158tools"><label class="mc314-search">Buscar carrito<input id="mc158search" type="search" aria-label="Buscar por nombre, DNI o código de carrito" placeholder="Alias, nombre, DNI o C-001…" value="'+esc(filter)+'"></label><label>Estado<select id="mc158state"><option value="ALL">Todos</option><option value="ACTIVE">Activos</option><option value="RETIRED">Retirados</option></select></label><button type="button" data-action="new">＋ Registrar carrito</button><button type="button" data-action="currency">Moneda</button><button type="button" data-action="wallet">Billetera</button><button type="button" data-action="reload">Actualizar</button></div><p id="mc158notice" role="status"></p><p id="mc158count" role="status">'+shown.length+' de '+carts.length+' carritos</p><div class="mc158cards" id="mc158cards">'+cards+'</div></section>';
  $('mc158state').value=cartState;
  $('mc158search').addEventListener('input',event=>{filter=event.target.value;renderList(true);});
  $('mc158state').addEventListener('change',event=>{cartState=event.target.value;renderList(true);});
