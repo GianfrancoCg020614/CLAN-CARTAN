@@ -113,7 +113,7 @@ function exportSheets(c){
  ['Inmuebles',cols(['Código','Nombre','Dirección'],c.properties,['id','name','address'])],
  ['Unidades',cols(['Código','Tipo','Alias','Piso','Tarifa diaria','Tarifa mensual','Moneda','Estado'],c.units.map(u=>({code:code(u),...u})),['code','kind','alias','floor','daily_rate','monthly_rate','currency','state'])],
  ['Inquilinos',cols(['Tipo doc.','Documento','Nombre','WhatsApp','Autorizó avisos'],c.tenants.map(t=>({...t,consent_whatsapp:t.consent_whatsapp?'Sí':'No'})),['document_type','document_number','full_name','whatsapp','consent_whatsapp'])],
- ['Contratos',cols(['Unidad','Inquilino','Modalidad','Tarifa','Moneda','Inicio','Vencimiento','Estado'],c.leases.map(l=>({...l,unit:code(c.units.find(u=>Number(u.id)===Number(l.unit_id))||{}),tenant:(c.tenants.find(t=>t.id===t.id)||{}).full_name})),['unit','tenant','mode','rate','currency','start_on','next_due_on','state'])],
+ ['Contratos',cols(['Unidad','Inquilino','Modalidad','Tarifa','Moneda','Inicio','Vencimiento','Estado'],c.leases.map(l=>({...l,unit:code(c.units.find(u=>Number(u.id)===Number(l.unit_id))||{}),tenant:(c.tenants.find(t=>t.id===l.tenant_id)||{}).full_name})),['unit','tenant','mode','rate','currency','start_on','next_due_on','state'])],
  ['Movimientos',cols(['Contrato','Tipo','Concepto','Importe','Moneda','Vence','Medio'],ledger,['lease_id','kind','label','amount_pen','currency','due_on','method'])],
  ['Garantias',cols(['Contrato','Acción','Importe','Moneda','Motivo','Fecha'],guarantees,['lease_id','action','amount_pen','currency','reason','created_at'])],
  ['Gastos',cols(['Categoría','Descripción','Importe','Moneda','Fecha'],expenses,['category','description','amount_pen','currency','occurred_on'])],
