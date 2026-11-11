@@ -9,6 +9,8 @@ on:
       - 'scripts/v161-2-mi-alquiler.js'
       - 'scripts/v161-3-mi-alquiler.js'
       - 'scripts/v161-4-mi-alquiler.js'
+      - 'scripts/v356-business-currency.js'
+      - 'scripts/v158-mi-cochera.js'
       - 'scripts/check-v2264-mi-alquiler.mjs'
       - 'scripts/test-mi-alquiler-mobile-browser.mjs'
       - '.github/workflows/validar-mi-alquiler.yml'
