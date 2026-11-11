@@ -58,7 +58,7 @@ No se ejecutó SQL de modificación ni se alteraron filas, billeteras, clientes,
 
 ## Importante sobre el respaldo de base de datos
 
-Este punto de recuperación de GitHub conserva el código y la referencia del despliegue. El inventario anterior documenta objetos de base de datos, pero NO es un dump completo de PostgreSQL ni una copia de los datos de clientes. La integración disponible no ofrece una operación para forzar/exportar aquí un backup físico completo de Supabase. Antes de cualquier cambio de esquema o datos, confirmar en Supabase Dashboard que existe un backup/PITR restaurable y exportar por el mecanismo oficial disponible para el plan del proyecto.
+El plan de la organización Supabase observado es FREE. Según la documentación oficial de Supabase, los proyectos Free no reciben backups diarios automáticos; se recomienda exportar regularmente con Supabase CLI `db dump` y guardar copias fuera de Supabase. Este punto de recuperación de GitHub conserva el código y la referencia del despliegue. El inventario anterior documenta objetos de base de datos, pero NO es un dump completo de PostgreSQL ni una copia de los datos de clientes. La integración disponible no ofrece una operación para ejecutar/descargar aquí un dump completo de PostgreSQL ni los objetos de Storage. Por tanto, el respaldo integral de datos de Supabase queda pendiente de una exportación oficial (`supabase db dump`/`pg_dump`) y de los objetos de Storage. No se modificó ninguna fila ni estructura para evitar riesgos.
 
 ## Observaciones de seguridad detectadas (no modificadas)
 
