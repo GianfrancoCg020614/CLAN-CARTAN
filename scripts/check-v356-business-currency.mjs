@@ -12,7 +12,7 @@ const cobra=read('index.html');
 const stream=read('scripts/v195-streambulls-live.js');
 const guard=read('supabase/migrations/20261111172630_currency_shared_preference_lock_v356.sql');
 
-assert.match(html,/<meta name="cc-deploy-version" content="V356-20261111">/);
+assert.match(html,/<meta name="cc-deploy-version" content="V357-20261111">/);
 assert.match(html,/scripts\/v356-business-currency\.js\?v=356/);
 assert.match(helper,/cc_set_business_currency/);
 assert.match(helper,/cc_profiles\?select=business_country,business_currency/);
@@ -28,4 +28,17 @@ assert.match(cobra,/name="currency"/);
 assert.doesNotMatch(stream,/CC_BUSINESS_CURRENCY|ccLoadBusinessCurrency|cc_set_business_currency/);
 assert.match(guard,/currency IS DISTINCT FROM currency_code/);
 assert.match(guard,/STREAM BULLS queda excluido/);
-console.log('PASS V356: moneda compartida en MI COCHERA, MI ALQUILER y COBRA YA; STREAM BULL’S excluido; sin conversión ni alteración de históricos.');
+
+const alquiler3HasDynamicGuaranteeCurrency=/Importe \\('\\+esc\\(window\\.CC_BUSINESS_CURRENCY\\|\\|'PEN'\\)\\+'\\)/.test(alquiler3);
+assert.ok(alquiler3HasDynamicGuaranteeCurrency,'La garantía debe mostrar la moneda operativa');
+assert.doesNotMatch(alquiler4,/Día PEN|Mes PEN|Tarifa PEN|Saldo PEN/);
+assert.match(alquiler4,/Tarifa diaria/);
+assert.match(alquiler4,/Moneda/);
+assert.match(alquiler4,/Saldo '\\+esc\\(window\\.CC_BUSINESS_CURRENCY/);
+assert.match(cochera,/GTQ:"es-GT"/);
+assert.match(cochera,/VES:"es-VE"/);
+assert.match(cochera,/Guatemala","GTQ"/);
+assert.match(cochera,/Venezuela","VES"/);
+assert.match(read('scripts/v152-cobra-fast.js'),/ccFormatBusinessCurrency/);
+
+console.log('PASS V357: moneda compartida en MI COCHERA, MI ALQUILER y COBRA YA; STREAM BULL’S excluido; sin conversión ni alteración de históricos.');
