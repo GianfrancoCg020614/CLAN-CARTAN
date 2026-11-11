@@ -14,7 +14,8 @@ assert.ok(!fs.existsSync('scripts/v127-wallet-switch.js'),'La interfaz retirada 
 assert.ok(!html.includes('scripts/v127-wallet-switch.js'),'La interfaz retirada no debe cargarse');
 assert.ok(!cochera.includes('rpc/mc_transfer_real_balance'),'No ofrecer transferencias por negocio');
 requireText(ui,'window.cc166OpenWallet=');
-requireText(ui,'Saldo real disponible');
+// V333 usa el título «Saldo real» en la billetera única; la etiqueta antigua ya no existe.
+requireText(ui,"wrap.append(tile('Saldo real',realBalance()");
 requireText(migration,'cc_real_service_wallets');
 requireText(migration,'mc_real_transfer_requests');
 requireText(migration,'pg_advisory_xact_lock');

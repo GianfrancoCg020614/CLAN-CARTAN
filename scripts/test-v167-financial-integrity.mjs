@@ -38,7 +38,7 @@ const checks=[
  [!js.includes("read('cc_portal_stream_orders?"),'No exponer tabla de pedidos al navegador'],
  [js.includes("api('rpc/cc_portal_purchase_stream_product','POST'"),'Compra invoca RPC transaccional'],
  [js.includes("window.confirm('¿Confirmas la compra"),'Consentimiento expreso para compra'],
- [js.includes("window.confirm('¿Pagar '\+price(cost)"),'Consentimiento expreso para membresía'],
+ [js.includes("window.confirm('¿'+(intent==='RENEW'?'RENOVAR':'ACTIVAR')"),'Consentimiento expreso para membresía'],
  [js.includes("lastReceipt={...response,buyer_id:uid}"),'No se reutiliza pedido ajeno en recibo'],
  [js.includes("const phone=String(order?.seller_whatsapp"),'WhatsApp solo se obtiene tras orden'],
  [js.includes("role.includes")===false,'No confiar en rol a partir de texto'],

@@ -47,7 +47,7 @@ const probe=[
  'const noAutomaticCredit=!window.__calls.some(x=>/credit|topup_complete|wallet_credit/i.test(x.path));',
  '[...$$(".cc175-tab")].find(x=>x.textContent==="Recarga automática")?.click();',
  'setTimeout(()=>{try{',
- 'const verifiedUnavailable=$("#cc166-content")?.textContent.includes("Proveedor no confirmado")&&$("#cc166-content")?.textContent.includes("No disponible");',
+ 'const verifiedUnavailable=$("#cc166-content")?.textContent.includes("No existe acreditación automática por correo")&&$("#cc166-content")?.textContent.includes("validación por ADMIN");',
  'const noFakePayments=!Array.from($$("#cc166-content button")).some(x=>/pagar ahora|acreditar automáticamente/i.test(x.textContent));',
  '[...$$("#cc166-top-actions button")].find(x=>x.textContent.includes("Atrás"))?.click();',
  'const returnedToManual=$("#cc166-content")?.textContent.includes("Solicitar recarga manual");',

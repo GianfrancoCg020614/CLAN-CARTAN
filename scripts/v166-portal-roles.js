@@ -1200,34 +1200,58 @@ function pendingMembershipReturn(page){
  },'cc166-secondary'));
 }
 function businessPayButtons(box,code,active){
- if(data.admin)return;
- const cost=monthlyPrice(code),bonus=bonusBalance(code),real=realBalance();
- const valid=verified&&Number.isFinite(cost)&&cost>0;
- const titleText=active?'Renovar membresía':'Pagar para activar';
- box.append(make('p','cc166-note','Plan mensual · '+(cost>0?price(cost):'Tarifa pendiente de verificar')));
- const actions=make('div','cc166-actions');
- const fundingLabel=make('label','cc166-note','¿Con qué saldo deseas pagar?');
- const funding=document.createElement('select');
- funding.setAttribute('aria-label','Elegir saldo para '+serviceName(code));
- funding.style.cssText='padding:10px;border-radius:9px;max-width:100%;background:#122d3d;color:#fff;border:1px solid #648392';
- for(const [value,label] of [['REAL','Saldo real'],['BONUS','Bono administrativo compartido']]){
-  const option=document.createElement('option');option.value=value;option.textContent=label;funding.append(option);
+ if(data.admin||code==='STREAM_BULLS')return;
+ const cost=monthlyPrice(code);
+ if(active){
+  const period=businessPeriod(code);
+  if(period?.end&&Date.parse(period.end)>Date.now()){
+   const days=Math.max(0,Math.ceil((Date.parse(period.end)-Date.now())/86400000));
+   box.append(make('p','cc166-note','Activa · '+days+' día'+(days===1?'':'s')+' restantes'));
+  }
  }
- fundingLabel.append(funding);box.append(fundingLabel);
- const detail=make('p','cc166-note','');
- const pay=button(titleText,()=>void activateBusiness(code,pay,active?'RENEW':'ACTIVATE',funding.value),'cc166-primary');
- const recharge=button('Recargar saldo',()=>beginMembershipRecharge(code,funding.value),'cc166-secondary');
+ const trigger=button(active?'Renovar membresía':'Pagar para activar',()=>openBusinessActivationModal(code,active),'cc166-primary');
+ if(!Number.isFinite(cost)||cost<=0)trigger.disabled=true;
+ box.append(trigger);
+}
+function openBusinessActivationModal(code,active){
+ if(data.admin||code==='STREAM_BULLS'||!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(code))return;
+ document.getElementById('cc345-business-modal')?.remove();
+ const cost=monthlyPrice(code),valid=verified&&Number.isFinite(cost)&&cost>0;
+ const overlay=make('div','cc345-business-modal');overlay.id='cc345-business-modal';
+ overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,10,20,.82);backdrop-filter:blur(5px);overflow-y:auto';
+ const panel=make('section','cc166-card');panel.style.cssText='width:min(100%,460px);max-height:90dvh;overflow:auto;background:#0d2637;border:1px solid #35b7c0;border-radius:19px;padding:23px;color:#e9f8fa;box-shadow:0 18px 55px #0009';
+ panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Activación de '+serviceName(code));
+ panel.append(make('h2','',serviceName(code)));
+ panel.append(make('p','cc166-note','Activa o renueva tu membresía mensual. Elige saldo real o bono otorgado por ADMIN. El cobro requiere tu confirmación.'));
+ const period=businessPeriod(code);
+ if(active&&period?.end&&Date.parse(period.end)>Date.now()){
+  const days=Math.max(0,Math.ceil((Date.parse(period.end)-Date.now())/86400000));
+  panel.append(make('p','cc166-note','Activa · '+days+' día'+(days===1?'':'s')+' restantes'));
+ }
+ panel.append(make('p','cc166-note','Activación: '+(valid?price(cost):'Tarifa por verificar')+' · plan mensual'));
+ const label=make('label','cc166-note','¿Con qué saldo deseas pagar?');
+ const select=document.createElement('select');select.style.cssText='display:block;width:100%;padding:12px;margin:10px 0 16px;background:#071d2d;color:#eaffff;border:1px solid #528c9c;border-radius:10px';
+ for(const [value,name] of [['REAL','Saldo real'],['BONUS','Bono otorgado por ADMIN']]){const opt=document.createElement('option');opt.value=value;opt.textContent=name;select.append(opt);}
+ label.append(select);panel.append(label);
+ const detail=make('div','cc166-note','');detail.style.cssText='padding:14px;background:#071d2d;border-radius:10px;white-space:pre-line;line-height:1.8';panel.append(detail);
+ const actions=make('div','cc166-actions');actions.style.cssText='display:grid;gap:10px;margin-top:18px';
+ const close=()=>{overlay.remove();document.removeEventListener('keydown',onKey);};
+ const onKey=e=>{if(e.key==='Escape'&&overlay.isConnected){e.preventDefault();close();}};
+ const pay=button('Pagar para activar',async()=>{if(pay.disabled)return;close();await activateBusiness(code,null,active?'RENEW':'ACTIVATE',select.value);},'cc166-primary');
+ const recharge=button('Recargar saldo',()=>{close();beginMembershipRecharge(code,'REAL');},'cc166-secondary');
+ const cancel=button('Cerrar',close,'cc166-secondary');
  const update=()=>{
-  const balance=funding.value==='BONUS'?bonus:real;
+  const balance=select.value==='BONUS'?bonusBalance(code):realBalance();
   const missing=valid?Math.max(0,cost-balance):null;
-  detail.textContent='Saldo '+(funding.value==='BONUS'?'bono':'real')+': '+(verified?price(balance):'Consultando…')+' · Faltante: '+(missing===null?'Por verificar':price(missing));
-  pay.textContent=titleText+' · '+(funding.value==='BONUS'?'bono':'saldo real')+' · '+(valid?price(cost):'Por verificar');
+  detail.textContent='Saldo '+(select.value==='BONUS'?'bono':'real')+': '+(verified?price(balance):'Por verificar')+'\nImporte faltante: '+(missing===null?'Por verificar':price(missing));
+  pay.textContent=(active?'Renovar membresía':'Pagar para activar')+' · '+(select.value==='BONUS'?'bono':'saldo real');
   pay.disabled=!valid||!!businessActivationPending||missing>0;
   recharge.hidden=!valid||missing===0;
-  recharge.textContent=funding.value==='BONUS'?'Recargar saldo real (los bonos los otorga el administrador)':'Recargar saldo · faltan '+price(missing||0);
+  recharge.textContent=select.value==='BONUS'?'Recargar saldo real (los bonos solo los otorga ADMIN)':'Recargar saldo';
  };
- funding.addEventListener('change',update);
- actions.append(pay,recharge);box.append(detail,actions);update();
+ select.addEventListener('change',update);actions.append(pay,recharge,cancel);panel.append(actions);overlay.append(panel);
+ overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
+ document.body.append(overlay);document.addEventListener('keydown',onKey);select.focus();update();
 }
 
 async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
