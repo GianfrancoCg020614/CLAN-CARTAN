@@ -4,7 +4,7 @@
 'use strict';
 const $=id=>document.getElementById(id),ses=()=>window.CC_V53_SESSION;
 let data=null,actions=null,filter='',focusLoan=null;
-const cash=(n,c='PEN')=>({PEN:'S/',USD:'US$',EUR:'€',COP:'COL$',MXN:'MX$',ARS:'AR$',CLP:'CLP$',BOB:'Bs'}[c]||c)+' '+Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const cash=(n,c='PEN')=>{if(typeof window.ccFormatBusinessCurrency==='function')return window.ccFormatBusinessCurrency(n,c);const locales={PEN:'es-PE',USD:'en-US',EUR:'es-ES',COP:'es-CO',MXN:'es-MX',ARS:'es-AR',CLP:'es-CL',BOB:'es-BO',BRL:'pt-BR',UYU:'es-UY',PYG:'es-PY',CRC:'es-CR',DOP:'es-DO',CAD:'en-CA',GBP:'en-GB',GTQ:'es-GT',VES:'es-VE'};try{return new Intl.NumberFormat(locales[c]||'es-PE',{style:'currency',currency:c}).format(Number(n||0));}catch(_){return c+' '+Number(n||0).toFixed(2);}};
 const date=v=>v?new Date(String(v).slice(0,10)+'T12:00:00').toLocaleDateString('es-PE'):'—';
 const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const mk=(tag,txt,cls)=>{const e=document.createElement(tag);if(txt!==undefined)e.textContent=String(txt);if(cls)e.className=cls;return e;};
