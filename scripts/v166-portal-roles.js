@@ -2454,7 +2454,16 @@ function init(){
   const legacy=el('cc80wallet');if(legacy){legacy.hidden=true;legacy.style.display='none';}
   app.hidden=false;finance(tab==='manual'?(data.admin?'recharges':'manual'):tab==='movements'?'movements':'summary');
  };
- window.cc166OpenBusiness=code=>{sync();if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}if(!services.some(([id])=>id===code))return;app.hidden=false;nav('business:'+code);};
+ window.cc166OpenBusiness=code=>{
+  sync();
+  if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
+  if(!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(code))return;
+  app.hidden=false;
+  nav('business:'+code);
+  // Reutilizar el cobro validado del panel: nunca cobrar ni abrir pago si está vigente.
+  if(verified&&!data.admin&&!access(code).ok)openBusinessActivationModal(code,false);
+  // Si los saldos aún se están verificando, el panel conserva el botón de activación.
+};
  window.cc166OpenStreamMembership=()=>{
   if(typeof window.cc326OpenStreamActivation==='function'){void window.cc326OpenStreamActivation();return;}
   sync();
