@@ -303,3 +303,25 @@
  #mc158layer .mc158panel{min-height:300px!important;padding:10px!important}
  #mc158layer .mc158filters{grid-template-columns:1fr!important}
 }
+
+/* V351 · moneda local por reseller y legibilidad de MI COCHERA */
+#mc158layer .mc158top-actions{flex-wrap:wrap;align-content:center}
+#mc158layer .mc158local-currency{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border:1px solid #24749c;border-radius:24px;background:linear-gradient(145deg,#0c3148,#041523);color:#dff6ff;font-size:15px;font-weight:900;white-space:nowrap;box-shadow:0 0 14px rgba(0,173,255,.22),inset 0 0 12px rgba(0,145,255,.1)}
+#mc158layer .mc158nav-config{cursor:pointer}
+#mc158layer .mc158nav-config:hover,#mc158layer .mc158nav-config:focus-visible{border-color:#ffc329;color:#fff;box-shadow:0 0 18px rgba(255,187,20,.32);outline:none}
+#mc158dialog .mc158config-intro{padding:13px 15px;border:1px solid #17618a;border-radius:12px;background:linear-gradient(145deg,#062b43,#031522);color:#d8efff;line-height:1.55;font-size:14px}
+#mc158dialog .mc158currency-preview{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;margin:12px 0;border:1px solid #12a7e9;border-radius:14px;background:linear-gradient(135deg,#062c49,#031322);box-shadow:0 0 14px rgba(0,158,255,.16)}
+#mc158dialog .mc158currency-preview small{color:#a7d9f2;font-weight:800;letter-spacing:.06em}
+#mc158dialog .mc158currency-preview strong{font-size:25px;color:#fff;text-shadow:0 0 12px #008cff}
+#mc158dialog .mc158config-lock{padding:11px 13px;border-radius:10px;background:rgba(255,190,35,.09);border:1px solid rgba(255,190,35,.45);color:#ffe3a1;font-size:13px;line-height:1.45}
+#mc158dialog select[name=country]{width:100%;min-height:48px;background:#061b2b;color:#fff;border:1px solid #2582aa;border-radius:11px;padding:10px 12px;font-size:15px}
+#mc158dialog #mc158config button[type=submit]{width:100%;min-height:52px;margin-top:8px;background:linear-gradient(180deg,#ffe65a,#ffb900 60%,#df8e00);border:1px solid #ffdc45;border-radius:12px;color:#111827;font-size:16px;font-weight:950;box-shadow:0 0 18px rgba(255,187,0,.34)}
+#mc158layer .mc158kpi small{font-size:clamp(14px,1.12vw,18px)!important;font-weight:850!important}
+#mc158layer .mc158kpi strong{font-size:clamp(27px,2.25vw,38px)!important;font-weight:950!important}
+#mc158layer .mc158panel-title h3{font-size:clamp(21px,1.7vw,29px)!important;font-weight:950!important}
+#mc158layer .mc158table th{font-size:clamp(13px,1.05vw,16px)!important;font-weight:900!important}
+#mc158layer .mc158table td{font-size:clamp(14px,1.12vw,18px)!important}
+#mc158layer .mc158nav-item{font-size:clamp(13px,1.05vw,17px)!important}
+#mc158layer .mc158quick b{font-size:clamp(19px,1.7vw,28px)!important}
+#mc158layer .mc158quick small{font-size:clamp(13px,1.08vw,17px)!important}
+@media(max-width:760px){#mc158layer .mc158local-currency{font-size:10px;padding:7px 9px}}
