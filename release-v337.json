@@ -1,0 +1,8 @@
+{
+  "version": "V337",
+  "production_domain": "https://www.clancartan.com/",
+  "previous_version": "V336",
+  "backup_branch": "backup/production-v336-2026-11-10",
+  "scope": "Homepage entry gate for COBRA YA, MI COCHERA, MI ALQUILER; cache synchronization",
+  "database_changes": false
+}
