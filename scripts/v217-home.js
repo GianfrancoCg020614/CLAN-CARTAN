@@ -188,6 +188,27 @@ function init(){
   credit.style.cssText='font-weight:800;letter-spacing:.11em;text-transform:uppercase;margin-top:8px;color:#57ecf6';
   footer.appendChild(credit);
  }
+ // V337: interceptar exclusivamente los botones Ingresar de la portada real.
+ // La autorización se verifica en el panel antes de ejecutar el onclick original.
+ const cc337AllowedClicks=new WeakSet();
+ document.addEventListener('click',event=>{
+  const button=event.target?.closest?.('button');
+  if(!button||cc337AllowedClicks.has(button))return;
+  const card=button.closest('.cc217-cobra,.cc217-cochera,.cc217-alquiler');
+  if(!card||!document.getElementById('cc77home')?.contains(card))return;
+  if(!/^Ingresar(?:\\s|$)/i.test(button.textContent.trim()))return;
+  const code=card.classList.contains('cc217-cobra')?'COBRA_YA':
+   card.classList.contains('cc217-cochera')?'MI_COCHERA':'MI_ALQUILER';
+  event.preventDefault();event.stopImmediatePropagation();
+  if(typeof window.cc337GateBusinessEntry!=='function'){
+   window.alert('Estamos verificando el acceso. Actualiza la página e intenta nuevamente.');
+   return;
+  }
+  void window.cc337GateBusinessEntry(code,()=>{
+   cc337AllowedClicks.add(button);
+   try{button.click();}finally{cc337AllowedClicks.delete(button);}
+  });
+ },true);
  const grid=document.querySelector('#cc77home .cc77cards');if(!grid)return;
  apply();
  installCatalogPolish();polishStreamCatalog();
