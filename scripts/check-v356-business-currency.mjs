@@ -10,7 +10,7 @@ const alquiler3=read('scripts/v161-3-mi-alquiler.js');
 const alquiler4=read('scripts/v161-4-mi-alquiler.js');
 const cobra=read('index.html');
 const stream=read('scripts/v195-streambulls-live.js');
-const guard=read('supabase/migrations/20261111172000_currency_shared_preference_lock_v356.sql');
+const guard=read('supabase/migrations/20261111172630_currency_shared_preference_lock_v356.sql');
 
 assert.match(html,/<meta name="cc-deploy-version" content="V356-20261111">/);
 assert.match(html,/scripts\/v356-business-currency\.js\?v=356/);
