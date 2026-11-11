@@ -1,0 +1,8 @@
+{
+  "version": "V340",
+  "domain": "https://www.clancartan.com",
+  "scope": "Unify COBRA YA, MI COCHERA and MI ALQUILER membership activation dialogs to STREAM BULLS visual style; simplify CTA to Pagar para activar; dynamic balance and missing amount; recharge only when real balance is insufficient.",
+  "backup": "backup/production-v339-modal-style-2026-11-11",
+  "database_changes": false,
+  "staging": false
+}
