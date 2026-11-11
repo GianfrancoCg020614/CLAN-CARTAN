@@ -19,3 +19,65 @@ body:not(.light) :is(#cy53layer,#cy55subscription,#cy54membership,#cy54admin,#cy
 body:not(.light) :is(#cy53layer,#cy55subscription,#cy54membership,#cy54admin,#cy54requests,#cy53clients,#cy60loanrecords,#cy63detail) :is(button.primary,.primary){background:linear-gradient(110deg,#00e9dc,#2bbdf0)!important;color:#042838!important;border-radius:12px!important}
 @media(max-width:650px){body:not(.light) :is(#ma1611layer,#mc158layer){padding:10px!important}body:not(.light) :is(#ma1611layer,#mc158layer) :is(.ma1611-head,.mc158head){border-radius:15px!important}body:not(.light) :is(#ma1611layer,#mc158layer) :is(table){display:block;overflow-x:auto}}
 @media(prefers-reduced-motion:reduce){body:not(.light) :is(#ma1611layer,#mc158layer,#sb195-attention) *{transition:none!important}}
+
+
+/* COBRA YA · interfaz lila noche / dia, alcance exclusivo, sin alterar calculos */
+html:not([data-cc-theme="light"]) body #cy53layer,
+html:not([data-cc-theme="light"]) body :is(#cy53clients,#cy60loanrecords,#cy63detail){
+ --cy-ui-accent:#a98bff;--cy-ui-line:#62518c;--cy-ui-text:#f4efff;
+ background:linear-gradient(155deg,#100d26,#1b1539 58%,#110e27)!important;
+ color:var(--cy-ui-text)!important;
+}
+html:not([data-cc-theme="light"]) body #cy53layer .cywrap>.cyrow{
+ background:linear-gradient(115deg,#211641,#32215d)!important;
+ border:1px solid #8268b9!important;
+ min-height:0!important;padding:clamp(14px,2vw,22px)!important;
+ box-shadow:0 10px 30px #05020c55!important;
+}
+html:not([data-cc-theme="light"]) body #cy53layer :is(.cycards>section,.cywrap>section,#cy55subscription,.card,.panel,.box,.modal,.table-wrap),
+html:not([data-cc-theme="light"]) body :is(#cy53clients,#cy60loanrecords,#cy63detail) :is(.card,.panel,.box,.modal,.table-wrap){
+ background:#211936!important;border:1px solid #584877!important;
+ color:#f4efff!important;border-radius:16px!important;box-shadow:none!important;
+}
+html:not([data-cc-theme="light"]) body #cy53layer :is(button.primary,.primary,.cc119-primary,.cy75quick button:first-child),
+html:not([data-cc-theme="light"]) body :is(#cy53clients,#cy60loanrecords,#cy63detail) :is(button.primary,.primary){
+ background:linear-gradient(115deg,#a98bff,#8c65ec)!important;
+ border:1px solid #bfa9ff!important;color:#140d2b!important;
+ border-radius:12px!important;font-weight:750!important;box-shadow:none!important;
+}
+html:not([data-cc-theme="light"]) body #cy53layer :is(input,select,textarea),
+html:not([data-cc-theme="light"]) body :is(#cy53clients,#cy60loanrecords,#cy63detail) :is(input,select,textarea){
+ background:#15112a!important;border:1px solid #67558d!important;
+ color:#f7f2ff!important;border-radius:10px!important;max-width:100%;
+}
+html:not([data-cc-theme="light"]) body #cy53layer :is(input,select,textarea,button):focus-visible{
+ outline:2px solid #c6b2ff!important;outline-offset:2px!important;
+}
+html:not([data-cc-theme="light"]) body #cy53layer .cy75quick{
+ background:#1b1533!important;border-color:#57457d!important;
+ gap:8px!important;box-shadow:none!important;
+}
+html:not([data-cc-theme="light"]) body #cy53layer .cy75quick button:not(:first-child){
+ background:#2b2147!important;color:#eee7ff!important;border-color:#5c4a83!important;
+}
+html:not([data-cc-theme="light"]) body #cy53layer :is(h2,h3,.cc127-cobra-brand h2){color:#f7f2ff!important}
+html[data-cc-theme="light"] body #cy53layer{
+ background:linear-gradient(155deg,#f8f6ff,#f1edfb)!important;color:#241d38!important;
+}
+html[data-cc-theme="light"] body #cy53layer .cywrap>.cyrow{
+ background:linear-gradient(115deg,#f2ebff,#e9dfff)!important;
+ border:1px solid #c7b5e9!important;min-height:0!important;box-shadow:none!important;
+}
+html[data-cc-theme="light"] body #cy53layer :is(.cycards>section,.cywrap>section,.card,.panel,.box,.table-wrap){
+ background:#fff!important;border:1px solid #dcd1ee!important;
+ color:#241d38!important;box-shadow:none!important;
+}
+html[data-cc-theme="light"] body #cy53layer :is(button.primary,.primary,.cc119-primary){
+ background:#7451cf!important;border-color:#7451cf!important;color:#fff!important;
+}
+@media(max-width:650px){
+ #cy53layer .cywrap{padding-inline:12px!important}
+ #cy53layer .cy75quick{gap:6px!important;padding:8px!important}
+ #cy53layer .cy75quick button{min-height:42px!important}
+ #cy53layer :is(input,select,textarea){font-size:16px!important}
+}
