@@ -1,0 +1,8 @@
+{
+  "version": "V336",
+  "previous_version": "V335",
+  "scope": "Business entry activation modal and visible version",
+  "backup_branch": "backup/production-v335-2026-11-10",
+  "database_changes": false,
+  "date": "2026-11-10"
+}
