@@ -396,3 +396,12 @@
  #mc158layer .mc158workspace{min-height:0!important}
  #mc158layer .mc158workspace>.mc158panel{height:auto!important;min-height:300px!important}
 }
+
+/* V355 · logotipo CLAN CARTAN completo, extraído del original entregado por el usuario */
+#mc158layer .mc158top-brand img{
+ width:min(100%,250px)!important;height:105px!important;
+ object-fit:contain!important;object-position:left center!important;
+}
+#mc158layer .mc158sidebar-brand img{
+ width:142px!important;height:82px!important;object-fit:contain!important;
+}
