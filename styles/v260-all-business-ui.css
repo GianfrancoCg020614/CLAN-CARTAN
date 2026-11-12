@@ -136,3 +136,51 @@ html[data-cc-theme="light"] body #cy53layer :is(button.primary,.primary,.cc119-p
  #cy53layer .cy75quick button{font-size:13px!important}
  #cc119newClientModal .cc119-new-panel{max-height:calc(100dvh - 42px)!important}
 }
+
+
+/* V361 COBRA YA · refinamiento visual moderno y táctil, sin tocar lógica */
+#cy53layer{--cy361-accent:#b29aff;--cy361-border:#584779;--cy361-ink:#f7f3ff;--cy361-card:#211936;font-family:inherit!important}
+#cy53layer .cywrap{max-width:1180px!important;margin-inline:auto!important}
+#cy53layer .cy75quick{border:1px solid #594675!important;background:linear-gradient(145deg,#251b40,#1c1732)!important;border-radius:20px!important;padding:9px!important;box-shadow:0 12px 28px #08041630!important}
+#cy53layer .cy75quick button{border:1px solid #63517f!important;border-radius:13px!important;background:#302545!important;color:#eee9ff!important;font-weight:700!important;letter-spacing:0!important;transition:background .15s ease,transform .15s ease!important}
+#cy53layer .cy75quick button:first-child{background:linear-gradient(115deg,#b59aff,#8c6be7)!important;color:#1b1233!important;border-color:#c4b2ff!important}
+#cy53layer .cy75quick button:active{transform:scale(.985)!important}
+#cy53layer .cycards>section{border-radius:20px!important;padding:clamp(15px,2.5vw,24px)!important;box-shadow:0 10px 28px #0a061b24!important}
+#cy53layer .cycards h3{font-size:clamp(19px,2vw,24px)!important;line-height:1.25!important;margin:0 0 12px!important}
+#cy53layer #cy53loan{gap:13px!important}
+#cy53layer #cy53loan label{font-size:13px!important;font-weight:650!important;line-height:1.45!important}
+#cy53layer #cy53loan :is(input,select,textarea){border:1px solid #68558d!important;border-radius:12px!important;background:#17122b!important;color:#f7f3ff!important;padding:10px 13px!important;box-shadow:none!important}
+#cy53layer #cy53loan :is(input,select,textarea):focus{border-color:#c3aeff!important;outline:2px solid #b29aff55!important;outline-offset:1px!important}
+#cy53layer #cy53loan button[type="submit"]{border-radius:13px!important;background:linear-gradient(115deg,#b69aff,#9274ee)!important;color:#1a1231!important;font-weight:800!important;box-shadow:none!important}
+#cy53layer #cy53loan details{border-radius:14px!important;border:1px solid #5a477e!important;background:#1a1530!important}
+#cy53layer #cy53loan details summary{cursor:pointer!important;color:#d9cbff!important;font-weight:700!important}
+#cy53layer #cy53loan :is(p,small){line-height:1.5!important}
+#cy53layer .cy114-nav button{background:#2b2145!important;color:#f1eaff!important;border:1px solid #645084!important;border-radius:11px!important}
+#cc119newClientModal .cc119-new-panel{background:linear-gradient(155deg,#201735,#17162d)!important;border:1px solid #7862a5!important;border-radius:22px!important;box-shadow:0 28px 70px #0009!important;color:#f5f1ff!important}
+#cc119newClientModal .cc119-new-heading{background:#201735!important;border-bottom:1px solid #4c3e6b!important}
+#cc119newClientModal .cc119-new-heading small{color:#c6b2ff!important}
+#cc119newClientModal .cc119-new-heading h3{color:#fff!important;font-size:21px!important}
+#cc119newClientModal .cc119-new-heading .cc119-close{background:#302647!important;border:1px solid #665287!important;border-radius:12px!important}
+#cc119newClientModal .cy105note{color:#c7bbda!important}
+#cc119newClientModal #cy53client label{font-size:13px!important;font-weight:650!important;color:#eee6ff!important}
+#cc119newClientModal #cy53client :is(input,textarea){background:#110e24!important;border:1px solid #67518b!important;border-radius:12px!important;color:#fff!important;font-size:16px!important;padding:11px 13px!important}
+#cc119newClientModal #cy53client :is(input,textarea):focus{border-color:#bea4ff!important;outline:2px solid #ae92ff55!important}
+#cc119newClientModal #cc119verifyNewDni{background:#302347!important;border:1px solid #9175c9!important;color:#f1eaff!important;border-radius:12px!important;font-weight:700!important}
+#cc119newClientModal #cy105dniStatus{color:#bdeedc!important;line-height:1.5!important}
+#cc119newClientModal .cc360-optional{background:#1a1530!important;border-color:#604d84!important}
+#cc119newClientModal .cc360-optional summary{color:#d5c6ff!important}
+#cc119newClientModal #cy53client button[type="submit"]{background:linear-gradient(115deg,#b49aff,#9072ea)!important;color:#1a1231!important;border-radius:13px!important}
+#cy53layer button:focus-visible,#cc119newClientModal button:focus-visible{outline:2px solid #d1bfff!important;outline-offset:2px!important}
+@media(max-width:700px){
+ #cy53layer .cywrap{padding-inline:12px!important}
+ #cy53layer .cy75quick{gap:7px!important;padding:7px!important}
+ #cy53layer .cy75quick button{min-height:48px!important;font-size:13px!important}
+ #cy53layer .cycards>section{padding:16px!important}
+ #cy53layer #cy53loan{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+ #cy53layer #cy53loan>label:first-child{grid-column:1/-1!important}
+ #cy53layer #cy53loan>label{grid-column:auto!important}
+ #cy53layer #cy53loan>details,#cy53layer #cy53loan>button,#cy53layer #cy53loan>[role="status"]{grid-column:1/-1!important}
+ #cc119newClientModal .cc119-new-panel{border-radius:18px!important}
+}
+@media(max-width:380px){#cy53layer #cy53loan{grid-template-columns:1fr!important}#cy53layer #cy53loan>label{grid-column:1/-1!important}}
+@media(prefers-reduced-motion:reduce){#cy53layer .cy75quick button{transition:none!important}}
