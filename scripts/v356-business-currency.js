@@ -18,7 +18,7 @@ function setGlobals(p){
  window.CC_BUSINESS_CURRENCY=p.currency;
  window.ccFormatBusinessCurrency=(amount,code)=>{const cur=String(code||window.CC_BUSINESS_CURRENCY||'PEN').toUpperCase();const country=Object.values(countries).find(x=>x[2]===cur);try{return new Intl.NumberFormat(country?.[3]||'es-PE',{style:'currency',currency:cur}).format(Number(amount||0));}catch(_){return cur+' '+Number(amount||0).toFixed(2);}};
  window.dispatchEvent(new CustomEvent('cc-business-currency-ready',{detail:{country:p.country,currency:p.currency}}));
- updateControls();applyLoanCurrency();
+ /* V359: selección de moneda exclusivamente dentro de cada préstamo. */
  return p;
 }
 async function loadBusinessCurrency(force=false){
@@ -42,7 +42,7 @@ async function loadBusinessCurrency(force=false){
  })();
  return loading;
 }
-function applyLoanCurrency(){
+function applyLoanCurrency(){return; /* La moneda de cada préstamo se elige individualmente. */
  if(!profile||!session()?.jwt)return;
  const form=$('cy53loan'),select=form?.elements?.namedItem('currency');
  if(!select||select.dataset.ccBusinessCurrency===profile.currency)return;
@@ -55,7 +55,7 @@ function applyLoanCurrency(){
  if(note)note.textContent='Se aplica a los nuevos préstamos de MI COCHERA, MI ALQUILER y COBRA YA. Los préstamos anteriores conservan su moneda. No se realizan conversiones.';
  select.dispatchEvent(new Event('change',{bubbles:true}));
 }
-function updateControls(){
+function updateControls(){return; /* No mostrar moneda compartida en cabeceras. */
  const label=currencyLabel(profile?.currency||'PEN');
  const ma=$('ma1611layer');
  if(ma&&!ma.hidden&&getComputedStyle(ma).display!=='none'){
@@ -102,7 +102,7 @@ function openSettings(){
     document.dispatchEvent(new CustomEvent('cc-business-currency-change',{detail:{country,currency}}));
     if($('mc158layer')&&getComputedStyle($('mc158layer')).display!=='none')await window.mc158Open?.();
     if($('ma1611layer')&&!$('ma1611layer').hidden&&getComputedStyle($('ma1611layer')).display!=='none')await window.ma1612OnOpen?.();
-    applyLoanCurrency();updateControls();
+    /* moneda individual preservada */
    }catch(error){status.textContent=String(error.message||error);}
    finally{save.disabled=false;}
   });
@@ -116,7 +116,7 @@ function init(){
   if(e.target.closest('[data-cc-open-business-currency]')){e.preventDefault();openSettings();return;}
   if(e.target.closest('#cy53open,[onclick*="cc79Cobra"],[data-cy75-go="cy53loan"]')){setTimeout(()=>void loadBusinessCurrency().then(()=>{applyLoanCurrency();updateControls();}),0);}
  });
- const observer=new MutationObserver(()=>{if(!profile&&session()?.jwt)void loadBusinessCurrency();updateControls();applyLoanCurrency();});
+ const observer=new MutationObserver(()=>{if(!profile&&session()?.jwt)void loadBusinessCurrency();/* sin controles duplicados ni sustitución de moneda */});
  observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['style','hidden','class']});
  void loadBusinessCurrency();
 }
