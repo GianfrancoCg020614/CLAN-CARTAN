@@ -60,6 +60,8 @@ También pasaron las verificaciones existentes V130, sintaxis inline V304, COBRA
 
 La nueva acción `validar-cobra-v371.yml` ejecuta las pruebas financieras y de concurrencia en PostgreSQL aislado. Los scripts de pruebas locales nunca deben ejecutarse contra producción.
 
+En CI se reprodujo, también sobre el commit previo `cd0361d`, un fallo histórico de `check-v136-manual.mjs`: exigía la etiqueta antigua «Moneda y garantía» y no admitía «Moneda del préstamo y garantía», ya vigente. Se actualizó solo esa comprobación para conservar la exigencia de garantía visible con ambas etiquetas; no se cambió la recarga manual ni su lógica financiera. También se reprodujo sobre la base anterior una aserción V193 que exigía paréntesis de formato alrededor de la etiqueta Activar/Renovar; se conserva la comprobación de ambas acciones sin exigir ese formato. Las 17 verificaciones estáticas del flujo general pasan localmente.
+
 ## Respaldos y reversión
 
 - Base de código: `cd0361df318ab2a547f9797b1276740fc09ff34d`.
