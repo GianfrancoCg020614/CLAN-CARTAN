@@ -207,6 +207,16 @@ function simplifyNewClientDialog(){
   });
   dni.closest('label')?.insertAdjacentElement('afterend',btn);
  }
+
+ // V360: campos complementarios accesibles sin alargar la ventana móvil.
+ const form=byId('cy53client');
+ if(form&&!form.querySelector('#cc360OptionalClient')){
+  const optional=document.createElement('details');optional.id='cc360OptionalClient';optional.className='cc360-optional';
+  const summary=document.createElement('summary');summary.textContent='Más datos del cliente (opcional)';optional.appendChild(summary);
+  const optionalNames=['email','address','district','address_reference','notes'];
+  const labels=optionalNames.map(name=>form.elements.namedItem(name)?.closest('label')).filter(Boolean);
+  if(labels.length){labels[0].before(optional);labels.forEach(label=>optional.appendChild(label));}
+ }
  modal.dataset.dniSimplified='yes';
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',simplifyNewClientDialog);
