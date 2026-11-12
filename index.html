@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V362-20261111">
+<meta name="cc-deploy-version" content="V363-20261111">
 <meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="0x4AAAAAAFgi3l7LiJrucZTP">
 <style>
@@ -5900,6 +5900,13 @@ function cc79AfterLogin(){
   void window.cc172ShowClanReferrals?.();
   const adminBtn=document.getElementById('cc92-admin-button');if(adminBtn)adminBtn.style.display='none'; // Accesible solo desde Herramientas avanzadas del panel único.
   cc95RenderUser();
+  // V363: tras iniciar sesión, abrir el negocio que el usuario seleccionó.
+  try{
+   if(sessionStorage.getItem('cc363_pending_destination')==='cobra'){
+    sessionStorage.removeItem('cc363_pending_destination');
+    queueMicrotask(()=>{if(window.CC_V53_SESSION?.jwt)cc79Cobra()});
+   }
+  }catch(error){console.warn('Destino pendiente:',error?.message||error)}
   void window.cc161MountMarketingConsent?.();
 }
 function cc92OpenAdmin(){
@@ -5912,11 +5919,28 @@ function cc92OpenAdmin(){
 }
 function cc79Cobra(){
  const session=window.CC_V53_SESSION;
- if(!session){cc77Auth(false);return;}
- document.getElementById('cc77home').style.display='none';
- document.getElementById('cc77back').style.display='block';
- if(window.cy53?.open){window.cy53.open()}
- else {alert('No se pudo abrir Cobra Ya. Vuelve a intentar.');cc77Home();}
+ if(!session?.jwt){
+  // V363: conservar destino si la sesión requiere volver a autenticarse.
+  try{sessionStorage.setItem('cc363_pending_destination','cobra')}catch(_){}
+  cc77Auth(false);return;
+ }
+ const home=document.getElementById('cc77home');
+ const back=document.getElementById('cc77back');
+ const gate=document.getElementById('cc-real-login');
+ try{
+  if(typeof window.cy53?.open!=='function')throw Error('Módulo Cobra Ya no disponible');
+  if(home)home.style.display='none';
+  if(gate)gate.style.display='none';
+  if(back)back.style.display='block';
+  window.cy53.open();
+  document.getElementById('cy53layer')?.scrollIntoView({block:'start',behavior:'instant'});
+  try{sessionStorage.removeItem('cc363_pending_destination')}catch(_){}
+ }catch(error){
+  console.error('No se pudo abrir Cobra Ya:',error);
+  if(home)home.style.display='none';
+  if(back)back.style.display='block';
+  alert('No se pudo abrir COBRA YA. Intenta de nuevo. '+(error?.message||''));
+ }
 }
 function cc79StreamBenefits(){
  // La suscripción y el precio reseller se verifican exclusivamente en el panel real.
