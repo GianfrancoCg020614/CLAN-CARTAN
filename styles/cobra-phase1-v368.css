@@ -32,3 +32,24 @@
 #cy53layer #cy368new,#cy53layer #cy368clients,#cy53layer #cy368loans{margin-top:0!important;border-radius:0 0 16px 16px!important}
 #cy53layer #cy368new[hidden],#cy53layer #cy368clients[hidden],#cy53layer #cy368loans[hidden],#cy53layer #cy368search[hidden]{display:none!important}
 @media(max-width:600px){#cy53layer .cy368hero{padding:13px!important}#cy53layer .cy368wallet{min-width:100px!important;padding:9px!important}#cy53layer .cy368stats{gap:5px!important}#cy53layer .cy368stats small{font-size:10px!important}#cy53layer .cy368actions button{font-size:11px!important}#cy53layer #cy368tabs button{font-size:11px!important}}
+
+/* V369: compact mobile presentation; original forms and controls preserved */
+#cy53layer .cywrap>.cyrow .cc127-cobra-logo,
+#cy53layer .cywrap>.cyrow .cc127-cobra-brand{display:none!important}
+#cy53layer .cywrap>.cyrow{padding:8px 10px!important;min-height:52px!important;justify-content:flex-end!important}
+#cy53layer #cy53notice{margin:2px 0 6px!important;font-size:11px!important}
+#cy53layer #cy368board{margin:5px 0 8px!important}
+#cy53layer .cy368hero{padding:13px 15px!important;border-radius:17px!important}
+#cy53layer .cy368wallet{display:none!important}
+#cy53layer .cy368hero strong{font-size:clamp(21px,5vw,30px)!important}
+#cy53layer .cy368stats{gap:6px!important;margin:9px 0!important}
+#cy53layer .cy368stats>div{padding:9px 2px!important;gap:2px!important;border-radius:13px!important}
+#cy53layer .cy368stats span{font-size:18px!important}
+#cy53layer .cy368stats strong{font-size:20px!important}
+#cy53layer .cy368actions{margin:9px 0!important;gap:6px!important}
+#cy53layer .cy368actions button{min-height:45px!important;padding:7px 5px!important;border-radius:12px!important}
+#cy53layer #cy368tabs{padding:5px!important}
+#cy53layer #cy368tabs button{padding:9px 1px!important}
+#cy53layer #cy368search{padding:6px 8px 9px!important}
+#cy53layer #cy368query{min-height:42px!important}
+@media(max-width:390px){#cy53layer .cy368stats small{font-size:9px!important}#cy53layer #cy368tabs button{font-size:10px!important}}
