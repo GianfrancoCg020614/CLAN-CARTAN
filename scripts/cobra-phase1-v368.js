@@ -55,9 +55,10 @@ function update(payload){
   const due=installments.filter(i=>i.loan_id===loan.id&&Number(i.amount||0)>Number(i.paid_total||0)+0.005).map(i=>i.due_on).filter(Boolean).sort()[0]||loan.corrected_due_on||loan.first_due_on;
   if(due===today)todayCount++;else if(due&&due<today)lateCount++;
  }
- $('cy368total').textContent='S/ '+money(byCurrency.get('PEN')||0);
- const others=[...byCurrency].filter(([cur])=>cur!=='PEN');
- $('cy368currencies').textContent=others.length?'PEN · Otras monedas: '+others.map(([cur,n])=>cur+' '+money(n)).join(' · '):'Total por cobrar · PEN';
+ const balances=[...byCurrency].filter(([,n])=>n>=0.01).sort(([a],[b])=>a.localeCompare(b));
+ const formatted=balances.map(([cur,n])=>(cur==='PEN'?'S/ ':cur+' ')+money(n));
+ $('cy368total').textContent=formatted.length===1?formatted[0]:(formatted.length>1?'Varias monedas':'Sin saldos pendientes');
+ $('cy368currencies').textContent=formatted.length>1?formatted.join(' · '):(formatted.length===1?'Total por cobrar · '+balances[0][0]:'Total por cobrar · sin préstamos activos');
  $('cy368dueCount').textContent=todayCount;$('cy368lateCount').textContent=lateCount;
  const brand=document.querySelector('#cy53layer .cc127-cobra-brand small');
  const match=brand?.textContent.match(/S\/\s*[\d,.]+/);
