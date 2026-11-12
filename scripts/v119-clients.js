@@ -190,7 +190,21 @@ function simplifyNewClientDialog(){
  if(label&&label.firstChild?.nodeType===Node.TEXT_NODE)label.firstChild.textContent='DNI peruano (8 dígitos) u otro documento:';
  if(!modal.querySelector('#cc119verifyNewDni')){
   const btn=document.createElement('button');btn.type='button';btn.id='cc119verifyNewDni';btn.className='cc119-verify';btn.textContent='Verificar DNI ahora';
-  btn.addEventListener('click',()=>{const value=dni.value.trim();if(!/^\d{8}$/.test(value)){status.textContent='Ingresa 8 dígitos de DNI.';return;}dni.dispatchEvent(new Event('input',{bubbles:true}));dni.dispatchEvent(new Event('change',{bubbles:true}));});
+  btn.addEventListener('click',async()=>{
+   const value=dni.value.trim();
+   if(!/^\\d{8}$/.test(value)){status.textContent='Ingresa 8 dígitos de DNI.';return;}
+   btn.disabled=true;status.textContent='Consultando DNI con API Perú…';
+   try{
+    const result=await queryVerifiedName(value);
+    if(dni.value.trim()!==value)return;
+    if((result.status==='found'||result.status==='saved')&&result.full_name){
+      const name=byId('cy53client')?.elements?.namedItem('name');
+      if(name){name.value=String(result.full_name).trim();name.dispatchEvent(new Event('input',{bubbles:true}));}
+      status.textContent='✓ Nombre encontrado. Confirma los datos antes de guardar.';
+    }else status.textContent=consentMessage(result.reason||result.status);
+   }catch(error){status.textContent=error?.message||'No se pudo conectar con API Perú. Puedes continuar manualmente.';}
+   finally{btn.disabled=false;}
+  });
   dni.closest('label')?.insertAdjacentElement('afterend',btn);
  }
  modal.dataset.dniSimplified='yes';
