@@ -32,7 +32,7 @@ assert.ok(!js.includes('923319637'),"V155: la interfaz pública no debe revelar 
 assert.ok(!qrSharedNumberExposed(read('scripts/v146-personal-manual-topups.js')),"V155: la leyenda del QR no debe mostrar datos bancarios");
 assert.ok(js.includes("LEMON / DALE"),"V137: etiqueta de recaudación ausente");
 assert.ok(!js.includes('navigator.clipboard.writeText'),"V155: retirar botón de copiar teléfono");
-assert.ok(html.includes('<details class="cy105advanced" open><summary>Moneda y garantía (opcional)</summary>'),"V137: garantía opcional debe estar visible");
+assert.match(html,/<details class="cy105advanced" open><summary>Moneda(?: del préstamo)? y garantía \(opcional\)<\/summary>/,"Garantía opcional debe seguir visible, también con la etiqueta multimoneda vigente");
 assert.ok(html.includes('name="collateral"')&&html.includes('¿Qué dejó en garantía? (opcional)'),"V137: descripción de garantía no disponible");
 assert.ok(/content="V[0-9]+-20[0-9]{6}"/.test(html));
 
