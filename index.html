@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V359-20261111">
+<meta name="cc-deploy-version" content="V360-20261111">
 <meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="0x4AAAAAAFgi3l7LiJrucZTP">
 <style>
@@ -2539,7 +2539,7 @@ body.light .ccc-v50-maker-divider{background:#d7dce2}
 @media(max-width:420px){#cy53layer .cy152-quick>button{font-size:11px;padding:7px 3px}.cy152-dialog{padding:13px}}
 </style>
 <link rel="stylesheet" href="styles/v246-admin-users.css?v=316">
-<link rel="stylesheet" href="styles/v260-all-business-ui.css?v=359">
+<link rel="stylesheet" href="styles/v260-all-business-ui.css?v=360">
 </head>
 <body>
 <div id="app"></div>
@@ -5605,24 +5605,10 @@ cy105dniInput.addEventListener('input',()=>{
    }else{
     delete cy105clientForm.dataset.foundClientId;
     cy105dniStatus.textContent='DNI no registrado en tu cartera. Consultando servicio externo…';
-    const approved=await request('rpc/cc_my_dni_auto_permission','POST',{});
-    if(approved===true){
-     const current=session();
-     const response=await fetch(current.root+'/functions/v1/cc-consulta-dni',{
-       method:'POST',headers:{apikey:current.key,Authorization:'Bearer '+current.jwt,'Content-Type':'application/json'},
-       body:JSON.stringify({dni:value})
-     }).then(r=>r.json()).catch(()=>({status:'manual'}));
-     if(seq!==cy105lastLookup||cy105dniInput.value.trim()!==value)return;
-     if(response.status==='found'&&response.full_name){
-       cy105clientForm.elements.name.value=response.full_name;
-       cy105dniStatus.textContent='✓ Nombre encontrado. Verifica los datos antes de guardar.';
-     }else{
-       cy105dniStatus.textContent='Ingresa el nombre manualmente. '+(response.reason==='quota_exhausted'||response.reason==='monthly_limit'?'El cupo mensual de consultas se agotó.':'Consulta externa no disponible.');
-     }
-    }else cy105dniStatus.textContent='Consulta automática pendiente de habilitación por ADMIN. Puedes ingresar el nombre manualmente.';
+    cy105dniStatus.textContent='DNI no registrado en tu cartera. Pulsa «Verificar DNI ahora» para consultar API Perú o completa el nombre manualmente.';
    }
   }catch(error){
-   if(seq===cy105lastLookup)cy105dniStatus.textContent='No se pudo consultar tus clientes. Puedes ingresar los datos manualmente.';
+   if(seq===cy105lastLookup)cy105dniStatus.textContent='No se pudo buscar en tu cartera. Puedes continuar manualmente o volver a intentar.';
   }
  },350);
 });
