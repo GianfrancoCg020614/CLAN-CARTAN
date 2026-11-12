@@ -14,6 +14,14 @@ function tab(name){
  if(name==='loans'){$('cy64tabs')?.querySelector('[data-filter="all"]')?.click();}
  $('cy368board')?.scrollIntoView({block:'start',behavior:'smooth'});
 }
+function hideDuplicateBrand(){
+ const layer=$('cy53layer');if(!layer)return;
+ // Keep the back/exit controls functional: hide only duplicated branding.
+ layer.querySelectorAll('.cc127-cobra-brand, .cc127-cobra-logo').forEach(el=>{
+   el.style.setProperty('display','none','important');
+   el.setAttribute('aria-hidden','true');
+ });
+}
 function mount(){
  if(mounted||!$('cy53layer'))return;
  const layer=$('cy53layer'),wrap=layer.querySelector('.cywrap'),cards=layer.querySelector('.cycards'),form=$('cy53loan'),client=$('cy53clients'),loans=$('cy60loanrecords');
@@ -38,6 +46,7 @@ function mount(){
  if(typeof originalGo==='function')window.cc119OpenNewClient=function(...args){return originalGo.apply(this,args)};
  // Preserve existing customer flow after creating a client.
  const previous=window.cc368GoLoan;window.cc368GoLoan=function(){tab('new');if(typeof previous==='function')previous()};
+ hideDuplicateBrand();
  tab('clients');mounted=true;
 }
 function update(payload){
@@ -66,6 +75,7 @@ function update(payload){
 }
 function start(){
  mount();
+ hideDuplicateBrand();
  window.addEventListener('cy368:data',e=>update(e.detail));
  const layer=$('cy53layer');
  if(layer){new MutationObserver(()=>{if(layer.style.display!=='none'&&mounted){const logo=document.querySelector('#cy53layer .cc127-cobra-brand small');const match=logo?.textContent.match(/S\/\s*[\d,.]+/);if(match&&$('cy368balance'))$('cy368balance').textContent=match[0];}}).observe(layer,{attributes:true,attributeFilter:['style']});}
