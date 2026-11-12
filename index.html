@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V368-20261111">
+<meta name="cc-deploy-version" content="V371-20261112">
 <meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="0x4AAAAAAFgi3l7LiJrucZTP">
 <style>
@@ -5744,9 +5744,9 @@ const panel=layer?.querySelector('.cywrap');
 // V114: navegación unificada en la cabecera de COBRA YA.
 window.cc54SwitchAccount=function(){return window.ccV192Logout();};
 const btn=document.getElementById('cc54logout');
-const watch=new MutationObserver(()=>{const logged=!!window.CC_V53_SESSION;btn.style.display=logged?'block':'none';});
+const watch=new MutationObserver(()=>{const logged=!!window.CC_V53_SESSION;btn.style.display=logged&&document.documentElement.dataset.ccActiveModule!=='cobra'?'block':'none';});
 watch.observe(document.documentElement,{childList:true,subtree:true});
-setInterval(()=>{btn.style.display=window.CC_V53_SESSION?'block':'none'},900);
+setInterval(()=>{btn.style.display=window.CC_V53_SESSION&&document.documentElement.dataset.ccActiveModule!=='cobra'?'block':'none'},900);
 })();
 </script>
 
@@ -6105,7 +6105,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 
 
 
-<script src="scripts/v152-cobra-fast.js?v=357"></script>
+<!-- V371 replaces the legacy Cobra search/brand layer with the integrated module UI. -->
 <script src="scripts/v152-admin-reconcile.js?v=152"></script>
 
 
@@ -6133,7 +6133,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <link rel="stylesheet" href="styles/v161-4-mi-alquiler.css?v=314">
 <script src="scripts/v161-4-mi-alquiler.js?v=357" defer></script>
 <script src="scripts/v1635-rescate-ui.js?v=224" defer></script>
-<script src="scripts/v151-portal-polish.js?v=341"></script>
+<script src="scripts/v151-portal-polish.js?v=371"></script>
 <script src="scripts/v311-business-dialogs.js?v=317" defer></script>
 <link rel="stylesheet" href="styles/v318-delivery-codes.css?v=319">
 <script src="scripts/v318-delivery-codes.js?v=319" defer></script>
@@ -6179,7 +6179,7 @@ body:not(.light) .ccc-v14-panel .table tr:hover td{background:#0a344a55!importan
 <link rel="stylesheet" href="styles/v326-wallet-access.css?v=326">
 <script src="scripts/v326-wallet-access.js?v=327" defer></script>
 
-<link rel="stylesheet" href="/styles/cobra-phase1-v368.css?v=368">
-<script src="/scripts/cobra-phase1-v368.js?v=368" defer></script>
+<link rel="stylesheet" href="/styles/cobra-v371.css?v=371">
+<script src="/scripts/cobra-v371.js?v=371" defer></script>
 </body>
 </html>

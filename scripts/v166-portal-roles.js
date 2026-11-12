@@ -112,6 +112,7 @@ function access(code){
  return {ok:false,reason:'Membresía pendiente o vencida'};
 }
 function addReturnControl(){
+ if(document.documentElement.dataset.ccActiveModule==='cobra')return; // V371 owns its single return control.
  if(!user||!session()?.jwt)return;
  let host=el('cc177-return-panel');
  if(host)return;
@@ -1292,11 +1293,16 @@ async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
   const reply=await api(path,'POST',body);
   if(session()?.userId!==uid||session()?.jwt!==jwt)return;
   if(intent==='ACTIVATE'&&reply?.service===code&&reply.status==='ALREADY_ACTIVE'&&reply.charged===false&&Number(reply.amount_pen)===0){
-   forgetKey(keyInfo.name);await load();notice('Servicio ya activo, sin cobro.');return reply;
+   forgetKey(keyInfo.name);await load();notice('Servicio ya activo, sin cobro.');
+   if(code==='COBRA_YA'&&typeof window.cy53?.open==='function')exitTo(()=>void window.cy53.open());
+   return reply;
   }
   if(reply?.service!==code||!reply?.active_until||Number(reply.amount_pen)!==cost||reply.status==='REFUNDED')throw Error('El servidor no confirmó la membresía. Revisa los movimientos antes de reintentar.');
   forgetKey(keyInfo.name);await load();if(session()?.userId!==uid)return;view='business:'+code;app.hidden=false;render();
   notice('✅ '+serviceName(code)+' activo hasta '+new Date(reply.active_until).toLocaleDateString('es-PE',{timeZone:'America/Lima'})+'. Medio: '+(funding==='BONUS'?'BONO':'SALDO REAL')+'.');
+  // V371: enter the SAME module after a server-confirmed Cobra activation/renewal.
+  // cy53.open revalidates entitlement with Supabase before displaying any protected data.
+  if(code==='COBRA_YA'&&typeof window.cy53?.open==='function')exitTo(()=>void window.cy53.open());
   return reply;
  }catch(e){if(session()?.userId===uid)notice('No se confirmó: '+String(e?.message||e)+'. No reintentes sin revisar movimientos.');}
  finally{businessActivationPending=null;if(b?.isConnected)b.disabled=false;}
@@ -2418,6 +2424,7 @@ function sync(){
  reset();user=s.userId;token=s.jwt;shell();
  if(previous){view=previous.view;walletTab=previous.walletTab;navigationHistory=previous.history;app.hidden=!previous.open;}
  else app.hidden=!!(sameUser&&previouslyHidden);
+ if(document.documentElement.dataset.ccActiveModule==='cobra')app.hidden=true; // V371 may already be open during a slow portal load.
  render();void load();
 }
 function init(){

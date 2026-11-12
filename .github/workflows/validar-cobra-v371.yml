@@ -1,0 +1,46 @@
+name: COBRA YA V371 · datos y concurrencia
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/cobra-v371.js', 'scripts/v371-test-*.sql', 'scripts/check-v371-database.sql', 'scripts/test-v371-concurrency.py', 'supabase/migrations/*cobra_ya_v371_premium.sql', '.github/workflows/validar-cobra-v371.yml']
+  pull_request:
+    paths: ['scripts/cobra-v371.js', 'supabase/migrations/*cobra_ya_v371_premium.sql']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: local-v371-only
+          POSTGRES_DB: v371release
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Sintaxis de interfaz y navegación
+        run: |
+          node --check scripts/cobra-v371.js
+          node --check scripts/v166-portal-roles.js
+          node scripts/test-v304-inline-syntax.mjs
+      - name: Probar operaciones existentes y migración en PostgreSQL aislado
+        env:
+          V371_PG_CONTAINER: ${{ job.services.postgres.id }}
+          V371_PG_DATABASE: v371release
+        run: |
+          docker cp scripts/v371-test-bootstrap.sql "$V371_PG_CONTAINER":/tmp/bootstrap.sql
+          docker cp scripts/v371-test-functions.sql "$V371_PG_CONTAINER":/tmp/functions.sql
+          docker cp supabase/migrations/20261112114133_cobra_ya_v371_premium.sql "$V371_PG_CONTAINER":/tmp/migration.sql
+          docker cp scripts/check-v371-database.sql "$V371_PG_CONTAINER":/tmp/tests.sql
+          docker exec "$V371_PG_CONTAINER" psql -U postgres -d v371release -v ON_ERROR_STOP=1 -f /tmp/bootstrap.sql -f /tmp/functions.sql -f /tmp/migration.sql -f /tmp/tests.sql
+          python3 scripts/test-v371-concurrency.py
