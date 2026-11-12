@@ -53,3 +53,14 @@
 #cy53layer #cy368search{padding:6px 8px 9px!important}
 #cy53layer #cy368query{min-height:42px!important}
 @media(max-width:390px){#cy53layer .cy368stats small{font-size:9px!important}#cy53layer #cy368tabs button{font-size:10px!important}}
+
+/* Phase 1 follow-up: eliminate empty purple header card after hiding duplicate brand */
+#cy53layer .cywrap>.cyrow:has(.cc127-cobra-brand){
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  padding:0 2px!important;min-height:0!important;margin:0 0 4px!important;
+  display:flex!important;justify-content:flex-end!important;gap:7px!important;
+}
+#cy53layer .cywrap>.cyrow:has(.cc127-cobra-brand) .cc127-cobra-brand,
+#cy53layer .cywrap>.cyrow:has(.cc127-cobra-brand) .cc127-cobra-logo{display:none!important}
+#cy53layer .cywrap>.cyrow:has(.cc127-cobra-brand) button{min-height:38px!important;min-width:40px!important;padding:7px!important;border-radius:11px!important}
+#cy53layer .cywrap>.cyrow:has(.cc127-cobra-brand) > :not(button):not(.cc127-cobra-brand):not(.cc127-cobra-logo){max-width:100%!important}
