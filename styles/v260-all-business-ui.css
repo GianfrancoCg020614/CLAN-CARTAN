@@ -189,7 +189,7 @@ html[data-cc-theme="light"] body #cy53layer :is(button.primary,.primary,.cc119-p
 /* V362 COBRA YA · premium nocturno: profundidad, iluminación sutil y claridad */
 #cy53layer{
  --cy362-purple:#a98cff;--cy362-muted:#c9bee0;--cy362-border:#67538f;
- position:relative!important;isolation:isolate!important;
+ position:fixed!important;inset:0!important;z-index:2147483000!important;isolation:isolate!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
  background:radial-gradient(ellipse 75% 36% at 8% 2%,#6b3dbd35,transparent 78%),radial-gradient(ellipse 55% 38% at 98% 22%,#1d9fbe1c,transparent 78%),linear-gradient(165deg,#100b20 0%,#1a1232 50%,#0d1023 100%)!important;
  min-height:100dvh!important;color:#f6f2ff!important;
 }
@@ -221,3 +221,15 @@ html[data-cc-theme="light"] body #cy53layer .cy75quick button:not(:first-child){
 html[data-cc-theme="light"] body #cy53layer #cy53loan :is(input,select,textarea){background:#fff!important;color:#291b3d!important;border-color:#bca8d8!important}
 @media(max-width:700px){#cy53layer .cywrap{padding-top:9px!important}#cy53layer .cy75quick{border-radius:16px!important}#cy53layer .cycards>section{border-radius:18px!important}#cc119newClientModal .cc119-new-panel{border-radius:20px!important}}
 @media(prefers-reduced-motion:reduce){#cy53layer .cy75quick button{transition:none!important}}
+
+/* V365: COBRA YA must be an isolated full-screen overlay, never a page section */
+#cy53layer[style*="display: block"],#cy53layer[style*="display:block"]{
+ position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;
+ width:100vw!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;
+ z-index:2147483000!important;overflow-y:auto!important;overflow-x:hidden!important;
+ overscroll-behavior:contain!important;touch-action:pan-y!important;
+ padding-bottom:max(28px,env(safe-area-inset-bottom))!important;
+}
+html:has(#cy53layer[style*="display: block"]),body:has(#cy53layer[style*="display: block"]),
+html:has(#cy53layer[style*="display:block"]),body:has(#cy53layer[style*="display:block"]){overflow:hidden!important}
+#cy53layer .cywrap{min-height:100%!important}
