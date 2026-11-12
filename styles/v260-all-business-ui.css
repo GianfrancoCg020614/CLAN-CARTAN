@@ -184,3 +184,40 @@ html[data-cc-theme="light"] body #cy53layer :is(button.primary,.primary,.cc119-p
 }
 @media(max-width:380px){#cy53layer #cy53loan{grid-template-columns:1fr!important}#cy53layer #cy53loan>label{grid-column:1/-1!important}}
 @media(prefers-reduced-motion:reduce){#cy53layer .cy75quick button{transition:none!important}}
+
+
+/* V362 COBRA YA · premium nocturno: profundidad, iluminación sutil y claridad */
+#cy53layer{
+ --cy362-purple:#a98cff;--cy362-muted:#c9bee0;--cy362-border:#67538f;
+ position:relative!important;isolation:isolate!important;
+ background:radial-gradient(ellipse 75% 36% at 8% 2%,#6b3dbd35,transparent 78%),radial-gradient(ellipse 55% 38% at 98% 22%,#1d9fbe1c,transparent 78%),linear-gradient(165deg,#100b20 0%,#1a1232 50%,#0d1023 100%)!important;
+ min-height:100dvh!important;color:#f6f2ff!important;
+}
+#cy53layer:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.17;background-image:linear-gradient(#bda6ff12 1px,transparent 1px),linear-gradient(90deg,#bda6ff12 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(#000,transparent 85%)}
+#cy53layer .cywrap{position:relative!important;z-index:1!important}
+#cy53layer .cy75quick{background:linear-gradient(145deg,#2b1d48ef,#1c1735ef)!important;border:1px solid #8061b680!important;box-shadow:0 14px 35px #06041240,inset 0 1px #ffffff16!important;backdrop-filter:blur(10px)!important}
+#cy53layer .cy75quick button{box-shadow:inset 0 1px #ffffff12!important}
+#cy53layer .cy75quick button:first-child{box-shadow:0 5px 18px #9e79ec35!important}
+#cy53layer .cycards>section{background:linear-gradient(155deg,#271b40f2,#1b1935f7)!important;border:1px solid #74599b99!important;box-shadow:0 16px 36px #06031344,inset 0 1px #ffffff12!important}
+#cy53layer .cycards>section h3{color:#f8f3ff!important;letter-spacing:-.025em!important}
+#cy53layer .cycards>section>p,#cy53layer .cycards small{color:#c8bfda!important}
+#cy53layer #cy53loan :is(input,select,textarea){background:#130f27e8!important;border-color:#6b548e!important;box-shadow:inset 0 1px 2px #0004!important}
+#cy53layer #cy53loan :is(input,select,textarea):focus{background:#1d1738!important;border-color:#bda4ff!important}
+#cy53layer #cy53loan button[type="submit"]{background:linear-gradient(110deg,#c4aaff,#9c7aef)!important;box-shadow:0 8px 24px #966df035!important}
+#cy53layer #cy53loan details{background:linear-gradient(145deg,#211738,#17162e)!important}
+#cy53layer .cy114-nav button{background:#251b3f!important;border-color:#6e5798!important}
+#cc119newClientModal.cc119-overlay{background:#080517d9!important;backdrop-filter:blur(7px)!important}
+#cc119newClientModal .cc119-new-panel{background:radial-gradient(ellipse at 90% 0%,#7753b02e,transparent 60%),linear-gradient(155deg,#291d46,#15132c)!important;border:1px solid #9373be!important;box-shadow:0 25px 75px #03020bba,inset 0 1px #ffffff19!important}
+#cc119newClientModal .cc119-new-heading{background:#251a40!important}
+#cc119newClientModal #cy53client :is(input,textarea){background:#120e27!important;border-color:#765d9b!important}
+#cc119newClientModal #cc119verifyNewDni{background:linear-gradient(110deg,#392657,#2d244b)!important}
+#cc119newClientModal #cy53client button[type="submit"]{background:linear-gradient(110deg,#c1a6ff,#9777ee)!important;box-shadow:0 8px 24px #a078ef35!important}
+#cc119newClientModal .cc360-optional{background:#1b1534!important}
+html[data-cc-theme="light"] body #cy53layer{background:radial-gradient(ellipse at 10% 5%,#e4d4ff,transparent 48%),linear-gradient(155deg,#faf9ff,#f0ecfb)!important;color:#231936!important}
+html[data-cc-theme="light"] body #cy53layer .cycards>section{background:linear-gradient(155deg,#fff,#f7f2ff)!important;border-color:#d5c5eb!important;box-shadow:0 10px 28px #53347b12!important;color:#261b39!important}
+html[data-cc-theme="light"] body #cy53layer .cycards>section h3{color:#2b1d42!important}
+html[data-cc-theme="light"] body #cy53layer .cy75quick{background:#ffffffeb!important;border-color:#d3c4e8!important;box-shadow:0 10px 25px #53347b10!important}
+html[data-cc-theme="light"] body #cy53layer .cy75quick button:not(:first-child){background:#f2ecfb!important;color:#36234e!important;border-color:#d5c5e9!important}
+html[data-cc-theme="light"] body #cy53layer #cy53loan :is(input,select,textarea){background:#fff!important;color:#291b3d!important;border-color:#bca8d8!important}
+@media(max-width:700px){#cy53layer .cywrap{padding-top:9px!important}#cy53layer .cy75quick{border-radius:16px!important}#cy53layer .cycards>section{border-radius:18px!important}#cc119newClientModal .cc119-new-panel{border-radius:20px!important}}
+@media(prefers-reduced-motion:reduce){#cy53layer .cy75quick button{transition:none!important}}
