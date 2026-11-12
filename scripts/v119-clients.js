@@ -192,7 +192,7 @@ function simplifyNewClientDialog(){
   const btn=document.createElement('button');btn.type='button';btn.id='cc119verifyNewDni';btn.className='cc119-verify';btn.textContent='Verificar DNI ahora';
   btn.addEventListener('click',async()=>{
    const value=dni.value.trim();
-   if(!/^\\d{8}$/.test(value)){status.textContent='Ingresa 8 dígitos de DNI.';return;}
+   if(!/^\d{8}$/.test(value)){status.textContent='Ingresa 8 dígitos de DNI.';return;}
    btn.disabled=true;status.textContent='Consultando DNI con API Perú…';
    try{
     const result=await queryVerifiedName(value);
