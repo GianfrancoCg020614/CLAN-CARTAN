@@ -4,7 +4,7 @@ El registro de clientes presenta primero el documento y consulta automáticament
 
 Se descartan respuestas de documentos anteriores, otra sesión, ventanas cerradas o consultas canceladas. Se conserva el nombre escrito manualmente durante una consulta. La falta de autorización, cupo o conexión permite continuar manualmente.
 
-En COBRA YA, Atrás recupera la ventana anterior. Cerrar regresa a la portada de los cuatro negocios, sin cerrar sesión. El panel compartido conserva el origen al consultar billetera/perfil desde COBRA YA; MI COCHERA conserva el origen de su acceso a billetera y el catálogo conserva el regreso desde perfil. Cerrar en el panel compartido también cierra las capas de negocio y elimina el historial de navegación de esa visita. No se modifican operaciones de los negocios.
+En las ventanas emergentes de COBRA YA se muestra una sola X: cierra la ventana y recupera la vista anterior, conservando el contexto. Escape tiene el mismo comportamiento. Se elimina el botón Atrás redundante del encabezado emergente. El cierre del panel principal regresa a la portada de los cuatro negocios sin cerrar sesión. El panel compartido conserva el origen al consultar billetera/perfil desde COBRA YA; MI COCHERA conserva el origen de su acceso a billetera y el catálogo conserva el regreso desde perfil. Cerrar en el panel compartido también cierra las capas de negocio y elimina el historial de navegación de esa visita. No se modifican operaciones de los negocios.
 
 ## Verificación
 
