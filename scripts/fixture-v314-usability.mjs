@@ -11,26 +11,27 @@ export function usabilityFixture(kind='cochera'){
  const carts=[{id:1,alias:'José',state:'ACTIVE',owner_person_id:'p1',worker_person_id:'p2',daily_rate:4,currency:'PEN',business_type:'Emoliente'},{id:2,alias:'Ana',state:'RETIRED',owner_person_id:'p3',daily_rate:4,currency:'PEN',business_type:'Frutas'}];
  const people=[{id:'p1',full_name:'José Pérez',phone:'123'},{id:'p2',full_name:'Trabajador',phone:'+51987654321'},{id:'p3',full_name:'Ana'}];let changeResolve,saveResolve,staleResolve,hold=false,calls=0;
  const base=cc80.api;cc80.api=async(p,m,b)=>{
- if(p==='rpc/mc_change_cart_state'){calls++;return new Promise(r=>changeResolve=()=>{carts[0].state=b.p_new_state;r([]);});}
+ if(p==='rpc/mc_record_movement'){calls++;return new Promise(r=>changeResolve=()=>r([]));}
  if(p==='rpc/mc_create_cart'){calls++;return new Promise(r=>saveResolve=()=>r(3));}
  if(p==='rpc/cc_finance_wallet')return {balance_pen:22,pending_reversal_pen:5,available_pen:17};
  if(p.startsWith('mc_carts?')){if(hold){hold=false;return new Promise(r=>staleResolve=r);}return CC_V53_SESSION.userId==='new-user'?[{...carts[0],alias:'Cuenta nueva'}]:carts.map(c=>({...c}));}
  if(p.startsWith('mc_people?'))return people;if(p.startsWith('mc_movements?'))return [{cart_id:1,amount_local:12}];return base(p,m,b);};
  window.confirm=()=>true;const badge=document.createElement('span');badge.id='mc158-home-wallet';document.body.append(badge);
  await mc158Open();await wait(40);checks.realBalance=badge.textContent.includes('17.00');
- const search=q('#mc158search');input(search,'José');checks.accents=all('.mc158cart').length===1;checks.sameInput=q('#mc158search')===search;
- input(search,'C-001');checks.code=all('.mc158cart').length===1&&q('.mc158cart h3').textContent==='José';
- input(search,'');const state=q('#mc158state');state.value='RETIRED';state.dispatchEvent(new Event('change',{bubbles:true}));checks.stateFilter=all('.mc158cart').length===1&&q('.mc158cart h3').textContent==='Ana';
- q('[data-action=reload]').click();await wait(40);checks.filterPersists=q('#mc158state').value==='RETIRED'&&all('.mc158cart').length===1;
- const pay=q('[data-action=payment]');checks.noDebtDisabled=pay.disabled;pay.dispatchEvent(new MouseEvent('click',{bubbles:true}));checks.noDebtGuard=!q('#mc158dialog');
- input(q('#mc158search'),'inexistente');checks.empty=q('.mc314-empty')?.textContent.includes('coincidan')&&q('#mc158count').textContent.startsWith('0 de 2');input(q('#mc158search'),'');
- q('#mc158state').value='ALL';q('#mc158state').dispatchEvent(new Event('change',{bubbles:true}));checks.secondaryCollapsed=all('.mc314-more').every(d=>!d.open);
- window.open=url=>{window.__wa=url;return null;};q('.mc314-more').open=true;q('[data-action=whatsapp]').click();checks.whatsapp=__wa.startsWith('https://wa.me/51987654321?')&&q('#mc158notice a')?.href===__wa;
- const retire=q('[data-action=retire]');retire.click();retire.dispatchEvent(new MouseEvent('click',{bubbles:true}));await wait(10);checks.preventDouble=calls===1&&retire.disabled;changeResolve();await wait(50);
- q('[data-action=new]').click();await wait(20);const form=q('#mc158new');form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));await wait(10);checks.saving=form.getAttribute('aria-busy')==='true'&&form.querySelector('[type=submit]').disabled;
+ const rows=()=>all('#mc158rows tr').filter(r=>r.querySelector('[data-action="select-cart"]'));
+ const search=q('#mc158search');input(search,'José');checks.accents=rows().length===1;checks.sameInput=q('#mc158search')===search;
+ input(search,'C-001');checks.code=rows().length===1&&rows()[0].querySelector('td strong').textContent==='José';
+ input(search,'');const state=q('#mc158state');state.value='RETIRED';state.dispatchEvent(new Event('change',{bubbles:true}));checks.stateFilter=rows().length===1&&rows()[0].querySelector('td strong').textContent==='Ana';
+ mc158Close();await mc158Open();await wait(40);checks.filterPersists=q('#mc158state').value==='RETIRED'&&rows().length===1;
+ rows()[0].querySelector('[data-action="select-cart"]').click();const pay=q('[data-action=payment]');checks.noDebtDisabled=pay.disabled;pay.dispatchEvent(new MouseEvent('click',{bubbles:true}));checks.noDebtGuard=!q('#mc158dialog');
+ input(q('#mc158search'),'inexistente');checks.empty=q('.mc158empty')?.textContent.includes('coincidan')&&q('#mc158count').textContent.startsWith('0 de 2');input(q('#mc158search'),'');
+ q('#mc158state').value='ALL';q('#mc158state').dispatchEvent(new Event('change',{bubbles:true}));rows()[0].querySelector('[data-action="select-cart"]').click();checks.detailsFollowSelection=q('.mc158detail-head h3').textContent==='José';
+ window.open=url=>{window.__wa=url;return null;};q('.mc158detail-actions [data-action=whatsapp]').click();checks.whatsapp=__wa.startsWith('https://wa.me/51987654321?')&&q('#mc158notice a')?.href===__wa;
+ q('.mc158detail-actions [data-action=sale]').click();const sale=q('#mc158sale');sale.requestSubmit();sale.requestSubmit();await wait(10);checks.preventDouble=calls===1&&sale.getAttribute('aria-busy')==='true'&&sale.querySelector('[type=submit]').disabled;changeResolve();await wait(50);
+ q('[data-action=new]').click();await wait(20);const form=q('#mc158new');for(const [k,v] of Object.entries({ownerDoc:'11111111',ownerName:'Propietario ficticio',business:'Frutas',rate:'4'}))form.elements.namedItem(k).value=v;form.requestSubmit();await wait(10);checks.saving=form.getAttribute('aria-busy')==='true'&&form.querySelector('[type=submit]').disabled;
  q('[data-action=close-dialog]').click();q('[data-action=new]').click();await wait(20);const fresh=q('#mc158new');input(fresh.elements.namedItem('alias'),'Nuevo borrador');saveResolve();await wait(60);checks.newDraftPreserved=q('#mc158new')===fresh&&fresh.elements.namedItem('alias').value==='Nuevo borrador';mc158Close();
- hold=true;const oldLoad=mc158Open();await wait(20);CC_V53_SESSION={...CC_V53_SESSION,userId:'new-user',jwt:'NEW-FIXTURE-JWT'};await mc158Open();staleResolve(carts);await oldLoad;checks.staleOwner=q('.mc158cart h3').textContent==='Cuenta nueva'&&q('#mc158state').value==='ALL';
- document.dispatchEvent(new Event('cc192-session-ended'));checks.logout=q('#mc158layer').style.display==='none'&&!q('.mc158cart');checks.onlySimulatedWrites=calls===2;
+ hold=true;const oldLoad=mc158Open();await wait(20);CC_V53_SESSION={...CC_V53_SESSION,userId:'new-user',jwt:'NEW-FIXTURE-JWT'};await mc158Open();staleResolve(carts);await oldLoad;checks.staleOwner=rows()[0].querySelector('td strong').textContent==='Cuenta nueva'&&q('#mc158state').value==='ALL';
+ document.dispatchEvent(new Event('cc192-session-ended'));checks.logout=q('#mc158layer').style.display==='none'&&!q('#mc158rows tr');checks.onlySimulatedWrites=calls===2;
  `,contabilidad:`
  ma1611MiAlquiler.open();await wait(120);q('[data-area=finanzas]').click();await wait(140);const opener=q('[data-ma3-action=expense]');opener.focus();opener.click();await wait(40);
  const root=q('#ma3dialog'),panel=root?.querySelector('[role=dialog]');checks.opens=!!panel;checks.focus=panel.contains(document.activeElement);checks.named=!!panel.getAttribute('aria-label');

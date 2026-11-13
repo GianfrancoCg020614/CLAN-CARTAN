@@ -11,6 +11,7 @@ export function cleanupFixture(){
   __requests.push(p);
   if(p.startsWith('cc_admins?'))return window.CC_V53_SESSION.isAdmin?[{user_id:'fixture-user'}]:[];
   if(p.startsWith('cc_real_service_wallets?'))return [{service:'STREAM_BULLS',balance_pen:10},{service:'COBRA_YA',balance_pen:5},{service:'MI_COCHERA',balance_pen:2}];
+  if(p.startsWith('mc_accounts?'))return [{user_id:'fixture-user',invite_code:'COCHERA-FIXTURE',country:'PE',subscription_until:'2099-12-31',bonus_pen:50,suspended:false}];
   if(p==='rpc/cc_finance_wallet')return {available_pen:17,pending_reversal_pen:0};if(p==='rpc/mc_ensure_account')return [{user_id:'fixture-user',subscription_until:'2099-12-31',currency:'PEN',bonus_pen:50}];
   if(p==='rpc/mc_sync_rents')return [];
   if(p==='rpc/cc_my_real_wallet_movements')return [{movement_id:'fixture-history',occurred_at:'2026-11-01T12:00:00Z',movement_type:'RECHARGE',service:'MI_COCHERA',amount_pen:2,affects_balance:true,status:'CREDITED',reference:'FIXTURE-REF',description:'Movimiento ficticio conservado'}];
@@ -25,8 +26,11 @@ export function cleanupFixture(){
  try{
  cc80.open();checks.oldWalletRoutesToCurrent=!q('#cc166-panel').hidden&&q('.cc166-section-title')?.textContent.includes('Billetera');checks.oldHostHidden=q('#cc80wallet').hidden;
  window.cc116OpenRecharge();await wait(60);checks.rechargeRoutesCurrent=q('.cc175-tab.selected')?.textContent==='Recarga manual';
- await window.mc158Open();checks.sharedRealBalance=q('#mc158body').textContent.includes('saldo real S/ 17.00');checks.bonusSeparate=q('#mc158body').textContent.includes('Bono de activación MI COCHERA: S/ 50.00')&&!q('#mc158body').textContent.includes('67.00');checks.noTransferControl=!q('[data-action="transfer"]')&&!q('#mc158body').textContent.includes('Saldo total MI COCHERA');
- q('[data-action="wallet"]').click();checks.nativeWalletRoutesCurrent=q('#mc158layer').style.display==='none'&&!q('#cc166-panel').hidden;
+ window.cc166OpenWallet('summary');await wait(60);const balances=[...document.querySelectorAll('#cc166-panel .cc-wallet-tile strong')];
+ checks.sharedRealBalance=balances[0]?.textContent.includes('17.00')===true;checks.bonusSeparate=balances[1]?.textContent.includes('50.00')===true&&!q('#cc166-content').textContent.includes('67.00');
+ q('#cc166-panel').hidden=true;await window.mc158Open();checks.noTransferControl=!q('[data-action="transfer"]')&&!q('#mc158body').textContent.includes('Saldo total MI COCHERA');
+ // Wallet access is centralized; use the visible module return control, then the existing wallet API.
+ q('#mc158close').click();window.cc166OpenWallet('summary');checks.nativeWalletRoutesCurrent=q('#mc158layer').style.display==='none'&&!q('#cc166-panel').hidden;
  window.cc132OpenMovements();await wait(100);checks.historyOpens=q('#cc132movements').open&&q('#cc132movements').parentElement===document.body;checks.historyPreserved=q('#cc132tbody').textContent.includes('Movimiento ficticio conservado');
  const filter=q('#cc132service');checks.fourOrigins=filter.options.length===5;filter.value='MI_COCHERA';filter.dispatchEvent(new Event('change'));
  q('#cc132excel').click();await wait(30);const csv=await __blobs.at(-1)?.text();checks.csvPreserved=__downloads.some(x=>x.endsWith('.csv'))&&csv?.includes('MI COCHERA')&&csv?.includes('FIXTURE-REF');
