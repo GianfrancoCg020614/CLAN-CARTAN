@@ -103,7 +103,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=371.1';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=373';script.async=false;document.head.append(script);
  }
 })();
 
@@ -200,21 +200,4 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const link=document.createElement('link');link.id='cc308-panel-nav-css';
  link.rel='stylesheet';link.href='styles/v308-panel-navigation.css?v=309';
  document.head.append(link);
-})();
-
-
-/* V343 · Cargar el módulo operativo MI COCHERA y su diseño versionado.
-   Mantiene una sola instancia visible y conserva las operaciones Supabase existentes. */
-(function loadMiCocheraV343(){
- 'use strict';
- if(document.getElementById('mc158-v343-loader'))return;
- const style=document.createElement('link');
- style.id='mc158-v343-style';style.rel='stylesheet';
- style.href='styles/v158-mi-cochera.css?v=343';
- document.head.append(style);
- document.getElementById('mc158layer')?.remove();
- document.getElementById('mc158dialog')?.remove();
- const script=document.createElement('script');
- script.id='mc158-v343-loader';script.src='scripts/v158-mi-cochera.js?v=371.1';
- script.async=false;document.head.append(script);
 })();

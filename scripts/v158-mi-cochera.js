@@ -1,7 +1,8 @@
-/* CLAN CARTAN V343 / MI COCHERA: modulo multiempresa protegido en Supabase.
+/* CLAN CARTAN V373 / MI COCHERA: modulo multiempresa protegido en Supabase.
  No intenta cobrar pagos comerciales ni transferir bonos. */
 (function(){
 "use strict";
+if(window.mc373Loaded)return;window.mc373Loaded=true;
 const $=id=>document.getElementById(id),ses=()=>window.CC_V53_SESSION;
 const esc=x=>String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const num=x=>Number(x||0);
@@ -11,35 +12,20 @@ const countryMeta={PE:["🇵🇪","Perú","PEN"],US:["🇺🇸","Estados Unidos"
 const api=(p,b)=>window.cc80.api(p,"POST",b||{});
 let account=null,carts=[],moves=[],people=[],accounts=[],walletAvailable=null,busy=false,filter="",cartState="ALL",ownerId=null,loadSequence=0,selectedCartId=null;
 const normalize=value=>String(value||" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
-function host(){let root=$("mc158layer");if(root)return root;root=document.createElement("div");root.id="mc158layer";
- root.innerHTML='<div class="mc158wrap"><header class="mc158head"><div><small>CLAN CARTAN · MI COCHERA</small><h2><img src="assets/mi-cochera-logo.svg" alt="Logotipo original MI COCHERA"> MI COCHERA</h2><p>Administra carritos, cobros y alquileres desde un solo lugar.</p></div><button type="button" id="mc158close">← Volver a CLAN CARTAN</button></header><div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';
- document.body.append(root);$("mc158close").onclick=close;
- root.addEventListener("click",click);root.addEventListener("submit",submit);
- root.addEventListener("click",dniClick);
- root.addEventListener("change",currencyCountryChanged);
- return root;
-}
-function close(){$("mc158dialog")?.remove();let layer=$("mc158layer");if(layer)layer.style.display="none";if($("cc77home"))$("cc77home").style.display="block";}
-function note(msg){let el=$("mc158notice");if(el)el.textContent=msg;else alert(msg);}
-function active(){return ses()?.isAdmin || account && !account.suspended && new Date(account.subscription_until)>new Date();}
-function header(){
- const role=ses()?.isAdmin?'ADMIN':'RESELLER';
- const meta=account?countryMeta[account.country||"PE"]:null;
- const local=account?'<span class="mc158local-currency" title="Moneda compartida de MI COCHERA, MI ALQUILER y COBRA YA">'+(meta?.[0]||"🌐")+' '+esc(account.country||"PE")+' · '+esc(account.currency||"PEN")+'</span>':'';
- return '<header class="mc158topbar" aria-label="MI COCHERA · Billetera única · Marca oficial CLAN CARTAN"><div class="mc158top-brand"><img src="assets/clan-cartan-brand-original.webp" alt="Logotipo oficial CLAN CARTAN"></div><div class="mc158top-center"><div class="mc158title-lockup"><img src="assets/mi-cochera-mascota-original.webp" alt="Emblema original del oso de MI COCHERA"><h1>MI COCHERA</h1></div><div class="mc158top-ribbon">Control de Carritos · Alquiler Diario · Productos · Cobros</div></div><div class="mc158top-actions">'+local+'<span class="mc158bell" aria-label="Notificaciones">🔔<i></i></span><span class="mc158role"><span>●</span>'+role+' <b>⌄</b></span></div></header>';
-}
+function note(msg){const el=$('mc158notice');if(el)el.textContent=msg;}
+function active(){return ses()?.isAdmin||account&&!account.suspended&&new Date(account.subscription_until)>new Date();}
 async function open(){
  if(!ses()?.jwt){if(typeof window.cc77Auth==="function")window.cc77Auth(false);return;}
- const r=host();r.style.display="block";if($("cc77home"))$("cc77home").style.display="none";
+ const r=host();r.style.display="block";document.documentElement.dataset.ccActiveModule="cochera";const portal=$("cc166-panel");if(portal)portal.hidden=true;if($("cc77home"))$("cc77home").style.display="none";
  $("mc158body").innerHTML="<p>Cargando MI COCHERA…</p>";
  const actor=ses()?.userId,jwt=ses()?.jwt,expected=loadSequence+1;
  try{await load();}catch(e){if(ses()?.userId!==actor||ses()?.jwt!==jwt||loadSequence!==expected)return;$("mc158body").textContent="No se pudo abrir MI COCHERA: "+String(e.message||e);}
 }
-async function load(){
+async function load(syncRents=true){
  await window.ccLoadBusinessCurrency?.();
  const session=ses(),id=session?.userId,jwt=session?.jwt,seq=++loadSequence;
  if(!id||!jwt)return;const current=()=>ses()?.userId===id&&ses()?.jwt===jwt&&loadSequence===seq;
- if(ownerId!==id){ownerId=id;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';}
+ if(ownerId!==id){ownerId=id;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';selectedCartId=null;selectedData=null;listPage=0;section='home';workspaceSummary=[];summaryCurrency='';if($('mc158search'))$('mc158search').value='';}
  if(session.isAdmin){account=null;return await loadAdmin(current);}
  const rows=await api('rpc/mc_ensure_account');if(!current())return;
  account=Array.isArray(rows)?rows[0]:rows;if(!account)throw Error('Sin cuenta.');
@@ -50,18 +36,15 @@ async function load(){
  if(wallet?.available_pen==null||!Number.isFinite(Number(wallet.available_pen)))throw Error('No se pudo verificar tu saldo disponible. Actualiza para continuar.');
  walletAvailable=Number(wallet.available_pen);window.cc326Wallet?.accept({userId:id,jwt,wallet});void refreshHomeWallet();
  if(!active()){showLocked();return;}
- await api('rpc/mc_sync_rents');if(!current())return;
- const items=await Promise.all([
-  window.cc80.api('mc_carts?select=*&reseller_id=eq.'+uid+'&order=id.asc'),
-  window.cc80.api('mc_movements?select=*&reseller_id=eq.'+uid+'&order=created_at.desc&limit=2000'),
-  window.cc80.api('mc_people?select=*&reseller_id=eq.'+uid+'&limit=2000')
- ]);
- if(!current())return;[carts,moves,people]=items;renderList();
+ if(syncRents)await api('rpc/mc_sync_rents');if(!current())return;
+ const data=await api('rpc/mc373_workspace',{p_query:filter,p_state:cartState,p_due:section==='collections',p_limit:pageSize(),p_offset:listPage*pageSize(),p_cart:selectedCartId});
+ if(!current())return;
+ if(!Array.isArray(data?.rows)||!Array.isArray(data.summary))throw Error('No se pudieron verificar los datos del panel. Actualiza para reintentar.');
+ carts=data.rows;selectedData=data.selected;selectedCartId=selectedData?.id||null;serverTotal=data.total;allCartCount=data.cart_count;workspaceSummary=data.summary;
+ people=[...new Map([...carts,selectedData].filter(Boolean).flatMap(c=>[c.owner,c.worker]).filter(p=>p?.id).map(p=>[p.id,p])).values()];renderList();
 }
-function currencyPanel(){return "";}
-function walletPanel(){return "";}
 
-function showLocked(){let el=$("mc158body");el.innerHTML=header()+'<section class="mc158box"><h3>Acceso a MI COCHERA</h3><p>Mientras la mensualidad esté vencida, tus carritos, cobros y deudas permanecen guardados y protegidos.</p><p>Activa la membresía desde Negocios con saldo real verificado, o utiliza un bono de activación autorizado.</p><button type="button" data-action="bonus" '+(num(account.bonus_pen)<15||account.suspended?"disabled":"")+'>Activar 30 días con S/ 15 de bono</button><p id="mc158notice" role="status"></p></section>';}
+function showLocked(){let el=$("mc158body");syncHeader();el.innerHTML='<section class="mc158box"><h3>Acceso a MI COCHERA</h3><p>Mientras la mensualidad esté vencida, tus carritos, cobros y deudas permanecen guardados y protegidos.</p><p>Activa la membresía desde Negocios con saldo real verificado, o utiliza un bono de activación autorizado.</p><button type="button" data-action="activation">Pagar para activar</button><button type="button" data-action="bonus" '+(num(account.bonus_pen)<15||account.suspended?"disabled":"")+'>Activar 30 días con S/ 15 de bono</button><p id="mc158notice" role="status"></p></section>';}
 async function loadAdmin(current=()=>true){
  const [accountRows,clanUsers]=await Promise.all([
   window.cc80.api("mc_accounts?select=user_id,invite_code,currency,subscription_until,bonus_pen,suspended&order=created_at.desc&limit=300"),
@@ -70,7 +53,7 @@ async function loadAdmin(current=()=>true){
  if(!current())return;
  const names=new Map((Array.isArray(clanUsers)?clanUsers:[]).map(u=>[u.id,u.code]));
  accounts=accountRows.map(a=>({...a,invite_code:names.get(a.user_id)||'CLAN pendiente'}));
- $("mc158body").innerHTML=header()+'<section class="mc158box"><h3>Resellers MI COCHERA</h3><p>Consulta de cuentas y vigencias. Los bonos se administran desde el panel ADMIN central.</p><button type="button" data-action="bonuses">Abrir gestión de bonos</button><p id="mc158notice" role="status"></p><div class="mc158scroll"><table><thead><tr><th>Código</th><th>Suscripción</th><th>Bono</th><th>Cuenta</th></tr></thead><tbody>'+accounts.map(a=>'<tr><td>'+esc(a.invite_code)+'</td><td>'+esc(a.subscription_until?new Date(a.subscription_until).toLocaleDateString("es-PE"):"No activa")+'</td><td>S/ '+num(a.bonus_pen).toFixed(2)+'</td><td>'+esc(a.user_id.slice(0,8))+'…</td></tr>').join("")+'</tbody></table></div></section>';
+ syncHeader();$("mc158body").innerHTML='<section class="mc158box"><h3>Resellers MI COCHERA</h3><p>Consulta de cuentas y vigencias. Los bonos se administran desde el panel ADMIN central.</p><button type="button" data-action="bonuses">Abrir gestión de bonos</button><p id="mc158notice" role="status"></p><div class="mc158scroll"><table><thead><tr><th>Código</th><th>Suscripción</th><th>Bono</th><th>Cuenta</th></tr></thead><tbody>'+accounts.map(a=>'<tr><td>'+esc(a.invite_code)+'</td><td>'+esc(a.subscription_until?new Date(a.subscription_until).toLocaleDateString("es-PE"):"No activa")+'</td><td>S/ '+num(a.bonus_pen).toFixed(2)+'</td><td>'+esc(a.user_id.slice(0,8))+'…</td></tr>').join("")+'</tbody></table></div></section>';
 }
 function currencyCountryChanged(event){
  const select=event.target.closest('#mc158config select[name="country"]');
@@ -82,49 +65,58 @@ function currencyCountryChanged(event){
  if(preview)preview.textContent=code;
 }
 function person(id){return people.find(p=>p.id===id)||{};}
-function balance(id){return moves.filter(m=>m.cart_id===id).reduce((s,m)=>s+num(m.amount_local),0);}
-function cartHTML(c){
- const owner=person(c.owner_person_id),worker=person(c.worker_person_id),debt=Math.max(0,balance(c.id));
- return '<article class="mc158cart"><div class="mc158carttop"><div><small>C-'+String(c.id).padStart(3,'0')+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||owner.full_name||'Carrito')+'</h3><p>Propietario: '+esc(owner.full_name)+' · '+esc(owner.document_number)+'</p>'+(worker.id?'<p>Trabajador: '+esc(worker.full_name)+'</p>':'')+'<small>Tarifa '+currency(c.daily_rate,c.currency)+' / día</small></div><div><strong class="'+(debt>0?'mc158debt':'')+'">'+currency(debt,c.currency)+'</strong><small>'+esc(c.state==='RETIRED'?'Retirado':'Activo')+'</small></div></div><div class="mc158actions"><button type="button" data-action="payment" data-cart="'+c.id+'" '+(debt>0?'':'disabled title="No hay deuda pendiente"')+'>Cobrar</button><button type="button" data-action="sale" data-cart="'+c.id+'">Hielo / venta</button><details class="mc314-more"><summary>Más acciones</summary><div><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp</button><button type="button" data-action="'+(c.state==='ACTIVE'?'retire':'reactivate')+'" data-cart="'+c.id+'">'+(c.state==='ACTIVE'?'Se retira':'Reactivar')+'</button></div></details></div></article>';
+const icons={menu:'M4 6h16M4 12h16M4 18h16',back:'m11 5-7 7 7 7M4 12h17',search:'m21 21-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',home:'m3 10 9-8 9 8M5 9v12h5v-7h4v7h5V9',cart:'M2 4h3l3 12h11l3-8H6M9 20h1M18 20h1',pay:'M2 18h5l4 3 9-6c2-2-1-4-3-2l-5 2M7 18v-6h5c3 0 3 4 0 4H9M13 2l7 3v5l-7 3-5-3V5l5-3Z',sales:'M3 7h18v14H3V7ZM3 7l3-5h12l3 5M9 11h6',report:'M3 21h18M6 18v-5M12 18V9M18 18V4',settings:'M9 3h6l1 3 3 1 2 5-2 4-3 1-1 4H9l-1-4-3-1-2-4 2-5 3-1 1-3ZM16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',user:'M20 21a8 8 0 0 0-16 0M17 7a5 5 0 1 1-10 0 5 5 0 0 1 10 0',wallet:'M3 7h17v14H3V7Zm0 0 13-5 2 5M15 12h7v5h-7v-5Z',eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',close:'m5 5 14 14M5 19 19 5',refresh:'M20 7V2l-4 4a8 8 0 1 0 4 8M20 2h-5'};
+const icon=name=>'<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+icons[name]+'"/></svg>';
+const sections={home:['home','Inicio'],carts:['cart','Carritos'],sales:['sales','Ventas'],collections:['pay','Cobros'],reports:['report','Reportes'],settings:['settings','Configuración']};
+let section='home',listPage=0,serverTotal=0,allCartCount=0,selectedData=null,workspaceSummary=[],summaryCurrency='',searchTimer,historySequence=0;
+const pageSize=()=>matchMedia('(max-width:850px)').matches?5:10;
+function header(){return '<header class="mc158head"><button type="button" data-action="menu" class="mc373-icon" aria-label="Abrir menú" aria-expanded="false">'+icon('menu')+'</button><img class="mc373-logo" src="/assets/logo-cochera-v304.avif" alt="MI COCHERA · CLAN CARTAN" width="100" height="70"><button type="button" id="mc158close" class="mc373-back">'+icon('back')+'<span>Volver a<br><b>CLAN CARTAN</b></span></button><label class="mc373-search">'+icon('search')+'<input id="mc158search" type="search" maxlength="120" aria-label="Buscar carrito" placeholder="Nombre, alias, DNI, celular o C-…" autocomplete="off"></label><button type="button" data-action="wallet" class="mc373-wallet" aria-label="Billetera única CLAN CARTAN">'+icon('wallet')+'<span id="mc373walletAmount">Billetera</span></button><button type="button" data-action="profile" class="mc373-icon" aria-label="Abrir mi perfil">'+icon('user')+'</button></header>';}
+function syncHeader(){const w=$('mc373walletAmount');if(w)w.textContent=walletAvailable==null?'Billetera':currency(walletAvailable,'PEN');const s=$('mc158search');if(s){s.disabled=!active();s.placeholder=ses()?.isAdmin?'Buscar cuenta o código CLAN…':'Nombre, alias, DNI, celular o C-…';}}
+function host(){let root=$('mc158layer');if(root)return root;root=document.createElement('div');root.id='mc158layer';root.className='mc373-layer';root.innerHTML='<div class="mc158wrap">'+header()+'<div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';document.body.append(root);
+ $('mc158close').onclick=()=>{close();window.cc166OpenPanel?.();};root.addEventListener('click',click);root.addEventListener('submit',submit);root.addEventListener('click',dniClick);root.addEventListener('change',currencyCountryChanged);
+ $('mc158search').oninput=e=>{if(ses()?.isAdmin){const q=normalize(e.target.value);$('mc158body').querySelectorAll('tbody tr').forEach(row=>row.hidden=!normalize(row.textContent).includes(q));return;}filter=e.target.value;listPage=0;if(!['home','carts','collections'].includes(section)){section='carts';renderList();}else renderRows();clearTimeout(searchTimer);searchTimer=setTimeout(()=>{if(root.style.display!=='none')void load(false).catch(err=>note(err.message));},250);};
+ root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('mc373-menu-open')){root.classList.remove('mc373-menu-open');root.querySelector('.mc158sidebar')?.setAttribute('inert','');root.querySelector('[data-action=menu]').setAttribute('aria-expanded','false');}});return root;
 }
+function close(){$('mc158dialog')?.remove();clearTimeout(searchTimer);historySequence++;const root=$('mc158layer');if(root){root.style.display='none';root.classList.remove('mc373-menu-open');}if(document.documentElement.dataset.ccActiveModule==='cochera')delete document.documentElement.dataset.ccActiveModule;if($('cc77home'))$('cc77home').style.display='block';}
+function navHTML(){return '<button type="button" class="mc373-scrim" data-action="menu" aria-label="Cerrar menú"></button><aside class="mc158sidebar" '+(matchMedia('(max-width:850px)').matches&&!$('mc158layer').classList.contains('mc373-menu-open')?'inert':'')+'><nav aria-label="Secciones MI COCHERA">'+Object.entries(sections).map(([key,[img,label]])=>'<button type="button" data-action="nav" data-view="'+key+'" class="mc158nav-item '+(section===key?'is-current':'')+'" '+(section===key?'aria-current="page"':'')+'>'+icon(img)+'<span>'+label+'</span></button>').join('')+'</nav><small>MI COCHERA · V373</small></aside>';}
+function balance(id){const c=carts.find(c=>Number(c.id)===Number(id))||(Number(selectedData?.id)===Number(id)?selectedData:null);if(!c||!Number.isFinite(Number(c.balance_local)))throw Error('No se pudo verificar el saldo del carrito. Actualiza antes de registrar un pago.');return Number(c.balance_local);}
+function rowMatches(c){const o=person(c.owner_person_id),w=person(c.worker_person_id),text=normalize([c.alias,c.business_type,o.full_name,o.document_number,o.phone,String(o.phone||'').replace(/\D/g,''),w.full_name,w.document_number,w.phone,String(c.id),'C-'+String(c.id).padStart(3,'0'),'C'+String(c.id).padStart(3,'0')].join(' '));return (cartState==='ALL'||c.state===cartState)&&(section!=='collections'||balance(c.id)>0)&&normalize(filter).split(/\s+/).filter(Boolean).every(term=>text.includes(term));}
 function renderRows(){
- const terms=normalize(filter).split(/\s+/).filter(Boolean);
- const shown=carts.filter(c=>{
-  const text=normalize([c.alias,c.business_type,person(c.owner_person_id).full_name,person(c.owner_person_id).document_number,person(c.worker_person_id).full_name,person(c.worker_person_id).document_number,String(c.id),'C-'+String(c.id).padStart(3,'0')].join(' '));
-  return (cartState==='ALL'||c.state===cartState)&&terms.every(term=>text.includes(term));
- });
- const rows=shown.map(c=>{
-  const owner=person(c.owner_person_id),due=Math.max(0,balance(c.id)),active=c.state==='ACTIVE';
-  return '<tr class="'+(Number(c.id)===Number(selectedCartId)?'is-selected':'')+'"><td>'+String(c.id).padStart(3,'0')+'</td><td><span class="mc158cart-icon">🛒</span><strong>'+esc(c.alias||owner.full_name||'Carrito')+'</strong><small>'+esc(owner.full_name||c.business_type||'Sin propietario')+'</small></td><td>'+currency(c.daily_rate,c.currency||account.currency)+'</td><td><span class="mc158status '+(active?'is-active':'is-retired')+'">'+(active?'✓ Al día':'Retirado')+'</span></td><td class="'+(due>0?'mc158debt':'')+'">'+currency(due,c.currency||account.currency)+'</td><td><button class="mc158-row-open" type="button" data-action="select-cart" data-cart="'+c.id+'" aria-label="Ver carrito '+esc(c.alias||c.id)+'">›</button></td></tr>';
- }).join('');
- const body=$('mc158rows');if(body)body.innerHTML=rows||'<tr><td colspan="6" class="mc158empty">'+(carts.length?'No hay carritos que coincidan con la búsqueda.':'Todavía no tienes carritos registrados.')+'</td></tr>';
- const count=$('mc158count');if(count)count.textContent=shown.length+' de '+carts.length+' carritos';
+ const shown=carts.filter(rowMatches),body=$('mc158rows');if(!body)return;
+ body.innerHTML=shown.map(c=>{const due=Math.max(0,balance(c.id)),o=person(c.owner_person_id),retired=c.state==='RETIRED';return '<tr class="'+(Number(c.id)===Number(selectedCartId)?'is-selected':'')+'"><td data-label="Código">C-'+String(c.id).padStart(3,'0')+'</td><td data-label="Carrito"><strong>'+esc(c.alias||o.full_name||'Carrito')+'</strong><small>'+esc(o.full_name||c.business_type)+'</small></td><td data-label="Tarifa diaria">'+currency(c.daily_rate,c.currency)+'</td><td data-label="Estado"><span class="mc158status '+(retired?'is-retired':due>0?'is-due':'is-active')+'">'+(retired?'Retirado':due>0?'Pendiente':'Al día')+'</span></td><td data-label="Saldo" class="'+(due>0?'mc158debt':'')+'">'+currency(due,c.currency)+'<small>'+esc(c.currency)+'</small></td><td><button type="button" data-action="select-cart" data-cart="'+c.id+'" class="mc158-row-open" aria-label="Ver carrito '+esc(c.alias||c.id)+'">'+icon('eye')+'</button></td></tr>';}).join('')||'<tr><td colspan="6" class="mc158empty">'+(allCartCount?'No hay carritos que coincidan con la búsqueda.':'Todavía no tienes carritos registrados. Usa Nuevo carrito para comenzar.')+'</td></tr>';
+ $('mc158count').textContent=shown.length+' de '+allCartCount+' carritos';
 }
-function renderList(listOnly=false){
- const today=new Date().toLocaleDateString('en-CA');
- const kindIs=(m,keys)=>keys.includes(normalize(m.kind||m.movement_type||m.type));
- const movementDate=m=>String(m.occurred_on||m.created_at||'').slice(0,10);
- const todaySum=keys=>moves.filter(m=>kindIs(m,keys)&&movementDate(m)===today).reduce((s,m)=>s+Math.max(0,num(m.amount_local)),0);
- const activeCount=carts.filter(c=>c.state==='ACTIVE').length;
- const totalDebt=carts.reduce((s,c)=>s+Math.max(0,balance(c.id)),0);
- const selected=carts.find(c=>Number(c.id)===Number(selectedCartId))||carts[0]||null;
- if(selected)selectedCartId=selected.id;
- const owner=selected?person(selected.owner_person_id):{};
- const worker=selected?person(selected.worker_person_id):{};
- const selectedMoves=selected?moves.filter(m=>Number(m.cart_id)===Number(selected.id)):[];
- const rentalTotal=selectedMoves.filter(m=>kindIs(m,['rent','rental','alquiler'])).reduce((s,m)=>s+Math.max(0,num(m.amount_local)),0);
- const productTotal=selectedMoves.filter(m=>kindIs(m,['product','sale','venta'])).reduce((s,m)=>s+Math.max(0,num(m.amount_local)),0);
- const due=selected?Math.max(0,balance(selected.id)):0;
- const cur=selected?.currency||account.currency||'PEN';
- const detail=selected?'<div class="mc158detail-head"><span>🛒</span><div><small>CUENTA DEL CARRITO '+String(selected.id).padStart(3,'0')+'</small><h3>'+esc(selected.alias||owner.full_name||'Carrito')+'</h3></div><span class="mc158status '+(selected.state==='ACTIVE'?'is-active':'is-retired')+'">'+(selected.state==='ACTIVE'?'Activo':'Retirado')+'</span></div><div class="mc158person"><span class="mc158avatar">👤</span><div><strong>'+esc(owner.full_name||'Propietario no registrado')+'</strong><small>Propietario'+(owner.document_number?' · '+esc(owner.document_number):'')+'</small></div><span class="mc158rate">Tarifa diaria: <b>'+currency(selected.daily_rate,cur)+'</b></span></div>'+(worker.id?'<div class="mc158detail-line"><span>Trabajador</span><strong>'+esc(worker.full_name||'—')+'</strong></div>':'')+'<div class="mc158detail-line"><span>Alquiler acumulado</span><strong>'+currency(rentalTotal,cur)+'</strong></div><div class="mc158detail-line"><span>Productos vendidos</span><strong>'+currency(productTotal,cur)+'</strong></div><div class="mc158detail-debt"><span>🛒 Saldo pendiente</span><strong>'+currency(due,cur)+'</strong></div><div class="mc158detail-actions"><button type="button" data-action="payment" data-cart="'+selected.id+'" '+(due<=0?'disabled':'')+'>✓ Registrar pago</button><button type="button" data-action="sale" data-cart="'+selected.id+'">＋ Agregar producto</button><button type="button" data-action="history" data-cart="'+selected.id+'">Ver historial</button><button type="button" data-action="whatsapp" data-cart="'+selected.id+'">WhatsApp</button></div>':'<div class="mc158detail-head mc158detail-head-empty"><span>🛒</span><div><small>CUENTA DEL CARRITO</small><h3>Sin carrito seleccionado</h3></div><button type="button" data-action="history" disabled>Ver detalle</button></div><div class="mc158person"><span class="mc158avatar">👤</span><div><strong>Selecciona un carrito</strong><small>Cliente / propietario</small></div><span class="mc158rate">Tarifa diaria: <b>—</b></span></div><div class="mc158detail-line"><span>Alquiler</span><strong>—</strong></div><div class="mc158detail-line"><span>Productos</span><strong>—</strong></div><div class="mc158detail-debt"><span>🛒 Saldo pendiente</span><strong>—</strong></div><div class="mc158detail-actions"><button type="button" disabled>✓ Registrar pago</button><button type="button" disabled>▣ Agregar producto</button></div>';
- const body=$('mc158body');
- body.innerHTML=header()+'<div class="mc158dashboard"><aside class="mc158sidebar"><div class="mc158sidebar-brand"><img src="assets/clan-cartan-brand-original.webp" alt="Logotipo oficial CLAN CARTAN"></div><div class="mc158nav-item is-current"><span>⌂</span>Inicio</div><div class="mc158nav-item"><span>🛒</span>Carritos</div><div class="mc158nav-item"><span>▣</span>Ventas</div><div class="mc158nav-item"><span>⬡</span>Inventario</div><div class="mc158nav-item"><span>▤</span>Cobros</div><div class="mc158nav-item"><span>▥</span>Reportes</div><div class="mc158nav-item mc158nav-config" role="button" tabindex="0" data-action="currency" aria-label="Configurar país y moneda"><span>⚙</span>Configuración</div><div class="mc158sidebar-foot">CLAN CARTAN · MI COCHERA</div></aside><main class="mc158main"><section class="mc158kpis"><article class="mc158kpi kpi-green"><span>🛒</span><div><small>Carritos Activos</small><strong>'+activeCount+'</strong></div></article><article class="mc158kpi kpi-blue"><span>▦</span><div><small>Alquiler Hoy</small><strong>'+currency(todaySum(['rent','rental','alquiler']),cur)+'</strong></div></article><article class="mc158kpi kpi-purple"><span>⬡</span><div><small>Ventas Hoy</small><strong>'+currency(todaySum(['product','sale','venta']),cur)+'</strong></div></article><article class="mc158kpi kpi-red"><span>▤</span><div><small>Deuda Total</small><strong>'+currency(totalDebt,cur)+'</strong></div></article></section><section class="mc158quick"><button type="button" data-action="sale" data-cart="'+(selected?.id||'')+'" '+(!selected?'disabled':'')+'><span>＋</span><b>Registrar Venta</b><small>Asignar a un carrito</small></button><button type="button" data-action="payment" data-cart="'+(selected?.id||'')+'" '+(!selected||due<=0?'disabled':'')+'><span>▣</span><b>Registrar Pago</b><small>Alquiler o deuda</small></button><button type="button" data-action="new"><span>🛒</span><b>Nuevo Carrito</b><small>Cliente y tarifa diaria</small></button></section><section class="mc158workspace"><div class="mc158panel mc158list-panel"><div class="mc158panel-title"><h3>🛒 Carritos en Servicio</h3><span id="mc158count"></span></div><div class="mc158filters"><input id="mc158search" type="search" aria-label="Buscar carrito" placeholder="Buscar cliente, DNI o carrito…" value="'+esc(filter)+'"><select id="mc158state" aria-label="Filtrar estado"><option value="ALL">Todos los estados</option><option value="ACTIVE">Activos</option><option value="RETIRED">Retirados</option></select></div><div class="mc158table-wrap"><table class="mc158table"><thead><tr><th>#</th><th>Cliente / Carrito</th><th>Tarifa/Día</th><th>Estado</th><th>Saldo</th><th></th></tr></thead><tbody id="mc158rows"></tbody></table></div><p id="mc158notice" role="status"></p></div><div class="mc158panel mc158detail-panel">'+detail+'</div></section></main></div>';
- $('mc158state').value=cartState;
- $('mc158search').addEventListener('input',event=>{filter=event.target.value;renderRows();});
- $('mc158state').addEventListener('change',event=>{cartState=event.target.value;renderRows();});
- renderRows();
+function selectedDetail(){
+ const c=selectedData;if(!c)return '<div class="mc373-empty"><h3>Selecciona un carrito</h3><p>Abre una ficha para consultar su deuda e historial.</p></div>';
+ const o=person(c.owner_person_id),w=person(c.worker_person_id),due=Math.max(0,balance(c.id));
+ return '<div class="mc158detail-head"><div><small>C-'+String(c.id).padStart(3,'0')+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||o.full_name||'Carrito')+'</h3></div><span class="mc158status">'+(c.state==='ACTIVE'?'Activo':'Retirado')+'</span></div><div class="mc158person"><strong>'+esc(o.full_name||'Propietario')+'</strong><small>Propietario'+(o.document_number?' · '+esc(o.document_number):'')+'</small></div>'+(w.id?'<div class="mc158detail-line"><span>Trabajador</span><strong>'+esc(w.full_name)+'</strong></div>':'')+'<div class="mc158detail-line"><span>Tarifa diaria</span><strong>'+currency(c.daily_rate,c.currency)+'</strong></div><div class="mc158detail-line"><span>Alquiler registrado</span><strong>'+currency(c.rent_total,c.currency)+'</strong></div><div class="mc158detail-line"><span>Productos registrados</span><strong>'+currency(c.product_total,c.currency)+'</strong></div><div class="mc158detail-debt"><span>Saldo pendiente · '+esc(c.currency)+'</span><strong>'+currency(due,c.currency)+'</strong></div><div class="mc158detail-actions"><button type="button" data-action="payment" data-cart="'+c.id+'" '+(due<=0?'disabled':'')+'>Registrar pago</button><button type="button" data-action="sale" data-cart="'+c.id+'" '+(c.state!=='ACTIVE'?'disabled':'')+'>Agregar producto</button><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp</button><button type="button" data-action="'+(c.state==='ACTIVE'?'retire':'reactivate')+'" data-cart="'+c.id+'">'+(c.state==='ACTIVE'?'Retirar carrito':'Reactivar carrito')+'</button></div>';
 }
-function drawer(title,body){$("mc158dialog")?.remove();const d=document.createElement("div");d.id="mc158dialog";d.className="mc158dialog";d.innerHTML='<section role="dialog" aria-modal="true"><header><h3>'+esc(title)+'</h3><button type="button" data-action="close-dialog">✕</button></header>'+body+'<p id="mc158dialogStatus" role="status"></p></section>';d.addEventListener("click",click);d.addEventListener("click",dniClick);d.addEventListener("submit",submit);document.body.append(d);}
+function renderList(){
+ syncHeader();if(!workspaceSummary.some(s=>s.currency===summaryCurrency))summaryCurrency=account.currency;
+ const s=workspaceSummary.find(s=>s.currency===summaryCurrency)||{active:0,debt:0,rent_today:0,product_today:0,paid_today:0},sel=selectedData,due=sel?Math.max(0,balance(sel.id)):0;
+ const moneyOptions=[...new Set([account.currency,...workspaceSummary.map(s=>s.currency)])].map(c=>'<option value="'+esc(c)+'" '+(c===summaryCurrency?'selected':'')+'>'+esc(c)+'</option>').join('');
+ const stats='<section class="mc158kpis">'+[['cart','Carritos activos',s.active,'green'],['home','Alquiler registrado hoy',currency(s.rent_today,summaryCurrency),'blue'],['sales','Ventas registradas hoy',currency(s.product_today,summaryCurrency),'gold'],['pay','Deuda pendiente',currency(s.debt,summaryCurrency),'red']].map(([i,label,val,color])=>'<article class="mc158kpi kpi-'+color+'">'+icon(i)+'<div><small>'+label+'</small><strong>'+val+'</strong></div></article>').join('')+'</section>';
+ const quick='<section class="mc158quick"><button type="button" data-action="new">'+icon('cart')+'<span>Nuevo carrito</span></button><button type="button" data-action="sale" data-cart="'+(sel?.id||'')+'" '+(!sel||sel.state!=='ACTIVE'?'disabled':'')+'>'+icon('sales')+'<span>Registrar venta</span></button><button type="button" data-action="payment" data-cart="'+(sel?.id||'')+'" '+(!sel||due<=0?'disabled':'')+'>'+icon('pay')+'<span>Registrar pago</span></button></section>';
+ const controls='<div class="mc158panel-title"><div><h2>'+esc(sections[section][1])+'</h2><small>Alquiler y ventas generan deuda; los pagos la reducen.</small></div><label class="mc373-unit">Moneda <select id="mc373unit">'+moneyOptions+'</select></label><button type="button" data-action="reload" aria-label="Actualizar MI COCHERA">'+icon('refresh')+'</button></div>';
+ const list='<section class="mc158workspace"><div class="mc158panel mc158list-panel"><div class="mc158filters"><h3>'+(section==='collections'?'Carritos con deuda':'Mis carritos')+'</h3><span id="mc158count"></span><select id="mc158state" aria-label="Filtrar estado"><option value="ALL">Todos</option><option value="ACTIVE">Activos</option><option value="RETIRED">Retirados</option></select></div><div class="mc158table-wrap"><table class="mc158table"><thead><tr><th>Código</th><th>Carrito / propietario</th><th>Tarifa diaria</th><th>Estado</th><th>Saldo</th><th>Ficha</th></tr></thead><tbody id="mc158rows"></tbody></table></div><div class="mc373-pages">'+(serverTotal>pageSize()?'<span>Página '+(listPage+1)+'</span><button type="button" data-action="page-prev" '+(!listPage?'disabled':'')+'>Anterior</button><button type="button" data-action="page-next" '+((listPage+1)*pageSize()>=serverTotal?'disabled':'')+'>Siguiente</button>':'')+'</div></div>'+(matchMedia('(max-width:850px)').matches?'':'<aside class="mc158panel mc158detail-panel">'+selectedDetail()+'</aside>')+'</section>';
+ let content=list;
+ if(section==='reports')content='<section class="mc158panel mc373-report"><h3>Resumen de hoy · '+esc(summaryCurrency)+'</h3><p>Zona de cobro existente: America/Lima. Cada moneda se consulta por separado.</p><dl><div><dt>Alquiler registrado</dt><dd>'+currency(s.rent_today,summaryCurrency)+'</dd></div><div><dt>Ventas añadidas a deuda</dt><dd>'+currency(s.product_today,summaryCurrency)+'</dd></div><div><dt>Pagos recibidos</dt><dd>'+currency(s.paid_today,summaryCurrency)+'</dd></div><div><dt>Saldo pendiente</dt><dd>'+currency(s.debt,summaryCurrency)+'</dd></div></dl><button type="button" data-action="export">Descargar resumen CSV</button></section>';
+ if(section==='sales')content='<section class="mc158panel"><div class="mc158panel-title"><h3>Ventas de productos</h3><button type="button" data-action="nav" data-view="carts">Seleccionar carrito</button></div><p>Los productos se añaden a la deuda hasta registrar el pago.</p><div id="mc373sales">Consultando movimientos…</div></section>';
+ if(section==='settings')content='<section class="mc158panel mc373-report"><h3>Mi cuenta MI COCHERA</h3><dl><div><dt>Activación vigente hasta</dt><dd>'+esc(new Date(account.subscription_until).toLocaleDateString('es-PE'))+'</dd></div><div><dt>Moneda de operación</dt><dd>'+esc(account.currency)+'</dd></div></dl><p>La sesión y la Billetera única pertenecen a CLAN CARTAN.</p><div class="mc158detail-actions"><button type="button" data-action="currency">Configurar país y moneda</button><button type="button" data-action="profile">Abrir mi perfil</button></div></section>';
+ $('mc158body').innerHTML='<div class="mc158dashboard">'+navHTML()+'<main class="mc158main">'+controls+(section==='home'?stats:'')+(['home','carts','collections'].includes(section)?quick:'')+content+'<p id="mc158notice" role="status"></p></main></div>';
+ $('mc373unit').onchange=e=>{summaryCurrency=e.target.value;renderList();};
+ if($('mc158state')){$('mc158state').value=cartState;$('mc158state').onchange=e=>{cartState=e.target.value;listPage=0;renderRows();void load(false).catch(err=>note(err.message));};renderRows();}
+ if(section==='sales')void movementPage(null,0,$('mc373sales'),'PRODUCT');
+}
+async function movementPage(cart,page,target,kind=null){
+ const uid=ses()?.userId,jwt=ses()?.jwt,seq=++historySequence;
+ try{const path='mc_movements?select=id,cart_id,kind,label,occurred_on,amount_local,currency&reseller_id=eq.'+encodeURIComponent(uid)+(cart?'&cart_id=eq.'+cart:'')+(kind?'&kind=eq.'+kind:'')+'&order=created_at.desc,id.desc&limit=21&offset='+(page*20),data=await window.cc80.api(path);
+ if(seq!==historySequence||!target.isConnected||ses()?.userId!==uid||ses()?.jwt!==jwt)return;
+ target.innerHTML=data.length?'<div class="mc158scroll"><table><thead><tr><th>Fecha</th><th>Carrito</th><th>Movimiento</th><th>Importe</th></tr></thead><tbody>'+data.slice(0,20).map(m=>'<tr><td>'+esc(m.occurred_on||'Sin fecha')+'</td><td>C-'+String(m.cart_id).padStart(3,'0')+'</td><td>'+esc(m.label)+'</td><td>'+currency(m.amount_local,m.currency)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="mc158empty">Sin movimientos registrados.</p>';
+ if(page||data.length>20){const controls=document.createElement('div');controls.className='mc373-pages';for(const [label,next,enabled]of[['Anterior',page-1,page>0],['Siguiente',page+1,data.length>20]]){const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=!enabled;b.onclick=()=>void movementPage(cart,next,target,kind);controls.append(b);}target.append(controls);}
+ }catch(e){if(target.isConnected)target.textContent='No se pudo consultar el historial. Cierra y vuelve a abrir para reintentar.';}
+}
+function drawer(title,body){$("mc158dialog")?.remove();const d=document.createElement("div");d.id="mc158dialog";d.className="mc158dialog";d.innerHTML='<section role="dialog" aria-modal="true"><header><h3>'+esc(title)+'</h3><button type="button" data-action="close-dialog">✕</button></header>'+body+'<p id="mc158dialogStatus" role="status"></p></section>';d.addEventListener("click",click);d.addEventListener("click",dniClick);d.addEventListener("submit",submit);document.body.append(d);return d;}
 function fields(prefix,title,optional){
  const name=prefix+"Name",doc=prefix+"Doc",kind=prefix+"Kind",phone=prefix+"Phone";
  return '<fieldset><legend>'+title+(optional?" (opcional)":"")+'</legend><label>Documento primero<select name="'+kind+'"><option value="DNI">DNI peruano</option><option value="CE">Carné de extranjería</option><option value="PASSPORT">Pasaporte</option><option value="CEDULA">Cédula extranjera</option><option value="OTHER">Otro</option></select></label><label>Número de documento<input name="'+doc+'" data-mc-dni="'+prefix+'" '+(optional?"":"required")+' maxlength="40" autocomplete="off"></label><button type="button" data-mc-verify="'+prefix+'">Buscar DNI</button><p id="mc158lookup'+prefix+'" class="mc158look" aria-live="polite">Ingresa 8 dígitos y pulsa Buscar DNI.</p><label>Nombres y apellidos<input name="'+name+'" '+(optional?"":"required")+' maxlength="160"></label><label>Celular<input name="'+phone+'" type="tel" maxlength="30"></label></fieldset>';
@@ -183,8 +175,14 @@ async function click(e){
  let btn=e.target.closest("[data-action]");if(!btn)return;
  e.preventDefault();const act=btn.dataset.action,id=Number(btn.dataset.cart),actor=ses()?.userId,jwt=ses()?.jwt;
  try{
- if(act==="close-dialog"){$("mc158dialog")?.remove();return;}
- if(act==="select-cart"){selectedCartId=id;renderList();return;}
+ if(act==="close-dialog"){historySequence++;$("mc158dialog")?.remove();return;}
+ if(act==="menu"){const root=$('mc158layer');if(matchMedia('(max-width:850px)').matches){root.classList.toggle('mc373-menu-open');root.querySelector('.mc158sidebar')?.toggleAttribute('inert',!root.classList.contains('mc373-menu-open'));root.querySelector('[data-action=menu]').setAttribute('aria-expanded',String(root.classList.contains('mc373-menu-open')));}else root.classList.toggle('mc373-collapsed');return;}
+ if(act==="profile"){close();window.cc166OpenProfile?.(()=>window.mc158Open());return;}
+ if(act==="activation"){close();window.cc166OpenBusiness?.('MI_COCHERA');return;}
+ if(act==="nav"){section=btn.dataset.view;listPage=0;filter='';$('mc158search').value='';$('mc158layer').classList.remove('mc373-menu-open');$('mc158layer [data-action=menu]').setAttribute('aria-expanded','false');await load(false);return;}
+ if(act==="page-prev"||act==="page-next"){listPage+=act==='page-next'?1:-1;await load(false);return;}
+ if(act==="export"){const lines=[['Moneda','Alquiler registrado hoy','Ventas registradas hoy','Pagos recibidos hoy','Deuda pendiente'],...workspaceSummary.map(s=>[s.currency,s.rent_today,s.product_today,s.paid_today,s.debt])];const blob=new Blob(['\uFEFF'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='mi-cochera-resumen.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
+ if(act==="select-cart"){selectedCartId=id;selectedData=carts.find(c=>Number(c.id)===id);renderList();$('mc158rows')?.querySelector('[data-cart="'+id+'"]')?.focus({preventScroll:true});if(matchMedia('(max-width:850px)').matches)drawer('Ficha del carrito', '<div class="mc158detail-actions-scope">'+selectedDetail()+'</div>');return;}
  if(act==="close-module"){close();return;}
  if(act==="reload"){await load();return;}
  if(act==="new"){newCart();return;}
@@ -207,7 +205,7 @@ async function click(e){
   return;
  }
  if(act==="whatsapp"){
-  const cart=carts.find(c=>c.id===id);if(!cart)return;
+  const cart=carts.find(c=>Number(c.id)===id)||(Number(selectedData?.id)===id?selectedData:null);if(!cart)return;
   const owner=person(cart.owner_person_id),worker=person(cart.worker_person_id);
   const candidates=[owner,worker].map(person=>{let digits=String(person.phone||'').replace(/[^0-9]/g,'');if(/^9[0-9]{8}$/.test(digits))digits='51'+digits;return {person,digits};});
   const choice=candidates.find(item=>/^[1-9][0-9]{9,14}$/.test(item.digits));
@@ -222,7 +220,8 @@ async function click(e){
  }
  if(act==="payment"){if(balance(id)<=0){note("No hay deuda pendiente para registrar un abono.");return;}drawer("Cobrar · C-"+id,'<form id="mc158pay" data-cart="'+id+'"><p>Deuda pendiente: '+currency(balance(id),account.currency)+'</p><label>Importe recibido<input name="amount" type="number" min=".01" max="'+Math.max(0,balance(id)).toFixed(2)+'" step=".01" required></label><label>Medio<select name="method"><option>Efectivo</option><option>Yape</option><option>Plin</option><option>Transferencia</option></select></label><button type="submit">Registrar abono</button></form>');return;}
  if(act==="sale"){drawer("Agregar hielo o producto · C-"+id,'<form id="mc158sale" data-cart="'+id+'"><label>Producto<input name="item" value="Hielo" required maxlength="120"></label><label>Cantidad<input name="quantity" type="number" min=".001" step="any" value="1" required></label><label>Precio por unidad ('+esc(account.currency)+')<select name="price"><option value="1.50">1.50</option><option value="2">2.00</option><option value="3">3.00</option></select></label><p>Se acumula como deuda del carrito hasta registrar el pago.</p><button type="submit">Agregar producto</button></form>');return;}
- if(act==="history"){const c=carts.find(c=>c.id===id);let records=moves.filter(m=>m.cart_id===id);drawer("Historial · "+(c?.alias||"C-"+id),'<div class="mc158scroll"><table><thead><tr><th>Fecha</th><th>Movimiento</th><th>Importe</th></tr></thead><tbody>'+records.map(m=>'<tr><td>'+esc(m.occurred_on)+'</td><td>'+esc(m.label)+'</td><td>'+currency(m.amount_local,m.currency)+'</td></tr>').join("")+'</tbody></table></div>');return;}
+ if(act==="history"){const c=carts.find(c=>Number(c.id)===id)||selectedData;const d=drawer('Historial · '+(c?.alias||'C-'+id),'<div id="mc373history">Consultando movimientos…</div>');await movementPage(id,0,d.querySelector('#mc373history'));return;}
+
  }catch(e){if(ses()?.userId===actor&&ses()?.jwt===jwt)note("Error: "+String(e.message||e));}
 }
 async function refreshHomeWallet(){
@@ -247,7 +246,8 @@ function mountHomeBadge(){
  if(ses()?.jwt)void refreshHomeWallet();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountHomeBadge);else mountHomeBadge();
-document.addEventListener('cc192-session-ended',()=>{loadSequence++;ownerId=null;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';close();const body=$('mc158body');if(body)body.textContent='Inicia sesión para abrir MI COCHERA.';});
+document.addEventListener('cc192-session-ended',()=>{loadSequence++;ownerId=null;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';selectedData=null;workspaceSummary=[];selectedCartId=null;close();const body=$('mc158body');if(body)body.textContent='Inicia sesión para abrir MI COCHERA.';});
+matchMedia('(max-width:850px)').addEventListener('change',()=>{if($('mc158layer')?.style.display!=='none'&&account&&active()){listPage=0;void load(false).catch(err=>note(err.message));}});
 window.mc158Open=open;
 window.mc158Close=close;
 })();

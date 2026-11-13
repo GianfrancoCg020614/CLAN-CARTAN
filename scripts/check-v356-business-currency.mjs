@@ -12,8 +12,9 @@ const cobra=read('index.html');
 const stream=read('scripts/v195-streambulls-live.js');
 const guard=read('supabase/migrations/20261111172630_currency_shared_preference_lock_v356.sql');
 
-assert.match(html,/<meta name="cc-deploy-version" content="V357-20261111">/);
-assert.match(html,/scripts\/v356-business-currency\.js\?v=356/);
+const deployed=html.match(/<meta name="cc-deploy-version" content="V(\d+)-(\d{8})">/);
+assert.ok(deployed&&Number(deployed[1])>=357,'La versión debe conservar la preferencia compartida V357 o posterior');
+assert.match(html,/scripts\/v356-business-currency\.js\?v=\d+(?:\.\d+)?/);
 assert.match(helper,/cc_set_business_currency/);
 assert.match(helper,/cc_profiles\?select=business_country,business_currency/);
 assert.match(helper,/cy53loan/);

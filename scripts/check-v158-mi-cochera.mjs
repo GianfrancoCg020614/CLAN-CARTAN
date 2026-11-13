@@ -31,7 +31,7 @@ required(script,'mc-verify-dni');
 assert.ok(!script.includes('mc_transfer_real_balance'),'MI COCHERA no debe ofrecer transferencias manuales');
 required(script,'Billetera única');
 required(script,'mc_configure_currency');
-required(script,'mi-cochera-logo.svg');
+assert.match(script,/(?:mi-cochera-logo\.svg|logo-cochera-v304\.avif)/,'Conservar un logotipo original MI COCHERA');
 required(xfer,"'MI_COCHERA'");required(xfer,"p_request uuid");
 required(xfer,'mc_real_transfer_requests');
 required(audit,'cc_wallet_financial_audit_service_check');

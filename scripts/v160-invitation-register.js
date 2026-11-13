@@ -48,7 +48,7 @@ function activateSharedCurrency(){
     ];
     for(const [parentId,id] of roots){
       const parent=document.getElementById(parentId);
-      if(!parent||document.getElementById(id))continue;
+      if(!parent||document.getElementById(id)||(parentId==='mc158body'&&parent.closest('.mc373-layer')))continue;
       const section=document.createElement('div');
       section.id=id;
       section.dataset.ccCurrencySelector='';
