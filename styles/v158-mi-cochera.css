@@ -195,3 +195,6 @@
 @media(prefers-reduced-motion:reduce){
  #mc158layer .mc158kpi,#mc158layer .mc158quick button,#mc158layer .mc158nav-item{transition:none!important}
 }
+
+/* V374: motivo visible cuando una acción todavía no está disponible. */
+#mc158layer .mc374-action-help{margin:-5px 0 14px;color:#cbd8ea;font-size:12px;line-height:1.45;padding:0 3px}
