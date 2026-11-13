@@ -20,6 +20,8 @@ declare
  fingerprint jsonb; result uuid;
 begin
  if u is null then raise exception 'Sesión requerida'; end if;
+ if not exists(select 1 from public.mc_accounts where user_id=u and not suspended and subscription_until>now()) then raise exception 'MI COCHERA no esta activa';end if;
+ if not exists(select 1 from public.mc_carts where id=p_cart and reseller_id=u) then raise exception 'Carrito inexistente';end if;
  if p_request is null then raise exception 'Identificador de solicitud requerido'; end if;
  if p_amount is null or p_amount<=0 or p_amount<>round(p_amount,2) then
   raise exception 'Importe inválido';
