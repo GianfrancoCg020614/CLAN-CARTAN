@@ -125,7 +125,9 @@ with sync_playwright() as p:
     assert int(sql("select count(*) from public.cy_payments where loan_id="+literal(loan_id)))==1
     assert sql("select sum(amount-paid_total) from public.cy_installments where loan_id="+literal(loan_id))=='1249.99'
     print('PASS forms, double submission and lost-response idempotency')
-    page.locator('[data-action=close-modal]').click()
+    # Atrás now restores prior dialogs instead of discarding their context.
+    while page.locator('dialog[open]').count():
+        page.locator('[data-action=close-modal]').click()
 
     page.locator('.cy371-sidebar [data-action="nav:clients"]').click()
     page.wait_for_selector('.cy371-table tbody tr')

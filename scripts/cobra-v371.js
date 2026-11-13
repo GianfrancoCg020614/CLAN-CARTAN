@@ -19,7 +19,7 @@ let layer,sub,shell,gate,owner='',epoch=0,access=null,summary=null,view='home',f
 const mobileLayout=matchMedia('(max-width: 1000px)');let pageSize=mobileLayout.matches?5:15;
 const labels={home:'Inicio',clients:'Clientes',loans:'Préstamos',payments:'Cobros',due:'Vencimientos',reports:'Reportes',settings:'Configuración'};
 const navIcons={home:'home',clients:'clients',loans:'loan',payments:'pay',due:'calendar',reports:'report',settings:'settings'};
-function button(label,action,cls=''){const names={menu:'Abrir o cerrar menú',attention:'Atención y notificaciones',profile:'Abrir mi perfil',wallet:'Abrir billetera CLAN CARTAN','close-modal':'Cerrar ventana'},name=names[action]||(action.startsWith('nav:')?labels[action.slice(4)]:'');return `<button type="button" class="${cls}" data-action="${action}" ${name?`aria-label="${name}" title="${name}"`:''}>${label}</button>`;}
+function button(label,action,cls=''){const names={menu:'Abrir o cerrar menú',attention:'Atención y notificaciones',profile:'Abrir mi perfil',wallet:'Abrir billetera CLAN CARTAN','close-modal':'Volver a la pantalla anterior','close-home':'Cerrar e ir al inicio de los cuatro negocios'},name=names[action]||(action.startsWith('nav:')?labels[action.slice(4)]:'');return `<button type="button" class="${cls}" data-action="${action}" ${name?`aria-label="${name}" title="${name}"`:''}>${label}</button>`;}
 function status(message,error=false){const el=$('cy371status');if(el){el.textContent=message;el.classList.toggle('error',error);}}
 async function api(name,data={},signal){
  const s=session();if(!s?.jwt||!s.userId)throw Error('Inicia sesión en CLAN CARTAN.');
@@ -36,11 +36,21 @@ function fail(e){
  if(e.code==='42501'||e.status===401||e.status===403){void checkAccess();return;}
  status(e.name==='AbortError'?'La conexión tardó demasiado. Vuelve a intentar.':e.message||'No se pudo conectar. Vuelve a intentar.',true);
 }
-function closeModal(){if(!modal)return;modal.close();modal.remove();modal=null;returnFocus?.focus?.();}
+const modalHistory=[];
+function closeModal(){
+ if(!modal)return;modal.close();modal.remove();
+ const prior=modalHistory.pop();modal=prior?.node||null;
+ if(modal){layer.append(modal);modal.showModal();}
+ returnFocus?.focus?.();returnFocus=prior?.focus||null;
+}
+function clearModals(){while(modal)closeModal();}
+function goHome(){window.cy53.close();window.cc166CloseToHome?.();if(!window.cc166CloseToHome)window.cc77Home?.();}
 function dialog(title,body){
- closeModal();returnFocus=document.activeElement;
+ const replacing=modal?.querySelector('h2')?.textContent===title;
+ if(modal){modal.close();modal.remove();if(!replacing)modalHistory.push({node:modal,focus:returnFocus});}
+ if(!replacing)returnFocus=document.activeElement;
  modal=document.createElement('dialog');modal.className='cy371-dialog';modal.setAttribute('aria-labelledby','cy371dialogTitle');
- modal.innerHTML=`<header><h2 id="cy371dialogTitle">${esc(title)}</h2>${button(icon('close'),'close-modal','cy371-icon')}</header><div class="cy371-dialog-body">${body}</div>`;
+ modal.innerHTML=`<header><h2 id="cy371dialogTitle">${esc(title)}</h2><div class="cy371-dialog-nav">${button(icon('back')+'<span>Atrás</span>','close-modal')}${button(icon('close'),'close-home','cy371-icon')}</div></header><div class="cy371-dialog-body">${body}</div>`;
  layer.append(modal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});modal.addEventListener('cancel',e=>{e.preventDefault();closeModal();});modal.showModal();return modal;
 }
 const field=(label,name,value='',extra='',type='text')=>`<label>${label}<input name="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
@@ -112,7 +122,7 @@ function setup(){
  document.addEventListener('click',e=>{if(!e.target.closest('.cy371-search'))hideResults();});
  const originalClose=window.cy53.close;
  window.cy53.open=open;
- window.cy53.close=()=>{opened=false;checking=false;epoch++;clearTimeout(expiryTimer);closeModal();hideResults();access=null;summary=null;rows=[];shell.hidden=true;gate.hidden=false;layer.style.display='none';delete document.documentElement.dataset.ccActiveModule;originalClose?.();window.cc166OpenPanel?.();};
+ window.cy53.close=()=>{opened=false;checking=false;epoch++;clearTimeout(expiryTimer);clearModals();hideResults();access=null;summary=null;rows=[];shell.hidden=true;gate.hidden=false;layer.style.display='none';delete document.documentElement.dataset.ccActiveModule;originalClose?.();window.cc166OpenPanel?.();};
  window.cy53.refresh=reload;window.cy53.openDetail=loanDetail;window.cy53.closeDetail=closeModal;window.cy53.printDetail=()=>printCurrent();
  window.cy54.refreshAuth=checkAccess;
  if(oldStatus)window.cy55.status=async function(){await oldStatus();if(opened)await checkAccess();};
@@ -125,7 +135,7 @@ function setup(){
 }
 async function open(){
  if(!session()?.jwt){window.cc77Auth?.(false);return;}
- if(owner!==session().userId){owner=session().userId;epoch++;checking=false;access=null;closeModal();hideResults();searchSeq++;summary=null;rows=[];view='home';filter='active';currency='';portfolioCurrency='';page=0;query='';$('cy371search').value='';$('cy371summary').replaceChildren();$('cy371content').replaceChildren();}
+ if(owner!==session().userId){owner=session().userId;epoch++;checking=false;access=null;clearModals();hideResults();searchSeq++;summary=null;rows=[];view='home';filter='active';currency='';portfolioCurrency='';page=0;query='';$('cy371search').value='';$('cy371summary').replaceChildren();$('cy371content').replaceChildren();}
  else if(opened&&checking)return;
  opened=true;layer.style.display='block';layer.scrollTop=0;document.documentElement.dataset.ccActiveModule='cobra';
  // Synchronize the existing portal before leaving it; it must not reopen over this module.
@@ -147,7 +157,7 @@ async function checkAccess(force=false){
    clearTimeout(expiryTimer);if(a.expires_at&&!a.admin){const delay=Date.parse(a.expires_at)-Date.now();expiryTimer=setTimeout(()=>void checkAccess(),Math.max(100,Math.min(delay+150,2147483647)));}
    if(force||becameActive)await reload();
   }else{
-   closeModal();hideResults();summary=null;rows=[];$('cy371summary').replaceChildren();$('cy371content').replaceChildren();
+   clearModals();hideResults();summary=null;rows=[];$('cy371summary').replaceChildren();$('cy371content').replaceChildren();
    $('cy371gateStatus').textContent='Activa o renueva COBRA YA para consultar tu cartera. Tu información se conserva.';
    if(sub){sub.hidden=false;sub.style.display='block';}
    // Existing real-wallet/bonus screen; its listeners are preserved, including activation safeguards.
@@ -155,7 +165,7 @@ async function checkAccess(force=false){
   }
  }catch(e){
   if(generation!==epoch)return;
-  access=null;shell.hidden=true;gate.hidden=false;closeModal();hideResults();$('cy371summary').replaceChildren();$('cy371content').replaceChildren();
+  access=null;shell.hidden=true;gate.hidden=false;clearModals();hideResults();$('cy371summary').replaceChildren();$('cy371content').replaceChildren();
   $('cy371gateStatus').textContent='No se pudo verificar la activación. Comprueba la conexión y vuelve a intentar.';
  }finally{checking=false;}
 }
@@ -236,23 +246,39 @@ async function attention(){if(!access?.allowed)return;
  const dlg=dialog('Atención de hoy',`<div class="cy371-attention">${[['today','calendar','Vencen hoy',summary.today],['late','alert','Vencidos',summary.late],['soon','calendar','Próximos 7 días',summary.soon],['active','pay','Cobros pendientes',summary.active]].map(([f,i,l,n])=>button(icon(i)+`<span>${l}</span><strong>${n}</strong>`,'attention-filter:'+f)).join('')}</div>`);dlg.classList.add('cy371-attention-dialog');
 }
 function clientForm(c=null){
- const dlg=dialog(c?'Editar cliente':'Nuevo cliente',`<form class="cy371-form"><div class="cy371-form-grid">${field('Nombre completo *','full_name',c?.full_name||'','required minlength="2" maxlength="160" autocomplete="name"')}${field('Alias / apodo','alias',c?.alias||'','maxlength="80"')}${field('DNI u otro documento','document_number',c?.document_number||'','maxlength="20" autocomplete="off"')}${field('Celular / WhatsApp','phone',c?.phone||'','maxlength="25" autocomplete="tel"','tel')}${field('Teléfonos alternativos (separados por coma)','alternate_phones',(c?.alternate_phones||[]).join(', '),'maxlength="120"')}${field('Correo','email',c?.email||'','maxlength="254" autocomplete="email"','email')}</div><details><summary>Dirección y observaciones</summary>${field('Dirección','address',c?.address||'','maxlength="300"')}${field('Distrito / ciudad','district',c?.district||'','maxlength="120"')}${field('Referencia de domicilio','address_reference',c?.address_reference||'','maxlength="300"')}${area('Observaciones','notes',c?.notes||'')}${area('Referencias autorizadas para búsqueda (una por línea)','search_references',(c?.search_references||[]).join('\n'),1600)}</details><p>Un mismo cliente puede tener varios préstamos. Si el documento ya está registrado, se reutilizará su ficha.</p>${formFooter(c?'Guardar cambios':'Guardar cliente')}</form>`);
+ const dlg=dialog(c?'Editar cliente':'Nuevo cliente',`<form class="cy371-form"><div class="cy371-form-grid">${field('DNI u otro documento','document_number',c?.document_number||'','maxlength="20" autocomplete="off"')}${field('Nombre completo *','full_name',c?.full_name||'','required minlength="2" maxlength="160" autocomplete="name"')}${field('Alias / apodo','alias',c?.alias||'','maxlength="80"')}${field('Celular / WhatsApp','phone',c?.phone||'','maxlength="25" autocomplete="tel"','tel')}${field('Teléfonos alternativos (separados por coma)','alternate_phones',(c?.alternate_phones||[]).join(', '),'maxlength="120"')}${field('Correo','email',c?.email||'','maxlength="254" autocomplete="email"','email')}</div><details><summary>Dirección y observaciones</summary>${field('Dirección','address',c?.address||'','maxlength="300"')}${field('Distrito / ciudad','district',c?.district||'','maxlength="120"')}${field('Referencia de domicilio','address_reference',c?.address_reference||'','maxlength="300"')}${area('Observaciones','notes',c?.notes||'')}${area('Referencias autorizadas para búsqueda (una por línea)','search_references',(c?.search_references||[]).join('\n'),1600)}</details><p>Un mismo cliente puede tener varios préstamos. Si el documento ya está registrado, se reutilizará su ficha.</p>${formFooter(c?'Guardar cambios':'Guardar cliente')}</form>`);
  bindForm(dlg,c?'edit_client':'client',f=>{const data=Object.fromEntries(f);data.phone=data.phone.trim()? '+'+data.phone.replace(/\D/g,''):'';data.alternate_phones=data.alternate_phones.split(',').map(v=>v.replace(/\D/g,'')).filter(Boolean).map(v=>'+'+v);data.search_references=data.search_references.split('\n').map(v=>v.trim()).filter(Boolean);if(c)data.id=c.id;return data;},id=>clientDetail(id));
  // Reuse the existing authorized API Perú function; manual entry remains available.
- const form=dlg.querySelector('form'),verify=document.createElement('button');verify.type='button';verify.textContent='Verificar DNI ahora';
- form.elements.document_number.closest('label').append(verify);
- verify.onclick=async()=>{
-  const dni=form.elements.document_number.value.trim(),msg=form.querySelector('[role=status]');
+ const form=dlg.querySelector('form'),documentInput=form.elements.document_number,nameInput=form.elements.full_name,verify=document.createElement('button');
+ verify.type='button';verify.textContent='Consultar DNI · API Perú';
+ documentInput.closest('label').append(verify);
+ const hint=document.createElement('small');hint.textContent='Al completar 8 dígitos se consultarán los nombres y apellidos. Los demás datos se registran manualmente.';documentInput.closest('label').append(hint);
+ let timer,sequence=0,controller=null,lastDni='';
+ const lookup=async()=>{
+  const dni=documentInput.value.trim(),msg=form.querySelector('[role=status]');
   if(!/^\d{8}$/.test(dni)){msg.textContent='Para consultar DNI peruano, escribe sus 8 dígitos. Puedes registrar otros documentos manualmente.';return;}
-  verify.disabled=true;msg.textContent='Consultando el servicio de identidad autorizado…';const s=session(),generation=epoch;
+  if(verify.disabled)return;
+  const s=session(),generation=epoch,request=++sequence,originalName=nameInput.value;
+  if(!s?.jwt)return;
+  controller?.abort();controller=new AbortController();const stop=setTimeout(()=>controller.abort(),12000);
+  const current=()=>request===sequence&&generation===epoch&&dlg.isConnected&&documentInput.value.trim()===dni&&session()?.userId===s.userId&&session()?.jwt===s.jwt;
+  verify.disabled=true;msg.textContent='Consultando API Perú mediante el servicio autorizado…';lastDni=dni;
   try{
-   const r=await fetch(s.root+'/functions/v1/cc-consulta-dni',{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+s.jwt,'Content-Type':'application/json'},body:JSON.stringify({dni})}),v=await r.json();
-   if(generation!==epoch||!dlg.isConnected)return;
-   if(r.ok&&['found','saved'].includes(v.status)&&v.full_name){form.elements.full_name.value=String(v.full_name).slice(0,160);msg.textContent='Nombre encontrado. Revisa los datos antes de guardar.';}
-   else msg.textContent='Consulta no disponible o sin cupo para esta cuenta. Puedes continuar manualmente.';
-  }catch{if(dlg.isConnected)msg.textContent='No se pudo conectar al servicio de identidad. Puedes continuar manualmente.';}
-  finally{verify.disabled=false;}
+   const r=await fetch(s.root+'/functions/v1/cc-consulta-dni',{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+s.jwt,'Content-Type':'application/json'},body:JSON.stringify({dni}),signal:controller.signal}),v=await r.json();
+   if(!current())return;
+   if(r.ok&&['found','saved'].includes(v.status)&&v.full_name){
+    if(nameInput.value===originalName){nameInput.value=String(v.full_name).slice(0,160);msg.textContent='Nombres y apellidos encontrados. Revisa los datos antes de guardar.';}
+    else msg.textContent='Consulta terminada. Se conserva el nombre que escribiste manualmente.';
+   }else msg.textContent='Consulta no disponible o sin cupo para esta cuenta. Puedes continuar manualmente.';
+  }catch{if(current())msg.textContent='No se pudo conectar al servicio de identidad. Puedes continuar manualmente.';}
+  finally{clearTimeout(stop);if(request===sequence)verify.disabled=false;}
  };
+ documentInput.addEventListener('input',()=>{
+  clearTimeout(timer);sequence++;controller?.abort();verify.disabled=false;
+  if(/^\d{8}$/.test(documentInput.value.trim())&&documentInput.value.trim()!==lastDni)timer=setTimeout(lookup,350);
+ });
+ verify.onclick=()=>{clearTimeout(timer);void lookup();};
+ documentInput.focus();
 }
 async function pickClient(title,onSelect){
  const dlg=dialog(title,'<label class="cy371-picker-label">Buscar cliente<input id="cy371pickClient" type="search" placeholder="Nombre, alias, DNI, celular o código" autocomplete="off"></label><div id="cy371pickResults" aria-live="polite">Escribe al menos 2 caracteres.</div>'+button('Registrar un cliente nuevo','new-client'));
@@ -318,11 +344,12 @@ async function handle(e){
  const b=e.target.closest('[data-action]');if(!b||b.disabled)return;const [action,a,c,d]=b.dataset.action.split(':');
  try{
   if(action==='close-modal'){closeModal();return;}
+  if(action==='close-home'){goHome();return;}
   if(action==='back'){window.cy53.close();return;}
   if(action==='check-access'){await checkAccess(true);return;}
-  if(action==='profile'){window.cy53.close();window.cc166OpenProfile?.();return;}
+  if(action==='profile'){window.cy53.close();window.cc166OpenProfile?.(()=>window.cy53.open());return;}
   if(!access?.allowed)return;
-  if(action==='wallet'){window.cy53.close();window.cc166OpenWallet?.('summary');}
+  if(action==='wallet'){window.cy53.close();window.cc166OpenWallet?.('summary',()=>window.cy53.open());}
   else if(action==='menu'){if(matchMedia('(max-width: 1000px)').matches)shell.classList.toggle('drawer-open');else shell.classList.toggle('sidebar-collapsed');const m=layer.querySelector('.cy371-menu');m.setAttribute('aria-expanded',String(shell.classList.contains('drawer-open')));}
   else if(action==='nav')await navigate(a);
   else if(action==='stat'){currency='';await navigate(a==='clients'?'clients':'loans',a==='today'?'today':a==='late'?'late':'active');}

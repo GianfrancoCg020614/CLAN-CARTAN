@@ -146,7 +146,7 @@
     link.dataset.cc169Profile='true';
     link.addEventListener('click',()=>{
       if(!window.CC_V53_SESSION?.jwt){window.cc77Auth?.(false);return;}
-      if(typeof window.cc166OpenProfile==='function')window.cc166OpenProfile();
+      if(typeof window.cc166OpenProfile==='function')window.cc166OpenProfile(()=>window.cc169OpenCatalog?.());
       else window.cc77Home?.();
     });
   }

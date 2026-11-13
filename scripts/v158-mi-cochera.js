@@ -194,7 +194,7 @@ async function click(e){
   drawer("País y moneda de tu negocio",'<form id="mc158config"><p class="mc158config-intro">Cada RESELLER configura una sola moneda de operación compartida por MI COCHERA, MI ALQUILER y COBRA YA. Los importes se registran directamente en esa moneda; no hay conversión cambiaria ni afecta STREAM BULL’S.</p><label>País de operación<select name="country" required>'+options+'</select></label><div class="mc158currency-preview"><small>MONEDA DE OPERACIÓN DE LOS TRES MÓDULOS</small><strong id="mc158currencyPreview">'+esc(currentCurrency)+'</strong><input type="hidden" name="currency" value="'+esc(currentCurrency)+'"></div>'+(carts.length?'<p class="mc158config-lock">La moneda es compartida por los tres módulos. Si ya existen importes en otra moneda, el sistema impedirá cambiarla para proteger los registros históricos. No se realizan conversiones.</p>':'<p class="mc158config-lock">Configura el país y la moneda antes de registrar importes en cualquiera de los tres módulos. Después, el sistema protegerá la moneda para conservar la integridad de los saldos.</p>')+'<button type="submit">Guardar país y moneda</button></form>');return;
  }
  if(act==="bonuses"){close();window.cc166OpenAdminBonuses?.();return;}
- if(act==="wallet"){close();window.cc166OpenWallet?.();return;}
+ if(act==="wallet"){close();window.cc166OpenWallet?.("summary",()=>window.mc158Open());return;}
  if(['bonus','retire','reactivate'].includes(act)){
   if(busy)return;const actor=ses()?.userId,jwt=ses()?.jwt;
   const question=act==='bonus'?'¿Usar S/ 15 del bono ADMIN para activar 30 días?':act==='retire'?'Se detendrán los cargos diarios futuros. La deuda histórica permanecerá.':'¿Reactivar este carrito conservando su historial?';
