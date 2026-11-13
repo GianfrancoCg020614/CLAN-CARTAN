@@ -55,7 +55,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Preparar pruebas de navegador
-        run: python -m pip install playwright==1.51.1
+        run: python -m pip install playwright==1.62.0
       - name: Probar identidad y regreso sin servicios reales
         run: |
           python -m http.server 8000 --bind 127.0.0.1 > /tmp/v371-http.log 2>&1 &
