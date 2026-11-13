@@ -270,7 +270,8 @@ async function click(e){
  }
  if(act==="payment"){if(balance(id)<=0){note("No hay deuda pendiente para registrar un abono.");return;}drawer("Cobrar · C-"+id,'<form id="mc158pay" data-cart="'+id+'" data-request="'+crypto.randomUUID()+'"><p>Deuda pendiente: '+currency(balance(id),account.currency)+'</p><label>Importe recibido<input name="amount" type="number" min=".01" max="'+Math.max(0,balance(id)).toFixed(2)+'" step=".01" required></label><label>Medio<select name="method"><option>Efectivo</option><option>Yape</option><option>Plin</option><option>Transferencia</option></select></label><button type="submit">Registrar abono</button></form>');return;}
  if(act==="sale"){drawer("Agregar hielo o producto · C-"+id,'<form id="mc158sale" data-cart="'+id+'"><label>Producto<input name="item" value="Hielo" required maxlength="120"></label><label>Cantidad<input name="quantity" type="number" min=".001" step="any" value="1" required></label><label>Precio por unidad ('+esc(account.currency)+')<select name="price"><option value="1.50">1.50</option><option value="2">2.00</option><option value="3">3.00</option></select></label><p>Se acumula como deuda del carrito hasta registrar el pago.</p><button type="submit">Agregar producto</button></form>');return;}
- if(act==="calendar"){await mc376Open(id);return;}\n if(act==="history"){const c=carts.find(c=>Number(c.id)===id)||selectedData;const d=drawer('Historial · '+(c?.alias||'C-'+id),'<div id="mc373history">Consultando movimientos…</div>');await movementPage(id,0,d.querySelector('#mc373history'));return;}
+ if(act==="calendar"){await mc376Open(id);return;}
+ if(act==="history"){const c=carts.find(c=>Number(c.id)===id)||selectedData;const d=drawer('Historial · '+(c?.alias||'C-'+id),'<div id="mc373history">Consultando movimientos…</div>');await movementPage(id,0,d.querySelector('#mc373history'));return;}
 
  }catch(e){if(ses()?.userId===actor&&ses()?.jwt===jwt)note("Error: "+String(e.message||e));}
 }
