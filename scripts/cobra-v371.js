@@ -19,7 +19,7 @@ let layer,sub,shell,gate,owner='',epoch=0,access=null,summary=null,view='home',f
 const mobileLayout=matchMedia('(max-width: 1000px)');let pageSize=mobileLayout.matches?5:15;
 const labels={home:'Inicio',clients:'Clientes',loans:'Préstamos',payments:'Cobros',due:'Vencimientos',reports:'Reportes',settings:'Configuración'};
 const navIcons={home:'home',clients:'clients',loans:'loan',payments:'pay',due:'calendar',reports:'report',settings:'settings'};
-function button(label,action,cls=''){const names={menu:'Abrir o cerrar menú',attention:'Atención y notificaciones',profile:'Abrir mi perfil',wallet:'Abrir billetera CLAN CARTAN','close-modal':'Volver a la pantalla anterior','close-home':'Cerrar e ir al inicio de los cuatro negocios'},name=names[action]||(action.startsWith('nav:')?labels[action.slice(4)]:'');return `<button type="button" class="${cls}" data-action="${action}" ${name?`aria-label="${name}" title="${name}"`:''}>${label}</button>`;}
+function button(label,action,cls=''){const names={menu:'Abrir o cerrar menú',attention:'Atención y notificaciones',profile:'Abrir mi perfil',wallet:'Abrir billetera CLAN CARTAN','close-modal':'Cerrar ventana y volver a la vista anterior'},name=names[action]||(action.startsWith('nav:')?labels[action.slice(4)]:'');return `<button type="button" class="${cls}" data-action="${action}" ${name?`aria-label="${name}" title="${name}"`:''}>${label}</button>`;}
 function status(message,error=false){const el=$('cy371status');if(el){el.textContent=message;el.classList.toggle('error',error);}}
 async function api(name,data={},signal){
  const s=session();if(!s?.jwt||!s.userId)throw Error('Inicia sesión en CLAN CARTAN.');
@@ -44,13 +44,12 @@ function closeModal(){
  returnFocus?.focus?.();returnFocus=prior?.focus||null;
 }
 function clearModals(){while(modal)closeModal();}
-function goHome(){window.cy53.close();window.cc166CloseToHome?.();if(!window.cc166CloseToHome)window.cc77Home?.();}
 function dialog(title,body){
  const replacing=modal?.querySelector('h2')?.textContent===title;
  if(modal){modal.close();modal.remove();if(!replacing)modalHistory.push({node:modal,focus:returnFocus});}
  if(!replacing)returnFocus=document.activeElement;
  modal=document.createElement('dialog');modal.className='cy371-dialog';modal.setAttribute('aria-labelledby','cy371dialogTitle');
- modal.innerHTML=`<header><h2 id="cy371dialogTitle">${esc(title)}</h2><div class="cy371-dialog-nav">${button(icon('back')+'<span>Atrás</span>','close-modal')}${button(icon('close'),'close-home','cy371-icon')}</div></header><div class="cy371-dialog-body">${body}</div>`;
+ modal.innerHTML=`<header><h2 id="cy371dialogTitle">${esc(title)}</h2><div class="cy371-dialog-nav">${button(icon('close'),'close-modal','cy371-icon')}</div></header><div class="cy371-dialog-body">${body}</div>`;
  layer.append(modal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});modal.addEventListener('cancel',e=>{e.preventDefault();closeModal();});modal.showModal();return modal;
 }
 const field=(label,name,value='',extra='',type='text')=>`<label>${label}<input name="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
@@ -344,7 +343,6 @@ async function handle(e){
  const b=e.target.closest('[data-action]');if(!b||b.disabled)return;const [action,a,c,d]=b.dataset.action.split(':');
  try{
   if(action==='close-modal'){closeModal();return;}
-  if(action==='close-home'){goHome();return;}
   if(action==='back'){window.cy53.close();return;}
   if(action==='check-access'){await checkAccess(true);return;}
   if(action==='profile'){window.cy53.close();window.cc166OpenProfile?.(()=>window.cy53.open());return;}

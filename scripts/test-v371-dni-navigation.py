@@ -66,11 +66,16 @@ with sync_playwright() as p:
   page.locator('#cc166-panel .cc166-x').click();assert page.locator('#cc166-panel').is_hidden()
   assert page.locator('#cy53layer').is_hidden();assert page.locator('#cc77home').is_visible()
   assert page.evaluate('CC_V53_SESSION.jwt')=='fixture-token'
-  # Close in a Cobra form also returns to four-business home.
+  # A popup X dismisses only that popup and preserves the module/context.
   page.evaluate('window.cy53.open()');page.wait_for_selector('.cy371-layout:not([hidden])')
-  page.locator('[data-action=new-client]').click();page.locator('[data-action=close-home]').click()
-  assert page.locator('#cc77home').is_visible();assert page.locator('#cy53layer').is_hidden()
+  page.locator('[data-action=new-client]').click();page.locator('dialog[open] [data-action=close-modal]').click()
+  assert page.locator('#cy53layer').is_visible();assert page.locator('.cy371-layout').is_visible()
   assert page.locator('dialog[open]').count()==0
+  page.locator('[data-action=new-client]').click()
+  assert page.locator('dialog[open] header button').count()==1
+  assert page.locator('dialog[open] [data-action=close-home]').count()==0
+  page.keyboard.press('Escape');assert page.locator('dialog[open]').count()==0
+  assert page.evaluate('CC_V53_SESSION.jwt')=='fixture-token'
   assert not errors,errors
   print(json.dumps({'viewport':width,'status':'pass','dni_calls':len(calls),'errors':errors}))
   ctx.close()
