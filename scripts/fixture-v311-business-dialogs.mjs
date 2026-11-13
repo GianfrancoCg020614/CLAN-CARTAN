@@ -4,7 +4,15 @@ export function businessDialogFixture(kind='alquiler',before=false){
  const files=kind==='cochera'?['scripts/v158-mi-cochera.js']:kind==='alquiler'?['scripts/v161-1-mi-alquiler.js','scripts/v161-2-mi-alquiler.js']:['scripts/v152-cobra-fast.js'];
  const css=kind==='cochera'?fs.readFileSync('styles/v158-mi-cochera.css','utf8'):kind==='alquiler'?fs.readFileSync('styles/v161-1-mi-alquiler.css','utf8')+fs.readFileSync('styles/v161-2-mi-alquiler.css','utf8'):(fs.readFileSync('index.html','utf8').match(/<style id="cy152-fast-style">([\s\S]*?)<\/style>/)||[])[1];
  const setup=`window.CC_V53_SESSION={userId:'fixture-user',jwt:'FIXTURE-ONLY-JWT',isReseller:true,isAdmin:false};window.__errors=[];window.__writes=[];window.addEventListener('error',e=>__errors.push(e.message));window.fetch=()=>{throw Error('Red prohibida en fixture')};
- window.cc80={api:async(p,m,b)=>{if(p==='rpc/cc_finance_wallet')return {available_pen:0,pending_reversal_pen:0};if(p==='rpc/mc_ensure_account')return [{user_id:'fixture-user',subscription_until:window.__locked?'2000-01-01':'2099-12-31',currency:'PEN',bonus_pen:0}];if(p==='rpc/ma_ensure_account')return [{active:!window.__locked}];if(p==='rpc/mc_sync_rents')return [];if(p.startsWith('rpc/')){__writes.push(p);throw Error('Guardado prohibido en fixture');}return [];}};`;
+ window.cc80={api:async(p,m,b)=>{if(p==='rpc/cc_finance_wallet')return {available_pen:0,pending_reversal_pen:0};if(p==='rpc/mc_ensure_account')return [{user_id:'fixture-user',subscription_until:window.__locked?'2000-01-01':'2099-12-31',currency:'PEN',bonus_pen:0}];if(p==='rpc/ma_ensure_account')return [{active:!window.__locked}];if(p==='rpc/mc_sync_rents')return [];if(p.startsWith('rpc/')){__writes.push(p);throw Error('Guardado prohibido en fixture');}return [];}};
+ // The real module requires the shared entry gate before loading its own protected data.
+ // Keep the test gate fail-closed too: a locked membership must never invoke the opener.
+ window.__gateDenied=0;window.cc337GateBusinessEntry=async(service,open)=>{
+  if(service!=='MI_ALQUILER')throw Error('Negocio inesperado en fixture');
+  const rows=await cc80.api('rpc/ma_ensure_account','POST',{}),account=rows[0];
+  if(!CC_V53_SESSION?.jwt||account?.active!==true){__gateDenied++;return false;}
+  open();return true;
+ };`;
  let js=files.map(p=>fs.readFileSync(p,'utf8')).join('\n');
  if(before){js=js.replace('function close(){$("mc158dialog")?.remove();let layer=','function close(){let layer=');js=js.replace("    const layer=$('ma1611layer');if(layer)layer.scrollTop=0;\n",'');}
  const helpers=before?'':fs.readFileSync('scripts/v311-business-dialogs.js','utf8');
@@ -36,7 +44,7 @@ export function businessDialogFixture(kind='alquiler',before=false){
   q('#cy152modal input').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));await wait(40);checks.replacedDialogReturns=q('#cy53close')===document.activeElement;
   window.CC_V53_SESSION.isReseller=false;opener.click();await wait(30);checks.accessStillBlocked=!q('#cy152modal');}
  else if(${JSON.stringify(kind)}==='cochera'){window.__locked=true;await window.mc158Open();checks.accessStillBlocked=!q('[data-action=\"new\"]');}
- else{window.__locked=true;window.ma1611MiAlquiler.close();window.ma1611MiAlquiler.open();await wait(180);checks.accessStillBlocked=!q('[data-ma-action=\"new-property\"]');}
+ else{window.__locked=true;window.ma1611MiAlquiler.close();window.ma1611MiAlquiler.open();await wait(180);checks.accessStillBlocked=q('#ma1611layer').hidden&&!q('#ma1612dialog')&&__gateDenied===1;}
  checks.noWrites=__writes.length===0;checks.noErrors=__errors.length===0;checks.noOverflow=document.documentElement.scrollWidth<=innerWidth+1;
  }catch(e){checks.error=String(e.stack||e)}
  const out=document.createElement('output');out.id='cc311-result';out.dataset.status=Object.values(checks).every(x=>x===true)?'pass':'fail';out.textContent=JSON.stringify(checks);document.body.append(out);
