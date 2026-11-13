@@ -89,7 +89,7 @@ function renderRows(){
 function selectedDetail(){
  const c=selectedData;if(!c)return '<div class="mc373-empty"><h3>Selecciona un carrito</h3><p>Abre una ficha para consultar su deuda e historial.</p></div>';
  const o=person(c.owner_person_id),w=person(c.worker_person_id),due=Math.max(0,balance(c.id));
- return '<div class="mc158detail-head"><div><small>C-'+String(c.id).padStart(3,'0')+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||o.full_name||'Carrito')+'</h3></div><span class="mc158status">'+(c.state==='ACTIVE'?'Activo':'Retirado')+'</span></div><div class="mc158person"><strong>'+esc(o.full_name||'Propietario')+'</strong><small>Propietario'+(o.document_number?' · '+esc(o.document_number):'')+'</small></div>'+(w.id?'<div class="mc158detail-line"><span>Trabajador</span><strong>'+esc(w.full_name)+'</strong></div>':'')+'<div class="mc158detail-line"><span>Tarifa diaria</span><strong>'+currency(c.daily_rate,c.currency)+'</strong></div><div class="mc158detail-line"><span>Alquiler registrado</span><strong>'+currency(c.rent_total,c.currency)+'</strong></div><div class="mc158detail-line"><span>Productos registrados</span><strong>'+currency(c.product_total,c.currency)+'</strong></div><div class="mc158detail-debt"><span>Saldo pendiente · '+esc(c.currency)+'</span><strong>'+currency(due,c.currency)+'</strong></div><div class="mc158detail-actions"><button type="button" data-action="payment" data-cart="'+c.id+'" '+(due<=0?'disabled':'')+'>Registrar pago</button><button type="button" data-action="sale" data-cart="'+c.id+'" '+(c.state!=='ACTIVE'?'disabled':'')+'>Agregar producto</button><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp</button><button type="button" data-action="'+(c.state==='ACTIVE'?'retire':'reactivate')+'" data-cart="'+c.id+'">'+(c.state==='ACTIVE'?'Retirar carrito':'Reactivar carrito')+'</button></div>';
+ return '<div class="mc158detail-head"><div><small>C-'+String(c.id).padStart(3,'0')+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||o.full_name||'Carrito')+'</h3></div><span class="mc158status">'+(c.state==='ACTIVE'?'Activo':'Retirado')+'</span></div><div class="mc158person"><strong>'+esc(o.full_name||'Propietario')+'</strong><small>Propietario'+(o.document_number?' · '+esc(o.document_number):'')+'</small></div>'+(w.id?'<div class="mc158detail-line"><span>Trabajador</span><strong>'+esc(w.full_name)+'</strong></div>':'')+'<div class="mc158detail-line"><span>Tarifa diaria</span><strong>'+currency(c.daily_rate,c.currency)+'</strong></div><div class="mc158detail-line"><span>Alquiler registrado</span><strong>'+currency(c.rent_total,c.currency)+'</strong></div><div class="mc158detail-line"><span>Productos registrados</span><strong>'+currency(c.product_total,c.currency)+'</strong></div><div class="mc158detail-debt"><span>Saldo pendiente · '+esc(c.currency)+'</span><strong>'+currency(due,c.currency)+'</strong></div><div class="mc158detail-actions"><button type="button" data-action="payment" data-cart="'+c.id+'" '+(due<=0?'disabled':'')+'>Registrar pago</button><button type="button" data-action="sale" data-cart="'+c.id+'" '+(c.state!=='ACTIVE'?'disabled':'')+'>Agregar producto</button><button type="button" data-action="calendar" data-cart="'+c.id+'">Calendario</button><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp</button><button type="button" data-action="'+(c.state==='ACTIVE'?'retire':'reactivate')+'" data-cart="'+c.id+'">'+(c.state==='ACTIVE'?'Retirar carrito':'Reactivar carrito')+'</button></div>';
 }
 function renderList(){
  syncHeader();if(!workspaceSummary.some(s=>s.currency===summaryCurrency))summaryCurrency=account.currency;
@@ -109,6 +109,54 @@ function renderList(){
  $('mc373unit').onchange=e=>{summaryCurrency=e.target.value;renderList();};
  if($('mc158state')){$('mc158state').value=cartState;$('mc158state').onchange=e=>{cartState=e.target.value;listPage=0;renderRows();void load(false).catch(err=>note(err.message));};renderRows();}
  if(section==='sales')void movementPage(null,0,$('mc373sales'),'PRODUCT');
+}
+/* V376: calendario de cobros, lectura de movimientos existentes; no modifica saldos. */
+function mc376Date(value){return new Date(value+"T12:00:00");}
+function mc376Money(v){return Math.round((Number(v)||0)*100);}
+function mc376Timeline(rows){
+ const entries=rows.slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at))||String(a.id).localeCompare(String(b.id)));
+ const debts=[],payments=[],credits=[];
+ for(const m of entries){
+  const cents=mc376Money(m.amount_local),kind=String(m.kind||"").toUpperCase();
+  if(cents>0){debts.push({m,amount:cents,remaining:cents,allocations:[]});continue;}
+  if(kind!=="PAYMENT"||cents>=0)continue;
+  const p={m,amount:-cents,remaining:-cents,allocations:[]};payments.push(p);
+  let rest=p.remaining;
+  for(const d of debts){if(rest<=0)break;const applied=Math.min(rest,d.remaining);if(applied<=0)continue;d.remaining-=applied;rest-=applied;d.allocations.push({payment:p,amount:applied});p.allocations.push({debt:d,amount:applied});}
+  p.remaining=rest;
+  if(rest>0)credits.push(p);
+ }
+ return {debts,payments,credits};
+}
+function mc376Render(cart,rows,month,chosen){
+ const c=carts.find(x=>Number(x.id)===Number(cart))||selectedData;
+ const cur=c?.currency||account?.currency||"PEN",t=mc376Timeline(rows);
+ const first=new Date(month+"-01T12:00:00"),days=new Date(first.getFullYear(),first.getMonth()+1,0).getDate(),offset=(first.getDay()+6)%7;
+ const daily=t.debts.filter(d=>String(d.m.kind).toUpperCase()==="RENT");
+ const byDay=new Map();
+ for(const d of daily){const key=d.m.occurred_on;if(!byDay.has(key))byDay.set(key,[]);byDay.get(key).push(d);}
+ const chosenDebts=byDay.get(chosen)||[],charges=chosenDebts.reduce((n,d)=>n+d.amount,0),unpaid=chosenDebts.reduce((n,d)=>n+d.remaining,0);
+ const monthName=new Intl.DateTimeFormat("es-PE",{month:"long",year:"numeric"}).format(first);
+ const dayButtons=Array.from({length:offset},()=>'<span></span>');
+ for(let day=1;day<=days;day++){const key=month+"-"+String(day).padStart(2,"0"),ds=byDay.get(key)||[],total=ds.reduce((n,d)=>n+d.amount,0),left=ds.reduce((n,d)=>n+d.remaining,0),state=!total?"none":!left?"paid":left===total?"due":"partial";
+ dayButtons.push('<button type="button" class="mc376-day mc376-'+state+(key===chosen?' mc376-selected':'')+'" data-mc376-day="'+key+'" aria-label="'+key+' · '+({none:"Sin cargo registrado",paid:"Pagado",due:"Pendiente",partial:"Parcial"}[state])+'">'+day+'</button>');}
+ const info=chosenDebts.length?'<strong>'+esc(chosen)+'</strong><p>Alquiler: '+currency(charges/100,cur)+' · Pendiente: '+currency(unpaid/100,cur)+'</p>'+chosenDebts.flatMap(d=>d.allocations.map(a=>'<p>Abono aplicado: '+currency(a.amount/100,cur)+' · Cobrado '+new Intl.DateTimeFormat("es-PE",{dateStyle:"short",timeStyle:"short",timeZone:"America/Lima"}).format(new Date(a.payment.m.created_at))+' · '+esc(a.payment.m.payment_method||"Sin método")+'</p>')).join(''):'<strong>'+esc(chosen)+'</strong><p>Sin alquiler registrado para este día.</p>';
+ const recent=t.payments.slice().reverse().slice(0,12).map(p=>'<tr><td>'+new Intl.DateTimeFormat("es-PE",{dateStyle:"short",timeStyle:"short",timeZone:"America/Lima"}).format(new Date(p.m.created_at))+'</td><td>'+currency(p.amount/100,cur)+'</td><td>'+esc(p.m.payment_method||"—")+'</td><td>'+p.allocations.map(a=>esc(a.debt.m.occurred_on||"Producto")+" ("+currency(a.amount/100,cur)+")").join(", ")+(p.remaining?' · Saldo sin asignar: '+currency(p.remaining/100,cur):"")+'</td></tr>').join('');
+ return '<div class="mc376-head"><button type="button" data-mc376-month="-1">‹</button><strong>'+esc(monthName)+'</strong><button type="button" data-mc376-month="1">›</button></div><div class="mc376-grid">'+["L","M","M","J","V","S","D"].map(x=>'<b>'+x+'</b>').join('')+dayButtons.join('')+'</div><div class="mc376-legend"><span>🟢 Pagado</span><span>🔴 Pendiente</span><span>🟡 Parcial</span><span>⚪ Sin cargo</span></div><div class="mc376-info">'+info+'</div><h4>Últimos cobros y días aplicados</h4><div class="mc158scroll"><table><thead><tr><th>Fecha y hora</th><th>Importe</th><th>Método</th><th>Aplicación</th></tr></thead><tbody>'+ (recent||'<tr><td colspan="4">Sin pagos registrados</td></tr>')+'</tbody></table></div><p class="mc376-help">Los abonos se muestran aplicados a las deudas más antiguas, incluidos productos. Es una reconstrucción informativa del historial; no modifica los movimientos ni sustituye una conciliación contable. Horario de cobros: Lima (Perú).</p>';
+}
+async function mc376Open(cart){
+ const c=carts.find(x=>Number(x.id)===Number(cart))||selectedData;
+ const d=drawer('Calendario · '+(c?.alias||'C-'+cart),'<div id="mc376calendar">Consultando pagos…</div>');
+ const target=d.querySelector("#mc376calendar"),uid=ses()?.userId,jwt=ses()?.jwt;
+ try{
+ const rows=await window.cc80.api('mc_movements?select=id,cart_id,kind,label,occurred_on,amount_local,currency,payment_method,created_at&reseller_id=eq.'+encodeURIComponent(uid)+'&cart_id=eq.'+Number(cart)+'&order=created_at.asc,id.asc&limit=5000');
+ if(!target.isConnected||ses()?.userId!==uid||ses()?.jwt!==jwt)return;
+ if(rows.length===5000){target.textContent="Hay demasiados movimientos para mostrar un calendario completo. Consulta el historial.";return;}
+ let month=new Date().toLocaleDateString("en-CA",{timeZone:"America/Lima"}).slice(0,7),selected=month+"-01";
+ const paint=()=>{if(target.isConnected)target.innerHTML=mc376Render(cart,rows,month,selected);};
+ target.addEventListener("click",e=>{const b=e.target.closest("[data-mc376-day],[data-mc376-month]");if(!b)return;if(b.dataset.mc376Day)selected=b.dataset.mc376Day;else{const [y,m]=month.split("-").map(Number),d=new Date(y,m-1+Number(b.dataset.mc376Month),1);month=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");selected=month+"-01";}paint();});
+ paint();
+ }catch(e){if(target.isConnected)target.textContent="No se pudo consultar el calendario: "+String(e.message||e);}
 }
 async function movementPage(cart,page,target,kind=null){
  const uid=ses()?.userId,jwt=ses()?.jwt,seq=++historySequence;
@@ -222,7 +270,7 @@ async function click(e){
  }
  if(act==="payment"){if(balance(id)<=0){note("No hay deuda pendiente para registrar un abono.");return;}drawer("Cobrar · C-"+id,'<form id="mc158pay" data-cart="'+id+'" data-request="'+crypto.randomUUID()+'"><p>Deuda pendiente: '+currency(balance(id),account.currency)+'</p><label>Importe recibido<input name="amount" type="number" min=".01" max="'+Math.max(0,balance(id)).toFixed(2)+'" step=".01" required></label><label>Medio<select name="method"><option>Efectivo</option><option>Yape</option><option>Plin</option><option>Transferencia</option></select></label><button type="submit">Registrar abono</button></form>');return;}
  if(act==="sale"){drawer("Agregar hielo o producto · C-"+id,'<form id="mc158sale" data-cart="'+id+'"><label>Producto<input name="item" value="Hielo" required maxlength="120"></label><label>Cantidad<input name="quantity" type="number" min=".001" step="any" value="1" required></label><label>Precio por unidad ('+esc(account.currency)+')<select name="price"><option value="1.50">1.50</option><option value="2">2.00</option><option value="3">3.00</option></select></label><p>Se acumula como deuda del carrito hasta registrar el pago.</p><button type="submit">Agregar producto</button></form>');return;}
- if(act==="history"){const c=carts.find(c=>Number(c.id)===id)||selectedData;const d=drawer('Historial · '+(c?.alias||'C-'+id),'<div id="mc373history">Consultando movimientos…</div>');await movementPage(id,0,d.querySelector('#mc373history'));return;}
+ if(act==="calendar"){await mc376Open(id);return;}\n if(act==="history"){const c=carts.find(c=>Number(c.id)===id)||selectedData;const d=drawer('Historial · '+(c?.alias||'C-'+id),'<div id="mc373history">Consultando movimientos…</div>');await movementPage(id,0,d.querySelector('#mc373history'));return;}
 
  }catch(e){if(ses()?.userId===actor&&ses()?.jwt===jwt)note("Error: "+String(e.message||e));}
 }
@@ -250,6 +298,7 @@ function mountHomeBadge(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountHomeBadge);else mountHomeBadge();
 document.addEventListener('cc192-session-ended',()=>{loadSequence++;ownerId=null;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';selectedData=null;workspaceSummary=[];selectedCartId=null;close();const body=$('mc158body');if(body)body.textContent='Inicia sesión para abrir MI COCHERA.';});
 matchMedia('(max-width:850px)').addEventListener('change',()=>{if($('mc158layer')?.style.display!=='none'&&account&&active()){listPage=0;void load(false).catch(err=>note(err.message));}});
+const mc376Style=document.createElement("style");mc376Style.textContent=".mc376-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0}.mc376-head button{min-width:38px}.mc376-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.mc376-grid>b{text-align:center;font-size:12px}.mc376-day{border:1px solid transparent;border-radius:9px;min-height:37px;padding:4px;font-weight:600;cursor:pointer;color:#17212b}.mc376-paid{background:#bbf7d0}.mc376-due{background:#fecaca}.mc376-partial{background:#fde68a}.mc376-none{background:#e5e7eb}.mc376-selected{outline:2px solid #6366f1;outline-offset:1px}.mc376-legend{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;font-size:12px}.mc376-info{border:1px solid #d4d4d8;border-radius:12px;padding:12px;margin-bottom:14px}.mc376-info p{margin:7px 0;font-size:13px}.mc376-help{font-size:12px;opacity:.8;line-height:1.5}.mc376-grid button:focus-visible{outline:3px solid #4f46e5}";document.head.append(mc376Style);
 window.mc158Open=open;
 window.mc158Close=close;
 })();
