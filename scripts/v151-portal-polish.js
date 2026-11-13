@@ -103,7 +103,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=371';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=371.1';script.async=false;document.head.append(script);
  }
 })();
 
@@ -120,7 +120,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc169-public-catalog-script')){
   const script=document.createElement('script');script.id='cc169-public-catalog-script';
-  script.src='scripts/v169-catalogo-unico.js?v=315';
+  script.src='scripts/v169-catalogo-unico.js?v=371.1';
   script.async=false;document.head.append(script);
  }
 })();
@@ -215,6 +215,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  document.getElementById('mc158layer')?.remove();
  document.getElementById('mc158dialog')?.remove();
  const script=document.createElement('script');
- script.id='mc158-v343-loader';script.src='scripts/v158-mi-cochera.js?v=343';
+ script.id='mc158-v343-loader';script.src='scripts/v158-mi-cochera.js?v=371.1';
  script.async=false;document.head.append(script);
 })();

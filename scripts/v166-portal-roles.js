@@ -21,6 +21,7 @@ let walletTab='summary',rechargeMode='manual';
 let renderedLocation='';
 let adminDirectoryQuery='',adminDirectoryRole='ALL',adminDirectoryService='ALL';
 const adminOpenFiles=new Set();
+let moduleReturn=null;
 let navigationHistory=[],autoMethods=[],autoState='idle',autoError='';
 let bonusSaving=false,personalTopupSaving=false;
 let adminRechargeFormOpen=false,salesFilter='all',purchaseFilter='all',publishing=false,discardPublishDraft=false;
@@ -72,7 +73,7 @@ function reset(){
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  profileDraft=null;profileDraftVersion=0;profileSaveRequest=null;profileMessage='';
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
- walletTab='summary';rechargeMode='manual';navigationHistory=[];
+ walletTab='summary';rechargeMode='manual';navigationHistory=[];moduleReturn=null;
  adminDirectoryQuery='';adminDirectoryRole='ALL';adminDirectoryService='ALL';adminOpenFiles.clear();
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
  adminRechargeFormOpen=false;salesFilter='all';purchaseFilter='all';publishing=false;discardPublishDraft=false;deliveriesPending.clear();
@@ -118,10 +119,10 @@ function addReturnControl(){
  if(host)return;
  host=make('div','cc177-return-panel');host.id='cc177-return-panel';
  host.append(button('← Volver a mi panel',()=>{
-  host.remove();sync();
+  host.remove();window.mc158Close?.();window.ma1611MiAlquiler?.close?.();sync();
   if(app){app.hidden=false;render();}
  },'cc166-primary'));
- host.append(button('✕',()=>host.remove(),'cc166-secondary'));
+ host.append(button('✕',closeToHome,'cc166-secondary'));
  document.body.append(host);
 }
 function exitTo(fn){
@@ -150,11 +151,23 @@ function closePanelMenu(){
  app?.classList.remove('cc308-menu-open');
  el('cc308-more')?.setAttribute('aria-expanded','false');
 }
+function closeToHome(){
+ moduleReturn=null;navigationHistory=[];view='home';walletTab='summary';
+ window.cy53?.close?.();window.mc158Close?.();window.ma1611MiAlquiler?.close?.();
+ el('cc177-return-panel')?.remove();
+ if(app){app.hidden=true;savePanelState();}
+ window.cc77Home?.();
+}
+function rememberModuleReturn(back){
+ if(typeof back!=='function')return;
+ moduleReturn={uid:user,back};navigationHistory=[];
+}
 function nav(to){
  closePanelMenu();
  if(to==='back'){
   const prior=navigationHistory.pop();
   if(prior){view=prior.view;walletTab=prior.walletTab;render(true);return;}
+  if(moduleReturn?.uid===user){const back=moduleReturn.back;moduleReturn=null;app.hidden=true;savePanelState();back();return;}
   if(view!=='home'){view='home';walletTab='summary';render(true);return;}
   app.hidden=true;return;
  }
@@ -259,12 +272,12 @@ function renderNav(){
  const heading=app.querySelector('.cc166-top h1');
  if(heading)heading.textContent='Panel CLAN CARTAN';
  const top=el('cc166-top-actions');top.replaceChildren();
- if(view!=='home'&&navigationHistory.length)
+ if(view!=='home'&&(navigationHistory.length||moduleReturn))
   top.append(button('← Atrás',()=>nav('back'),'cc166-secondary cc177-back'));
  const localRefresh=view==='admin'||['recharges','recharge-mail'].includes(view)||(view==='wallet'&&data.admin);
  if(view!=='home'&&!localRefresh&&view!=='bonuses'&&view!=='profile')
   top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
- top.append(button('✕ Cerrar',()=>{app.hidden=true;window.cc77Home?.();},'cc166-x'));
+ top.append(button('✕ Cerrar',closeToHome,'cc166-x'));
 }
 function businessTabs(page){
  const tabs=make('nav','cc167-tabs');tabs.setAttribute('aria-label','Negocios CLAN CARTAN');
@@ -2476,10 +2489,12 @@ function init(){
   sync();if(!verified||!data.admin||!app)return;
   app.hidden=false;nav('bonuses');
  };
- window.cc166OpenWallet=(tab='summary')=>{
+ window.cc166CloseToHome=closeToHome;
+ window.cc166OpenWallet=(tab='summary',back=null)=>{
   sync();if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
   const legacy=el('cc80wallet');if(legacy){legacy.hidden=true;legacy.style.display='none';}
   app.hidden=false;finance(tab==='manual'?(data.admin?'recharges':'manual'):tab==='movements'?'movements':'summary');
+  rememberModuleReturn(back);if(back)render();
  };
  window.cc166OpenBusiness=code=>{
   sync();
@@ -2534,10 +2549,10 @@ function init(){
   else if(view==='wallet'&&walletTab==='manual')void loadOwnPendingRequest(true,true);
  };
  window.cc166PurchaseProductFromCatalog=(id,btn,price)=>purchaseFromPublicCatalog(id,btn,price);
- window.cc166OpenProfile=()=>{
+ window.cc166OpenProfile=(back=null)=>{
   sync();
   if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
-  app.hidden=false;view='profile';render();
+  app.hidden=false;nav('profile');rememberModuleReturn(back);if(back)render();
  };
 
 }

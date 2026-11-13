@@ -2,9 +2,9 @@ name: COBRA YA V371 · datos y concurrencia
 on:
   push:
     branches: [main]
-    paths: ['scripts/cobra-v371.js', 'scripts/v371-test-*.sql', 'scripts/check-v371-database.sql', 'scripts/test-v371-concurrency.py', 'supabase/migrations/*cobra_ya_v371_premium.sql', '.github/workflows/validar-cobra-v371.yml']
+    paths: ['scripts/cobra-v371.js', 'scripts/v371-test-*.sql', 'scripts/check-v371-database.sql', 'scripts/test-v371-concurrency.py', 'scripts/test-v371-dni-navigation.py', 'scripts/v166-portal-roles.js', 'supabase/migrations/*cobra_ya_v371_premium.sql', '.github/workflows/validar-cobra-v371.yml']
   pull_request:
-    paths: ['scripts/cobra-v371.js', 'supabase/migrations/*cobra_ya_v371_premium.sql']
+    paths: ['scripts/cobra-v371.js', 'scripts/test-v371-dni-navigation.py', 'scripts/v166-portal-roles.js', '.github/workflows/validar-cobra-v371.yml', 'supabase/migrations/*cobra_ya_v371_premium.sql']
   workflow_dispatch:
 permissions:
   contents: read
@@ -44,3 +44,24 @@ jobs:
           docker cp scripts/check-v371-database.sql "$V371_PG_CONTAINER":/tmp/tests.sql
           docker exec "$V371_PG_CONTAINER" psql -U postgres -d v371release -v ON_ERROR_STOP=1 -f /tmp/bootstrap.sql -f /tmp/functions.sql -f /tmp/migration.sql -f /tmp/tests.sql
           python3 scripts/test-v371-concurrency.py
+
+  browser-navigation:
+    name: DNI y navegación · PC y celular
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preparar pruebas de navegador
+        run: python -m pip install playwright==1.62.0
+      - name: Probar identidad y regreso sin servicios reales
+        run: |
+          python -m http.server 8000 --bind 127.0.0.1 > /tmp/v371-http.log 2>&1 &
+          python scripts/test-v371-dni-navigation.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v371-dni-navigation
+          path: artifacts/v371-dni-navigation/
