@@ -1,5 +1,7 @@
 """Browser regression: mocked identity/API data only; never calls production services."""
 import json, pathlib, shutil
+from datetime import datetime,timezone
+from zoneinfo import ZoneInfo
 from playwright.sync_api import sync_playwright
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 OUT=ROOT/'artifacts'/'v371-dni-navigation'
@@ -12,8 +14,9 @@ with sync_playwright() as p:
   calls=[];pending=[]
   def api(route):
    name=route.request.url.split('/rest/v1/')[-1].split('?')[0]
-   if name=='rpc/cy371_access':value={'allowed':True,'admin':True}
-   elif name=='rpc/cy371_dashboard':value={'portfolios':[],'clients':0,'active':0,'today':0,'late':0,'soon':0}
+   if name in ('rpc/cy372_context','rpc/cy372_set_timezone'):value={'configured':True,'timezone':route.request.post_data_json.get('p_timezone','UTC'),'local_date':datetime.now(timezone.utc).date().isoformat(),'verified_at':datetime.now(timezone.utc).isoformat()}
+   elif name=='rpc/cy371_access':value={'allowed':True,'admin':True}
+   elif name in ('rpc/cy371_dashboard','rpc/cy372_dashboard'):value={'portfolios':[],'currencies':[],'clients':0,'active':0,'today':0,'tomorrow':0,'late':0,'soon':0,'paid':0,'attention':0,'local_date':datetime.now(ZoneInfo(route.request.post_data_json.get('p_timezone','UTC'))).date().isoformat(),'verified_at':datetime.now(timezone.utc).isoformat(),'timezone':route.request.post_data_json.get('p_timezone','UTC')}
    elif name=='rpc/cy371_list':value={'rows':[],'total':0}
    elif name=='rpc/cc_finance_wallet':value={'available_pen':'17.00'}
    else:value=[]
