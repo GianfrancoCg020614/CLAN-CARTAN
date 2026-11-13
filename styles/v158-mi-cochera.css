@@ -167,3 +167,34 @@
 }
 @media(max-width:360px){#mc158layer .mc158head{grid-template-columns:44px 44px minmax(0,1fr) 44px 44px;gap:5px}#mc158layer .mc373-logo{width:44px}#mc158layer .mc158kpi{gap:7px}#mc158layer .mc158kpi strong{font-size:17px}#mc158layer .mc158kpi>svg{width:24px;height:24px}}
 @media(prefers-reduced-motion:reduce){#mc158layer *,#mc158dialog *{transition:none!important}}
+
+/* V374: refinamiento visual seguro. Solo MI COCHERA; sin modificar operaciones. */
+#mc158layer .mc158main{max-width:1600px;margin-inline:auto}
+#mc158layer .mc158kpi{transition:transform .18s ease,box-shadow .18s ease}
+#mc158layer .mc158kpi:hover{transform:translateY(-2px);box-shadow:0 10px 24px #0004}
+#mc158layer .mc158quick button{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease;box-shadow:0 6px 15px #0003}
+#mc158layer .mc158quick button:not(:disabled):active{transform:scale(.98)}
+#mc158layer .mc158nav-item{transition:background .18s ease,border-color .18s ease}
+#mc158layer .mc158panel{box-shadow:0 9px 24px #0003}
+#mc158layer .mc373-empty,#mc158layer .mc158empty{border-radius:12px;background:linear-gradient(145deg,#12233a,#0a1628);border:1px dashed #405777}
+@media(max-width:850px){
+ #mc158layer .mc158main{padding:12px 10px 22px}
+ #mc158layer .mc158panel-title{margin-bottom:12px}
+ #mc158layer .mc158kpis{gap:9px;margin-bottom:12px}
+ #mc158layer .mc158kpi{min-height:78px;padding:11px 9px}
+ #mc158layer .mc158quick{gap:8px;margin-bottom:12px}
+ #mc158layer .mc158quick button{min-height:72px;line-height:1.2}
+ #mc158layer .mc158panel{padding:12px}
+ #mc158layer .mc373-empty,#mc158layer .mc158empty{padding:18px 12px}
+ #mc158layer .mc158head{box-shadow:0 3px 12px #0006}
+}
+@media(max-width:360px){
+ #mc158layer .mc158quick button{font-size:10px;padding-inline:3px}
+ #mc158layer .mc158kpi strong{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){
+ #mc158layer .mc158kpi,#mc158layer .mc158quick button,#mc158layer .mc158nav-item{transition:none!important}
+}
+
+/* V374: motivo visible cuando una acción todavía no está disponible. */
+#mc158layer .mc374-action-help{margin:-5px 0 14px;color:#cbd8ea;font-size:12px;line-height:1.45;padding:0 3px}
