@@ -33,6 +33,7 @@ jobs:
       - run: |
           node --check scripts/v158-mi-cochera.js
           node scripts/check-v158-mi-cochera.mjs
+          node scripts/check-v356-business-currency.mjs
           node scripts/test-v304-inline-syntax.mjs
           psql -v ON_ERROR_STOP=1 -f scripts/mc373-test-bootstrap.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261113201834_mi_cochera_v373_workspace.sql
