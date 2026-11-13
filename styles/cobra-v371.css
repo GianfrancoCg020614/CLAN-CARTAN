@@ -240,3 +240,16 @@
 @media(prefers-reduced-motion:reduce){#cy53layer.cy371-layer *{transition:none!important;scroll-behavior:auto!important}}
 
 .cy371-dialog-nav{display:flex;align-items:center;gap:8px}.cy371-dialog-nav button{display:flex;align-items:center;gap:5px;min-height:44px}.cy371-dialog-nav svg{width:20px;height:20px}.cy371-form label>small{font-size:12px;line-height:1.45;color:#bdb4d4}
+
+/* V372: scoped agenda, receipts and financial details; original shell unchanged. */
+#cy53layer.cy371-layer .cy372-agenda td small{display:block;color:#b9afd0;font-size:11px}
+#cy53layer.cy371-layer .cy372-financials{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+#cy53layer.cy371-layer .cy372-financials article{padding:16px;border:1px solid #51346d;border-radius:14px;background:#10122b;min-width:0}
+#cy53layer.cy371-layer .cy372-financials h3{margin:0 0 10px;color:#cda0ff}
+#cy53layer.cy371-layer .cy372-receipt dd{overflow-wrap:anywhere}
+#cy53layer.cy371-layer #cy372period label{display:grid;gap:4px;font-size:12px;max-width:100%}
+#cy53layer.cy371-layer #cy372period input{min-height:44px;padding:8px;max-width:100%;min-width:0}
+@media(max-width:1000px){
+ #cy53layer.cy371-layer .cy372-agenda .cy371-row-actions{grid-column:1/-1;justify-content:flex-end;flex-wrap:wrap;gap:5px}
+ #cy53layer.cy371-layer #cy372period label{flex:1;min-width:125px}
+}

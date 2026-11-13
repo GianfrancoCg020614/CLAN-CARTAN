@@ -1,10 +1,10 @@
-name: COBRA YA V371 · datos y concurrencia
+name: COBRA YA V372 · datos, cobranza y concurrencia
 on:
   push:
     branches: [main]
-    paths: ['scripts/cobra-v371.js', 'scripts/v371-test-*.sql', 'scripts/check-v371-database.sql', 'scripts/test-v371-concurrency.py', 'scripts/test-v371-dni-navigation.py', 'scripts/v166-portal-roles.js', 'supabase/migrations/*cobra_ya_v371_premium.sql', '.github/workflows/validar-cobra-v371.yml']
+    paths: ['scripts/cobra-v371.js', 'scripts/cobra-v372-tools.js', 'scripts/test-v372-*.mjs', 'scripts/test-v372-browser.py', 'scripts/check-v372-database.sql', 'scripts/v372-test-rls.sql', 'supabase/migrations/*cobra_ya_v372_collections_reads.sql', 'scripts/v371-test-*.sql', 'scripts/check-v371-database.sql', 'scripts/test-v371-concurrency.py', 'scripts/test-v371-dni-navigation.py', 'scripts/v166-portal-roles.js', 'supabase/migrations/*cobra_ya_v371_premium.sql', '.github/workflows/validar-cobra-v371.yml']
   pull_request:
-    paths: ['scripts/cobra-v371.js', 'scripts/test-v371-dni-navigation.py', 'scripts/v166-portal-roles.js', '.github/workflows/validar-cobra-v371.yml', 'supabase/migrations/*cobra_ya_v371_premium.sql']
+    paths: ['scripts/cobra-v371.js', 'scripts/cobra-v372-tools.js', 'scripts/test-v372-*.mjs', 'scripts/test-v372-browser.py', 'scripts/check-v372-database.sql', 'scripts/v372-test-rls.sql', 'supabase/migrations/*cobra_ya_v372_collections_reads.sql', 'scripts/test-v371-dni-navigation.py', 'scripts/v166-portal-roles.js', '.github/workflows/validar-cobra-v371.yml', 'supabase/migrations/*cobra_ya_v371_premium.sql']
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,8 +31,15 @@ jobs:
       - name: Sintaxis de interfaz y navegación
         run: |
           node --check scripts/cobra-v371.js
+          node --check scripts/cobra-v372-tools.js
+          node scripts/test-v372-tools.mjs
           node --check scripts/v166-portal-roles.js
           node scripts/test-v304-inline-syntax.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preparar navegador y lectura PDF
+        run: python -m pip install playwright==1.62.0 pypdf==6.21.4 pillow==13.0.0
       - name: Probar operaciones existentes y migración en PostgreSQL aislado
         env:
           V371_PG_CONTAINER: ${{ job.services.postgres.id }}
@@ -43,7 +50,23 @@ jobs:
           docker cp supabase/migrations/20261112114133_cobra_ya_v371_premium.sql "$V371_PG_CONTAINER":/tmp/migration.sql
           docker cp scripts/check-v371-database.sql "$V371_PG_CONTAINER":/tmp/tests.sql
           docker exec "$V371_PG_CONTAINER" psql -U postgres -d v371release -v ON_ERROR_STOP=1 -f /tmp/bootstrap.sql -f /tmp/functions.sql -f /tmp/migration.sql -f /tmp/tests.sql
+          docker cp supabase/migrations/20261113184952_cobra_ya_v372_collections_reads.sql "$V371_PG_CONTAINER":/tmp/v372.sql
+          docker cp scripts/v372-test-rls.sql "$V371_PG_CONTAINER":/tmp/rls.sql
+          docker cp scripts/check-v372-database.sql "$V371_PG_CONTAINER":/tmp/v372-tests.sql
+          docker exec "$V371_PG_CONTAINER" psql -U postgres -d v371release -v ON_ERROR_STOP=1 -f /tmp/v372.sql -f /tmp/rls.sql -f /tmp/v372-tests.sql
           python3 scripts/test-v371-concurrency.py
+      - name: Probar interfaz, agenda, abonos, WhatsApp y PDF sin producción
+        env:
+          V371_PG_CONTAINER: ${{ job.services.postgres.id }}
+          V371_PG_DATABASE: v371release
+        run: |
+          python -m http.server 8000 --bind 127.0.0.1 > /tmp/v372-http.log 2>&1 &
+          python scripts/test-v372-browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobra-v372-browser
+          path: artifacts/v372/
 
   browser-navigation:
     name: DNI y navegación · PC y celular
