@@ -1,0 +1,51 @@
+name: Validar MI COCHERA V373
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: fixture
+          POSTGRES_DB: mc373test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: fixture
+      PGDATABASE: mc373test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          node --check scripts/v158-mi-cochera.js
+          node scripts/check-v158-mi-cochera.mjs
+          node scripts/test-v304-inline-syntax.mjs
+          psql -v ON_ERROR_STOP=1 -f scripts/mc373-test-bootstrap.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261113201834_mi_cochera_v373_workspace.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/check-mc373-database.sql
+      - run: |
+          pip install playwright==1.62.0
+          node scripts/fixture-mc373.mjs
+          python -m http.server 8000 > /tmp/mc373-http.log 2>&1 &
+          python scripts/test-mc373-browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mi-cochera-v373-browser
+          path: |
+            artifacts/mc373/*.png
+            artifacts/mc373/*results.json
