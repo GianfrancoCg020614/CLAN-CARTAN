@@ -23,3 +23,21 @@ Revisión de `scripts/v158-mi-cochera.js`, `styles/v158-mi-cochera.css` y entreg
 
 ## Decisión
 V374 sigue como PR pendiente de revisión. No fusionar ni publicar por el solo hecho de aprobar esta auditoría. La idempotencia financiera y alertas requieren especificación y pruebas separadas.
+
+## Verificación directa de producción (solo lectura)
+Se consultó `pg_get_functiondef` de `public.mc_record_movement` y `public.mc_sync_rents` en el proyecto Supabase CLAN CARTAN. No se ejecutaron escrituras.
+
+- `mc_record_movement` recibe `p_cart, p_kind, p_label, p_quantity, p_unit, p_amount, p_method`; **no recibe idempotency key**. Bloquea la fila del carrito con `FOR UPDATE`, verifica propiedad y membresía, rechaza pagos mayores que la deuda, y registra un nuevo UUID para cada llamada aceptada.
+- Un pago parcial duplicado puede ser aceptado dos veces si la deuda remanente alcanza. La comprobación de deuda no es deduplicación de solicitudes.
+- `mc_sync_rents` usa `ON CONFLICT DO NOTHING`; la garantía de unicidad depende también de los índices vigentes. No se ha ejecutado una prueba de concurrencia real.
+- Ambas funciones son `SECURITY DEFINER` y verifican `auth.uid()` y propietario; cualquier cambio debe mantener aislamiento y auditar privilegios EXECUTE.
+
+## Propuesta de corrección V375 (requiere pruebas antes de desplegar)
+1. Añadir clave de solicitud UUID generada una vez por intento de pago y reutilizada al reintentar el mismo intento; generar una nueva clave solo para un nuevo pago deliberado.
+2. Registrar solicitudes de pago en tabla interna protegida por RLS/privilegios, con restricción `UNIQUE (reseller_id, request_id)`, huella de parámetros y UUID del movimiento confirmado.
+3. Crear RPC transaccional que serialice por propietario/solicitud y por carrito, valide la membresía y la huella; si ya se completó la solicitud, devolver **el mismo UUID** sin insertar otro movimiento. Si se reutiliza clave con parámetros distintos, rechazar.
+4. Mantener el RPC histórico para compatibilidad durante migración, pero no dejar rutas alternativas inseguras accesibles al cliente. Revisar quién lo invoca antes de restringir EXECUTE.
+5. Simular en PostgreSQL aislado: 16 reintentos concurrentes iguales => 1 movimiento; 2 solicitudes diferentes mismo importe => 2 movimientos; respuesta perdida => mismo UUID; distinta huella => rechazo; deuda insuficiente, propietario ajeno, activación vencida y reintentos tras sesión nueva.
+6. Hacer respaldo verificable y revisión de permisos antes de cualquier DDL; migración aditiva y reversión documentada.
+
+**No se ejecutó esta propuesta en producción** ni se cambió el esquema financiero en V374.
