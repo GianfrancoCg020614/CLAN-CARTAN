@@ -165,7 +165,7 @@ async async function mc377ReverseOpen(cart){
  try{
  const [movements,corrections]=await Promise.all([
  window.cc80.api('mc_movements?select=id,kind,label,quantity,unit_price,amount_local,currency,created_at&reseller_id=eq.'+encodeURIComponent(uid)+'&cart_id=eq.'+Number(cart)+'&kind=in.(PRODUCT,PAYMENT)&order=created_at.desc&limit=100'),
- window.cc80.api('rpc/mc_list_corrections',{method:'POST',body:{p_cart:Number(cart)}}).catch(()=>null)
+ api('rpc/mc_list_corrections',{p_cart:Number(cart)}).catch(()=>null)
  ]);
  if(!t.isConnected||ses()?.userId!==uid||ses()?.jwt!==jwt)return;
  const corrected=new Set((Array.isArray(corrections)?corrections:[]).map(x=>x.original_id));
