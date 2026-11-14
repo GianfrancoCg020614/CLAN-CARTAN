@@ -78,7 +78,7 @@ function host(){let root=$('mc158layer');if(root)return root;root=document.creat
  root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('mc373-menu-open')){root.classList.remove('mc373-menu-open');root.querySelector('.mc158sidebar')?.setAttribute('inert','');root.querySelector('[data-action=menu]').setAttribute('aria-expanded','false');}});return root;
 }
 function close(){$('mc158dialog')?.remove();clearTimeout(searchTimer);historySequence++;const root=$('mc158layer');if(root){root.style.display='none';root.classList.remove('mc373-menu-open');}if(document.documentElement.dataset.ccActiveModule==='cochera')delete document.documentElement.dataset.ccActiveModule;if($('cc77home'))$('cc77home').style.display='block';}
-function navHTML(){return '<button type="button" class="mc373-scrim" data-action="menu" aria-label="Cerrar menú"></button><aside class="mc158sidebar" '+(matchMedia('(max-width:850px)').matches&&!$('mc158layer').classList.contains('mc373-menu-open')?'inert':'')+'><nav aria-label="Secciones MI COCHERA">'+Object.entries(sections).map(([key,[img,label]])=>'<button type="button" data-action="nav" data-view="'+key+'" class="mc158nav-item '+(section===key?'is-current':'')+'" '+(section===key?'aria-current="page"':'')+'>'+icon(img)+'<span>'+label+'</span></button>').join('')+'</nav><small>MI COCHERA · V373</small></aside>';}
+function navHTML(){return '<button type="button" class="mc373-scrim" data-action="menu" aria-label="Cerrar menú"></button><aside class="mc158sidebar" '+(matchMedia('(max-width:850px)').matches&&!$('mc158layer').classList.contains('mc373-menu-open')?'inert':'')+'><nav aria-label="Secciones MI COCHERA">'+Object.entries(sections).map(([key,[img,label]])=>'<button type="button" data-action="nav" data-view="'+key+'" class="mc158nav-item '+(section===key?'is-current':'')+'" '+(section===key?'aria-current="page"':'')+'>'+icon(img)+'<span>'+label+'</span></button>').join('')+'</nav><small>MI COCHERA · V377</small></aside>';}
 function balance(id){const c=carts.find(c=>Number(c.id)===Number(id))||(Number(selectedData?.id)===Number(id)?selectedData:null);if(!c||!Number.isFinite(Number(c.balance_local)))throw Error('No se pudo verificar el saldo del carrito. Actualiza antes de registrar un pago.');return Number(c.balance_local);}
 function rowMatches(c){const o=person(c.owner_person_id),w=person(c.worker_person_id),text=normalize([c.alias,c.business_type,o.full_name,o.document_number,o.phone,String(o.phone||'').replace(/\D/g,''),w.full_name,w.document_number,w.phone,String(c.id),'C-'+String(c.id).padStart(3,'0'),'C'+String(c.id).padStart(3,'0')].join(' '));return (cartState==='ALL'||c.state===cartState)&&(section!=='collections'||balance(c.id)>0)&&normalize(filter).split(/\s+/).filter(Boolean).every(term=>text.includes(term));}
 function renderRows(){
@@ -89,7 +89,7 @@ function renderRows(){
 function selectedDetail(){
  const c=selectedData;if(!c)return '<div class="mc373-empty"><h3>Selecciona un carrito</h3><p>Abre una ficha para consultar su deuda e historial.</p></div>';
  const o=person(c.owner_person_id),w=person(c.worker_person_id),due=Math.max(0,balance(c.id));
- return '<div class="mc158detail-head"><div><small>C-'+String(c.id).padStart(3,'0')+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||o.full_name||'Carrito')+'</h3></div><span class="mc158status">'+(c.state==='ACTIVE'?'Activo':'Retirado')+'</span></div><div class="mc158person"><strong>'+esc(o.full_name||'Propietario')+'</strong><small>Propietario'+(o.document_number?' · '+esc(o.document_number):'')+'</small></div>'+(w.id?'<div class="mc158detail-line"><span>Trabajador</span><strong>'+esc(w.full_name)+'</strong></div>':'')+'<div class="mc158detail-line"><span>Tarifa diaria</span><strong>'+currency(c.daily_rate,c.currency)+'</strong></div><div class="mc158detail-line"><span>Alquiler registrado</span><strong>'+currency(c.rent_total,c.currency)+'</strong></div><div class="mc158detail-line"><span>Productos registrados</span><strong>'+currency(c.product_total,c.currency)+'</strong></div><div class="mc158detail-debt"><span>Saldo pendiente · '+esc(c.currency)+'</span><strong>'+currency(due,c.currency)+'</strong></div><div class="mc158detail-actions"><button type="button" data-action="payment" data-cart="'+c.id+'" '+(due<=0?'disabled':'')+'>Registrar pago</button><button type="button" data-action="sale" data-cart="'+c.id+'" '+(c.state!=='ACTIVE'?'disabled':'')+'>Agregar producto</button><button type="button" data-action="calendar" data-cart="'+c.id+'">Calendario</button><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp</button><button type="button" data-action="'+(c.state==='ACTIVE'?'retire':'reactivate')+'" data-cart="'+c.id+'">'+(c.state==='ACTIVE'?'Retirar carrito':'Reactivar carrito')+'</button></div>';
+ return '<div class="mc158detail-head"><div><small>C-'+String(c.id).padStart(3,'0')+' · '+esc(c.business_type)+'</small><h3>'+esc(c.alias||o.full_name||'Carrito')+'</h3></div><span class="mc158status">'+(c.state==='ACTIVE'?'Activo':'Retirado')+'</span></div><div class="mc158person"><strong>'+esc(o.full_name||'Propietario')+'</strong><small>Propietario'+(o.document_number?' · '+esc(o.document_number):'')+'</small></div>'+(w.id?'<div class="mc158detail-line"><span>Trabajador</span><strong>'+esc(w.full_name)+'</strong></div>':'')+'<div class="mc158detail-line"><span>Tarifa diaria</span><strong>'+currency(c.daily_rate,c.currency)+'</strong></div><div class="mc158detail-line"><span>Alquiler registrado</span><strong>'+currency(c.rent_total,c.currency)+'</strong></div><div class="mc158detail-line"><span>Productos registrados</span><strong>'+currency(c.product_total,c.currency)+'</strong></div><div class="mc158detail-debt"><span>Saldo pendiente · '+esc(c.currency)+'</span><strong>'+currency(due,c.currency)+'</strong></div><div class="mc158detail-actions"><button type="button" data-action="payment" data-cart="'+c.id+'" '+(due<=0?'disabled':'')+'>Registrar pago</button><button type="button" data-action="sale" data-cart="'+c.id+'" '+(c.state!=='ACTIVE'?'disabled':'')+'>Agregar producto</button><button type="button" data-action="corrections" data-cart="'+c.id+'">Corregir registros</button><button type="button" data-action="calendar" data-cart="'+c.id+'">Calendario</button><button type="button" data-action="history" data-cart="'+c.id+'">Historial</button><button type="button" data-action="whatsapp" data-cart="'+c.id+'">WhatsApp</button><button type="button" data-action="'+(c.state==='ACTIVE'?'retire':'reactivate')+'" data-cart="'+c.id+'">'+(c.state==='ACTIVE'?'Retirar carrito':'Reactivar carrito')+'</button></div>';
 }
 function renderList(){
  syncHeader();if(!workspaceSummary.some(s=>s.currency===summaryCurrency))summaryCurrency=account.currency;
@@ -158,7 +158,21 @@ async function mc376Open(cart){
  paint();
  }catch(e){if(target.isConnected)target.textContent="No se pudo consultar el calendario: "+String(e.message||e);}
 }
-async function movementPage(cart,page,target,kind=null){
+async async function mc377ReverseOpen(cart){
+ const uid=ses()?.userId,jwt=ses()?.jwt;
+ const d=drawer("Corregir cobros y productos",'<p>Selecciona un registro. Para corregir importe o cantidad, anula el original y registra el valor correcto. Todo queda auditado.</p><div id="mc377items">Cargando…</div>');
+ const t=d.querySelector("#mc377items");
+ try{
+ const [movements,corrections]=await Promise.all([
+ window.cc80.api('mc_movements?select=id,kind,label,quantity,unit_price,amount_local,currency,created_at&reseller_id=eq.'+encodeURIComponent(uid)+'&cart_id=eq.'+Number(cart)+'&kind=in.(PRODUCT,PAYMENT)&order=created_at.desc&limit=100'),
+ window.cc80.api('rpc/mc_list_corrections',{method:'POST',body:{p_cart:Number(cart)}}).catch(()=>null)
+ ]);
+ if(!t.isConnected||ses()?.userId!==uid||ses()?.jwt!==jwt)return;
+ const corrected=new Set((Array.isArray(corrections)?corrections:[]).map(x=>x.original_id));
+ t.innerHTML=movements.length?'<div class="mc158scroll"><table><thead><tr><th>Registro</th><th>Importe</th><th>Acción</th></tr></thead><tbody>'+movements.map(m=>'<tr><td>'+esc(m.label)+'<small> · '+esc(new Date(m.created_at).toLocaleString("es-PE"))+'</small></td><td>'+currency(Math.abs(m.amount_local),m.currency)+'</td><td>'+(corrected.has(m.id)?'Anulado':'<button type="button" data-action="reverse-item" data-original="'+esc(m.id)+'" data-cart="'+Number(cart)+'">Corregir</button>')+'</td></tr>').join('')+'</tbody></table></div>':'<p>No hay pagos ni productos para corregir.</p>';
+ }catch(e){if(t.isConnected)t.textContent="No se pudieron consultar los movimientos: "+String(e.message||e);}
+}
+function movementPage(cart,page,target,kind=null){
  const uid=ses()?.userId,jwt=ses()?.jwt,seq=++historySequence;
  try{const path='mc_movements?select=id,cart_id,kind,label,occurred_on,amount_local,currency&reseller_id=eq.'+encodeURIComponent(uid)+(cart?'&cart_id=eq.'+cart:'')+(kind?'&kind=eq.'+kind:'')+'&order=created_at.desc,id.desc&limit=21&offset='+(page*20),data=await window.cc80.api(path);
  if(seq!==historySequence||!target.isConnected||ses()?.userId!==uid||ses()?.jwt!==jwt)return;
@@ -206,7 +220,9 @@ async function submit(e){
  if(!e.target.id?.startsWith("mc158"))return;
  e.preventDefault();if(busy)return;const actor=ses()?.userId,jwt=ses()?.jwt,form=e.target;const current=()=>ses()?.userId===actor&&ses()?.jwt===jwt;busy=true;let button=e.target.querySelector('button[type="submit"]');const label=button?.textContent;if(button){button.disabled=true;button.textContent='Guardando…';}form.setAttribute('aria-busy','true');
  try{
- if(e.target.id==="mc158config"){
+ if(e.target.id==="mc377reverse"){
+  const f=e.target;await api("rpc/mc_reverse_movement",{p_original:f.dataset.original,p_reason:f.elements.reason.value.trim()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Registro anulado con historial. Ya puedes ingresar el importe o cantidad correcta.");
+ }else if(e.target.id==="mc158config"){
   const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Moneda de operación actualizada para MI COCHERA, MI ALQUILER y COBRA YA.");
  }else if(e.target.id==="mc158new"){
   const f=e.target,x=k=>f.elements.namedItem(k)?.value?.trim()||"";
@@ -225,6 +241,11 @@ async function click(e){
  let btn=e.target.closest("[data-action]");if(!btn)return;
  e.preventDefault();const act=btn.dataset.action,id=Number(btn.dataset.cart),actor=ses()?.userId,jwt=ses()?.jwt;
  try{
+ if(act==="reverse-item"){
+ const original=btn.dataset.original,cart=Number(btn.dataset.cart);
+ drawer("Confirmar anulación",'<form id="mc377reverse" data-original="'+esc(original)+'"><p>Esta acción creará un ajuste y conservará el registro original. Después podrás registrar el dato correcto.</p><label>Motivo obligatorio<textarea name="reason" minlength="5" maxlength="300" required placeholder="Ej.: se registraron 5 unidades, pero eran 3"></textarea></label><button type="submit">Confirmar anulación</button></form>');return;
+ }
+ if(act==="corrections"){await mc377ReverseOpen(id);return;}
  if(act==="close-dialog"){historySequence++;$("mc158dialog")?.remove();return;}
  if(act==="menu"){const root=$('mc158layer');if(matchMedia('(max-width:850px)').matches){root.classList.toggle('mc373-menu-open');root.querySelector('.mc158sidebar')?.toggleAttribute('inert',!root.classList.contains('mc373-menu-open'));root.querySelector('[data-action=menu]').setAttribute('aria-expanded',String(root.classList.contains('mc373-menu-open')));}else root.classList.toggle('mc373-collapsed');return;}
  if(act==="profile"){close();window.cc166OpenProfile?.(()=>window.mc158Open());return;}
