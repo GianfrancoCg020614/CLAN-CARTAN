@@ -5,7 +5,7 @@
 'use strict';
 const $=id=>document.getElementById(id),ss=()=>window.CC_V53_SESSION;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const cash=v=>window.ccFormatBusinessCurrency?window.ccFormatBusinessCurrency(v):'S/ '+Number(v||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const cash=(v,c)=>window.ccFormatBusinessCurrency?window.ccFormatBusinessCurrency(v,c):'S/ '+Number(v||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const api=path=>window.cc80.api(path);
 const rpc=(name,body)=>window.cc80.api('rpc/'+name,'POST',body);
 const today=()=>{const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
@@ -13,8 +13,9 @@ const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLo
 const dateDiff=(d,now=today())=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(String(d)))return null;return Math.round((Date.parse(d+'T00:00:00Z')-Date.parse(now+'T00:00:00Z'))/86400000);};
 const phoneDigits=p=>{let s=String(p||'').replace(/\D/g,'');if(/^9\d{8}$/.test(s))s='51'+s;return /^\d{10,15}$/.test(s)&&!/^0+$/.test(s)?s:null;};
 const id=()=>{if(crypto?.randomUUID)return crypto.randomUUID();const a=new Uint8Array(16);crypto.getRandomValues(a);a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;const h=[...a].map(x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);};
+let reportPage=0,completeBalances=[];
 let owner=null,loaded=false,loading=false,error='',ledger=[],guarantees=[],expenses=[],notices=[],ctx=null,alerts=[],allRows=[],version=0,reportScope='all',reportQuery='';
-function clear(){owner=null;loaded=false;loading=false;error='';ledger=[];guarantees=[];expenses=[];notices=[];ctx=null;alerts=[];allRows=[];reportScope='all';reportQuery='';}
+function clear(){version++;completeBalances=[];owner=null;loaded=false;loading=false;error='';ledger=[];guarantees=[];expenses=[];notices=[];ctx=null;alerts=[];allRows=[];reportScope='all';reportQuery='';}
 const code=u=>u.code||((u.kind==='LOCAL'?'L-':'H-')+String(u.serial||0).padStart(3,'0'));
 function status(days){if(days===null)return ['Sin fecha','other'];if(days<0)return ['Vencido hace '+Math.abs(days)+' día(s)','late'];if(days===0)return ['Vence hoy','today'];if(days<=5)return ['Vence en '+days+' día(s)','soon'];return ['Vence en '+days+' días','later'];}
 const getLeaseLabel=(l,c)=>{const u=c.units.find(x=>String(x.id)===String(l.unit_id))||{};return code(u)+' · '+String(u.alias||'');};
@@ -22,25 +23,26 @@ function generated(c){
  const le=c.leases.filter(l=>l.state==='ACTIVE');
  return le.map(l=>{const t=c.tenants.find(x=>x.id===l.tenant_id)||{},u=c.units.find(x=>String(x.id)===String(l.unit_id))||{};
   const due=String(l.next_due_on||''),days=dateDiff(due),tel=phoneDigits(t.whatsapp),permit=t.consent_whatsapp===true;
-  const paid=ledger.filter(x=>x.lease_id===l.id).reduce((total,x)=>total+Number(x.amount_pen||0),0);
+  const paid=Number(completeBalances.find(x=>x.id===l.id)?.balance||0);
   const opened=notices.some(n=>n.lease_id===l.id&&n.due_on===due&&phoneDigits(n.phone_snapshot)===tel&&n.event_type==='OPENED');
   return {lease:l,unit:u,tenant:t,due,days,tel,permit,opened,owed:Math.max(0,paid),code:code(u)};
  }).sort((a,b)=>(a.days??99999)-(b.days??99999));
 }
 async function load(c){
  if(loading||loaded&&owner===c.sessionId)return;
- await window.ccLoadBusinessCurrency?.();
+ const jwt=ss()?.jwt;if(ss()?.userId!==c.sessionId)return;await window.ccLoadBusinessCurrency?.();if(ss()?.userId!==c.sessionId||ss()?.jwt!==jwt)return;
  loading=true;owner=c.sessionId;error='';const started=version;
  try{
   const q='&reseller_id=eq.'+encodeURIComponent(c.sessionId);
   const paths=['ma_ledger?select=*&order=created_at.desc&limit=5000'+q,'ma_guarantee_events?select=*&order=created_at.desc&limit=3000'+q,'ma_expenses?select=*&order=created_at.desc&limit=3000'+q,'ma_whatsapp_notice_events?select=*&order=created_at.desc&limit=3000'+q];
-  const data=await Promise.all(paths.map(api));
-  if(ss()?.userId!==c.sessionId){clear();return;}
-  if(version!==started){loaded=false;return;}
+  const [data,complete]=await Promise.all([Promise.all(paths.map(api)),rpc('ma388_summary',{})]);
+  if(ss()?.userId!==c.sessionId||ss()?.jwt!==jwt)return;
+  if(version!==started)return;
+  if(!Array.isArray(complete?.leases))throw Error('No se pudieron verificar los saldos completos.');completeBalances=complete.leases;
   [ledger,guarantees,expenses,notices]=data.map(x=>Array.isArray(x)?x:[]);
   loaded=true;alerts=generated(c);allRows=[];
- }catch(e){loaded=false;error='No se pudieron cargar los avisos: '+String(e.message||e);}
- finally{loading=false;if(owner===c.sessionId&&$('ma1611layer')&&!$('ma1611layer').hidden&&$('ma1611layer').querySelector('.ma1611-nav button[data-area="avisos"].active'))window.ma1612Enhance?.('avisos',$('ma1611content'));}
+ }catch(e){if(version!==started||ss()?.userId!==c.sessionId||ss()?.jwt!==jwt)return;loaded=false;error='No se pudieron cargar los avisos: '+String(e.message||e);}
+ finally{if(version!==started||ss()?.jwt!==jwt)return;loading=false;if(owner===c.sessionId&&$('ma1611layer')&&!$('ma1611layer').hidden&&$('ma1611layer').querySelector('.ma1611-nav button[data-area="avisos"].active'))window.ma1612Enhance?.('avisos',$('ma1611content'));}
 }
 function findSimilar(hay,needle){if(hay.includes(needle))return true;if(needle.length<4)return false;
  // tolerar un error de escritura por palabra; no realiza consultas a servidores.
@@ -49,22 +51,22 @@ function findSimilar(hay,needle){if(hay.includes(needle))return true;if(needle.l
    if(at.length===2&&at[1]===at[0]+1&&w[at[0]]===needle[at[1]]&&w[at[1]]===needle[at[0]])return true;}
   let i=0,j=0,err=0;while(i<w.length&&j<needle.length){if(w[i]===needle[j]){i++;j++;continue;}err++;if(err>1)return false;if(w.length>needle.length)i++;else if(w.length<needle.length)j++;else{i++;j++;}}return err+Math.max(w.length-i,needle.length-j)<=1;});
 }
-function searchCards(text){const needle=norm(text);const terms=needle.split(/\s+/).filter(Boolean);return alerts.filter(a=>{const t=a.tenant,u=a.unit,l=a.lease;const blob=norm([a.code,u.alias,u.kind,u.floor,t.full_name,t.document_number,t.whatsapp,l.state,l.mode,a.due].join(' '));return terms.every(x=>findSimilar(blob,x));});}
-function whatsAppLink(a){const txt='Hola '+a.tenant.full_name+', te escribimos por el alquiler de '+a.code+(a.unit.alias?' ('+a.unit.alias+')':'')+'. '+(a.days<0?'El vencimiento fue el ':'El vencimiento es el ')+a.due+'. '+(a.owed>0?'Saldo registrado pendiente: '+cash(a.owed)+'. ':'')+'Por favor, confirma tu fecha de pago o renovación. Gracias.';
+function searchCards(text){const needle=norm(text);const terms=needle.split(/\s+/).filter(Boolean);return alerts.filter(a=>{const t=a.tenant,u=a.unit,l=a.lease;const blob=norm([a.code,u.alias,u.kind,u.floor,t.full_name,t.document_number,t.whatsapp,phoneDigits(t.whatsapp),l.state,l.mode,a.due].join(' '));return terms.every(x=>findSimilar(blob,x));});}
+function whatsAppLink(a){const txt='🏠 MI ALQUILER\n\nHola '+a.tenant.full_name+', te escribimos por el alquiler de '+a.code+(a.unit.alias?' ('+a.unit.alias+')':'')+'. '+(a.days<0?'El vencimiento fue el ':'El vencimiento es el ')+a.due+'. '+(a.owed>0?'Saldo registrado pendiente: '+cash(a.owed,a.lease.currency)+'. ':'')+'Por favor, confirma tu fecha de pago o renovación. Gracias.\n\nwww.ClanCartan.com';
  return 'https://wa.me/'+a.tel+'?text='+encodeURIComponent(txt);
 }
 function rowHTML(a){const [label,level]=status(a.days);const can=a.permit&&a.tel;const state=a.opened?'<span class="ma4-opened">Enlace abierto a este número</span>':'';
  const btn=can?'<a class="ma4-wa" href="'+esc(whatsAppLink(a))+'" target="_blank" rel="noopener noreferrer" data-ma4-notice="'+esc(a.lease.id)+'">Abrir WhatsApp ↗</a>':'<small class="ma4-disabled">'+(!a.permit?'Sin autorización de avisos':'WhatsApp inválido o sin registrar')+'</small>';
- return '<article class="ma4-row"><div><strong>'+esc(a.code)+' · '+esc(a.tenant.full_name||'Inquilino')+'</strong><small>'+esc(a.unit.alias||'')+' · '+esc(a.lease.mode==='DAY'?'Diario':'Mensual')+' · Vence '+esc(a.due)+'</small><small>Saldo registrado '+cash(a.owed)+' · '+esc(a.tel?'+'+a.tel:'Sin teléfono válido')+'</small>'+state+'</div><div class="ma4-side"><span class="ma4-flag '+level+'">'+esc(label)+'</span>'+btn+'</div></article>';
+ return '<article class="ma4-row"><div><strong>'+esc(a.code)+' · '+esc(a.tenant.full_name||'Inquilino')+'</strong><small>'+esc(a.unit.alias||'')+' · '+esc(a.lease.mode==='DAY'?'Diario':'Mensual')+' · Vence '+esc(a.due)+'</small><small>Saldo registrado '+cash(a.owed,a.lease.currency)+' · '+esc(a.tel?'+'+a.tel:'Sin teléfono válido')+'</small>'+state+'</div><div class="ma4-side"><span class="ma4-flag '+level+'">'+esc(label)+'</span>'+btn+'</div></article>';
 }
 function visibleAlerts(){return searchCards(reportQuery).filter(a=>reportScope!=='urgent'||a.days!==null&&a.days<=5);}
-function renderList(items=visibleAlerts()){const el=$('ma4-results');if(!el)return;el.innerHTML=items.length?items.slice(0,250).map(rowHTML).join(''):'<p>No hay contratos que coincidan con la búsqueda y el filtro seleccionado.</p>';document.querySelectorAll('[data-ma4-action=urgent],[data-ma4-action=all]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.ma4Action===reportScope)));const n=$('ma4-count');if(n)n.textContent=items.length+' contrato(s) encontrados'+(items.length>250?' · mostrando 250':'');}
+function renderList(items=visibleAlerts()){const el=$('ma4-results');if(!el)return;el.innerHTML=items.length?items.slice(reportPage*8,reportPage*8+8).map(rowHTML).join('')+(items.length>8?'<div class="ma388-pages"><button type="button" data-ma4-action="prev-page" '+(!reportPage?'disabled':'')+'>Anterior</button><span>Página '+(reportPage+1)+'</span><button type="button" data-ma4-action="next-page" '+((reportPage+1)*8>=items.length?'disabled':'')+'>Siguiente</button></div>':''):'<p>No hay contratos que coincidan con la búsqueda y el filtro seleccionado.</p>';document.querySelectorAll('[data-ma4-action=urgent],[data-ma4-action=all]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.ma4Action===reportScope)));const n=$('ma4-count');if(n)n.textContent=items.length+' contrato(s) encontrados';}
 function panel(c){alerts=generated(c);const urgent=alerts.filter(a=>a.days!==null&&a.days<=5).length;
  return '<section class="ma4-wrap"><header class="ma4-head"><div><small>CLAN CARTAN · MI ALQUILER</small><h3>🔔 Alertas y reportes</h3><p>Recordatorios al WhatsApp que cada RESELLER registró para su inquilino.</p></div><button type="button" data-ma4-action="refresh">↻ Actualizar</button></header>'+
  '<div class="ma4-stats"><div><b>'+alerts.length+'</b><small>Contratos activos</small></div><div><b>'+urgent+'</b><small>Vencidos o próximos (5 días)</small></div><div><b>'+alerts.filter(a=>a.permit&&a.tel).length+'</b><small>Contactos habilitados</small></div></div>'+
- '<div class="ma4-toolbar"><label>Buscar por nombre, DNI, código, teléfono o local<input id="ma4-search" type="search" autocomplete="off" placeholder="Ej. H-001, Juan, 987..." aria-label="Buscar contratos"></label><div class="ma4-actions"><button type="button" data-ma4-action="urgent">Solo vencimientos</button><button type="button" data-ma4-action="all">Todos</button><button type="button" data-ma4-action="xlsx">Exportar Excel .xlsx</button><button type="button" data-ma4-action="pdf">Imprimir / PDF</button></div></div>'+
+ '<div class="ma4-toolbar">'+(document.getElementById('ma388search')?'':'<label>Buscar por nombre, DNI, código, teléfono o local<input id="ma4-search" type="search" autocomplete="off" placeholder="Ej. H-001, Juan, 987..." aria-label="Buscar contratos"></label>')+'<div class="ma4-actions"><button type="button" data-ma4-action="urgent">Solo vencimientos</button><button type="button" data-ma4-action="all">Todos</button><button type="button" data-ma4-action="xlsx">Exportar Excel .xlsx</button><button type="button" data-ma4-action="pdf">Imprimir / PDF</button></div></div>'+
  '<p id="ma4-status" role="status">Avisos a 5, 3, 1 días y el vencimiento. Los enlaces se abren manualmente; no se envían mensajes sin tu intervención.</p><small id="ma4-count"></small><div id="ma4-results">'+alerts.slice(0,250).map(rowHTML).join('')+'</div>'+
- '<p class="ma4-disclaimer">«Enlace abierto» no confirma entrega ni lectura en WhatsApp. Si se cambia el número o la fecha, se genera un aviso nuevo. Para envío desatendido se requiere WhatsApp Business Platform y autorización verificable.</p></section>';
+ '<p>Las exportaciones incluyen los movimientos recientes cargados. Consulta Cobros para ver saldos completos por moneda.</p><p class="ma4-disclaimer">«Enlace abierto» no confirma entrega ni lectura en WhatsApp. Si se cambia el número o la fecha, se genera un aviso nuevo. Para envío desatendido se requiere WhatsApp Business Platform y autorización verificable.</p></section>';
 }
 function enhance(area,target,c){if(area!=='avisos')return false;if(!c?.account||!ss()?.jwt)return false;
  if(!c.account.active){target.innerHTML='<div class="ma4-wrap"><p>Acceso a reportes bloqueado: la membresía MI ALQUILER no está vigente. Se conservan los datos.</p></div>';return true;}
@@ -123,8 +125,8 @@ function exportSheets(c){
 }
 function saveFile(blob,name){const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 function printReport(c){const win=window.open('','_blank');if(!win){setMessage('Permite ventanas emergentes para imprimir.',true);return;}
- const report=alerts.map(a=>'<tr><td>'+esc(a.code)+'</td><td>'+esc(a.tenant.full_name)+'</td><td>'+esc(a.due)+'</td><td>'+esc(status(a.days)[0])+'</td><td>'+cash(a.owed)+'</td></tr>').join('');
- win.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>MI ALQUILER · Reporte '+today()+'</title><style>body{font:13px Arial;padding:24px;color:#222}h1{font-size:19px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;text-align:left;padding:7px}th{background:#eee}small{color:#777}@media print{body{padding:0}}</style></head><body><h1>CLAN CARTAN · MI ALQUILER</h1><p>Reporte de vencimientos · '+today()+'</p><table><thead><tr><th>Unidad</th><th>Inquilino</th><th>Vencimiento</th><th>Estado</th><th>Saldo '+esc(window.CC_BUSINESS_CURRENCY||'PEN')+'</th></tr></thead><tbody>'+report+'</tbody></table><p><small>Reporte privado generado para el RESELLER. Los datos no se envían a terceros al imprimir.</small></p></body></html>');win.document.close();win.focus();win.print();}
+ const report=visibleAlerts().map(a=>'<tr><td>'+esc(a.code)+'</td><td>'+esc(a.tenant.full_name)+'</td><td>'+esc(a.due)+'</td><td>'+esc(status(a.days)[0])+'</td><td>'+cash(a.owed,a.lease.currency)+'</td></tr>').join('');
+ win.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>MI ALQUILER · Reporte '+today()+'</title><style>body{font:13px Arial;padding:24px;color:#222}h1{font-size:19px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;text-align:left;padding:7px}th{background:#eee}small{color:#777}@media print{body{padding:0}}</style></head><body><h1>CLAN CARTAN · MI ALQUILER</h1><p>Reporte de vencimientos · '+today()+'</p><table><thead><tr><th>Unidad</th><th>Inquilino</th><th>Vencimiento</th><th>Estado</th><th>Saldo · moneda original</th></tr></thead><tbody>'+report+'</tbody></table><p><small>Reporte privado generado para el RESELLER. Los datos no se envían a terceros al imprimir.</small></p></body></html>');win.document.close();win.focus();win.print();}
 function setMessage(text,error=false){const p=$('ma4-status');if(p){p.textContent=text;p.classList.toggle('ma4-error',error);}}
 async function opened(e){const a=e.target.closest('a[data-ma4-notice]');if(!a||!ctx||!ss()?.jwt)return;const entry=alerts.find(x=>x.lease.id===a.dataset.ma4Notice);if(!entry||!entry.permit||!entry.tel)return;
  // La navegación se produce por el href del usuario; no bloquear ni afirmar envío.
@@ -132,17 +134,18 @@ async function opened(e){const a=e.target.closest('a[data-ma4-notice]');if(!a||!
  catch(err){setMessage('WhatsApp abierto, pero no se registró la apertura: '+String(err.message||err),true);}
 }
 async function action(e){const b=e.target.closest('[data-ma4-action]');if(!b||!ctx)return;e.preventDefault();const action=b.dataset.ma4Action;
- if(action==='urgent'){reportScope='urgent';renderList();return;}
- if(action==='all'){reportScope='all';renderList();return;}
+ if(action==='prev-page'||action==='next-page'){reportPage=Math.max(0,reportPage+(action==='next-page'?1:-1));renderList();return;}
+ if(action==='urgent'){reportPage=0;reportScope='urgent';renderList();return;}
+ if(action==='all'){reportPage=0;reportScope='all';renderList();return;}
  if(action==='pdf'){printReport(ctx);return;}
- if(action==='xlsx'){saveFile(exportSheets(ctx),'MI_ALQUILER_'+today()+'.xlsx');setMessage('Excel generado con ocho hojas para uso privado.');return;}
+ if(action==='xlsx'){saveFile(exportSheets(ctx),'MI_ALQUILER_'+today()+'.xlsx');setMessage('Excel generado con ocho hojas de registros cargados para uso privado.');return;}
  if(action==='refresh'){loaded=false;error='';await window.ma1612OnOpen?.();return;}
 }
-function init(){document.addEventListener('click',e=>{if(e.target.closest('button[data-ma4-dni]')){e.preventDefault();void lookupDni(e.target.closest('button'));}});
+function init(){document.addEventListener('cc192-session-ended',clear);document.addEventListener('ma388-search',e=>{reportPage=0;reportQuery=String(e.detail?.query||'');if(document.querySelector('.ma1611-nav [data-area=avisos].active'))renderList();});document.addEventListener('click',e=>{if(e.target.closest('button[data-ma4-dni]')){e.preventDefault();void lookupDni(e.target.closest('button'));}});
  document.addEventListener('click',e=>{if(e.target.closest('a[data-ma4-notice]'))void opened(e);});document.addEventListener('click',action);
  document.addEventListener('input',e=>{if(e.target.id==='ma4-search'){reportQuery=e.target.value;renderList();}});
  document.addEventListener('click',e=>{if(e.target.closest('#cc54logout'))clear();},true);
 }
-window.ma1614Enhance=enhance;window.ma1614Invalidate=()=>{version++;loaded=false;error='';};window.ma1614Test=Object.freeze({phoneDigits,dateDiff,workbook,exportSheets,searchCards});
+window.ma1614Enhance=enhance;window.ma1614Invalidate=()=>{version++;loading=false;loaded=false;error='';};window.ma1614Test=Object.freeze({phoneDigits,dateDiff,workbook,exportSheets,searchCards});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

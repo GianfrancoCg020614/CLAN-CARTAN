@@ -30,11 +30,11 @@ assert.doesNotMatch(stream,/CC_BUSINESS_CURRENCY|ccLoadBusinessCurrency|cc_set_b
 assert.match(guard,/currency IS DISTINCT FROM currency_code/);
 assert.match(guard,/STREAM BULLS queda excluido/);
 
-assert.ok(alquiler3.includes("inp('Importe ('+esc(window.CC_BUSINESS_CURRENCY||'PEN')+')','amount'"),'La garantía debe mostrar la moneda operativa');
+assert.ok(alquiler3.includes("const currency=lease.currency||window.CC_BUSINESS_CURRENCY")&&alquiler3.includes("inp('Importe ('+esc(currency)+')','amount'"),'La garantía debe mostrar la moneda original del contrato');
 assert.doesNotMatch(alquiler4,/Día PEN|Mes PEN|Tarifa PEN|Saldo PEN/);
 assert.match(alquiler4,/Tarifa diaria/);
 assert.match(alquiler4,/Moneda/);
-assert.ok(alquiler4.includes("Saldo '+esc(window.CC_BUSINESS_CURRENCY||'PEN')+'"),'El reporte impreso debe indicar la moneda activa');
+assert.ok(alquiler4.includes("Saldo · moneda original")&&alquiler4.includes("cash(a.owed,a.lease.currency)"),'El reporte impreso debe respetar la moneda original de cada contrato');
 assert.match(cochera,/GTQ:"es-GT"/);
 assert.match(cochera,/VES:"es-VE"/);
 assert.match(cochera,/Guatemala","GTQ"/);

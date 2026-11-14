@@ -113,7 +113,7 @@ function access(code){
  return {ok:false,reason:'Membresía pendiente o vencida'};
 }
 function addReturnControl(){
- if(['cobra','cochera'].includes(document.documentElement.dataset.ccActiveModule))return; // Each module owns its single return control.
+ if(['cobra','cochera','alquiler'].includes(document.documentElement.dataset.ccActiveModule))return; // Each module owns its single return control.
  if(!user||!session()?.jwt)return;
  let host=el('cc177-return-panel');
  if(host)return;
@@ -2437,7 +2437,7 @@ function sync(){
  reset();user=s.userId;token=s.jwt;shell();
  if(previous){view=previous.view;walletTab=previous.walletTab;navigationHistory=previous.history;app.hidden=!previous.open;}
  else app.hidden=!!(sameUser&&previouslyHidden);
- if(['cobra','cochera'].includes(document.documentElement.dataset.ccActiveModule))app.hidden=true; // Keep an active business above a slow portal load.
+ if(['cobra','cochera','alquiler'].includes(document.documentElement.dataset.ccActiveModule))app.hidden=true; // Keep an active business above a slow portal load.
  render();void load();
 }
 function init(){

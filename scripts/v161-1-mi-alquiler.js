@@ -6,18 +6,19 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const session = () => window.CC_V53_SESSION;
+  let currentArea='inmuebles',openedUser=null;
   const areas = Object.freeze([
-    { id: 'inmuebles', emoji: '🏘️', title: 'Habitaciones y locales', summary: 'Códigos H-001 y L-001, disponibilidad y tarifas por día o mes.' },
+    { id: 'inmuebles', emoji: '🏘️', title: 'Inmuebles', summary: 'Códigos H-001 y L-001, disponibilidad y tarifas por día o mes.' },
     { id: 'inquilinos', emoji: '👥', title: 'Inquilinos', summary: 'Documento, datos de contacto y WhatsApp particular de cada cliente.' },
-    { id: 'contratos', emoji: '📋', title: 'Alquileres y vencimientos', summary: 'Contratos diarios y mensuales, ampliaciones y retiros.' },
+    { id: 'contratos', emoji: '📋', title: 'Contratos', summary: 'Contratos diarios y mensuales, ampliaciones y retiros.' },
     { id: 'finanzas', emoji: '💳', title: 'Cobros y servicios', summary: 'Abonos, deudas, medidores, tarifas fijas, gastos y garantías.' },
     { id: 'avisos', emoji: '🔔', title: 'Avisos y reportes', summary: 'WhatsApp del inquilino, alertas, búsquedas y exportaciones.' }
   ]);
   function mountStyles() {
-    if ($('ma1611styles')) return;
+    if ($('ma1611styles')||document.querySelector('link[href*="styles/v161-1-mi-alquiler.css"]')) return;
     const link = document.createElement('link');
     link.id = 'ma1611styles'; link.rel = 'stylesheet';
-    link.href = 'styles/v161-1-mi-alquiler.css?v=1611';
+    link.href = 'styles/v161-1-mi-alquiler.css?v=388';
     document.head.append(link);
   }
   function makeCard() {
@@ -64,20 +65,19 @@
     layer.id = 'ma1611layer'; layer.setAttribute('role', 'dialog');
     layer.setAttribute('aria-modal', 'true');
     layer.setAttribute('aria-label', 'MI ALQUILER: gestión de habitaciones y locales');
-    layer.innerHTML = '<div class="ma1611-wrap">' +
-      '<header class="ma1611-head"><div class="ma1611-brand"><img class="ma1611-brand-logo" src="assets/mi-alquiler-logo.svg" alt="MI ALQUILER" width="70" height="70" decoding="async">' +
-      '<div><small>CLAN CARTAN · MI ALQUILER</small><h2>Gestión de habitaciones y locales</h2>' +
-      '<p>Un acceso · datos independientes de los otros negocios</p></div></div>' +
-      '<button type="button" id="ma1611close" class="ma1611-close">← Volver a CLAN CARTAN</button></header>' +
-      '<section class="ma1611-notice" role="status"><strong>MI ALQUILER:</strong> gestión protegida por membresía vigente. ' +
-      'Habitaciones, locales, inquilinos y contratos se guardan con acceso restringido en Supabase. ' +
-      'Cobros, medidores, garantías y bonos protegidos; avisos al WhatsApp del inquilino, búsqueda y Excel. La consulta DNI usa el backend y respeta la autorización disponible.</section>' +
-      '<nav class="ma1611-nav" aria-label="Secciones de Mi Alquiler"></nav>' +
-      '<main id="ma1611content" class="ma1611-content" tabindex="-1"></main>' +
-      '<footer class="ma1611-footer">MI ALQUILER · Acceso sujeto a membresía vigente. Sin acreditación automática de recargas ni envíos automáticos de WhatsApp.</footer></div>';
-    layer.querySelector('#ma1611close').addEventListener('click', close);
-    layer.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
-    layer.addEventListener('click', e => { if (e.target === layer) close(); });
+    layer.className='ma388-layer';
+    layer.innerHTML = '<div class="ma1611-wrap"><header class="ma1611-head">'+
+      '<button type="button" data-ma388-menu aria-label="Abrir menú" aria-expanded="false">☰</button>'+
+      '<img class="ma1611-brand-logo" src="assets/logo-alquiler-v304.avif" alt="MI ALQUILER · CLAN CARTAN" width="100" height="68">'+
+      '<button type="button" id="ma1611close" class="ma1611-close">← <span>Volver a<br>CLAN CARTAN</span></button>'+
+      '<label class="ma388-search"><span aria-hidden="true">⌕</span><input id="ma388search" type="search" placeholder="Buscar inmueble, inquilino, DNI o código…" aria-label="Buscar en MI ALQUILER" autocomplete="off" maxlength="120"></label>'+
+      '<button type="button" data-ma388-wallet aria-label="Billetera única CLAN CARTAN"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h17v14H3V7Zm0 0 13-5 2 5M15 12h7v5h-7v-5Z"/></svg></button><button type="button" data-ma388-profile aria-label="Abrir perfil"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M17 7a5 5 0 1 1-10 0 5 5 0 0 1 10 0"/></svg></button></header>'+
+      '<div class="ma388-layout"><button type="button" class="ma388-scrim" data-ma388-menu aria-label="Cerrar menú"></button><aside class="ma388-sidebar"><nav class="ma1611-nav" aria-label="Secciones de Mi Alquiler"></nav><small>MI ALQUILER · V388</small></aside>'+
+      '<main id="ma1611content" class="ma1611-content" tabindex="-1"></main></div></div>';
+    layer.querySelector('#ma1611close').addEventListener('click',()=>{close();window.cc166OpenPanel?.();});
+    layer.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('#ma1612dialog,#ma3dialog')){layer.classList.remove('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',matchMedia('(max-width:850px)').matches);layer.querySelector('[data-ma388-menu]').setAttribute('aria-expanded','false');}});
+    layer.addEventListener('click',e=>{if(e.target.closest('[data-ma388-menu]')){if(matchMedia('(max-width:850px)').matches){layer.classList.toggle('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',!layer.classList.contains('ma388-menu-open'));layer.querySelector('[data-ma388-menu]').setAttribute('aria-expanded',String(layer.classList.contains('ma388-menu-open')));}else layer.classList.toggle('ma388-collapsed');}if(e.target.closest('[data-ma388-wallet]')){close();window.cc166OpenWallet?.('summary',()=>open());}if(e.target.closest('[data-ma388-profile]')){close();window.cc166OpenProfile?.(()=>open());}});
+    layer.querySelector('#ma388search').addEventListener('input',e=>document.dispatchEvent(new CustomEvent('ma388-search',{detail:{query:e.target.value}})));
     const nav = layer.querySelector('.ma1611-nav');
     for (const area of areas) {
       const btn = document.createElement('button');
@@ -90,13 +90,13 @@
   }
   function renderArea(id) {
     const area = areas.find(x => x.id === id) || areas[0];
-    const target = $('ma1611content'); if (!target) return;
+    currentArea=area.id;const target = $('ma1611content'); if (!target) return;
     document.querySelectorAll('#ma1611layer .ma1611-nav button').forEach(btn => {
       const active = btn.dataset.area === area.id;
       btn.setAttribute('aria-current', active ? 'page' : 'false');
       btn.classList.toggle('active', active);
     });
-    const layer=$('ma1611layer');if(layer)layer.scrollTop=0;
+    const layer=$('ma1611layer');if(layer){layer.scrollTop=0;layer.querySelector('.ma1611-content').scrollTop=0;layer.classList.remove('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',matchMedia('(max-width:850px)').matches);layer.querySelector('[data-ma388-menu]').setAttribute('aria-expanded','false');}
     // Solo texto estático: nunca mostrar cifras o personas inventadas.
     target.innerHTML = '<div class="ma1611-summary"><div class="ma1611-hero-icon" aria-hidden="true">' + area.emoji + '</div>' +
       '<div><small>MI ALQUILER</small><h3>' + area.title + '</h3><p>' + area.summary + '</p></div></div>' +
@@ -136,19 +136,21 @@
       if (typeof window.cc77Auth === 'function') window.cc77Auth(false);
       return;
     }
+    if(openedUser!==current.userId){openedUser=current.userId;currentArea='inmuebles';window.ma1612Reset?.();if($('ma388search'))$('ma388search').value='';}
     // Mostrar la interfaz inmediatamente. La autorización y los datos permanecen
     // protegidos por ma_ensure_account y las políticas RLS del servidor.
     try {
       mountStyles();
       let layer = $('ma1611layer');
       if (!layer) { layer = layout(); document.body.append(layer); }
+      document.documentElement.dataset.ccActiveModule='alquiler';$('cc177-return-panel')?.remove();const portal=$('cc166-panel');if(portal)portal.hidden=true;
       layer.hidden = false;
       layer.style.setProperty('display', 'block', 'important');
       layer.style.setProperty('visibility', 'visible', 'important');
       layer.style.setProperty('z-index', '2147483647', 'important');
       layer.scrollTop = 0;
       accessNotice('');
-      renderArea('inmuebles');
+      renderArea(currentArea);
       if (typeof window.ma1612OnOpen === 'function') {
         Promise.resolve(window.ma1612OnOpen()).catch(error => {
           console.warn('MI ALQUILER: fallo al cargar datos', error);
@@ -166,6 +168,7 @@
     }
   }
   function close() {
+    if(document.documentElement.dataset.ccActiveModule==='alquiler')delete document.documentElement.dataset.ccActiveModule;
     const layer = $('ma1611layer'); if (layer) { layer.hidden = true; layer.style.removeProperty('display'); layer.style.removeProperty('visibility'); }
     const dialog = $('ma1612dialog'); if (dialog) dialog.remove();
     $('ma3dialog')?.remove();
@@ -179,6 +182,8 @@
   }
   function init() {
     mount();
+    document.addEventListener('cc192-session-ended',()=>{openedUser=null;currentArea='inmuebles';if($('ma388search'))$('ma388search').value='';close();window.ma1612Reset?.();});
+    matchMedia('(max-width:850px)').addEventListener('change',()=>{const layer=$('ma1611layer');if(layer){layer.classList.remove('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',matchMedia('(max-width:850px)').matches);}});
     const observer = new MutationObserver(changes => {
       if (changes.some(change => change.type === 'childList' && change.addedNodes.length)) scheduleMount();
     });
