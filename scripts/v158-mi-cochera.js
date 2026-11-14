@@ -25,7 +25,7 @@ async function load(syncRents=true){
  await window.ccLoadBusinessCurrency?.();
  const session=ses(),id=session?.userId,jwt=session?.jwt,seq=++loadSequence;
  if(!id||!jwt)return;const current=()=>ses()?.userId===id&&ses()?.jwt===jwt&&loadSequence===seq;
- if(ownerId!==id){ownerId=id;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';selectedCartId=null;selectedData=null;listPage=0;section='home';workspaceSummary=[];summaryCurrency='';if($('mc158search'))$('mc158search').value='';}
+ if(ownerId!==id){clearDialogs();ownerId=id;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';selectedCartId=null;selectedData=null;listPage=0;section='home';workspaceSummary=[];summaryCurrency='';if($('mc158search'))$('mc158search').value='';}
  if(session.isAdmin){account=null;return await loadAdmin(current);}
  const rows=await api('rpc/mc_ensure_account');if(!current())return;
  account=Array.isArray(rows)?rows[0]:rows;if(!account)throw Error('Sin cuenta.');
@@ -73,11 +73,11 @@ const pageSize=()=>matchMedia('(max-width:850px)').matches?5:10;
 function header(){return '<header class="mc158head"><button type="button" data-action="menu" class="mc373-icon" aria-label="Abrir menú" aria-expanded="false">'+icon('menu')+'</button><img class="mc373-logo" src="/assets/logo-cochera-v304.avif" alt="MI COCHERA · CLAN CARTAN" width="100" height="70"><button type="button" id="mc158close" class="mc373-back" aria-label="Volver a CLAN CARTAN">'+icon('back')+'<span>Volver a<br><b>CLAN CARTAN</b></span></button><label class="mc373-search">'+icon('search')+'<input id="mc158search" type="search" maxlength="120" aria-label="Buscar carrito" placeholder="Nombre, alias, DNI, celular o C-…" autocomplete="off"></label><button type="button" data-action="wallet" class="mc373-wallet" aria-label="Billetera única CLAN CARTAN">'+icon('wallet')+'<span id="mc373walletAmount">Billetera</span></button><button type="button" data-action="profile" class="mc373-icon" aria-label="Abrir mi perfil">'+icon('user')+'</button></header>';}
 function syncHeader(){const w=$('mc373walletAmount');if(w)w.textContent=walletAvailable==null?'Billetera':currency(walletAvailable,'PEN');const s=$('mc158search');if(s){s.disabled=!active();s.placeholder=ses()?.isAdmin?'Buscar cuenta o código CLAN…':'Nombre, alias, DNI, celular o C-…';}}
 function host(){let root=$('mc158layer');if(root)return root;root=document.createElement('div');root.id='mc158layer';root.className='mc373-layer';root.innerHTML='<div class="mc158wrap">'+header()+'<div id="mc158body" aria-live="polite">Preparando acceso…</div></div>';document.body.append(root);
- $('mc158close').onclick=()=>{close();if(typeof window.cc166OpenPanel==='function')window.cc166OpenPanel();};root.addEventListener('click',click);root.addEventListener('submit',submit);root.addEventListener('click',dniClick);root.addEventListener('change',currencyCountryChanged);
+ $('mc158close').onclick=()=>{close();if(typeof window.cc166ReturnToBusinesses==='function')window.cc166ReturnToBusinesses();else window.cc166OpenPanel?.();};root.addEventListener('click',click);root.addEventListener('submit',submit);root.addEventListener('click',dniClick);root.addEventListener('change',currencyCountryChanged);
  $('mc158search').oninput=e=>{if(ses()?.isAdmin){const q=normalize(e.target.value);$('mc158body').querySelectorAll('tbody tr').forEach(row=>row.hidden=!normalize(row.textContent).includes(q));return;}filter=e.target.value;listPage=0;if(!['home','carts','collections','retired_due'].includes(section)){section='carts';renderList();}else renderRows();clearTimeout(searchTimer);searchTimer=setTimeout(()=>{if(root.style.display!=='none')void load(false).catch(err=>note(err.message));},250);};
  root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('mc373-menu-open')){root.classList.remove('mc373-menu-open');root.querySelector('.mc158sidebar')?.setAttribute('inert','');root.querySelector('[data-action=menu]').setAttribute('aria-expanded','false');}});return root;
 }
-function close(){$('mc158dialog')?.remove();clearTimeout(searchTimer);historySequence++;const root=$('mc158layer');if(root){root.style.display='none';root.classList.remove('mc373-menu-open');root.querySelector('.mc158sidebar')?.setAttribute('inert','');}if(document.documentElement.dataset.ccActiveModule==='cochera')delete document.documentElement.dataset.ccActiveModule;if($('cc77home'))$('cc77home').style.display='block';}
+function close(){clearDialogs();clearTimeout(searchTimer);historySequence++;const root=$('mc158layer');if(root){root.style.display='none';root.classList.remove('mc373-menu-open');root.querySelector('.mc158sidebar')?.setAttribute('inert','');}if(document.documentElement.dataset.ccActiveModule==='cochera')delete document.documentElement.dataset.ccActiveModule;if($('cc77home'))$('cc77home').style.display='block';}
 function navHTML(){return '<button type="button" class="mc373-scrim" data-action="menu" aria-label="Cerrar menú"></button><aside class="mc158sidebar" '+(matchMedia('(max-width:850px)').matches&&!$('mc158layer').classList.contains('mc373-menu-open')?'inert':'')+'><nav aria-label="Secciones MI COCHERA">'+Object.entries(sections).map(([key,[img,label]])=>'<button type="button" data-action="nav" data-view="'+key+'" class="mc158nav-item '+(section===key?'is-current':'')+'" '+(section===key?'aria-current="page"':'')+'>'+icon(img)+'<span>'+label+'</span></button>').join('')+'</nav><small>MI COCHERA · V387</small></aside>';}
 function balance(id){const c=carts.find(c=>Number(c.id)===Number(id))||(Number(selectedData?.id)===Number(id)?selectedData:null);if(!c||!Number.isFinite(Number(c.balance_local)))throw Error('No se pudo verificar el saldo del carrito. Actualiza antes de registrar un pago.');return Number(c.balance_local);}
 function rowMatches(c){const o=person(c.owner_person_id),w=person(c.worker_person_id),text=normalize([c.alias,c.business_type,o.full_name,o.document_number,o.phone,String(o.phone||'').replace(/\D/g,''),w.full_name,w.document_number,w.phone,String(c.id),'C-'+String(c.id).padStart(3,'0'),'C'+String(c.id).padStart(3,'0')].join(' '));return (section==='retired_due'?c.state==='RETIRED':cartState==='ALL'||c.state===cartState)&&(!['collections','retired_due'].includes(section)||balance(c.id)>0)&&normalize(filter).split(/\s+/).filter(Boolean).every(term=>text.includes(term));}
@@ -181,7 +181,17 @@ async function movementPage(cart,page,target,kind=null){
  if(page||data.length>20){const controls=document.createElement('div');controls.className='mc373-pages';for(const [label,next,enabled]of[['Anterior',page-1,page>0],['Siguiente',page+1,data.length>20]]){const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=!enabled;b.onclick=()=>void movementPage(cart,next,target,kind);controls.append(b);}target.append(controls);}
  }catch(e){if(target.isConnected)target.textContent='No se pudo consultar el historial. Cierra y vuelve a abrir para reintentar.';}
 }
-function drawer(title,body){$("mc158dialog")?.remove();const d=document.createElement("div");d.id="mc158dialog";d.className="mc158dialog";d.innerHTML='<section role="dialog" aria-modal="true"><header><h3>'+esc(title)+'</h3><button type="button" data-action="close-dialog" aria-label="Cerrar ventana" title="Cerrar ventana">✕</button></header>'+body+'<p id="mc158dialogStatus" role="status"></p></section>';d.addEventListener("click",click);d.addEventListener("click",dniClick);d.addEventListener("submit",submit);document.body.append(d);return d;}
+const dialogHistory=[];
+function clearDialogs(){dialogHistory.length=0;$('mc158dialog')?.remove();}
+function finishDialog(form){const root=form.closest('#mc158dialog');if(root===$('mc158dialog'))clearDialogs();else root?.remove();}
+function dismissDialog(){
+ const root=$('mc158dialog');if(!root)return;root.remove();
+ const prior=dialogHistory.pop();
+ if(prior&&prior.uid===ses()?.userId&&prior.jwt===ses()?.jwt&&$('mc158layer')?.style.display!=='none'){
+  document.body.append(prior.node);requestAnimationFrame(()=>{if(prior.node.isConnected)prior.focus?.focus({preventScroll:true});});
+ }else dialogHistory.length=0;
+}
+function drawer(title,body){const prior=$('mc158dialog');if(prior){if(!busy)dialogHistory.push({node:prior,focus:document.activeElement,uid:ses()?.userId,jwt:ses()?.jwt});prior.remove();}const d=document.createElement("div");d.id="mc158dialog";d.className="mc158dialog";d.innerHTML='<section role="dialog" aria-modal="true"><header><h3>'+esc(title)+'</h3><button type="button" data-action="close-dialog" aria-label="Cerrar ventana" title="Cerrar ventana">✕</button></header>'+body+'<p id="mc158dialogStatus" role="status"></p></section>';d.addEventListener("click",click);d.addEventListener("click",dniClick);d.addEventListener("submit",submit);document.body.append(d);return d;}
 function fields(prefix,title,optional){
  const name=prefix+"Name",doc=prefix+"Doc",kind=prefix+"Kind",phone=prefix+"Phone";
  return '<fieldset><legend>'+title+(optional?" (opcional)":"")+'</legend><label>Documento primero<select name="'+kind+'"><option value="DNI">DNI peruano</option><option value="CE">Carné de extranjería</option><option value="PASSPORT">Pasaporte</option><option value="CEDULA">Cédula extranjera</option><option value="OTHER">Otro</option></select></label><label>Número de documento<input name="'+doc+'" data-mc-dni="'+prefix+'" '+(optional?"":"required")+' maxlength="40" autocomplete="off"></label><button type="button" data-mc-verify="'+prefix+'">Buscar DNI</button><p id="mc158lookup'+prefix+'" class="mc158look" aria-live="polite">Ingresa 8 dígitos y pulsa Buscar DNI.</p><label>Nombres y apellidos<input name="'+name+'" '+(optional?"":"required")+' maxlength="160"></label><label>Celular<input name="'+phone+'" type="tel" maxlength="30"></label></fieldset>';
@@ -231,11 +241,11 @@ async function submit(e){
  try{
  if(e.target.id==="mc378retire"){
   const f=e.target,adjusted=await api("rpc/mc_retire_cart_retroactive",{p_cart:Number(f.dataset.cart),p_last_day:f.elements.lastDay.value,p_reason:f.elements.reason.value.trim()});
-  if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Carrito retirado. Días de alquiler corregidos: "+adjusted+". Historial conservado.");
+  if(!current())return;finishDialog(form);await load();if(!current())return;note("Carrito retirado. Días de alquiler corregidos: "+adjusted+". Historial conservado.");
  }else if(e.target.id==="mc377reverse"){
-  const f=e.target;await api("rpc/mc_reverse_movement",{p_original:f.dataset.original,p_reason:f.elements.reason.value.trim()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Registro anulado con historial. Ya puedes ingresar el importe o cantidad correcta.");
+  const f=e.target;await api("rpc/mc_reverse_movement",{p_original:f.dataset.original,p_reason:f.elements.reason.value.trim()});if(!current())return;finishDialog(form);await load();if(!current())return;note("Registro anulado con historial. Ya puedes ingresar el importe o cantidad correcta.");
  }else if(e.target.id==="mc158config"){
-  const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Moneda de operación actualizada para MI COCHERA, MI ALQUILER y COBRA YA.");
+  const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});if(!current())return;finishDialog(form);await load();if(!current())return;note("Moneda de operación actualizada para MI COCHERA, MI ALQUILER y COBRA YA.");
  }else if(e.target.id==="mc385history"){
   const f=e.target,x=k=>{const field=f.elements.namedItem(k);return field&&!field.disabled?field.value.trim():"";},mode=x("mode");
   if(mode&&!x("day"))throw Error("Indica fecha del movimiento.");
@@ -244,16 +254,16 @@ async function submit(e){
   const changes=['Ingreso: '+x('joined'),...(x('left')?['Salida: '+x('left')]:[]),...(mode?['Movimiento: '+(mode==='payment'?'Pago':'Alquiler')+' · '+x('day')]:[]),...(mode==='payment'?['Importe: '+x('amount')+' · Referencia: '+x('reason')]:[])];
   if(!confirm('Revisa el historial antes de guardar:\n'+changes.join('\n')))return;
   await api("rpc/mc384_historical",{p_cart:Number(f.dataset.cart),p_joined:x("joined")||null,p_left:x("left")||null,p_day:mode?x("day"):null,p_payment:mode==="payment"?num(x("amount")):null,p_reason:mode==="payment"?x("reason"):null});
-  if(!current())return;f.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Historial anterior actualizado.");
+  if(!current())return;finishDialog(form);await load();if(!current())return;note("Historial anterior actualizado.");
  }else if(e.target.id==="mc158new"){
   const f=e.target,x=k=>f.elements.namedItem(k)?.value?.trim()||"";
   const id=await api("rpc/mc_create_cart",{p_alias:x("alias"),p_type:x("business"),p_rate:num(x("rate")),p_owner_kind:x("ownerKind"),p_owner_doc:x("ownerDoc"),p_owner_name:x("ownerName"),p_owner_phone:x("ownerPhone"),p_worker_kind:x("workerKind")||null,p_worker_doc:x("workerDoc")||null,p_worker_name:x("workerName")||null,p_worker_phone:x("workerPhone")||null});
-  if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Carrito registrado: C-"+String(id).padStart(3,"0"));
+  if(!current())return;finishDialog(form);await load();if(!current())return;note("Carrito registrado: C-"+String(id).padStart(3,"0"));
  }else if(e.target.id==="mc158pay"){
-  const f=e.target;await api("rpc/mc_record_payment_once",{p_cart:Number(f.dataset.cart),p_amount:num(f.elements.amount.value),p_method:f.elements.method.value,p_request:f.dataset.request});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Pago registrado.");
+  const f=e.target;await api("rpc/mc_record_payment_once",{p_cart:Number(f.dataset.cart),p_amount:num(f.elements.amount.value),p_method:f.elements.method.value,p_request:f.dataset.request});if(!current())return;finishDialog(form);await load();if(!current())return;note("Pago registrado.");
  }else if(e.target.id==="mc158sale"){
   const f=e.target,q=num(f.elements.quantity.value),price=num(f.elements.price.value);
-  await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PRODUCT",p_label:f.elements.item.value,p_quantity:q,p_unit:price,p_amount:Math.round(q*price*100)/100,p_method:null});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Producto agregado a la deuda.");
+  await api("rpc/mc_record_movement",{p_cart:Number(f.dataset.cart),p_kind:"PRODUCT",p_label:f.elements.item.value,p_quantity:q,p_unit:price,p_amount:Math.round(q*price*100)/100,p_method:null});if(!current())return;finishDialog(form);await load();if(!current())return;note("Producto agregado a la deuda.");
  }
  }catch(e){if(!current())return;const el=form.closest("#mc158dialog")?.querySelector("#mc158dialogStatus")||$("mc158notice");if(el)el.textContent="No se completó: "+String(e.message||e);}
  finally{busy=false;form.removeAttribute('aria-busy');if(button){button.disabled=false;button.textContent=label;}}
@@ -273,7 +283,7 @@ async function click(e){
  drawer("Confirmar anulación",'<form id="mc377reverse" data-original="'+esc(original)+'"><p>Esta acción creará un ajuste y conservará el registro original. Después podrás registrar el dato correcto.</p><label>Motivo obligatorio<textarea name="reason" minlength="5" maxlength="300" required placeholder="Ej.: se registraron 5 unidades, pero eran 3"></textarea></label><button type="submit">Confirmar anulación</button></form>');return;
  }
  if(act==="corrections"){await mc377ReverseOpen(id);return;}
- if(act==="close-dialog"){if(busy)return;historySequence++;$("mc158dialog")?.remove();return;}
+ if(act==="close-dialog"){if(busy)return;historySequence++;dismissDialog();return;}
  if(act==="menu"){const root=$('mc158layer');if(matchMedia('(max-width:850px)').matches){root.classList.toggle('mc373-menu-open');root.querySelector('.mc158sidebar')?.toggleAttribute('inert',!root.classList.contains('mc373-menu-open'));root.querySelector('[data-action=menu]').setAttribute('aria-expanded',String(root.classList.contains('mc373-menu-open')));}else root.classList.toggle('mc373-collapsed');return;}
  if(act==="profile"){close();window.cc166OpenProfile?.(()=>window.mc158Open());return;}
  if(act==="activation"){close();window.cc166OpenBusiness?.('MI_COCHERA');return;}

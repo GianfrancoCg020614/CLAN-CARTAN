@@ -85,7 +85,7 @@ function bindForm(node,kind,read,onSaved){
    form.querySelectorAll('input,select,textarea').forEach(el=>el.disabled=true);
    submitted=true;const result=await api('cy371_mutate',{p_kind:kind,p_request:pending.id,p_data:payload});
    try{sessionStorage.removeItem(storageKey);}catch{}
-   closeModal();status('Guardado correctamente.');await reload();if(onSaved)try{await onSaved(result);}catch(error){fail(error);}
+   const sameDialog=modal===node&&node.isConnected;if(sameDialog)closeModal();status('Guardado correctamente.');await reload();if(sameDialog&&onSaved)try{await onSaved(result);}catch(error){fail(error);}
   }catch(error){
    if(error.status&&error.status<500){pending=null;frozen=null;try{sessionStorage.removeItem('cy371:pending:'+session()?.userId);}catch{}form.querySelectorAll('input,select,textarea').forEach(el=>el.disabled=false);}
    msg.textContent=!submitted?error.message:error.name==='AbortError'||!error.status?'No se confirmó la respuesta. Pulsa «Reintentar»; la misma operación no se registrará dos veces.':error.message;
@@ -402,7 +402,7 @@ async function handle(e){
  const b=e.target.closest('[data-action]');if(!b||b.disabled)return;const [action,a,c,d]=b.dataset.action.split(':');
  try{
   if(action==='close-modal'){closeModal();return;}
-  if(action==='back'){window.cy53.close();return;}
+  if(action==='back'){window.cy53.close();window.cc166ReturnToBusinesses?.();return;}
   if(action==='check-access'){await checkAccess(true);return;}
   if(action==='profile'){window.cy53.close();window.cc166OpenProfile?.(()=>window.cy53.open());return;}
   if(!access?.allowed)return;
