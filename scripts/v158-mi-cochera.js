@@ -25,7 +25,7 @@ async function load(syncRents=true){
  await window.ccLoadBusinessCurrency?.();
  const session=ses(),id=session?.userId,jwt=session?.jwt,seq=++loadSequence;
  if(!id||!jwt)return;const current=()=>ses()?.userId===id&&ses()?.jwt===jwt&&loadSequence===seq;
- if(ownerId!==id){ownerId=id;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';selectedCartId=null;selectedData=null;listPage=0;section='home';workspaceSummary=[];summaryCurrency='';if($('mc158search'))$('mc158search').value='';}
+ if(ownerId!==id){clearDialogs();ownerId=id;account=null;carts=[];moves=[];people=[];walletAvailable=null;filter='';cartState='ALL';selectedCartId=null;selectedData=null;listPage=0;section='home';workspaceSummary=[];summaryCurrency='';if($('mc158search'))$('mc158search').value='';}
  if(session.isAdmin){account=null;return await loadAdmin(current);}
  const rows=await api('rpc/mc_ensure_account');if(!current())return;
  account=Array.isArray(rows)?rows[0]:rows;if(!account)throw Error('Sin cuenta.');
