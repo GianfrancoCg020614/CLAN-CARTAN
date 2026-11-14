@@ -1,0 +1,37 @@
+name: Cuatro negocios V390 · navegación y cierres
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          node --check scripts/cobra-v371.js
+          node --check scripts/v158-mi-cochera.js
+          node --check scripts/v161-1-mi-alquiler.js
+          node --check scripts/v166-portal-roles.js
+          node scripts/test-v304-inline-syntax.mjs
+          pip install playwright==1.62.0
+          node scripts/fixture-mc373.mjs
+          python -m http.server 8000 > /tmp/v390-http.log 2>&1 &
+          python scripts/test-v390-navigation.py
+          python scripts/test-v371-dni-navigation.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cuatro-negocios-v390-browser
+          path: |
+            artifacts/v390/
+            artifacts/v371-dni-navigation/
