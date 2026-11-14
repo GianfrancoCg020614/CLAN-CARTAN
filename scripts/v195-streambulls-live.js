@@ -17,6 +17,9 @@ const remaining=(end,now=new Date())=>{
  return Math.floor(m/1440)+'d '+String(Math.floor(m%1440/60)).padStart(2,'0')+'h '+String(m%60).padStart(2,'0')+'m';
 };
 const weekdays=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const matches=value=>normalize(search).split(' ').filter(Boolean).every(word=>normalize(value).includes(word));
+let listPage=0;
 let tab='due',windowDays=7,search='',minDays=0,service='Todos',serial=0;
 function guard(uid,jwt){return window.CC_V53_SESSION?.userId===uid&&window.CC_V53_SESSION?.jwt===jwt;}
 function display(root,summary,detail){
@@ -32,41 +35,54 @@ function grid(parent,pairs){
  }
  parent.append(table);
 }
-function actionPrompt(title,fields,fn){
+function actionPrompt(title,fields,fn,saveLabel='Guardar'){
  by('sb317dialog')?.remove();
  const modal=E('div','sb195-overlay'),card=E('div','sb195-modal');modal.id='sb317dialog';
  const session=window.CC_V53_SESSION,uid=session?.userId,jwt=session?.jwt,owner=by('sb195-attention');
  let saving=false,observer=null;const close=()=>{observer?.disconnect();modal.remove();};
  const current=()=>modal.isConnected&&owner?.isConnected&&guard(uid,jwt);
  card.setAttribute('role','dialog');card.setAttribute('aria-modal','true');
- const header=E('header','sb317-dialog-head');header.append(E('h3','',title),B('Cancelar',close));card.append(header);
+ const header=E('header','sb317-dialog-head');header.append(E('h3','',title),B('✕',close));card.append(header);
  const form=E('form','sb195-form'),inputs={};
  for(const f of fields){
   const label=E('label','',f.title),input=E(f.options?'select':'input');input.name=f.key;
   if(f.options)for(const [value,text] of f.options){const item=E('option','',text);item.value=value;input.append(item);}
   else input.type=f.type||'text';
   if(f.value!==undefined)input.value=String(f.value);
-  if(f.required)input.required=true;
+  if(f.required)input.required=true;if(f.minLength!==undefined)input.minLength=f.minLength;if(f.maxLength!==undefined)input.maxLength=f.maxLength;
   if(f.min!==undefined)input.min=f.min;
   if(f.max!==undefined)input.max=f.max;
   if(f.step!==undefined)input.step=f.step;
   label.append(input);form.append(label);inputs[f.key]=input;
  }
  const error=E('p','sb195-error');error.setAttribute('role','status');
- const actions=E('div','sb195-buttons'),submit=B('Guardar',()=>{},'primary');submit.type='submit';actions.append(submit);
+ const actions=E('div','sb195-buttons'),submit=B(saveLabel,()=>{},'primary');submit.type='submit';actions.append(submit);
  form.append(error,actions);form.addEventListener('submit',async ev=>{
   ev.preventDefault();if(saving||!current())return;
   const values=Object.fromEntries(Object.entries(inputs).map(([k,v])=>[k,v.value]));
   saving=true;submit.disabled=true;submit.textContent='Guardando…';form.setAttribute('aria-busy','true');error.textContent='';
   try{const result=await fn(values);if(current()&&result!==false)close();}
-  catch(e){if(current())error.textContent='No se guardó: '+String(e?.message||e);}
-  finally{saving=false;submit.disabled=false;submit.textContent='Guardar';form.setAttribute('aria-busy','false');}
+  catch(e){if(current()){const message=String(e?.message||e);error.textContent=/duplicate key|unique constraint/i.test(message)?'Ya existe un registro con ese código o referencia. Revisa el historial antes de repetirlo.':'No se pudo confirmar el guardado: '+message;}}
+  finally{saving=false;submit.disabled=false;submit.textContent=saveLabel;form.setAttribute('aria-busy','false');}
  });
  card.append(form);modal.append(card);
  modal.addEventListener('click',e=>{if(e.target===modal)close();});
  document.body.append(modal);
  observer=new MutationObserver(()=>{if(!modal.isConnected){observer.disconnect();return;}if(!owner?.isConnected||!guard(uid,jwt))close();});
  observer.observe(document.body,{childList:true,subtree:true});
+}
+function viewHistory(row,owner,uid,jwt){
+ if(!guard(uid,jwt)||!owner.isConnected)return;by('sb317dialog')?.remove();
+ const modal=E('div','sb195-overlay'),card=E('div','sb195-modal');modal.id='sb317dialog';card.setAttribute('role','dialog');card.setAttribute('aria-modal','true');
+ let observer;const close=()=>{observer?.disconnect();modal.remove();};const header=E('header','sb317-dialog-head');header.append(E('h3','','Historial · '+row.client.alias),B('✕',close));const content=E('div','sb389-history');content.setAttribute('role','status');card.append(header,content);modal.append(card);document.body.append(modal);
+ let sequence=0;const current=()=>modal.isConnected&&owner.isConnected&&guard(uid,jwt);
+ async function page(index=0){const run=++sequence;content.replaceChildren(E('p','','Consultando historial…'));
+ try{const rows=await api('sb_oper_events?select=id,action,occurred_at&owner_id=eq.'+encodeURIComponent(uid)+'&contract_id=eq.'+encodeURIComponent(row.contract.id)+'&order=occurred_at.desc,id.desc&limit=21&offset='+(index*20));if(!current()||run!==sequence)return;if(!Array.isArray(rows))throw Error('Respuesta no válida');
+ content.replaceChildren();const names={CLIENT_ASSIGNED:'Cliente asignado',MANUAL_PAYMENT_RECORDED:'Pago manual registrado',CONNECTION:'Conexión registrada',DEVICES:'Dispositivos actualizados',CONTRACT_EXTENDED:'Contrato renovado'};
+ for(const entry of rows.slice(0,20)){const item=E('p','sb389-history-row');item.append(E('strong','',names[entry.action]||'Evento registrado'),E('small','',format(entry.occurred_at)));content.append(item);}if(!rows.length)content.append(E('p','','Sin eventos en esta página.'));
+ if(index||rows.length>20){const controls=E('div','sb195-buttons');const prev=B('Anterior',()=>void page(index-1)),next=B('Siguiente',()=>void page(index+1));prev.disabled=index===0;next.disabled=rows.length<=20;controls.append(prev,E('span','','Página '+(index+1)),next);content.append(controls);}
+ }catch(e){if(current()&&run===sequence)content.replaceChildren(E('p','sb195-error','No se pudo consultar el historial: '+String(e.message||e)),B('Reintentar',()=>void page(index)));}}
+ observer=new MutationObserver(()=>{if(!current())close();});observer.observe(document.body,{childList:true,subtree:true});void page();
 }
 function openWhatsApp(row,kind){
  if(!row.client.phone_e164)return alert('Primero registra el WhatsApp del cliente.');
@@ -77,11 +93,11 @@ function openWhatsApp(row,kind){
  upcoming:'Hola '+row.client.alias+', te recordamos que tu servicio '+row.account.service+' vence el '+date+'. ¿Deseas renovarlo?',
  expired:'Hola '+row.client.alias+', tu servicio '+row.account.service+' venció el '+date+'. Escríbenos para renovarlo.',
  renewal:'Hola '+row.client.alias+', podemos coordinar tu renovación de '+row.account.service+'. Vencimiento registrado: '+date+'.',
- debt:'Hola '+row.client.alias+', tienes un pago pendiente por tu servicio '+row.account.service+'. Fecha de vencimiento: '+date+'.',
+ debt:'Hola '+row.client.alias+', tienes un pago pendiente de '+money(row.due)+' por tu servicio '+row.account.service+'. Fecha de vencimiento: '+date+'. Por favor, comunícate para coordinar el pago.',
  transfer:'Hola '+row.client.alias+', coordinemos tu cambio de asignación de '+row.account.service+' conservando tu plazo contratado hasta '+date+'.'
  };
- const url='https://wa.me/'+phone+'?text='+encodeURIComponent(messages[kind]||messages.upcoming);
- window.open(url,'_blank','noopener,noreferrer');
+ const url='https://wa.me/'+phone+'?text='+encodeURIComponent('🦬 STREAM BULL’S\n\n'+(messages[kind]||messages.upcoming)+'\n\nwww.ClanCartan.com');
+ const opened=window.open(url,'_blank','noopener,noreferrer');if(!opened){const status=by('sb389-status');if(status){status.textContent='Si WhatsApp no se abrió, revisa el mensaje en este enlace: ';const link=E('a','', 'Abrir WhatsApp');link.href=url;link.target='_blank';link.rel='noopener noreferrer';status.append(link);}}
 }
 function mapData(raw){
  const accountBy=new Map(raw.accounts.map(a=>[a.id,a]));
@@ -116,15 +132,14 @@ async function loadData(uid,jwt,root){
  contracts:'sb_oper_contracts?select=*&order=end_at.asc&limit=1000',
  assignments:'sb_oper_assignments?select=*&limit=1000',
  transfers:'sb_oper_transfers?select=*&order=requested_at.desc&limit=1000',
- events:'sb_oper_events?select=*&order=occurred_at.desc&limit=1000',
- payments:'sb_oper_payments?select=*&order=recorded_at.desc&limit=1000'
+
  };
  const keys=Object.keys(queries);
  const values=await Promise.all(keys.map(k=>api(queries[k])));
  if(!guard(uid,jwt)||!root.isConnected)throw Error('Sesión modificada');
  const data=Object.fromEntries(keys.map((k,i)=>[k,values[i]]));
  if(keys.some(k=>!Array.isArray(data[k])))throw Error('No se recibieron todos los registros');
- if(keys.some(k=>data[k].length>=1000))data.truncated=true;
+ if(keys.some(k=>data[k].length>=1000))throw Error('La consulta alcanzó el límite de 1000 registros. No se mostrarán indicadores ni posiciones libres incompletas. Se necesita consulta del servidor por páginas para esta cartera.');
  return mapData(data);
 }
 function board(root,s,uid,jwt){
@@ -140,12 +155,12 @@ function board(root,s,uid,jwt){
   }catch(e){if(formOperation)throw e;if(guard(uid,jwt))alert('Operación no confirmada: '+String(e?.message||e));return false;}
  };
  const formGate=(fn,payload,feedback)=>gate(fn,payload,feedback,true);
- const visible=a=>a.filter(r=>!search||[r.account?.code,r.account?.alias,r.account?.account_email,r.account?.service,r.client?.alias,r.client?.email,r.client?.phone_e164,'P'+r.slot?.position].join(' ').toLowerCase().includes(search));
+ const visible=a=>a.filter(r=>matches([r.account?.code,r.account?.alias,r.account?.account_email,r.account?.service,r.client?.alias,r.client?.email,r.client?.phone_e164,String(r.client?.phone_e164||'').replace(/\D/g,''),'P'+r.slot?.position].join(' ')));
  const expiring=rows.filter(r=>r.contract.status==='ACTIVE'&&r.days>=0&&r.days<=7);
  const debtors=rows.filter(r=>r.due>0);
  const releasing=rows.filter(r=>r.contract.status==='ACTIVE'&&r.days>=0&&r.days<=7);
  const main=raw.accounts.filter(a=>a.state==='ACTIVE'&&days(a.end_at,now)>=0&&days(a.end_at,now)<=7);
- const header=E('div','sb195-head');header.append(E('div','', 'STREAM BULL’S · GESTIÓN OPERATIVA'),E('h2','','Atención de hoy'),E('p','sb195-muted','Clientes, cuentas, vencimientos y espacios realmente disponibles.'));
+ const header=E('div','sb195-head');header.append(E('h2','','Atención de hoy'),E('p','sb195-muted','Clientes, cuentas, vencimientos y espacios realmente disponibles.'));
  root.append(header);
  const indicators=[
  ['due','POR VENCER',expiring.length],
@@ -156,14 +171,15 @@ function board(root,s,uid,jwt){
  ];
  const row=E('div','sb195-indicators');
  for(const [key,name,value] of indicators){
-  const b=B('',()=>{tab=key;board(root,s,uid,jwt);},'sb195-tile'+(tab===key?' active':''));
+  const b=B('',()=>{tab=key;listPage=0;board(root,s,uid,jwt);},'sb195-tile'+(tab===key?' active':''));
   b.append(E('strong','',value),E('small','',name));row.append(b);
  }
  root.append(row);
+ const status=E('p','sb389-status');status.id='sb389-status';status.setAttribute('role','status');root.append(status);
  const bar=E('div','sb195-bar');
  const input=E('input','sb195-search');input.type='search';input.value=search;
  input.placeholder='Buscar cliente, P1, cuenta, correo o WhatsApp…';
- input.addEventListener('change',()=>{search=input.value.trim().toLowerCase();board(root,s,uid,jwt);});
+ input.setAttribute('aria-label','Buscar cliente, cuenta, correo o WhatsApp');input.addEventListener('input',()=>{search=input.value;listPage=0;paint();});input.addEventListener('change',()=>{search=input.value;listPage=0;paint();});
  const controls=E('div','sb195-buttons');
  controls.append(B('+ AGREGAR CUENTA',()=>actionPrompt('Agregar cuenta principal',[
   {key:'service',title:'Plataforma',options:['Netflix','Disney','YouTube','Prime Video','HBO','ChatGPT','Canva','Spotify','Otro'].map(x=>[x,x])},
@@ -178,7 +194,7 @@ function board(root,s,uid,jwt){
  const more=E('details','sb195-more');more.append(E('summary','','⋮ Más opciones'));
  const menu=E('div','sb195-dropdown');
  for(const [key,title] of [['expired','Vencidos'],['pending','Pendiente de liberación'],['transfer','Necesitan traslado'],['reactivate','Cuentas finalizadas']]){
-  menu.append(B(title,()=>{tab=key;board(root,s,uid,jwt);}));
+  menu.append(B(title,()=>{tab=key;listPage=0;board(root,s,uid,jwt);}));
  }
  more.append(menu);controls.append(more);bar.append(input,controls);root.append(bar);
  function addClient(){
@@ -220,7 +236,7 @@ function board(root,s,uid,jwt){
    ],v=>formGate('sb_oper_extend_contract',{p_contract:r.contract.id,p_days:Number(v.days),p_price_add:Number(v.price)},'Renovación guardada.')),'primary'));
    tools.append(B('WHATSAPP',()=>actionPrompt('Mensaje WhatsApp manual',[
     {key:'type',title:'Motivo',options:[['upcoming','Próximo vencimiento'],['expired','Vencimiento'],['renewal','Renovación'],['debt','Deuda pendiente'],['transfer','Cambio de asignación']]}
-   ],v=>openWhatsApp(r,v.type))));
+   ],v=>openWhatsApp(r,v.type),'Abrir WhatsApp')));
    const menu=E('details','sb195-more');menu.append(E('summary','','⋮ MÁS OPCIONES'));const box=E('div','sb195-dropdown');
    if(r.assignment.state==='ACTIVE')box.append(B('Marcar pendiente de liberación',()=>gate('sb_oper_mark_pending',{p_assignment:r.assignment.id})));
    if(r.assignment.state==='PENDING_RELEASE')box.append(B('Liberar tras retirar acceso',()=>{
@@ -245,7 +261,7 @@ function board(root,s,uid,jwt){
    if(r.due>0)box.append(B('Registrar pago realmente recibido',()=>actionPrompt('Registrar pago manual',[
     {key:'amount',title:'Importe recibido (S/)',type:'number',min:0.01,max:r.due,step:'0.01',required:true},
     {key:'method',title:'Medio',options:['YAPE','PLIN','TRANSFERENCIA','EFECTIVO','OTRO'].map(x=>[x,x])},
-    {key:'reference',title:'Referencia real (mínimo 3 caracteres)',required:true}
+    {key:'reference',title:'Referencia real (mínimo 3 caracteres)',required:true,minLength:3,maxLength:120}
    ],v=>formGate('sb_oper_record_payment',{p_contract:r.contract.id,p_amount:Number(v.amount),
     p_method:v.method,p_reference:v.reference},'Pago declarado registrado; no modifica la billetera.'))));
    box.append(B('Editar contacto',()=>actionPrompt('Editar datos del cliente',[
@@ -258,10 +274,7 @@ function board(root,s,uid,jwt){
    ],v=>formGate('sb_oper_update_contract',{p_contract:r.contract.id,p_action:'DEVICES',p_notes:v.notes}))));
    box.append(B(r.contract.status==='SUSPENDED'?'Reactivar cliente':'Suspender cliente',()=>gate('sb_oper_update_contract',{
     p_contract:r.contract.id,p_action:r.contract.status==='SUSPENDED'?'REACTIVATE':'SUSPEND',p_notes:null})));
-   box.append(B('Ver historial',()=>{
-    const events=raw.events.filter(e=>e.contract_id===r.contract.id);
-    alert(events.length?events.map(e=>format(e.occurred_at)+' · '+e.action).join('\n'):'Sin movimientos registrados.');
-   }));
+   box.append(B('Ver historial',()=>void viewHistory(r,root,uid,jwt)));
    menu.append(box);tools.append(menu);body.append(tools);
   });
  }
@@ -292,7 +305,7 @@ function board(root,s,uid,jwt){
  if(tab==='release'){
   const selector=E('div','sb195-chips');
   for(const [d,label] of [[0,'HOY'],[1,'MAÑANA'],[3,'EN 3 DÍAS'],[7,'EN 7 DÍAS']]){
-   selector.append(B(label,()=>{windowDays=d;board(root,s,uid,jwt);},windowDays===d?'active':''));
+   selector.append(B(label,()=>{windowDays=d;listPage=0;board(root,s,uid,jwt);},windowDays===d?'active':''));
   }root.append(selector);
   root.append(E('p','sb195-muted',windowDays===0?'Hoy exclusivamente':windowDays===1?'Mañana exclusivamente':'Desde hoy hasta '+windowDays+' días (acumulado, sin registros duplicados).'));
  }
@@ -302,18 +315,21 @@ function board(root,s,uid,jwt){
  expired:rows.filter(r=>r.days<0),pending:rows.filter(r=>r.assignment.state==='PENDING_RELEASE'),
  transfer:rows.filter(r=>r.transfer)
  };
- if(sections[tab]){const selected=visible(sections[tab]);for(const r of selected)clientCard(r);if(!selected.length)list.append(E('p','sb195-empty','No hay registros para este filtro.'));}
+ function paint(){
+ list.replaceChildren();root.querySelector('.sb389-free-filters')?.remove();let total=0;const size=matchMedia('(max-width:850px)').matches?5:8;
+ const pageRows=items=>{total=items.length;const last=Math.max(0,Math.ceil(total/size)-1);listPage=Math.min(listPage,last);return items.slice(listPage*size,listPage*size+size);};
+ if(sections[tab]){const selected=visible(sections[tab]);for(const r of pageRows(selected))clientCard(r);if(!selected.length)list.append(E('p','sb195-empty','No hay registros para este filtro.'));}
  if(tab==='free'){
-  const filt=E('div','sb195-buttons');
+  const filt=E('div','sb195-buttons sb389-free-filters');
   const sel=E('select','sb195-select');
   for(const option of ['Todos',...new Set(raw.accounts.map(x=>x.service))]){
    const o=E('option','',option);o.value=option;sel.append(o);
-  }sel.value=service;sel.addEventListener('change',()=>{service=sel.value;board(root,s,uid,jwt);});
+  }sel.value=service;sel.addEventListener('change',()=>{service=sel.value;listPage=0;paint();});
   const min=E('input','sb195-min');min.type='number';min.min=0;min.max=366;min.value=minDays;
-  min.title='Días mínimos';min.addEventListener('change',()=>{minDays=Number(min.value)||0;board(root,s,uid,jwt);});
+  min.title='Días mínimos';min.addEventListener('change',()=>{minDays=Number(min.value)||0;listPage=0;paint();});
   filt.append(E('span','','Servicio'),sel,E('span','','Mínimo días'),min);root.insertBefore(filt,list);
-  const shown=free.filter(x=>(service==='Todos'||x.account.service===service)&&x.days>=minDays&&(!search||[x.account.code,x.account.service,'P'+x.position].join(' ').toLowerCase().includes(search)));
-  for(const x of shown){
+  const shown=free.filter(x=>(service==='Todos'||x.account.service===service)&&x.days>=minDays&&matches([x.account.code,x.account.service,'P'+x.position].join(' ')));
+  for(const x of pageRows(shown)){
    const r=E('div','sb195-free-row');r.append(E('strong','',x.account.code+' · P'+x.position),
     E('span','',remaining(x.account.end_at,now)),E('strong','','LIBRE'));list.append(r);
   }
@@ -321,11 +337,16 @@ function board(root,s,uid,jwt){
  }
  if(tab==='main'||tab==='reactivate'){
   const arr=tab==='main'?main:raw.accounts.filter(a=>a.state==='ENDED');
-  const filtered=arr.filter(a=>!search||[a.code,a.alias,a.service,a.account_email].join(' ').toLowerCase().includes(search));
-  for(const a of filtered)accountCard(a);if(!filtered.length)list.append(E('p','sb195-empty','No hay cuentas con este estado.'));
+  const filtered=arr.filter(a=>matches([a.code,a.alias,a.service,a.account_email].join(' ')));
+  for(const a of pageRows(filtered))accountCard(a);if(!filtered.length)list.append(E('p','sb195-empty','No hay cuentas con este estado.'));
  }
+
+ const paging=E('div','sb389-pages');paging.append(E('span','',total+' registros encontrados'));
+ if(total>size){const prev=B('Anterior',()=>{listPage=Math.max(0,listPage-1);paint();});prev.disabled=listPage===0;const next=B('Siguiente',()=>{listPage++;paint();});next.disabled=(listPage+1)*size>=total;paging.append(prev,E('span','','Página '+(listPage+1)),next);}list.append(paging);
+ }
+ paint();
  if(raw.truncated)root.append(E('p','sb195-alert','Algunos listados superaron 1000 filas; se necesita paginación para mostrar todos los registros.'));
- root.append(E('p','sb195-muted','Solo gestión administrativa. WhatsApp se envía manualmente. No se transfieren accesos entre proveedores ni se modifica la billetera.'));
+ root.append(E('p','sb195-muted','WhatsApp abre un mensaje para revisar y enviar. Los cobros de clientes se registran aparte de la billetera CLAN CARTAN.'));
 }
 async function refresh(root,uid,jwt,feedback){
  if(!root.isConnected||!guard(uid,jwt))return;
@@ -339,6 +360,7 @@ async function refresh(root,uid,jwt,feedback){
 async function mount(){
  const page=by('cc166-content'),session=window.CC_V53_SESSION;
  if(!page||page.dataset.cc316StreamOperations!=='true'||!session?.userId||!session?.jwt||page.querySelector('#sb195-attention'))return;
+ if(page.dataset.sb389Role==='admin'||page.dataset.sb389Verified==='false')return;
  const heading=page.querySelector('.cc166-section-title h2')?.textContent||'';
  if(!/STREAM BULL['’]?S/.test(heading))return;
  if(page.dataset.sb195Mounting==='1')return;
@@ -348,14 +370,14 @@ async function mount(){
   const eligible=await api('rpc/sb_oper_has_access_v195','POST',{});
   if(!guard(uid,jwt)||!page.isConnected||page.dataset.cc316StreamOperations!=='true'||page.querySelector('.cc166-section-title h2')?.textContent!==heading)return;
   if(eligible!==true)return;
-  const root=E('section','sb195-root');root.id='sb195-attention';root.tabIndex=-1;
+  const root=E('section','sb195-root sb389-board');root.id='sb195-attention';root.tabIndex=-1;
   page.replaceChildren(root);
   await refresh(root,uid,jwt);
  }catch(_){/* Conservar el panel y las membresías existentes si el módulo aún no responde. */ }
  finally{delete page.dataset.sb195Mounting;}
 }
 function init(){
- document.addEventListener('cc192-session-ended',()=>by('sb317dialog')?.remove());
+ document.addEventListener('cc192-session-ended',()=>{serial++;search='';tab='due';listPage=0;by('sb317dialog')?.remove();});
  let tick=false;
  new MutationObserver(()=>{
   if(tick)return;tick=true;

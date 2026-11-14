@@ -13,6 +13,7 @@ const el=id=>document.getElementById(id);
 const api=(p,m,b)=>window.cc80.api(p,m,b);
 const serviceName=k=>({STREAM_BULLS:"STREAM BULL'S",COBRA_YA:'COBRA YA',MI_COCHERA:'MI COCHERA',MI_ALQUILER:'MI ALQUILER',CLAN_CARTAN:'CLAN CARTAN'})[k]||k;
 const services=[['STREAM_BULLS','◈'],['COBRA_YA','◎'],['MI_COCHERA','▣'],['MI_ALQUILER','⌂']];
+let streamContext=false;
 let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false;
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
 let profileDraft=null,profileDraftVersion=0,profileSaveRequest=null,profileMessage='';
@@ -48,12 +49,12 @@ function restorePanelState(uid){
   const saved=JSON.parse(sessionStorage.getItem(PANEL_CONTEXT)||'null');
   if(saved?.uid!==uid)return null;
   const allowed=['home','attention','approvals','bonuses','wallet','businesses','movements',
-   'orders','publish','sales','admin','profile','shop','codes','delivery','mailboxes','delivery-requests','delivery-admin','finance','referrals','recharges','recharge-mail'];
+   'stream-operations','orders','publish','sales','admin','profile','shop','codes','delivery','mailboxes','delivery-requests','delivery-admin','finance','referrals','recharges','recharge-mail'];
   const tabs=['summary','manual','automatic','movements','recharges','audit'];
   const normalize=state=>{
    const v=String(state?.view||'');
    if(!allowed.includes(v)&&!/^business:(STREAM_BULLS|COBRA_YA|MI_COCHERA|MI_ALQUILER)$/.test(v))return null;
-   return {view:v,walletTab:tabs.includes(state.walletTab)?state.walletTab:'summary'};
+   return {view:v,walletTab:tabs.includes(state.walletTab)?state.walletTab:'summary',stream:state.stream===true};
   };
   const current=normalize(saved);if(!current)return null;
   const history=Array.isArray(saved.history)?saved.history.slice(-30).map(normalize).filter(Boolean):[];
@@ -63,10 +64,12 @@ function restorePanelState(uid){
 function savePanelState(){
  if(!user||!app||!session()?.jwt)return;
  try{sessionStorage.setItem(PANEL_CONTEXT,JSON.stringify({
-  uid:user,view,walletTab,open:!app.hidden,history:navigationHistory.slice(-30)
+  uid:user,view,walletTab,stream:streamContext,open:!app.hidden,history:navigationHistory.slice(-30)
  }))}catch(_){}
 }
 function reset(){
+ streamContext=false;
+
  serial++;user=null;token=null;busy=false;verified=false;view='home';
  data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[],accesses:null};lastReceipt=null;purchasePending=false;membershipPending=false;businessActivationPending=null;
  app?.remove();app=null;el('cc166-open-button')?.remove();el('cc177-return-panel')?.remove();
@@ -95,7 +98,7 @@ function shell(){
    closePanelMenu();el('cc308-more')?.focus();event.preventDefault();
   }
  });
- app.addEventListener('click',event=>{if(!event.target.closest('.cc166-sidebar'))closePanelMenu();});
+ app.addEventListener('click',event=>{if(!event.target.closest('.cc166-sidebar,[data-sb389-menu]'))closePanelMenu();});
  document.body.append(app);return app;
 }
 function access(code){
@@ -148,11 +151,12 @@ function openCatalog(){
  notice('El catálogo público está temporalmente inaccesible.');
 }
 function closePanelMenu(){
+ app?.classList.remove('sb389-menu-open');if(streamContext&&matchMedia('(max-width:850px)').matches)app?.querySelector('.cc166-sidebar')?.setAttribute('inert','');app?.querySelector('[data-sb389-menu]')?.setAttribute('aria-expanded',String(!matchMedia('(max-width:850px)').matches&&!app?.classList.contains('sb389-collapsed')));
  app?.classList.remove('cc308-menu-open');
  el('cc308-more')?.setAttribute('aria-expanded','false');
 }
 function closeToHome(){
- moduleReturn=null;navigationHistory=[];view='home';walletTab='summary';
+ streamContext=false;moduleReturn=null;navigationHistory=[];view='home';walletTab='summary';
  window.cy53?.close?.();window.mc158Close?.();window.ma1611MiAlquiler?.close?.();
  el('cc177-return-panel')?.remove();
  if(app){app.hidden=true;savePanelState();}
@@ -160,19 +164,20 @@ function closeToHome(){
 }
 function rememberModuleReturn(back){
  if(typeof back!=='function')return;
- moduleReturn={uid:user,back};navigationHistory=[];
+ streamContext=false;moduleReturn={uid:user,back};navigationHistory=[];
 }
 function nav(to){
  closePanelMenu();
  if(to==='back'){
   const prior=navigationHistory.pop();
-  if(prior){view=prior.view;walletTab=prior.walletTab;render(true);return;}
+  if(prior){view=prior.view;walletTab=prior.walletTab;streamContext=!!prior.stream;render(true);return;}
   if(moduleReturn?.uid===user){const back=moduleReturn.back;moduleReturn=null;app.hidden=true;savePanelState();back();return;}
   if(view!=='home'){view='home';walletTab='summary';render(true);return;}
   app.hidden=true;return;
  }
  if(to==='shop'){openCatalog();return;}
- if(view!==to)navigationHistory.push({view,walletTab});
+ if(view!==to)navigationHistory.push({view,walletTab,stream:streamContext});
+ if(['stream-operations','business:STREAM_BULLS'].includes(to))streamContext=true;else if(streamContext&&!['publish','sales','orders','codes','delivery','mailboxes','delivery-requests','delivery-admin','wallet','profile','approvals'].includes(to))streamContext=false;
  if(to==='wallet')walletTab='summary';
  view=to;render(true);
 }
@@ -228,7 +233,13 @@ function renderNav(){
  // Una sola interfaz para los 4 roles. El servidor decide los permisos.
  app.classList.add('cc176-admin');
  const admin=!!data.admin,superRole=!admin&&!!data.super;
- const groups=[
+ const groups=streamContext?[
+  ['STREAM BULL’S',[['stream-operations','◫','Inicio STREAM']]],
+  ['OPERACIONES',verified&&admin?[['sales','◈','Supervisar pedidos'],['approvals','✓','Súper reseller'],['delivery-admin','⌁','Entregas y códigos']]:[
+   ...(verified&&superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas'],['delivery','▦','Mis cuentas'],['mailboxes','✉','Mis correos'],['delivery-requests','◷','Solicitudes pendientes']]:[]),
+   ...(!admin?[['shop','▣','Catálogo'],['orders','◱','Mis compras'],['codes','⌁','Obtener código']]:[])]],
+  ['MI CUENTA',[['wallet','▤','Billetera'],['profile','♙','Mi perfil']]]
+ ]:[
   ['GENERAL',[['home','◫',admin?'Resumen':'Inicio']]],
   ['OPERACIONES',[
    ...(admin?[['admin','♙','Usuarios'],['approvals','✓','Súper reseller'],
@@ -238,7 +249,7 @@ function renderNav(){
    ['wallet','▤','Billetera']]],
   ['MI CUENTA',[['referrals','◇','Mis referidos y ganancias'],['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
  ];
- const primaryIds=admin?['home','admin','wallet']:superRole?['home','codes','sales']:['home','codes','shop'];
+ const primaryIds=streamContext?(admin?['stream-operations','sales','delivery-admin']:superRole?['stream-operations','sales','publish']:['stream-operations','shop','orders']):admin?['home','admin','wallet']:superRole?['home','codes','sales']:['home','codes','shop'];
  const primary=make('div','cc308-nav-primary');
  const secondary=make('div','cc308-nav-secondary');secondary.id='cc308-secondary-nav';
  for(const [heading,items] of groups){
@@ -278,7 +289,23 @@ function renderNav(){
  if(view!=='home'&&!localRefresh&&view!=='bonuses'&&view!=='profile')
   top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
  top.append(button('✕ Cerrar',closeToHome,'cc166-x'));
+ applyStreamShell(top,role,heading);
 }
+function applyStreamShell(top,role,heading){
+ app.classList.toggle('sb389-mode',streamContext);
+ const sidebar=app.querySelector('.cc166-sidebar'),brand=app.querySelector('.cc166-brand'),head=app.querySelector('.cc166-top>div:first-child'),small=head?.querySelector('small');
+ if(!streamContext){app.classList.remove('sb389-menu-open');app.querySelector('.sb389-logo')?.remove();app.querySelector('.sb389-scrim')?.remove();sidebar?.removeAttribute('inert');if(brand)brand.innerHTML='◈ <span>CLAN CARTAN<small>Panel de control</small></span>';if(small)small.textContent='CLAN CARTAN · V343 · PANEL ÚNICO';return;}
+ if(brand)brand.textContent='Mi espacio';
+ if(!app.querySelector('.sb389-logo')){const logo=make('img','sb389-logo');logo.src='assets/logo-streambulls-v304.avif';logo.alt='STREAM BULL’S · CLAN CARTAN';logo.width=110;logo.height=68;head?.prepend(logo);}
+ if(small)small.textContent='V389 · SERVICIOS DIGITALES';if(heading)heading.textContent=data.admin?'Supervisión':data.super?'Mi negocio':'Mi espacio';
+ role.textContent=(verified?(data.admin?'ADMIN · Supervisión':data.super?'SÚPER RESELLER · Publicaciones y ventas':access('STREAM_BULLS').ok?'RESELLER · Gestión y compras':'AFILIADO · Catálogo y compras'):'VERIFICANDO ACCESOS');
+ top.replaceChildren();const menu=button('☰',()=>{if(!matchMedia('(max-width:850px)').matches){const collapsed=app.classList.toggle('sb389-collapsed');menu.setAttribute('aria-expanded',String(!collapsed));return;}const open=app.classList.toggle('sb389-menu-open');sidebar?.toggleAttribute('inert',!open&&matchMedia('(max-width:850px)').matches);menu.setAttribute('aria-expanded',String(open));},'sb389-menu');menu.dataset.sb389Menu='';menu.setAttribute('aria-label','Abrir menú de STREAM BULL’S');menu.setAttribute('aria-expanded',String(matchMedia('(max-width:850px)').matches?app.classList.contains('sb389-menu-open'):!app.classList.contains('sb389-collapsed')));top.append(menu);
+ if(['wallet','profile'].includes(view)&&navigationHistory.length)top.append(button('← Atrás',()=>nav('back'),'cc166-secondary sb389-back'));else top.append(button('← Volver a CLAN CARTAN',()=>{streamContext=false;navigationHistory=[];view='businesses';render(true);},'cc166-secondary sb389-exit'));
+ const update=button('↻',()=>void load(),'cc166-secondary');update.setAttribute('aria-label','Actualizar datos');top.append(update);
+ if(!app.querySelector('.sb389-scrim')){const scrim=button('',()=>closePanelMenu(),'sb389-scrim');scrim.setAttribute('aria-label','Cerrar menú de STREAM BULL’S');app.append(scrim);}
+ sidebar?.toggleAttribute('inert',matchMedia('(max-width:850px)').matches&&!app.classList.contains('sb389-menu-open'));
+}
+
 function businessTabs(page){
  const tabs=make('nav','cc167-tabs');tabs.setAttribute('aria-label','Negocios CLAN CARTAN');
  for(const [code] of services){
@@ -382,7 +409,7 @@ function adminAttention(page){
  page.append(wrap);
  page.append(make('p','cc166-note','Las cifras de pedidos y publicaciones reflejan los registros consultados. Las recargas no modifican saldos hasta su verificación bancaria.'));
 }
-function finance(tab){closePanelMenu();if(view!=='wallet'||walletTab!==tab)navigationHistory.push({view,walletTab});walletTab=tab;view='wallet';render(true);}
+function finance(tab){closePanelMenu();if(view!=='wallet'||walletTab!==tab)navigationHistory.push({view,walletTab,stream:streamContext});walletTab=tab;view='wallet';render(true);}
 function overview(page){
  if(data.admin){adminHome(page);return;}
  const balance=realBalance();
@@ -457,7 +484,7 @@ function adminSectionTabs(items,current,choose){
  const nav=make('nav','cc175-tabs');nav.setAttribute('aria-label','Secciones de administración');
  for(const [id,label] of items){
   const selected=current===id;
-  const b=button(label,()=>{if(id!==current)navigationHistory.push({view,walletTab});choose(id);},'cc175-tab'+(selected?' selected':''));
+  const b=button(label,()=>{if(id!==current)navigationHistory.push({view,walletTab,stream:streamContext});choose(id);},'cc175-tab'+(selected?' selected':''));
   b.setAttribute('aria-pressed',String(selected));nav.append(b);
  }
  return nav;
@@ -1344,11 +1371,11 @@ function memberships(page){
  page.append(list);
 }
 function streamOperations(page){
- title(page,'STREAM BULL’S · Centro de operaciones',data.admin?'Supervisión de publicaciones y pedidos.':'Tus compras, publicaciones y entregas de STREAM BULL’S.');
+ title(page,'STREAM BULL’S · Centro de operaciones',data.admin?'Supervisión de publicaciones y pedidos.':data.super?'Tus publicaciones, compras y entregas.':access('STREAM_BULLS').ok?'Tus cuentas, clientes y compras.':'Explora el catálogo y consulta tus compras.');
  const own=data.orders.filter(o=>o.buyer_id===user),salesRows=data.orders.filter(o=>o.seller_id===user);
  const stats=make('div','cc166-stats');
  stats.append(metric(data.admin?'Pedidos consultados':'Mis compras',String(data.admin?data.orders.length:own.length),'blue'));
- if(data.admin||data.super){stats.append(metric('Entregas pendientes',String((data.admin?data.orders:salesRows).filter(o=>o.status==='PAID_AWAITING_DELIVERY').length),'gold'));stats.append(metric(data.admin?'Publicaciones activas':'Mis publicaciones activas',String(data.products.filter(p=>p.status==='ACTIVE'&&(data.admin||p.seller_id===user)).length),'aqua'));}
+ if(data.admin||data.super){stats.append(metric('Entregas pendientes',String((data.admin?data.orders:salesRows).filter(o=>o.status==='PAID_AWAITING_DELIVERY').length),'gold'));stats.append(metric(data.admin?'Publicaciones activas consultadas':'Mis publicaciones activas consultadas',String((data.admin?data.products:(data.ownProducts||data.products)).filter(p=>p.status==='ACTIVE'&&(data.admin||p.seller_id===user)).length),'aqua'));}
  page.append(stats);
  const tools=card('Qué necesitas hacer','Abre la sección correspondiente. Los pedidos y publicaciones se consultan desde el servidor.');
  const actions=make('div','cc166-actions');
@@ -1528,7 +1555,7 @@ function orderStatusName(status){
  return {PAID_AWAITING_DELIVERY:'Pendiente de entrega',FULFILLED:'Entregado',REFUNDED:'Reembolsado'}[status]||String(status||'Sin estado').replaceAll('_',' ');
 }
 function orders(page){
- title(page,'Mis compras','Cada pedido pagado conserva producto, importe, proveedor, estado y enlace de notificación.');
+ title(page,'Mis compras','Hasta 100 pedidos recientes, con su importe, proveedor, estado y notificación. Las compras anteriores permanecen guardadas.');
  const entries=data.orders.filter(o=>o.buyer_id===user);
  if(!entries.length){page.append(make('p','cc166-empty','Todavía no tienes compras registradas en el marketplace.'));return;}
  const filter=make('label','cc309-sales-filter','Mostrar compras');
@@ -1576,15 +1603,15 @@ async function markDelivered(order,b){
 }
 
 function sales(page){
- if(!data.admin&&!data.super){nav('home');return;}
- title(page,data.admin?'Supervisión de pedidos':'Ventas y entregas','Cada compra se guarda con comisión ADMIN y pago pendiente al vendedor; sin liquidaciones automáticas.');
+ if(!data.admin&&!data.super){if(streamContext){view='stream-operations';render(true);}else nav('home');return;}
+ title(page,data.admin?'Supervisión de pedidos':'Ventas y entregas','Resumen de los pedidos cargados (hasta 100). Consulta Ventas y liquidaciones para verificar pagos al vendedor; estos importes no confirman liquidaciones.');
  const rows=data.orders.filter(o=>data.admin||o.seller_id===user);
  const totals=rows.reduce((s,r)=>({sale:s.sale+Number(r.price_pen||0),
   owed:s.owed+(r.status==='REFUNDED'?0:Number(r.seller_payable_pen||0)),
   admin:s.admin+(r.status==='REFUNDED'?0:Number(r.admin_fee_pen||0))}),{sale:0,owed:0,admin:0});
  const stats=make('div','cc166-stats');
- stats.append(metric('Ventas registradas',price(totals.sale),'aqua'));
- stats.append(metric('Pendiente de liquidación',price(totals.owed),'blue'));
+ stats.append(metric('Importe de pedidos consultados',price(totals.sale),'aqua'));
+ stats.append(metric('Importe del vendedor en pedidos',price(totals.owed),'blue'));
  stats.append(metric('Comisión CLAN CARTAN sobre venta',price(totals.admin),'gold'));
  page.append(stats);
  if(!rows.length){page.append(make('p','cc166-empty','Sin ventas registradas todavía.'));return;}
@@ -1633,9 +1660,9 @@ function publish(page){
  const save=make('button','cc166-primary','Publicar servicio');save.type='submit';form.append(save);
  form.addEventListener('submit',e=>{e.preventDefault();void publishSave(new FormData(form),save);});
  window.cc170Flyers?.attachForm(form);
- box.append(form);page.append(box);
- const list=card('Mis servicios publicados','Compra habilitada con saldo REAL; cada venta crea pedido y queda pendiente de entrega.');
- const products=data.products.filter(p=>data.admin||p.seller_id===user);
+ if(streamContext){const composer=make('details','sb389-composer');composer.open=publishing;composer.append(make('summary','','＋ Publicar un servicio'),form);box.append(composer);}else box.append(form);page.append(box);
+ const list=card('Mis servicios publicados','Hasta 100 publicaciones recientes de tu cuenta. Cada compra conserva su precio registrado y su estado de entrega.');
+ const products=(data.ownProducts||data.products).filter(p=>p.seller_id===user);
  if(!products.length)list.append(make('p','cc166-empty','Aún no hay publicaciones.'));
  for(const p of products){
   const row=make('div','cc166-product cc167-stock-row');
@@ -2300,6 +2327,7 @@ function restoreAdminReviewDrafts(drafts){
 }
 function render(startAtTop=false){
  if(!app||!user)return;
+ if(streamContext&&view==='publish'&&verified&&(!data.super||data.admin))view='stream-operations';
  const location=JSON.stringify([user,view,view==='wallet'?walletTab:null]);
  if(startAtTop||location!==renderedLocation){
   const workspace=app.querySelector('.cc166-workspace');
@@ -2311,7 +2339,8 @@ function render(startAtTop=false){
  const bonusDraft=saveAdminBonusDraft();
  const publishDraft=view==='publish'&&data.super&&!data.admin&&!discardPublishDraft?el('cc166-publish-form'):null;
  el('cc177-return-panel')?.remove();
- mountLauncher();renderNav();const page=el('cc166-content');page.dataset.cc316StreamOperations=String(view==='stream-operations'||view==='business:STREAM_BULLS');page.replaceChildren();
+ if(view==='business:STREAM_BULLS'||view==='stream-operations')streamContext=true;
+ mountLauncher();renderNav();const page=el('cc166-content');page.dataset.cc316StreamOperations=String(view==='stream-operations'||view==='business:STREAM_BULLS');page.dataset.sb389Role=data.admin?'admin':data.super?'super':access('STREAM_BULLS').ok?'reseller':'affiliate';page.dataset.sb389Verified=String(verified);page.replaceChildren();
  if(['recharges','recharge-mail'].includes(view)){if(typeof window.cc321Render==='function')window.cc321Render(page,view,{uid:user,jwt:token,root:session()?.root,key:session()?.key,api,nav,admin:verified&&data.admin});else page.append(make('p','cc166-note','Preparando recargas…'));savePanelState();return;}
  if(['finance','referrals'].includes(view)){if(typeof window.cc320Render==='function')window.cc320Render(page,view,{uid:user,jwt:token,root:session()?.root,key:session()?.key,api,nav,admin:verified&&data.admin});else page.append(make('p','cc166-note','Preparando finanzas…'));savePanelState();return;}
  if(['codes','delivery','mailboxes','delivery-requests','delivery-admin'].includes(view)){
@@ -2332,7 +2361,7 @@ function render(startAtTop=false){
  case 'businesses':memberships(page);break;
  case 'movements':movements(page);break;
  case 'orders':orders(page);break;
- case 'publish':data.super&&!data.admin?publish(page):overview(page);break;
+ case 'publish':data.super&&!data.admin?publish(page):streamContext?streamOperations(page):overview(page);break;
  case 'sales':sales(page);break;
  case 'admin':admin(page);break;
  case 'profile':profile(page);break;
@@ -2341,7 +2370,7 @@ function render(startAtTop=false){
  restoreAdminReviewDrafts(rechargeDrafts);
  restoreAdminGrantDraft(grantDraft);
  restoreAdminBonusDraft(bonusDraft);syncAdminFormButtons();
- if(publishDraft&&el('cc166-publish-form'))el('cc166-publish-form').replaceWith(publishDraft);
+ if(publishDraft&&el('cc166-publish-form')){el('cc166-publish-form').replaceWith(publishDraft);const composer=publishDraft.closest('.sb389-composer');if(composer&&(publishing||publishDraft.elements.namedItem('title')?.value))composer.open=true;}
  syncSellerButtons();
  savePanelState();
 }
@@ -2393,9 +2422,13 @@ async function load(){
     (mc[0]?.subscription_until&&!mc[0]?.suspended&&Date.parse(mc[0].subscription_until)>Date.now())||
     (ma[0]?.subscription_until&&!ma[0]?.suspended&&Date.parse(ma[0].subscription_until)>Date.now())||
     cy.some(x=>x.status==='ACTIVE'&&Date.parse(x.period_end)>Date.now());
+  const superEligible=!!superRoles[0]?.enabled&&activeStream&&(!accesses||accesses.some(x=>x.service==='STREAM_BULLS'&&businessLive(x)));
+  const ownProducts=superEligible&&!admins.some(x=>x.user_id===id)?await read('cc_portal_stream_products?select=id,seller_id,service,title,description,duration_days,price_pen,stock,status,flyer_path&seller_id=eq.'+idp+'&order=created_at.desc&limit=100',true):[];
+  if(!active(id,jwt,n))return;
   data={
+   ownProducts,
    admin:admins.some(x=>x.user_id===id),
-   super:!!superRoles[0]?.enabled&&activeStream&&(!accesses||accesses.some(x=>x.service==='STREAM_BULLS'&&businessLive(x))),
+   super:superEligible,
    superPermission:!!superRoles[0]?.enabled,
    reseller:accesses?accesses.some(businessLive):!!currentRoleReseller,accesses,
    members,subs,businesses,real,financeRates:Array.isArray(financeRates)?financeRates:null,financeWallet,
@@ -2435,12 +2468,14 @@ function sync(){
  const sameUser=s.userId===user,previouslyHidden=app?.hidden===true;
  const previous=restorePanelState(s.userId);
  reset();user=s.userId;token=s.jwt;shell();
- if(previous){view=previous.view;walletTab=previous.walletTab;navigationHistory=previous.history;app.hidden=!previous.open;}
+ if(previous){view=previous.view;walletTab=previous.walletTab;streamContext=!!previous.stream;navigationHistory=previous.history;app.hidden=!previous.open;}
  else app.hidden=!!(sameUser&&previouslyHidden);
  if(['cobra','cochera','alquiler'].includes(document.documentElement.dataset.ccActiveModule))app.hidden=true; // Keep an active business above a slow portal load.
  render();void load();
 }
 function init(){
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&streamContext&&app?.classList.contains('sb389-menu-open')){closePanelMenu();app.querySelector('[data-sb389-menu]')?.focus();}});
+ matchMedia('(max-width:850px)').addEventListener('change',()=>{if(streamContext){closePanelMenu();app?.querySelector('.cc166-sidebar')?.toggleAttribute('inert',matchMedia('(max-width:850px)').matches);}});
  sync();let queued=false;
  new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync();});})
  .observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','hidden']});

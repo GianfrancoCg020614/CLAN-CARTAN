@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import {panelFixture} from './fixture-v308-panel.mjs';
+import {businessRolesFixture} from './fixture-v316-business-roles.mjs';
+import {streamFormsFixture} from './fixture-v317-stream-forms.mjs';
+import {sellerFixture} from './fixture-v310-seller.mjs';
+import {operationsFixture} from './fixture-v309-operations.mjs';
+fs.mkdirSync('artifacts/sb389',{recursive:true});
+for(const role of ['admin','super','reseller'])fs.writeFileSync('artifacts/sb389/308-'+role+'.html',panelFixture(role));
+for(const role of ['admin','affiliate','STREAM_BULLS','COBRA_YA','MI_COCHERA','MI_ALQUILER','expired','invalid','unavailable'])fs.writeFileSync('artifacts/sb389/316-'+role+'.html',businessRolesFixture(role));
+for(const role of ['super','reseller'])fs.writeFileSync('artifacts/sb389/310-'+role+'.html',sellerFixture(role));
+fs.writeFileSync('artifacts/sb389/317-stream.html',streamFormsFixture());
+fs.writeFileSync('artifacts/sb389/309-operations.html',operationsFixture());

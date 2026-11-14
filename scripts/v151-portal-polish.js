@@ -103,7 +103,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(!document.getElementById('cc166-panel-script')){
   const script=document.createElement('script');script.id='cc166-panel-script';
-  script.src='scripts/v166-portal-roles.js?v=388';script.async=false;document.head.append(script);
+  script.src='scripts/v166-portal-roles.js?v=389';script.async=false;document.head.append(script);
  }
 })();
 
@@ -186,7 +186,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const link=document.createElement('link');link.id='sb195-loader';
  link.rel='stylesheet';link.href='styles/v195-streambulls-live.css?v=317';document.head.append(link);
  const script=document.createElement('script');script.id='sb195-live-script';
- script.src='scripts/v195-streambulls-live.js?v=317';script.async=false;
+ script.src='scripts/v195-streambulls-live.js?v=389';script.async=false;
  document.head.append(script);
 })();
 
