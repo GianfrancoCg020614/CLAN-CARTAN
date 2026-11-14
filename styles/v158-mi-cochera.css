@@ -198,3 +198,11 @@
 
 /* V374: motivo visible cuando una acción todavía no está disponible. */
 #mc158layer .mc374-action-help{margin:-5px 0 14px;color:#cbd8ea;font-size:12px;line-height:1.45;padding:0 3px}
+
+/* Calendar review states are informational; no payment allocation is inferred. */
+#mc158dialog .mc376-grid .mc376-day{min-width:0;padding:5px;min-height:44px;background:#23324a;color:#eef4fc;border-color:#465975}
+#mc158dialog .mc376-grid .mc376-paid{background:#144a37;color:#c4ffdc}
+#mc158dialog .mc376-grid .mc376-due{background:#5d2435;color:#ffdee5}
+#mc158dialog .mc376-grid .mc376-partial{background:#604b1a;color:#fff2bc}
+#mc158dialog .mc376-grid .mc376-review{background:#363747;color:#e3e3ff;border-style:dashed}
+#mc158dialog label[hidden]{display:none}

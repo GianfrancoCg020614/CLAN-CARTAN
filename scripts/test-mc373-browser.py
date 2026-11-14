@@ -27,7 +27,7 @@ with sync_playwright() as p:
   for view in ['carts','sales','collections','reports','settings','home']:
    if width<=850:page.locator('.mc158head [data-action=menu]').click()
    page.locator('.mc158sidebar [data-view='+view+']').click();page.wait_for_timeout(100)
-   assert page.locator('#mc158body').inner_text().strip()
+   assert page.locator('.mc158main h2').inner_text()=={'carts':'Carritos','sales':'Ventas','collections':'Cobros','reports':'Reportes','settings':'Configuración','home':'Inicio'}[view]
    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
   page.locator('[data-action=new]').click();assert page.locator('#mc158new').is_visible();page.keyboard.press('Escape');assert page.locator('#mc158dialog').count()==0
   page.locator('#mc158close').click();assert page.evaluate('window.__returned===true');assert not errors,errors
