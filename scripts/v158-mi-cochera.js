@@ -78,7 +78,7 @@ function host(){let root=$('mc158layer');if(root)return root;root=document.creat
  root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('mc373-menu-open')){root.classList.remove('mc373-menu-open');root.querySelector('.mc158sidebar')?.setAttribute('inert','');root.querySelector('[data-action=menu]').setAttribute('aria-expanded','false');}});return root;
 }
 function close(){$('mc158dialog')?.remove();clearTimeout(searchTimer);historySequence++;const root=$('mc158layer');if(root){root.style.display='none';root.classList.remove('mc373-menu-open');root.querySelector('.mc158sidebar')?.setAttribute('inert','');}if(document.documentElement.dataset.ccActiveModule==='cochera')delete document.documentElement.dataset.ccActiveModule;if($('cc77home'))$('cc77home').style.display='block';}
-function navHTML(){return '<button type="button" class="mc373-scrim" data-action="menu" aria-label="Cerrar menú"></button><aside class="mc158sidebar" '+(matchMedia('(max-width:850px)').matches&&!$('mc158layer').classList.contains('mc373-menu-open')?'inert':'')+'><nav aria-label="Secciones MI COCHERA">'+Object.entries(sections).map(([key,[img,label]])=>'<button type="button" data-action="nav" data-view="'+key+'" class="mc158nav-item '+(section===key?'is-current':'')+'" '+(section===key?'aria-current="page"':'')+'>'+icon(img)+'<span>'+label+'</span></button>').join('')+'</nav><small>MI COCHERA · V385</small></aside>';}
+function navHTML(){return '<button type="button" class="mc373-scrim" data-action="menu" aria-label="Cerrar menú"></button><aside class="mc158sidebar" '+(matchMedia('(max-width:850px)').matches&&!$('mc158layer').classList.contains('mc373-menu-open')?'inert':'')+'><nav aria-label="Secciones MI COCHERA">'+Object.entries(sections).map(([key,[img,label]])=>'<button type="button" data-action="nav" data-view="'+key+'" class="mc158nav-item '+(section===key?'is-current':'')+'" '+(section===key?'aria-current="page"':'')+'>'+icon(img)+'<span>'+label+'</span></button>').join('')+'</nav><small>MI COCHERA · V386</small></aside>';}
 function balance(id){const c=carts.find(c=>Number(c.id)===Number(id))||(Number(selectedData?.id)===Number(id)?selectedData:null);if(!c||!Number.isFinite(Number(c.balance_local)))throw Error('No se pudo verificar el saldo del carrito. Actualiza antes de registrar un pago.');return Number(c.balance_local);}
 function rowMatches(c){const o=person(c.owner_person_id),w=person(c.worker_person_id),text=normalize([c.alias,c.business_type,o.full_name,o.document_number,o.phone,String(o.phone||'').replace(/\D/g,''),w.full_name,w.document_number,w.phone,String(c.id),'C-'+String(c.id).padStart(3,'0'),'C'+String(c.id).padStart(3,'0')].join(' '));return (section==='retired_due'?c.state==='RETIRED':cartState==='ALL'||c.state===cartState)&&(!['collections','retired_due'].includes(section)||balance(c.id)>0)&&normalize(filter).split(/\s+/).filter(Boolean).every(term=>text.includes(term));}
 function renderRows(){
@@ -159,7 +159,7 @@ async function mc376Open(cart){
  paint();
  }catch(e){if(target.isConnected)target.textContent="No se pudo consultar el calendario: "+String(e.message||e);}
 }
-async async function mc377ReverseOpen(cart){
+async function mc377ReverseOpen(cart){
  const uid=ses()?.userId,jwt=ses()?.jwt;
  const d=drawer("Corregir cobros y productos",'<p>Selecciona un registro. Para corregir importe o cantidad, anula el original y registra el valor correcto. Todo queda auditado.</p><div id="mc377items">Cargando…</div>');
  const t=d.querySelector("#mc377items");
@@ -173,7 +173,7 @@ async async function mc377ReverseOpen(cart){
  t.innerHTML=movements.length?'<div class="mc158scroll"><table><thead><tr><th>Registro</th><th>Importe</th><th>Acción</th></tr></thead><tbody>'+movements.map(m=>'<tr><td>'+esc(m.label)+'<small> · '+esc(new Date(m.created_at).toLocaleString("es-PE"))+'</small></td><td>'+currency(Math.abs(m.amount_local),m.currency)+'</td><td>'+(corrected.has(m.id)?'Anulado':'<button type="button" data-action="reverse-item" data-original="'+esc(m.id)+'" data-cart="'+Number(cart)+'">Corregir</button>')+'</td></tr>').join('')+'</tbody></table></div>':'<p>No hay pagos ni productos para corregir.</p>';
  }catch(e){if(t.isConnected)t.textContent="No se pudieron consultar los movimientos: "+String(e.message||e);}
 }
-function movementPage(cart,page,target,kind=null){
+async function movementPage(cart,page,target,kind=null){
  const uid=ses()?.userId,jwt=ses()?.jwt,seq=++historySequence;
  try{const path='mc_movements?select=id,cart_id,kind,label,occurred_on,amount_local,currency&reseller_id=eq.'+encodeURIComponent(uid)+(cart?'&cart_id=eq.'+cart:'')+(kind?'&kind=eq.'+kind:'')+'&order=created_at.desc,id.desc&limit=21&offset='+(page*20),data=await window.cc80.api(path);
  if(seq!==historySequence||!target.isConnected||ses()?.userId!==uid||ses()?.jwt!==jwt)return;
@@ -223,7 +223,7 @@ async function lookupDni(input){
 }
 
 async function submit(e){
- if(!e.target.id?.startsWith("mc158"))return;
+ if(!e.target.id?.startsWith("mc158")&&e.target.id!=="mc385history"&&e.target.id!=="mc378retire"&&e.target.id!=="mc377reverse")return;
  e.preventDefault();if(busy)return;const actor=ses()?.userId,jwt=ses()?.jwt,form=e.target;const current=()=>ses()?.userId===actor&&ses()?.jwt===jwt;busy=true;let button=e.target.querySelector('button[type="submit"]');const label=button?.textContent;if(button){button.disabled=true;button.textContent='Guardando…';}form.setAttribute('aria-busy','true');
  try{
  if(e.target.id==="mc378retire"){
