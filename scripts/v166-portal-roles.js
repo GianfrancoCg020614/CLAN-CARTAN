@@ -2520,6 +2520,10 @@ function init(){
    else if(view==='wallet'&&walletTab==='manual')void loadOwnPendingRequest(true,true);
   }
  };
+ window.cc166ReturnToBusinesses=()=>{
+  sync();if(!session()?.jwt||!app)return;
+  moduleReturn=null;navigationHistory=[];streamContext=false;view='businesses';app.hidden=false;render(true);
+ };
  window.cc166OpenAdminBonuses=()=>{
   sync();if(!verified||!data.admin||!app)return;
   app.hidden=false;nav('bonuses');
