@@ -149,9 +149,10 @@ async function mc376Open(cart){
  const d=drawer('Calendario · '+(c?.alias||'C-'+cart),'<div id="mc376calendar">Consultando pagos…</div>');
  const target=d.querySelector("#mc376calendar"),uid=ses()?.userId,jwt=ses()?.jwt;
  try{
- const rows=await window.cc80.api('mc_movements?select=id,cart_id,kind,label,occurred_on,amount_local,currency,payment_method,created_at&reseller_id=eq.'+encodeURIComponent(uid)+'&cart_id=eq.'+Number(cart)+'&order=created_at.asc,id.asc&limit=5000');
+ const [rawRows,corrections]=await Promise.all([window.cc80.api('mc_movements?select=id,cart_id,kind,label,occurred_on,amount_local,currency,payment_method,created_at&reseller_id=eq.'+encodeURIComponent(uid)+'&cart_id=eq.'+Number(cart)+'&order=created_at.asc,id.asc&limit=5000'),api('rpc/mc_list_corrections',{p_cart:Number(cart)})]);
+ const excluded=new Set(corrections.flatMap(x=>[x.original_id,x.correction_id]));const rows=rawRows.filter(x=>!excluded.has(x.id));
  if(!target.isConnected||ses()?.userId!==uid||ses()?.jwt!==jwt)return;
- if(rows.length===5000){target.textContent="Hay demasiados movimientos para mostrar un calendario completo. Consulta el historial.";return;}
+ if(rawRows.length===5000){target.textContent="Hay demasiados movimientos para mostrar un calendario completo. Consulta el historial.";return;}
  let month=new Date().toLocaleDateString("en-CA",{timeZone:"America/Lima"}).slice(0,7),selected=month+"-01";
  const paint=()=>{if(target.isConnected)target.innerHTML=mc376Render(cart,rows,month,selected);};
  target.addEventListener("click",e=>{const b=e.target.closest("[data-mc376-day],[data-mc376-month]");if(!b)return;if(b.dataset.mc376Day)selected=b.dataset.mc376Day;else{const [y,m]=month.split("-").map(Number),d=new Date(y,m-1+Number(b.dataset.mc376Month),1);month=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");selected=month+"-01";}paint();});
