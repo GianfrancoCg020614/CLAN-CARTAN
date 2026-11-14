@@ -78,7 +78,7 @@ function host(){let root=$('mc158layer');if(root)return root;root=document.creat
  root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('mc373-menu-open')){root.classList.remove('mc373-menu-open');root.querySelector('.mc158sidebar')?.setAttribute('inert','');root.querySelector('[data-action=menu]').setAttribute('aria-expanded','false');}});return root;
 }
 function close(){$('mc158dialog')?.remove();clearTimeout(searchTimer);historySequence++;const root=$('mc158layer');if(root){root.style.display='none';root.classList.remove('mc373-menu-open');}if(document.documentElement.dataset.ccActiveModule==='cochera')delete document.documentElement.dataset.ccActiveModule;if($('cc77home'))$('cc77home').style.display='block';}
-function navHTML(){return '<button type="button" class="mc373-scrim" data-action="menu" aria-label="Cerrar menú"></button><aside class="mc158sidebar" '+(matchMedia('(max-width:850px)').matches&&!$('mc158layer').classList.contains('mc373-menu-open')?'inert':'')+'><nav aria-label="Secciones MI COCHERA">'+Object.entries(sections).map(([key,[img,label]])=>'<button type="button" data-action="nav" data-view="'+key+'" class="mc158nav-item '+(section===key?'is-current':'')+'" '+(section===key?'aria-current="page"':'')+'>'+icon(img)+'<span>'+label+'</span></button>').join('')+'</nav><small>MI COCHERA · V377</small></aside>';}
+function navHTML(){return '<button type="button" class="mc373-scrim" data-action="menu" aria-label="Cerrar menú"></button><aside class="mc158sidebar" '+(matchMedia('(max-width:850px)').matches&&!$('mc158layer').classList.contains('mc373-menu-open')?'inert':'')+'><nav aria-label="Secciones MI COCHERA">'+Object.entries(sections).map(([key,[img,label]])=>'<button type="button" data-action="nav" data-view="'+key+'" class="mc158nav-item '+(section===key?'is-current':'')+'" '+(section===key?'aria-current="page"':'')+'>'+icon(img)+'<span>'+label+'</span></button>').join('')+'</nav><small>MI COCHERA · V378</small></aside>';}
 function balance(id){const c=carts.find(c=>Number(c.id)===Number(id))||(Number(selectedData?.id)===Number(id)?selectedData:null);if(!c||!Number.isFinite(Number(c.balance_local)))throw Error('No se pudo verificar el saldo del carrito. Actualiza antes de registrar un pago.');return Number(c.balance_local);}
 function rowMatches(c){const o=person(c.owner_person_id),w=person(c.worker_person_id),text=normalize([c.alias,c.business_type,o.full_name,o.document_number,o.phone,String(o.phone||'').replace(/\D/g,''),w.full_name,w.document_number,w.phone,String(c.id),'C-'+String(c.id).padStart(3,'0'),'C'+String(c.id).padStart(3,'0')].join(' '));return (cartState==='ALL'||c.state===cartState)&&(section!=='collections'||balance(c.id)>0)&&normalize(filter).split(/\s+/).filter(Boolean).every(term=>text.includes(term));}
 function renderRows(){
@@ -221,7 +221,10 @@ async function submit(e){
  if(!e.target.id?.startsWith("mc158"))return;
  e.preventDefault();if(busy)return;const actor=ses()?.userId,jwt=ses()?.jwt,form=e.target;const current=()=>ses()?.userId===actor&&ses()?.jwt===jwt;busy=true;let button=e.target.querySelector('button[type="submit"]');const label=button?.textContent;if(button){button.disabled=true;button.textContent='Guardando…';}form.setAttribute('aria-busy','true');
  try{
- if(e.target.id==="mc377reverse"){
+ if(e.target.id==="mc378retire"){
+  const f=e.target,adjusted=await api("rpc/mc_retire_cart_retroactive",{p_cart:Number(f.dataset.cart),p_last_day:f.elements.lastDay.value,p_reason:f.elements.reason.value.trim()});
+  if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Carrito retirado. Días de alquiler corregidos: "+adjusted+". Historial conservado.");
+ }else if(e.target.id==="mc377reverse"){
   const f=e.target;await api("rpc/mc_reverse_movement",{p_original:f.dataset.original,p_reason:f.elements.reason.value.trim()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Registro anulado con historial. Ya puedes ingresar el importe o cantidad correcta.");
  }else if(e.target.id==="mc158config"){
   const f=e.target;await api("rpc/mc_configure_currency",{p_currency:f.elements.currency.value,p_country:f.elements.country.value.toUpperCase()});if(!current())return;form.closest("#mc158dialog")?.remove();await load();if(!current())return;note("Moneda de operación actualizada para MI COCHERA, MI ALQUILER y COBRA YA.");
@@ -242,6 +245,10 @@ async function click(e){
  let btn=e.target.closest("[data-action]");if(!btn)return;
  e.preventDefault();const act=btn.dataset.action,id=Number(btn.dataset.cart),actor=ses()?.userId,jwt=ses()?.jwt;
  try{
+ if(act==="retire-backdated"){
+ const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/Lima"});
+ drawer("Retiro con fecha anterior",'<form id="mc378retire" data-cart="'+id+'"><p>Indica el último día que el carrito trabajó. Se ajustarán los alquileres posteriores, conservando el historial. Si hay pagos aplicados, el sistema bloqueará la operación para evitar saldos incorrectos.</p><label>Último día trabajado<input name="lastDay" type="date" max="'+today+'" required></label><label>Motivo<textarea name="reason" minlength="5" maxlength="300" required placeholder="Ej.: dejó de trabajar durante la membresía vencida"></textarea></label><button type="submit">Confirmar retiro y ajustar deuda</button></form>');return;
+ }
  if(act==="reverse-item"){
  const original=btn.dataset.original,cart=Number(btn.dataset.cart);
  drawer("Confirmar anulación",'<form id="mc377reverse" data-original="'+esc(original)+'"><p>Esta acción creará un ajuste y conservará el registro original. Después podrás registrar el dato correcto.</p><label>Motivo obligatorio<textarea name="reason" minlength="5" maxlength="300" required placeholder="Ej.: se registraron 5 unidades, pero eran 3"></textarea></label><button type="submit">Confirmar anulación</button></form>');return;
