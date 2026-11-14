@@ -1,7 +1,7 @@
 // Datos ficticios: nunca carga credenciales ni escribe en un servidor.
 import fs from 'node:fs';
 export function panelFixture(mode='admin'){
- const css=['v246-admin-users','v166-portal-roles','v171-admin-simple','v176-admin-console','v177-panel-unico','v308-panel-navigation'].map(p=>fs.readFileSync('styles/'+p+'.css','utf8')).join('\n');
+ const css=['v246-admin-users','v166-portal-roles','v171-admin-simple','v176-admin-console','v177-panel-unico','v308-panel-navigation'].map(p=>fs.readFileSync('styles/'+p+'.css','utf8')).join('\n')+'\n'+fs.readFileSync('styles/v389-stream-premium.css','utf8');
  const js=fs.readFileSync('scripts/v166-portal-roles.js','utf8');
  const users=[{user_id:'admin-test',registry_no:1,registry_code:'CLAN1',registry_alias:'Administrador',email:'admin@ejemplo.test',role_assigned:'ADMIN',is_admin:true},
  {user_id:'super-test',registry_no:2,registry_code:'CLAN2',registry_alias:'José Ejemplo',email:'super@ejemplo.test',role_assigned:'SUPER_RESELLER',super_enabled:true,paid_until:'2099-12-31'},
@@ -64,5 +64,5 @@ export function panelFixture(mode='admin'){
  }catch(e){checks.error=String(e.stack||e)}
  const n=document.createElement('output');n.id='cc308-result';n.dataset.status=Object.values(checks).every(x=>x===true)?'pass':'fail';n.textContent=JSON.stringify(checks);document.body.append(n);
 })();`;
- return '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="cc77home"><div class="cc77top"><div class="cc77actions"></div></div></div><script>'+setup+'</script><script>'+js+'</script><script>'+probe+'</script></body></html>';
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="cc77home"><div class="cc77top"><div class="cc77actions"></div></div></div><script>'+setup+'</script><script>'+js+'</script><script>'+probe+'</script></body></html>';
 }

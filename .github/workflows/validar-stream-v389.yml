@@ -1,0 +1,37 @@
+name: STREAM BULL'S V389 · roles e interfaz
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          node --check scripts/v166-portal-roles.js
+          node --check scripts/v195-streambulls-live.js
+          node scripts/test-v304-inline-syntax.mjs
+          node scripts/check-v2264-mi-alquiler.mjs
+          node scripts/check-v356-business-currency.mjs
+      - run: |
+          pip install playwright==1.62.0
+          node scripts/fixture-sb389.mjs
+          python -m http.server 8000 > /tmp/sb389-http.log 2>&1 &
+          python scripts/test-sb389-browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stream-v389-real-browser
+          path: |
+            artifacts/sb389/*.png
+            artifacts/sb389/*results.json
