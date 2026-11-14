@@ -6,7 +6,7 @@
 const $=id=>document.getElementById(id);
 const session=()=>window.CC_V53_SESSION;
 const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-const money=n=>window.ccFormatBusinessCurrency?window.ccFormatBusinessCurrency(n):'S/ '+Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const money=(n,c)=>window.ccFormatBusinessCurrency?window.ccFormatBusinessCurrency(n,c):'S/ '+Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const isoToday=()=>{let p=new Intl.DateTimeFormat('en-US',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());let t=Object.fromEntries(p.map(x=>[x.type,x.value]));return t.year+'-'+t.month+'-'+t.day;};
 const api=(path,method,body)=>window.cc80.api(path,method,body);
 const rpc=(name,body)=>api('rpc/'+name,'POST',body||{});
@@ -17,21 +17,28 @@ function withDeadline(promise,label,ms=15000){
   new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label+' tardó demasiado. Comprueba la conexión y pulsa Reintentar.')),ms);})
  ]).finally(()=>clearTimeout(timer));
 }
+let generation=0,searchQuery='',listPage=0;
+const clean=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const matches=v=>clean(searchQuery).split(' ').filter(Boolean).every(x=>clean(v).includes(x));
+const pageItems=items=>items.slice(listPage*8,listPage*8+8);
+function pages(items){return '<div class="ma388-pages"><span>'+items.length+' resultados</span>'+(items.length>8?'<button type="button" data-ma-action="prev-page" '+(!listPage?'disabled':'')+'>Anterior</button><span>Página '+(listPage+1)+'</span><button type="button" data-ma-action="next-page" '+((listPage+1)*8>=items.length?'disabled':'')+'>Siguiente</button>':'')+'</div>';}
 let account=null,properties=[],units=[],tenants=[],leases=[],events=[],area='inmuebles',loading=false,busy=false,uid=null;
-function reset(){account=null;properties=[];units=[];tenants=[];leases=[];events=[];uid=null;}
+function reset(){generation++;pendingLoad=null;searchQuery='';listPage=0;account=null;properties=[];units=[];tenants=[];leases=[];events=[];uid=null;}
 const ucode=u=>u?.code||((u?.kind==='LOCAL'?'L-':'H-')+String(u?.serial||0).padStart(3,'0'));
 const tenancy=id=>tenants.find(t=>t.id===id)||{};
 const unit=id=>units.find(u=>Number(u.id)===Number(id))||{};
 const prop=id=>properties.find(p=>Number(p.id)===Number(id))||{};
 const currentLease=id=>leases.find(l=>Number(l.unit_id)===Number(id)&&l.state==='ACTIVE');
-function note(msg,error){const el=$('ma1612notice');if(el){el.textContent=String(msg);el.classList.toggle('error',!!error);}else if(error)console.warn('MI ALQUILER: '+msg);}
+const tenantText=t=>[t?.full_name,t?.document_number,t?.whatsapp,String(t?.whatsapp||'').replace(/\D/g,'')].join(' ');
+const unitText=u=>[ucode(u),u.alias,u.floor,prop(u.property_id).name,prop(u.property_id).address,tenantText(tenancy(currentLease(u.id)?.tenant_id))].join(' ');
+function note(msg,error){const el=$('ma1612dialogstatus')||$('ma1612notice');if(el){el.textContent=String(msg);el.classList.toggle('error',!!error);}else if(error)console.warn('MI ALQUILER: '+msg);}
 function section(title,summary,content){return '<div class="ma1612-top"><div><small>MI ALQUILER</small><h3>'+title+'</h3><p>'+summary+'</p></div><button type="button" data-ma-action="reload">↻ Actualizar</button></div><p id="ma1612notice" role="status"></p>'+content;}
-async function refresh(){
+async function refresh(seq){
  const s=session();if(!s?.jwt||!s.userId){reset();throw Error('Inicia sesión para acceder a MI ALQUILER');}
- uid=s.userId;
+ const actor=s.userId,jwt=s.jwt,current=()=>generation===seq&&session()?.userId===actor&&session()?.jwt===jwt;
  await window.ccLoadBusinessCurrency?.();
  const raw=await withDeadline(rpc('ma_ensure_account'),'La verificación de tu cuenta');
- if(session()?.userId!==uid)throw Error('Cambió la sesión. Vuelve a ingresar.');
+ if(!current())return;uid=actor;
  account=Array.isArray(raw)?raw[0]:raw;
  if(!account||typeof account.active!=='boolean')throw Error('Respuesta de membresía no válida');
  if(!account.active){properties=[];units=[];tenants=[];leases=[];events=[];return;}
@@ -44,8 +51,10 @@ async function refresh(){
   'ma_lease_events?select=*&order=created_at.desc&limit=500'+filter
  ];
  const rows=await withDeadline(Promise.all(paths.map(p=>api(p))),'La consulta de habitaciones y contratos');
- if(session()?.userId!==uid)throw Error('Sesión cambiada');
- [properties,units,tenants,leases,events]=rows.map(x=>Array.isArray(x)?x:[]);
+ if(!current())return;
+ if(rows.some(x=>!Array.isArray(x)))throw Error('Respuesta de datos no válida. Reintenta la consulta.');
+ if(rows.slice(0,4).some(x=>x.length>=1000))throw Error('La cartera supera el límite de esta vista. No se mostrarán listados incompletos. Contacta al administrador para habilitar consulta por páginas.');
+ [properties,units,tenants,leases,events]=rows;
 }
 function locked(){
  const admin=account?.role==='ADMIN';
@@ -55,38 +64,41 @@ function locked(){
 }
 function actionButton(name,label,extra=''){return '<button type="button" data-ma-action="'+name+'" '+extra+'>'+label+'</button>';}
 function renderProperties(){
+ const displayed=properties.filter(p=>matches([p.name,p.address,...units.filter(u=>Number(u.property_id)===Number(p.id)).map(unitText)].join(' ')));
  const occupied=units.filter(u=>currentLease(u.id)).length;
  const stats='<div class="ma1612-stats"><div><b>'+properties.length+'</b> Inmuebles</div><div><b>'+units.length+'</b> Habitaciones y locales</div><div><b>'+occupied+'</b> Ocupados</div><div><b>'+Math.max(0,units.length-occupied)+'</b> Registrados no ocupados</div></div>';
- const blocks=properties.map(p=>{
+ const blocks=pageItems(displayed).map(p=>{
   const within=units.filter(u=>Number(u.property_id)===Number(p.id));
   return '<article class="ma1612-box"><header><div><h4>'+esc(p.name)+'</h4><small>'+esc(p.address||'Sin dirección')+'</small></div>'+actionButton('new-unit','＋ Cuarto/local','data-property="'+p.id+'"')+'</header>'+
-  (within.length?'<div class="ma1612-list">'+within.map(u=>{
+  (within.length?'<div class="ma1612-list">'+within.filter(u=>!searchQuery||matches(unitText(u))).map(u=>{
    const l=currentLease(u.id),t=l?tenancy(l.tenant_id):{};
    const status=l?'Ocupado':u.state==='CLEANING'?'En limpieza':u.state==='DISABLED'?'Inhabilitado':'Disponible';
-   return '<div class="ma1612-line"><div><strong>'+esc(ucode(u))+' · '+esc(u.alias)+'</strong><small>'+esc(u.kind==='LOCAL'?'Local':'Habitación')+' · Piso '+esc(u.floor||'—')+' · '+esc(status)+'</small><small>Día '+money(u.daily_rate)+' · Mes '+money(u.monthly_rate)+'</small>'+(l?'<small>Inquilino: '+esc(t.full_name||'')+'</small>':'')+'</div><div class="ma1612-actions">'+(!l&&u.state!=='READY'?actionButton('ready','Lista para alquilar','data-unit="'+u.id+'"'):'')+(!l&&u.state==='READY'?actionButton('disable','Inhabilitar','data-unit="'+u.id+'"'):'')+'</div></div>';
+   return '<div class="ma1612-line"><div><strong>'+esc(ucode(u))+' · '+esc(u.alias)+'</strong><small>'+esc(u.kind==='LOCAL'?'Local':'Habitación')+' · Piso '+esc(u.floor||'—')+' · '+esc(status)+'</small><small>Día '+money(u.daily_rate,u.currency)+' · Mes '+money(u.monthly_rate,u.currency)+'</small>'+(l?'<small>Inquilino: '+esc(t.full_name||'')+'</small>':'')+'</div><div class="ma1612-actions">'+(!l&&u.state!=='READY'?actionButton('ready','Lista para alquilar','data-unit="'+u.id+'"'):'')+(!l&&u.state==='READY'?actionButton('disable','Inhabilitar','data-unit="'+u.id+'"'):'')+'</div></div>';
   }).join('')+'</div>':'<p>Aún no hay habitaciones ni locales registrados.</p>')+'</article>';
  }).join('');
- return section('Habitaciones y locales','Inmuebles y unidades registrados en Supabase para tu cuenta.',stats+'<div class="ma1612-actions">'+actionButton('new-property','＋ Registrar inmueble')+'</div>'+blocks);
+ return section('Habitaciones y locales','Disponibilidad, tarifas y ocupación de tus unidades.',stats+'<div class="ma1612-actions">'+actionButton('new-property','＋ Registrar inmueble')+'</div>'+pages(displayed)+(blocks||'<p>No hay inmuebles que coincidan. Registra uno para comenzar.</p>'));
 }
 function renderTenants(){
+ const shown=tenants.filter(t=>matches([tenantText(t),...leases.filter(l=>l.tenant_id===t.id).map(l=>unitText(unit(l.unit_id)))].join(' ')));
  const content='<div class="ma1612-actions">'+actionButton('new-tenant','＋ Registrar inquilino')+'</div>'+
- (tenants.length?'<div class="ma1612-list">'+tenants.map(t=>'<div class="ma1612-line"><div><strong>'+esc(t.full_name)+'</strong><small>'+esc(t.document_type)+' · '+esc(t.document_number)+'</small><small>WhatsApp: '+esc(t.whatsapp||'No registrado')+' · Avisos: '+(t.consent_whatsapp?'Autorizados':'No autorizados')+'</small></div>'+actionButton('edit-tenant','Editar','data-tenant="'+t.id+'"')+'</div>').join('')+'</div>':'<p>No hay inquilinos registrados todavía.</p>');
+ pages(shown)+(shown.length?'<div class="ma1612-list">'+pageItems(shown).map(t=>'<div class="ma1612-line"><div><strong>'+esc(t.full_name)+'</strong><small>'+esc(t.document_type)+' · '+esc(t.document_number)+'</small><small>WhatsApp: '+esc(t.whatsapp||'No registrado')+' · Avisos: '+(t.consent_whatsapp?'Autorizados':'No autorizados')+'</small></div>'+actionButton('edit-tenant','Editar','data-tenant="'+t.id+'"')+'</div>').join('')+'</div>':'<p>No hay inquilinos registrados todavía.</p>');
  return section('Inquilinos','DNI primero, contacto de WhatsApp y consentimiento individual para avisos de alquiler.',content);
 }
 function renderLeases(){
- const rows=leases.map(l=>{const u=unit(l.unit_id),t=tenancy(l.tenant_id);
-  return '<article class="ma1612-box"><header><div><h4>'+esc(ucode(u))+' · '+esc(t.full_name||'Inquilino')+'</h4><small>'+esc(l.mode==='DAY'?'Diario':'Mensual')+' · '+money(l.rate)+' / '+(l.mode==='DAY'?'día':'mes')+'</small><small>Ingreso: '+esc(l.start_on)+' · Vence: '+esc(l.next_due_on)+'</small><small>Estado: '+esc(l.state==='ACTIVE'?'Activo':'Finalizado')+' · Periodos: '+l.periods+'</small></div>'+
+ const shown=leases.filter(l=>{const u=unit(l.unit_id),t=tenancy(l.tenant_id);return matches([unitText(u),tenantText(t),l.id,l.state,l.next_due_on].join(' '));});
+ const rows=pageItems(shown).map(l=>{const u=unit(l.unit_id),t=tenancy(l.tenant_id);
+  return '<article class="ma1612-box"><header><div><h4>'+esc(ucode(u))+' · '+esc(t.full_name||'Inquilino')+'</h4><small>'+esc(l.mode==='DAY'?'Diario':'Mensual')+' · '+money(l.rate,l.currency)+' / '+(l.mode==='DAY'?'día':'mes')+'</small><small>Ingreso: '+esc(l.start_on)+' · Vence: '+esc(l.next_due_on)+'</small><small>Estado: '+esc(l.state==='ACTIVE'?'Activo':'Finalizado')+' · Periodos: '+l.periods+'</small></div>'+
  (l.state==='ACTIVE'?'<div class="ma1612-actions">'+actionButton('extend','Ampliar','data-lease="'+l.id+'"')+actionButton('end','Se retira','data-lease="'+l.id+'"')+'</div>':'')+'</header></article>';
  }).join('');
  const recent=events.length?'<details class="ma1612-box"><summary>Historial de contratos ('+events.length+' movimientos)</summary><div class="ma1612-list">'+events.slice(0,100).map(e=>'<div class="ma1612-line"><span>'+esc(e.kind)+' · '+esc(e.created_at?.slice(0,10))+'</span><small>Periodos: '+Number(e.periods_delta||0)+' · Vence '+esc(e.due_after||'—')+'</small></div>').join('')+'</div></details>':'';
  return section('Contratos y vencimientos','Se registran contratos diarios o mensuales; los cobros y medidores se consultan en «Cobros y servicios».',
- '<div class="ma1612-actions">'+actionButton('new-lease','＋ Alquilar habitación/local')+'</div>'+ (leases.length?rows:'<p>No existen contratos registrados.</p>')+recent);
+ '<div class="ma1612-actions">'+actionButton('new-lease','＋ Alquilar habitación/local')+'</div>'+ pages(shown)+(shown.length?rows:'<p>No existen contratos que coincidan.</p>')+recent);
 }
 function pending(area){return section(area==='finanzas'?'Cobros y servicios':'Avisos y reportes',
  'No se pudo cargar esta sección.',
  '<div class="ma1612-locked"><strong>Recarga la página para volver a cargar el módulo.</strong><p>Tu información permanece guardada.</p></div>');}
 function enhance(which,target){
- area=which;
+ if(area!==which)listPage=0;area=which;
  if(!target)return;
  if(!session()?.jwt){target.innerHTML=section('Sesión requerida','Inicia sesión en CLAN CARTAN para continuar.','');return;}
  if(loading){target.innerHTML=section('Cargando información','Consultando tus datos protegidos.','<p role="status">Cargando… Si el servidor no responde, aparecerá una opción para reintentar.</p>');return;}
@@ -99,14 +111,12 @@ function enhance(which,target){
 function rerender(){enhance(area,$('ma1611content'));}
 let pendingLoad=null;
 function load(){
- if(pendingLoad)return pendingLoad;
- const task=(async()=>{
-  loading=true;rerender();
-  try{await refresh();}catch(e){reset();const el=$('ma1611content');if(el)el.innerHTML=section('No se pudieron cargar los datos','Sin operaciones realizadas.', '<p class="ma1612-error">'+esc(e.message||e)+'</p>'+actionButton('reload','Reintentar'));}
-  finally{loading=false;if(account)rerender();}
- })();
- pendingLoad=task;
- return task.finally(()=>{if(pendingLoad===task)pendingLoad=null;});
+ const actor=session()?.userId,jwt=session()?.jwt;
+ if(pendingLoad&&pendingLoad.actor===actor&&pendingLoad.jwt===jwt)return pendingLoad.promise;
+ if(uid!==actor){account=null;properties=[];units=[];tenants=[];leases=[];events=[];}
+ const seq=++generation,current=()=>generation===seq&&session()?.userId===actor&&session()?.jwt===jwt;
+ const task=(async()=>{loading=true;rerender();try{await refresh(seq);}catch(e){if(!current())return;account=null;const el=$('ma1611content');if(el)el.innerHTML=section('No se pudieron cargar los datos','Tus registros permanecen guardados.','<p class="ma1612-error">'+esc(e.message||e)+'</p>'+actionButton('reload','Reintentar'));}finally{if(current()){loading=false;if(account)rerender();}}})();
+ const record={actor,jwt,promise:task};pendingLoad=record;return task.finally(()=>{if(pendingLoad===record)pendingLoad=null;});
 }
 function dialog(title,form){
  $('ma1612dialog')?.remove();
@@ -120,10 +130,12 @@ function newUnit(property){if(!properties.length){note('Primero registra un inmu
  dialog('Registrar habitación o local','<form data-ma-form="unit"><label>Edificio<select name="property" required>'+properties.map(p=>'<option value="'+p.id+'" '+(String(property)===String(p.id)?'selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></label><label>Tipo<select name="kind"><option value="HABITACION">Habitación</option><option value="LOCAL">Local</option></select></label>'+input('Nombre o alias','alias','text','maxlength="120"')+'<label>Piso / ubicación<input name="floor" maxlength="40"></label><label>Tarifa por día ('+(window.CC_BUSINESS_CURRENCY||'PEN')+')<input type="number" name="daily" value="0" min="0" max="100000" step="0.01" required></label><label>Tarifa mensual ('+(window.CC_BUSINESS_CURRENCY||'PEN')+')<input type="number" name="monthly" value="0" min="0" max="100000" step="0.01" required></label><p>Al menos una tarifa debe ser mayor que cero.</p><button type="submit">Guardar habitación / local</button></form>');}
 function tenantForm(id){const t=tenants.find(x=>x.id===id)||{};
  dialog(t.id?'Editar inquilino':'Registrar inquilino','<p>Primero ingresa el DNI y pulsa Buscar. Se reutilizan los datos guardados antes de consultar API Perú.</p><form data-ma-form="tenant" data-id="'+esc(id||'')+'">'+input('Número de documento (DNI primero)','document','text','maxlength="40" value="'+esc(t.document_number||'')+'" '+(t.id?'readonly':''))+'<button type="button" data-ma4-dni>Buscar DNI</button>'+'<label>Tipo de documento<select name="kind">'+['DNI','CE','PASSPORT','CEDULA','OTHER'].map(k=>'<option value="'+k+'" '+(t.document_type===k?'selected':'')+'>'+k+'</option>').join('')+'</select></label><small id="ma4-dni-status" role="status">Primero se busca en tu cartera; si no existe, se consulta API Perú según autorización y cupo.</small>'+input('Nombres y apellidos','name','text','maxlength="160" value="'+esc(t.full_name||'')+'"')+'<label>WhatsApp del inquilino (con código de país)<input name="whatsapp" type="tel" maxlength="20" value="'+esc(t.whatsapp||'')+'" placeholder="+51987654321"></label><label class="ma1612-checkbox"><input type="checkbox" name="consent" '+(t.consent_whatsapp?'checked':'')+'> Autoriza recibir recordatorios del alquiler por WhatsApp.</label><p>La consulta de DNI desde servidor permite completar el nombre. Si no hay cupo o autorización, registra manualmente. El WhatsApp lo proporciona el RESELLER.</p><button type="submit">Guardar inquilino</button></form>');}
-function leaseForm(){const free=units.filter(u=>u.state==='READY'&&!currentLease(u.id)),options=free.map(u=>'<option value="'+u.id+'">'+esc(ucode(u))+' · '+esc(u.alias)+' · Día '+money(u.daily_rate)+' / Mes '+money(u.monthly_rate)+'</option>').join('');
+function leaseForm(){const free=units.filter(u=>u.state==='READY'&&!currentLease(u.id)),options=free.map(u=>'<option value="'+u.id+'">'+esc(ucode(u))+' · '+esc(u.alias)+' · Día '+money(u.daily_rate,u.currency)+' / Mes '+money(u.monthly_rate,u.currency)+'</option>').join('');
  if(!free.length||!tenants.length){note('Necesitas una habitación/local disponible y al menos un inquilino.',true);return;}
  dialog('Nuevo contrato de alquiler','<form data-ma-form="lease"><label>Habitación o local<select name="unit" required>'+options+'</select></label><label>Inquilino<select name="tenant" required>'+tenants.map(t=>'<option value="'+t.id+'">'+esc(t.full_name)+' · '+esc(t.document_number)+'</option>').join('')+'</select></label><label>Modalidad<select name="mode"><option value="MONTH">Mensual</option><option value="DAY">Por día</option></select></label><label>Fecha de ingreso<input type="date" name="start" max="'+isoToday()+'" value="'+isoToday()+'" required></label><p>La tarifa se toma de la habitación o local al crear el contrato. Abonos y garantías se registran aparte en «Cobros y servicios».</p><button type="submit">Registrar contrato</button></form>');}
 async function onClick(e){const b=e.target.closest('[data-ma-action]');if(!b)return;e.preventDefault();const act=b.dataset.maAction;
+ if(act==='prev-page'||act==='next-page'){listPage=Math.max(0,listPage+(act==='next-page'?1:-1));rerender();return;}
+ if(act!=='close'&&act!=='reload'&&(!account?.active||uid!==session()?.userId)){note('Renueva tu acceso antes de continuar.',true);return;}
  if(act==='close'){$('ma1612dialog')?.remove();return;}
  if(act==='new-property'){newProperty();return;}
  if(act==='new-unit'){newUnit(b.dataset.property);return;}
@@ -135,9 +147,8 @@ async function onClick(e){const b=e.target.closest('[data-ma-action]');if(!b)ret
   busy=true;b.disabled=true;
   if(act==='reload'){await load();return;}
   if(act==='extend'){
-   const count=Number(window.prompt('¿Cuántos días o meses adicionales?', '1'));
-   if(!Number.isInteger(count)||count<1||count>365)return;
-   await rpc('ma_extend_lease',{p_lease:b.dataset.lease,p_more:count});window.ma1613Invalidate?.();window.ma1614Invalidate?.();await load();return;
+   const lease=leases.find(l=>l.id===b.dataset.lease);if(!lease)throw Error('Contrato no disponible.');
+   dialog('Ampliar contrato','<form data-ma-form="extend" data-lease="'+esc(lease.id)+'"><p>'+esc(ucode(unit(lease.unit_id)))+' · '+esc(tenancy(lease.tenant_id).full_name)+'<br>Vencimiento actual: '+esc(lease.next_due_on)+'</p>'+input(lease.mode==='DAY'?'Días adicionales':'Meses adicionales','periods','number','min="1" max="365" step="1" value="1"')+'<p>Se conservará el historial. El servidor calculará el nuevo vencimiento con las reglas del contrato.</p><button type="submit">Confirmar ampliación</button></form>');return;
   }
   if(act==='end'){
    if(!window.confirm('¿Confirmar retiro? La habitación/local pasará a limpieza. El historial no se eliminará.'))return;
@@ -149,10 +160,12 @@ async function onClick(e){const b=e.target.closest('[data-ma-action]');if(!b)ret
  }catch(err){note(err.message||err,true);}finally{busy=false;b.disabled=false;}
 }
 async function onSubmit(e){const form=e.target.closest('[data-ma-form]');if(!form)return;e.preventDefault();if(busy)return;
+ if(!account?.active||uid!==session()?.userId)return;const actor=session()?.userId,jwt=session()?.jwt;
  const v=k=>String(form.elements.namedItem(k)?.value??'').trim();const btn=form.querySelector('[type=submit]');const ds=$('ma1612dialogstatus');
- busy=true;if(btn)btn.disabled=true;if(ds)ds.textContent='Guardando en Supabase…';
+ busy=true;if(btn)btn.disabled=true;if(ds)ds.textContent='Guardando…';
  try{
   const kind=form.dataset.maForm;
+  if(kind==='extend'){const count=Number(v('periods'));if(!Number.isInteger(count)||count<1||count>365)throw Error('Indica un número entero entre 1 y 365.');await rpc('ma_extend_lease',{p_lease:form.dataset.lease,p_more:count});}
   if(kind==='property') await rpc('ma_add_property',{p_name:v('name'),p_address:v('address')});
   if(kind==='unit') await rpc('ma_add_unit',{p_property:Number(v('property')),p_kind:v('kind'),p_alias:v('alias'),p_floor:v('floor'),p_daily:Number(v('daily')),p_monthly:Number(v('monthly'))});
   if(kind==='tenant'){
@@ -161,11 +174,14 @@ async function onSubmit(e){const form=e.target.closest('[data-ma-form]');if(!for
    await rpc('ma_save_tenant',{p_id:form.dataset.id||null,p_kind:v('kind'),p_number:v('document'),p_name:v('name'),p_whatsapp:phone,p_consent:!!form.elements.namedItem('consent').checked});
   }
   if(kind==='lease') await rpc('ma_start_lease',{p_unit:Number(v('unit')),p_tenant:v('tenant'),p_mode:v('mode'),p_start:v('start')});
-  window.ma1613Invalidate?.();window.ma1614Invalidate?.();$('ma1612dialog')?.remove();await load();note('Guardado correctamente.');
- }catch(err){if(ds){ds.classList.add('error');ds.textContent='No se guardó: '+String(err.message||err);} }
+  if(session()?.userId!==actor||session()?.jwt!==jwt)return;
+  window.ma1613Invalidate?.();window.ma1614Invalidate?.();form.closest('#ma1612dialog')?.remove();await load();note('Guardado correctamente.');
+ }catch(err){if(session()?.userId!==actor||session()?.jwt!==jwt)return;if(ds){ds.classList.add('error');ds.textContent='No se pudo confirmar el guardado: '+String(err.message||err);} }
  finally{busy=false;if(btn)btn.disabled=false;}
 }
 function init(){
+ document.addEventListener('ma388-search',e=>{searchQuery=e.detail?.query||'';listPage=0;if(['inmuebles','inquilinos','contratos'].includes(area))rerender();});
+ document.addEventListener('cc192-session-ended',()=>{reset();window.ma1613Invalidate?.();window.ma1614Invalidate?.();const el=$('ma1611content');if(el)el.textContent='Inicia sesión para continuar.';});
  document.addEventListener('click',onClick);
  document.addEventListener('submit',onSubmit);
  const layer=$('ma1611layer');if(layer&&!layer.hidden)void load();

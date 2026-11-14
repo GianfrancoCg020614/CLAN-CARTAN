@@ -1,0 +1,21 @@
+-- LOCAL/CI ONLY: synthetic data, never execute against production.
+create schema auth;
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+do $$begin if not exists(select 1 from pg_roles where rolname='authenticated') then create role authenticated;end if;if not exists(select 1 from pg_roles where rolname='anon') then create role anon;end if;end $$;
+create table public.ma_accounts(user_id uuid primary key,active boolean);
+create function public.ma_can_use() returns boolean language sql stable security invoker set search_path='' as $$select exists(select 1 from public.ma_accounts where user_id=auth.uid() and active)$$;
+create table public.ma_leases(id uuid primary key,reseller_id uuid,currency text);
+create table public.ma_ledger(id bigint generated always as identity,reseller_id uuid,lease_id uuid,kind text,amount_pen numeric,currency text,due_on date);
+create table public.ma_guarantee_events(reseller_id uuid,lease_id uuid,action text,amount_pen numeric,currency text);
+create table public.ma_expenses(reseller_id uuid,amount_pen numeric,currency text);
+grant usage on schema public,auth to authenticated;
+grant select on all tables in schema public to authenticated;
+alter table public.ma_accounts enable row level security;
+create policy own_account on public.ma_accounts for select to authenticated using(user_id=auth.uid());
+do $$declare t text;begin foreach t in array array['ma_leases','ma_ledger','ma_guarantee_events','ma_expenses'] loop execute format('alter table public.%I enable row level security',t);execute format('create policy own_data on public.%I for select to authenticated using(reseller_id=auth.uid())',t);end loop;end $$;
+insert into public.ma_accounts values('00000000-0000-4000-8000-000000000001',true),('00000000-0000-4000-8000-000000000002',true);
+insert into public.ma_leases values('00000000-0000-4000-8000-000000000101','00000000-0000-4000-8000-000000000001','PEN'),('00000000-0000-4000-8000-000000000102','00000000-0000-4000-8000-000000000001','USD'),('00000000-0000-4000-8000-000000000103','00000000-0000-4000-8000-000000000002','EUR');
+insert into public.ma_ledger(reseller_id,lease_id,kind,amount_pen,currency,due_on) select '00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000101','RENT',1,'PEN',(now() at time zone 'America/Lima')::date from generate_series(1,3501);
+insert into public.ma_ledger(reseller_id,lease_id,kind,amount_pen,currency,due_on) values('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000101','PAYMENT',-1000,'PEN',null),('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000102','RENT',20,'USD',(now() at time zone 'America/Lima')::date),('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000102','PAYMENT',-5,'USD',null),('00000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000103','RENT',999,'EUR',current_date);
+insert into public.ma_guarantee_events values('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000101','RECEIVED',100,'PEN'),('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000101','REFUNDED',20,'PEN');
+insert into public.ma_expenses values('00000000-0000-4000-8000-000000000001',9,'PEN'),('00000000-0000-4000-8000-000000000001',7,'USD');

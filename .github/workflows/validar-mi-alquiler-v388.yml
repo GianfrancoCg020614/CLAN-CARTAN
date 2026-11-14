@@ -1,0 +1,47 @@
+name: MI ALQUILER V388 · interfaz y saldos
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: fixture
+          POSTGRES_DB: ma388test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: fixture
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          node scripts/check-v2264-mi-alquiler.mjs
+          node scripts/check-v356-business-currency.mjs
+          node scripts/test-v304-inline-syntax.mjs
+          psql -d ma388test -v ON_ERROR_STOP=1 -f scripts/ma388-test-bootstrap.sql
+          psql -d ma388test -v ON_ERROR_STOP=1 -f supabase/migrations/20261114060757_mi_alquiler_v388_summary.sql
+          psql -d ma388test -v ON_ERROR_STOP=1 -f scripts/check-ma388-database.sql
+      - run: |
+          pip install playwright==1.62.0
+          python -m http.server 8000 > /tmp/ma388-http.log 2>&1 &
+          python scripts/test-ma388-browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mi-alquiler-v388-real-browser
+          path: artifacts/ma388/
