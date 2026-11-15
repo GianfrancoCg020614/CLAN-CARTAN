@@ -3,7 +3,7 @@
 update cc_internal.test_access set active=true;
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',false);
-do $$declare c uuid;l uuid;late uuid;paid uuid;p uuid;r jsonb;d date;before_count integer;after_count integer;begin
+do $$declare c uuid;l uuid;late uuid;paid uuid;p uuid;r jsonb;d date;before_count integer;after_count integer;n integer;begin
  perform public.cy372_set_timezone('Europe/Madrid');
  if public.cy372_context()->>'timezone'<>'Europe/Madrid' then raise exception 'Preferencia horaria no persistida';end if;
  perform public.cy372_set_timezone('America/Lima',true);
@@ -16,11 +16,17 @@ do $$declare c uuid;l uuid;late uuid;paid uuid;p uuid;r jsonb;d date;before_coun
  perform set_config('cy372.test_loan',l::text,false);perform set_config('cy372.test_client',c::text,false);
  late:=public.cy371_mutate('loan',gen_random_uuid(),jsonb_build_object('client_id',c,'principal','300','monthly_rate','0','months',3,'installments',3,'final_due',d+90,'currency','JPY'));
  perform set_config('cy372.test_late',late::text,false);
+ -- Create genuinely future loans before assigning local calendar buckets below.
+ for n in 1..60 loop
+  perform public.cy371_mutate('loan',gen_random_uuid(),jsonb_build_object('client_id',c,'principal','1','monthly_rate','0','months',1,'installments',1,'final_due',d+30,'currency','CHF'));
+ end loop;
 end $$;
 reset role;
 -- Only local fixture dates are adjusted to hit deterministic calendar buckets.
 update public.cy_installments set due_on=case installment_number when 1 then (public.cy372_context('America/Lima')->>'local_date')::date-2 when 2 then (public.cy372_context('America/Lima')->>'local_date')::date else (public.cy372_context('America/Lima')->>'local_date')::date+1 end where loan_id=current_setting('cy372.test_loan')::uuid;
 update public.cy_installments set due_on=(public.cy372_context('America/Lima')->>'local_date')::date+case installment_number when 1 then -2 when 2 then -1 else 1 end where loan_id=current_setting('cy372.test_late')::uuid;
+-- CHF pagination tests target tomorrow in Lima, independently of current_date in UTC.
+update public.cy_installments set due_on=(public.cy372_context('America/Lima')->>'local_date')::date+1 where loan_id in (select id from public.cy_loans where owner_id='00000000-0000-4000-8000-000000000001' and currency='CHF');
 set role authenticated;
 do $$declare c uuid:=current_setting('cy372.test_client')::uuid;l uuid:=current_setting('cy372.test_loan')::uuid;late uuid;paid uuid;p uuid;r jsonb;d date;before_count integer;n integer;a jsonb;b jsonb;begin
  d:=(public.cy372_context('America/Lima')->>'local_date')::date;
@@ -45,9 +51,6 @@ do $$declare c uuid:=current_setting('cy372.test_client')::uuid;l uuid:=current_
  if (public.cy372_dashboard('America/Lima')->>'today')::int<1 then raise exception 'Indicador de hoy incorrecto';end if;
  begin perform public.cy372_context('Zona/No_existe');raise exception 'Zona inválida aceptada';exception when others then if sqlerrm='Zona inválida aceptada' then raise;end if;end;
  if public.cy372_context('Pacific/Kiritimati')->>'local_date'<>((current_timestamp at time zone 'Pacific/Kiritimati')::date)::text then raise exception 'Zona horaria incorrecta';end if;
- for n in 1..60 loop
-  perform public.cy371_mutate('loan',gen_random_uuid(),jsonb_build_object('client_id',c,'principal','1','monthly_rate','0','months',1,'installments',1,'final_due',d+1,'currency','CHF'));
- end loop;
  a:=public.cy372_agenda('tomorrow','America/Lima','CHF',1000,0);b:=public.cy372_agenda('tomorrow','America/Lima','CHF',50,50);
  if (a->>'total')::int<>60 or jsonb_array_length(a->'rows')<>50 or jsonb_array_length(b->'rows')<>10 then raise exception 'Paginación de agenda incorrecta';end if;
  if exists(select 1 from jsonb_array_elements(a->'rows') x join jsonb_array_elements(b->'rows') y on x->>'id'=y->>'id') then raise exception 'Páginas de agenda superpuestas';end if;
