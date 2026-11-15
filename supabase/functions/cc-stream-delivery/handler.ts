@@ -50,7 +50,7 @@ function messageText(payload) {
   if (payload.mimeType === 'text/plain' || !payload.mimeType && payload.body?.data) return plainBase64(payload.body?.data || '');
   return (payload.parts || []).filter(p => p.mimeType === 'text/plain').map(p => plainBase64(p.body?.data || '')).join('\n');
 }
-export function createHandler({env, fetcher = fetch, clock = () => Date.now(), paymentMode = false, paymentScanner = null}) {
+export function createHandler({env, fetcher = fetch, clock = () => Date.now(), paymentMode = false, paymentScanner = null, binanceProtocol = null}) {
   const root = env('SUPABASE_URL'), key = env('SUPABASE_ANON_KEY'), service = env('SUPABASE_SERVICE_ROLE_KEY');
   const callback = root + '/functions/v1/'+(paymentMode?'cc-recharge-mail':'cc-stream-delivery')+'/oauth/';
   async function remote(url, options = {}) {
@@ -61,7 +61,12 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now(), p
     const response = await remote(root + '/rest/v1/rpc/' + name, { method: 'POST', headers: { apikey: internal ? service : key, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!response.ok) {let code='';try{const detail=await response.json();if(/^[A-Z0-9]{5,12}$/.test(String(detail.code||'')))code=detail.code;}catch{}const error=Error('DATA_UNAVAILABLE');error.status=response.status;error.code=code;throw error;}const raw=await response.text();if(!raw.trim())throw Error('RPC_EMPTY_RESPONSE_'+name);try{return JSON.parse(raw);}catch{throw Error('RPC_INVALID_JSON_'+name);}
   }
-  const serviceCall = (action, data) => rpc(paymentMode?'cc_recharge_mail_service':'cc_stream_delivery_service', { p_action: action, p_data: data }, '', true);
+  const binance=paymentMode&&typeof binanceProtocol==='function'?binanceProtocol({rpc,remote,clock}):null;
+  const serviceCall = (action, data) => rpc(paymentMode?(binance?'cc393_recharge_mail_service':'cc_recharge_mail_service'):'cc_stream_delivery_service', { p_action: action, p_data: data }, '', true);
+  async function recordNotice(data){
+    if(binance&&data.provider_hint==='BINANCE'&&data.binance_receipt&&data.recipient_signed){try{await binance.refresh();}catch{/* Still register the authenticated notice for ADMIN review. */}}
+    return serviceCall('mail_notice',data);
+  }
   async function user(request) {
     const match = (request.headers.get('Authorization') || '').match(/^Bearer (\S+)$/i); if (!match) throw Error('AUTH_REQUIRED');
     const response = await remote(root + '/auth/v1/user', { headers: { apikey: key, Authorization: 'Bearer ' + match[1] } });
@@ -143,28 +148,33 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now(), p
         const run=crypto.randomUUID();let batch;
         try{batch=await rpc('cc_recharge_schedule_service',{p_action:'claim',p_data:{secret_hash:await hash(token),run_id:run}},'',true);}catch(e){return e.status===401||e.status===403||e.code==='42501'?json({error:'AUTH_REQUIRED'},401):json({error:'SCHEDULER_UNAVAILABLE'},503);}
         if(batch.status!=='READY')return json({status:batch.status,credited:0});
-        let examined=0,detected=0,failed=0;const jobs=(batch.jobs||[]).slice(0,1);
+        let examined=0,detected=0,failed=0,credited=0;const jobs=(batch.jobs||[]).slice(0,1);
         for(const job of jobs){try{
           console.log('RECHARGE_STAGE context');const context=await serviceCall('mail_scan_context',job);if(context.status!=='READY'||!context.allowed_senders?.length)continue;
           console.log('RECHARGE_STAGE access');const access=await getAccess(context,job.actor_id,job.connection_id);console.log('RECHARGE_STAGE scan');const scan=await paymentScanner({context:{...context,page_size:5},token:access,remote,clock});examined+=scan.examined;
-          for(const event of scan.events){const result=await serviceCall('mail_notice',{...event,...job});if(result.recorded)detected++;}
+          for(const event of scan.events){const result=await recordNotice({...event,...job});if(result.recorded)detected++;if(result.binance?.status==='CREDITED'||result.reconciliation?.status==='CREDITED')credited++;}
           console.log('RECHARGE_STAGE done');await serviceCall('mail_scan_done',{...job,cursor:scan.cursor||null});
         }catch(e){failed++;console.error('RECHARGE_SCAN_FAILED',String(e?.message||'UNKNOWN').slice(0,100));if(e.message==='MAIL_REAUTH_REQUIRED')try{await serviceCall('mail_reauth',job);}catch{}}}
         await rpc('cc_recharge_schedule_service',{p_action:'finish',p_data:{run_id:run,examined,detected,failed,jobs:jobs.length}},'',true);
-        return json({status:failed?'ERROR':jobs.length?'SUCCESS':'WAITING_FOR_MAILBOX',examined,detected,failed,credited:0});
+        return json({status:failed?'ERROR':jobs.length?'SUCCESS':'WAITING_FOR_MAILBOX',examined,detected,failed,credited});
       }
       const account = await user(request);
+      if(paymentMode&&body.action==='binance_quote'){
+        if(!binance)return json({error:'BINANCE_UNAVAILABLE'},503);
+        try{return json(await binance.quote(account,body));}catch(e){return json({error:['INVALID_QUOTE','BINANCE_UNAVAILABLE','MARKET_UNAVAILABLE','QUOTE_EXPIRED'].includes(e.message)?e.message:'QUOTE_NOT_CREATED'},409);}
+      }
       if(paymentMode&&body.action==='methods_status'){
         const configured=env('CC_BINANCE_MERCHANT_ENABLED')==='true'&&['BINANCE_PAY_API_KEY','BINANCE_PAY_SECRET_KEY','BINANCE_MERCHANT_ID','BINANCE_WEBHOOK_PUBLIC_KEY_PEM','BINANCE_WEBHOOK_CERT_SN'].every(k=>!!env(k));
-        return json({binance_merchant:{enabled:configured,min_pen:1,max_pen:10},lemon:{enabled:false},personal_automatic:{enabled:false},notice:'Un QR personal o un correo no confirman una recarga ni identifican al titular.'});
+        const personal=binance?await rpc('cc393_market',{p_data:null},'',true):null;
+        return json({binance_merchant:{enabled:configured,min_pen:1,max_pen:10},lemon:{enabled:false},personal_automatic:{enabled:!!(personal?.enabled&&personal?.configured),requires_verified_payer:true},notice:'Binance personal: cotización fija, aviso original autenticado y pagador vinculado. Las coincidencias ambiguas requieren revisión ADMIN.'});
       }
       if(paymentMode&&body.action==='scan_deposits'){
         await seller(account);if(typeof paymentScanner!=='function'||! /^[a-f0-9-]{36}$/i.test(String(body.connection_id)))return json({error:'INVALID_REQUEST'},400);
         const context=await serviceCall('mail_scan_context',{actor_id:account.id,connection_id:body.connection_id});if(context.status!=='READY')return json({error:'MAIL_DISCONNECTED'},409);
         if(!Array.isArray(context.allowed_senders)||!context.allowed_senders.length)return json({error:'ALLOWED_SENDERS_REQUIRED'},400);
-        try{const token=await getAccess(context,account.id,body.connection_id);const scan=await paymentScanner({context,token,remote,clock});let recorded=0;
-          for(const event of scan.events){const r=await serviceCall('mail_notice',{actor_id:account.id,connection_id:body.connection_id,...event});if(r.recorded)recorded++;}
-          await serviceCall('mail_scan_done',{actor_id:account.id,connection_id:body.connection_id,cursor:scan.cursor||null});return json({detected:recorded,examined:scan.examined,has_more:!!scan.cursor,credited:0,notice:'Avisos sin confirmación transaccional. Ninguna billetera se modificó.'});
+        try{const token=await getAccess(context,account.id,body.connection_id);const scan=await paymentScanner({context,token,remote,clock});let recorded=0,credited=0;
+          for(const event of scan.events){const r=await recordNotice({actor_id:account.id,connection_id:body.connection_id,...event});if(r.recorded)recorded++;if(r.binance?.status==='CREDITED'||r.reconciliation?.status==='CREDITED')credited++;}
+          await serviceCall('mail_scan_done',{actor_id:account.id,connection_id:body.connection_id,cursor:scan.cursor||null});return json({detected:recorded,examined:scan.examined,has_more:!!scan.cursor,credited,notice:'Avisos procesados. Solo se acredita una coincidencia autorizada; los demás requieren revisión.'});
         }catch(e){if(e.message==='MAIL_REAUTH_REQUIRED')await serviceCall('mail_reauth',{actor_id:account.id,connection_id:body.connection_id});return json({error:e.message==='MAIL_REAUTH_REQUIRED'?'MAIL_REAUTH_REQUIRED':'MAIL_SCAN_UNAVAILABLE'},409);}
       }
       if (!paymentMode&&body.action === 'lookup') {
