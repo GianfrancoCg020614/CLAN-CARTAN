@@ -1,0 +1,56 @@
+name: Validar Binance V393 · recibos y cotización
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  receipts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci-fixture-only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGUSER: postgres
+      PGPASSWORD: ci-fixture-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Avisos, autenticación, fechas y cotización
+        run: |
+          node scripts/test-v321-payment-notices.mjs
+          node scripts/test-v392-binance-notices.mjs
+          node scripts/test-v393-binance.mjs
+          node --check scripts/v321-recharges.js
+      - name: Base financiera aislada, nunca producción
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/sql/v320-foundation.sql
+          for name in capture_real_wallet_change cc_portal_charge_unified cc_business_access_v316 sb_delivery_is_seller cc_portal_admin_set_super_reseller cc_stream_distributor_eligible cc_portal_purchase_stream_product; do
+            psql -v ON_ERROR_STOP=1 -f "supabase/recovery/v320_${name}.sql"
+          done
+          psql -v ON_ERROR_STOP=1 -f scripts/sql/v320-audit-trigger.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261105072557_v320_unified_finance_monthly_settlements.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/sql/v321-foundation.sql
+          for name in reserve_verified_payment_receipt cc_submit_manual_recharge cc_admin_decide_manual_recharge_v189 cc_binance_merchant_reserve cc_binance_merchant_credit; do
+            psql -v ON_ERROR_STOP=1 -f "supabase/recovery/v321_${name}.sql"
+          done
+          psql -v ON_ERROR_STOP=1 -f scripts/sql/v321-receipt-triggers.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/sql/v321-source-acls.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261105124920_v321_recharge_rec_and_reconciliation.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/sql/v393-foundation.sql
+          for name in cc_recharge_create cc_submit_manual_recharge cc_recharge_mail_service reconcile_lemon_notice; do
+            psql -v ON_ERROR_STOP=1 -f "supabase/recovery/v393_${name}.sql"
+          done
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261115183931_binance_mail_fixed_quote_receipts.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/sql/v393-regression.sql
+          bash scripts/test-v393-concurrency.sh
