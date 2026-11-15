@@ -1655,12 +1655,12 @@ function publish(page){
    ['Netflix','YouTube','Disney+','Prime Video','HBO','Paramount+','Google One','Spotify','Crunchyroll','CapCut','Canva','ChatGPT Plus','Otro'].forEach(n=>{const o=make('option','',n);o.value=n;input.append(o);});}
   else if(type==='textarea'){input=document.createElement('textarea');input.rows=2;input.maxLength=1000;}
   else{input=document.createElement('input');input.type=type;if(type==='number'){input.min=key==='days'?'1':'0';input.step=key==='days'||key==='stock'?'1':'0.01';}}
-  input.name=key;if(key!=='description')input.required=true;if(key==='whatsapp')input.placeholder='51912345678';if(key==='days')input.value='30';label.append(input);form.append(label);
+  input.name=key;if(key!=='description')input.required=true;if(key==='whatsapp')input.placeholder='51912345678';if(key==='days')input.value='30';label.append(input);if(['price','distributor'].includes(key)&&window.cc391Usd)label.append(window.cc391Usd.bind(input));form.append(label);
  }
  const save=make('button','cc166-primary','Publicar servicio');save.type='submit';form.append(save);
  form.addEventListener('submit',e=>{e.preventDefault();void publishSave(new FormData(form),save);});
  window.cc170Flyers?.attachForm(form);
- if(streamContext){const composer=make('details','sb389-composer');composer.open=publishing;composer.append(make('summary','','＋ Publicar un servicio'),form);box.append(composer);}else box.append(form);page.append(box);
+ if(streamContext){const composer=make('details','sb389-composer');composer.open=publishing;composer.append(make('summary','','＋ Publicar un servicio'),form);box.append(composer);}else box.append(form);if(window.cc391Usd)box.append(window.cc391Usd.note());page.append(box);
  const list=card('Mis servicios publicados','Hasta 100 publicaciones recientes de tu cuenta. Cada compra conserva su precio registrado y su estado de entrega.');
  const products=(data.ownProducts||data.products).filter(p=>p.seller_id===user);
  if(!products.length)list.append(make('p','cc166-empty','Aún no hay publicaciones.'));
@@ -1668,11 +1668,11 @@ function publish(page){
   const row=make('div','cc166-product cc167-stock-row');
   row.append(make('strong','',p.title));
   const ownPrice=data.priceDetails.find(info=>info.id===p.id);
-  row.append(make('span','',p.service+' · Público '+price(p.price_pen)+
-   ' · Reseller '+price(ownPrice?.distributor_price_pen??p.price_pen)+
-   ' · Stock '+p.stock+' · '+p.status));
+  row.append(make('span','',p.service+' · Stock '+p.stock+' · '+p.status));
+  const prices=make('div','cc391-own-prices');
+  for(const [label,value] of [['Público',p.price_pen],['Distribuidor',ownPrice?.distributor_price_pen]]){const item=make('span','',label+' '+(value==null?'sin verificar':price(value)));if(value!=null&&window.cc391Usd)item.append(window.cc391Usd.amount(value));prices.append(item);}row.append(prices);
   const actions=make('div','cc167-actions');
-  actions.append(button('Editar precios',()=>void editPrices(p,ownPrice),'cc166-secondary'));
+  const edit=button('Editar precios',()=>void editPrices(p,ownPrice),'cc166-secondary');edit.disabled=!ownPrice;if(!ownPrice)edit.title='Actualiza para verificar ambos precios';actions.append(edit);
   actions.append(button('Actualizar stock',()=>void editProduct(p,'stock'),'cc166-secondary'));
   actions.append(button(p.status==='ACTIVE'?'Pausar':'Reactivar',()=>void editProduct(p,'status'),'cc166-secondary'));
   actions.append(button('WhatsApp',()=>void editProduct(p,'whatsapp'),'cc166-secondary'));
@@ -1683,7 +1683,7 @@ function publish(page){
  page.append(list);
 }
 async function editPrices(product,details){
- if(data.admin||!data.super)return;
+ if(data.admin||!data.super||!details)return;
  const oldPublic=Number(details?.public_price_pen??product.price_pen);
  const oldDistributor=Number(details?.distributor_price_pen??oldPublic);
  const publicInput=window.prompt('Nuevo precio para AFILIADO / PÚBLICO (S/) · '+
@@ -1744,7 +1744,7 @@ async function publishSave(fd,b){
  if(!user||!verified||data.admin||!data.super||publishing)return;
  const s=session(),uid=user,jwt=token;
  const value=k=>String(fd.get(k)||'').trim(),days=Number(value('days')),stock=Number(value('stock')),p=Number(value('price')),d=Number(value('distributor')),c=Number(value('cost'));
- if(!(p>0&&d>0&&c>=0&&c<=d&&d<=p&&p<=10000&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1&&Math.abs(p*100-Math.round(p*100))<1e-7&&Math.abs(d*100-Math.round(d*100))<1e-7)){
+ if(!(p>0&&d>0&&c>=0&&c<=d&&d<=p&&p<=10000&&Number.isInteger(days)&&days>=1&&Number.isInteger(stock)&&stock>=1&&Math.abs(p*100-Math.round(p*100))<1e-7&&Math.abs(d*100-Math.round(d*100))<1e-7&&Math.abs(c*100-Math.round(c*100))<1e-7)){
   notice('Verifica que costo ≤ reseller ≤ público, con 2 decimales como máximo, además de stock y duración.');return;
  }
  publishing=true;syncSellerButtons();
