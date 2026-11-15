@@ -1,0 +1,19 @@
+name: Binance V392 · lectura de avisos USDT
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check supabase/functions/_shared/payment-notices.mjs
+          node scripts/test-v321-payment-notices.mjs
+          node scripts/test-v392-binance-notices.mjs

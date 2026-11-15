@@ -1,5 +1,6 @@
 // Entregas comerciales autorizadas. Sin extracción de OTP, TOTP, login o recuperación.
-const ORIGINS = new Set(['https://www.clancartan.com', 'https://clancartan.com']);
+const ORIGINS = new Set(['https://www.clancartan.com', 'https://clancartan.com', 'https://clan-cartan.pages.dev']);
+const allowedOrigin = origin => ORIGINS.has(origin) || /^https:\/\/[a-f0-9]{8}\.clan-cartan\.pages\.dev$/.test(origin || '');
 const ORDER = /^ORD-\d{6,15}$/;
 const encoder = new TextEncoder();
 const safeCode = (value) => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9 -]{7,127}$/.test(value) && !/^\d{6,8}$/.test(value);
@@ -58,7 +59,7 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now(), p
   async function rpc(name, body, jwt, internal = false) {
     const token = internal ? service : jwt;
     const response = await remote(root + '/rest/v1/rpc/' + name, { method: 'POST', headers: { apikey: internal ? service : key, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (!response.ok) {let code='';try{const detail=await response.json();if(/^[A-Z0-9]{5,12}$/.test(String(detail.code||'')))code=detail.code;}catch{}const error=Error('DATA_UNAVAILABLE');error.status=response.status;error.code=code;throw error;}return response.json();
+    if (!response.ok) {let code='';try{const detail=await response.json();if(/^[A-Z0-9]{5,12}$/.test(String(detail.code||'')))code=detail.code;}catch{}const error=Error('DATA_UNAVAILABLE');error.status=response.status;error.code=code;throw error;}const raw=await response.text();if(!raw.trim())throw Error('RPC_EMPTY_RESPONSE_'+name);try{return JSON.parse(raw);}catch{throw Error('RPC_INVALID_JSON_'+name);}
   }
   const serviceCall = (action, data) => rpc(paymentMode?'cc_recharge_mail_service':'cc_stream_delivery_service', { p_action: action, p_data: data }, '', true);
   async function user(request) {
@@ -109,9 +110,9 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now(), p
     return new Response('<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CLAN CARTAN · Correo</title><p>' + (ok ? 'Correo conectado. Puedes volver a CLAN CARTAN.' : 'No se pudo completar la conexión. Regresa a CLAN CARTAN y vuelve a intentarlo.') + '</p><a href="https://www.clancartan.com/?cc_mail=return">Volver a CLAN CARTAN</a><script>if(window.opener){window.opener.postMessage(' + message + ',"https://www.clancartan.com");window.close();}</script></html>', { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'" } });
   }
   return async function handle(request) {
-    const origin = request.headers.get('Origin');const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Vary': 'Origin', 'Referrer-Policy': 'no-referrer', ...(ORIGINS.has(origin) ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Headers': 'authorization,apikey,content-type,x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS' } : {}) };
+    const origin = request.headers.get('Origin');const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Vary': 'Origin', 'Referrer-Policy': 'no-referrer', ...(allowedOrigin(origin) ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Headers': 'authorization,apikey,content-type,x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS' } : {}) };
     const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers });
-    if (origin && !ORIGINS.has(origin)) return json({ error: 'ORIGIN_DENIED' }, 403);
+    if (origin && !allowedOrigin(origin)) return json({ error: 'ORIGIN_DENIED' }, 403);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
     const url = new URL(request.url);
     if (request.method === 'GET' && /\/oauth\/(google|microsoft)$/.test(url.pathname)) {
@@ -144,11 +145,11 @@ export function createHandler({env, fetcher = fetch, clock = () => Date.now(), p
         if(batch.status!=='READY')return json({status:batch.status,credited:0});
         let examined=0,detected=0,failed=0;const jobs=(batch.jobs||[]).slice(0,1);
         for(const job of jobs){try{
-          const context=await serviceCall('mail_scan_context',job);if(context.status!=='READY'||!context.allowed_senders?.length)continue;
-          const access=await getAccess(context,job.actor_id,job.connection_id),scan=await paymentScanner({context:{...context,page_size:5},token:access,remote,clock});examined+=scan.examined;
+          console.log('RECHARGE_STAGE context');const context=await serviceCall('mail_scan_context',job);if(context.status!=='READY'||!context.allowed_senders?.length)continue;
+          console.log('RECHARGE_STAGE access');const access=await getAccess(context,job.actor_id,job.connection_id);console.log('RECHARGE_STAGE scan');const scan=await paymentScanner({context:{...context,page_size:5},token:access,remote,clock});examined+=scan.examined;
           for(const event of scan.events){const result=await serviceCall('mail_notice',{...event,...job});if(result.recorded)detected++;}
-          await serviceCall('mail_scan_done',{...job,cursor:scan.cursor||null});
-        }catch(e){failed++;if(e.message==='MAIL_REAUTH_REQUIRED')try{await serviceCall('mail_reauth',job);}catch{}}}
+          console.log('RECHARGE_STAGE done');await serviceCall('mail_scan_done',{...job,cursor:scan.cursor||null});
+        }catch(e){failed++;console.error('RECHARGE_SCAN_FAILED',String(e?.message||'UNKNOWN').slice(0,100));if(e.message==='MAIL_REAUTH_REQUIRED')try{await serviceCall('mail_reauth',job);}catch{}}}
         await rpc('cc_recharge_schedule_service',{p_action:'finish',p_data:{run_id:run,examined,detected,failed,jobs:jobs.length}},'',true);
         return json({status:failed?'ERROR':jobs.length?'SUCCESS':'WAITING_FOR_MAILBOX',examined,detected,failed,credited:0});
       }
