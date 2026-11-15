@@ -51,6 +51,6 @@ jobs:
           for name in cc_recharge_create cc_submit_manual_recharge cc_recharge_mail_service reconcile_lemon_notice; do
             psql -v ON_ERROR_STOP=1 -f "supabase/recovery/v393_${name}.sql"
           done
-          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261115183931_binance_mail_fixed_quote_receipts.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261115205718_binance_mail_fixed_quote_receipts.sql
           psql -v ON_ERROR_STOP=1 -f scripts/sql/v393-regression.sql
           bash scripts/test-v393-concurrency.sh
