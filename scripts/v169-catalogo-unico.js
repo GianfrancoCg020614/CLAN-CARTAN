@@ -5,6 +5,7 @@
  */
 (function () {
   'use strict';
+  if(window.cc169CatalogLoaded)return;window.cc169CatalogLoaded=true;
   const ROOT='https://pqalxtrcyrpmwqdlibqd.supabase.co';
   const UUID='[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
   const FLYER_RE=new RegExp('^'+UUID+'/'+UUID+'/'+UUID+'\\.(jpg|jpeg|png|webp)$');
@@ -95,6 +96,7 @@
     const amount=text('div','');
     amount.append(text('small','',tier?'Precio distribuidor':'Precio público'));
     amount.append(text('strong','',money(product.price_pen)));
+    if(window.cc391Usd)amount.append(window.cc391Usd.amount(product.price_pen));
     priceBox.append(amount);body.append(priceBox);
     const actions=text('div','product-actions cc117-one-action');
     actions.append(button(window.CC_V53_SESSION?.jwt?'Comprar con billetera':'Regístrate gratis para comprar',
@@ -266,6 +268,7 @@
     const controls=text('div','cc169-catalog-controls');
     controls.append(text('small','',rows.length?'Productos y precios confirmados por CLAN CARTAN. El pago requiere sesión y saldo real.':'No hay productos ni precios verificados disponibles para compra.'));
     controls.append(button('↻ Actualizar catálogo',()=>{void refresh()},'btn cc169-refresh'));
+    if(rows.length&&window.cc391Usd)controls.append(window.cc391Usd.note());
     holder.append(controls);
     const note=section.querySelector('.v23-shop-note');
     if(note)note.replaceWith(holder);else section.append(holder);
