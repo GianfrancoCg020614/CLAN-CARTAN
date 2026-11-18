@@ -1,0 +1,44 @@
+-- CI ONLY. Run after the isolated V393 fixture and V394 foundation/migration.
+begin;
+create function pg_temp.ok(condition boolean,description text) returns void language plpgsql as $$begin if condition is distinct from true then raise exception 'FAIL: %',description;end if;raise notice 'PASS: %',description;end $$;
+create function pg_temp.denied(statement text) returns boolean language plpgsql as $$begin execute statement;return false;exception when others then return true;end $$;
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true),set_config('request.jwt.claim.role','authenticated',true);
+select pg_temp.ok(not has_function_privilege('anon','public.cc394_admin_records(uuid,text,integer)','execute'),'anonymous role cannot execute admin reads');
+select public.cc394_admin_overview();
+select public.cc394_admin_directory('',0);
+select public.cc394_admin_records('22222222-2222-4222-8222-222222222222','wallet',0);
+-- Every whitelisted section must execute on the audited schema.
+do $$declare name text;begin foreach name in array array['bonuses','recharges','movements','purchases','cobra_clients','loans','loan_payments','schedules','guarantees','parking_people','parking','parking_movements','rental_people','rental_units','leases','rental_movements','stream_clients','stream_accounts','stream_contracts','stream_payments'] loop perform public.cc394_admin_records('22222222-2222-4222-8222-222222222222',name,0);end loop;end $$;
+select pg_temp.ok(true,'all operational sections execute with the production column names');
+insert into auth.users(id,email,email_confirmed_at) select md5('v394-user-'||n)::uuid,'v394-'||n||'@example.test',now() from generate_series(1,270)n;
+insert into public.cc_clan_codes(user_id,code_number,code) select md5('v394-user-'||n)::uuid,394000+n,'CLAN394'||n from generate_series(1,270)n;
+insert into public.cc_user_details(user_id,full_name) values(md5('v394-user-270')::uuid,'Máría Última Prueba');
+select pg_temp.ok(jsonb_array_length(public.cc394_admin_directory('',0)->'rows')=20 and (public.cc394_admin_directory('',0)->>'has_more')::boolean,'directory returns bounded pages');
+select pg_temp.ok(jsonb_array_length(public.cc394_admin_directory('maria ultima',0)->'rows')=1,'search finds an accented name beyond the old 250-account limit');
+select pg_temp.ok(jsonb_array_length(public.cc394_admin_directory('CLAN394270',0)->'rows')=1,'all registered accounts can be found by CLAN code');
+select pg_temp.ok(pg_temp.denied($s$select public.cc394_admin_records('22222222-2222-4222-8222-222222222222','auth.users',0)$s$),'section names cannot select arbitrary tables or secrets');
+select pg_temp.ok(pg_temp.denied($s$select public.cc394_admin_directory('',-1)$s$),'invalid pagination rejected');
+insert into public.cy_clients(id,owner_id,full_name,client_code,created_at) values('10000000-0000-4000-8000-000000000001','22222222-2222-4222-8222-222222222222','Cliente autorizado','CL-TEST',now()),('10000000-0000-4000-8000-000000000002','33333333-3333-4333-8333-333333333333','Otro propietario','CL-OTHER',now());
+select pg_temp.ok(jsonb_array_length(public.cc394_admin_records('22222222-2222-4222-8222-222222222222','cobra_clients',0)->'rows')=1,'the selected user file never mixes another owners clients');
+create temporary table balance_before as select coalesce(sum(balance_pen),0) total from public.cc_real_service_wallets;
+create temporary table periods_before as select (select count(*) from public.mc_subscription_events)+(select count(*) from public.ma_subscription_events)+(select count(*) from public.cc_bonus_membership_payments) total;
+select public.cc394_admin_grant_shared_bonus('33333333-3333-4333-8333-333333333333',15,'40000000-0000-4000-8000-000000000001','Bono de prueba aislada');
+select public.cc394_admin_grant_shared_bonus('33333333-3333-4333-8333-333333333333',15,'40000000-0000-4000-8000-000000000001','Bono de prueba aislada');
+select pg_temp.ok((select balance_pen=15 from public.cc_cobra_welcome_bonus_wallets where user_id='33333333-3333-4333-8333-333333333333'),'shared bonus credits exactly once without requiring a COBRA reseller role');
+select pg_temp.ok((select count(*)=1 from public.cc_admin_promo_grants where request_id='40000000-0000-4000-8000-000000000001'),'existing grant history contains one traceable movement');
+select pg_temp.ok((select total from balance_before)=(select coalesce(sum(balance_pen),0) from public.cc_real_service_wallets),'grant does not change real-money balances');
+select pg_temp.ok((select total from periods_before)=(select (select count(*) from public.mc_subscription_events)+(select count(*) from public.ma_subscription_events)+(select count(*) from public.cc_bonus_membership_payments)),'grant never activates or renews a membership');
+select pg_temp.ok(pg_temp.denied($s$select public.cc394_admin_grant_shared_bonus('33333333-3333-4333-8333-333333333333',16,'40000000-0000-4000-8000-000000000001','Bono de prueba aislada')$s$),'same request with another amount rejected');
+select pg_temp.ok(pg_temp.denied($s$select public.cc394_admin_grant_shared_bonus('33333333-3333-4333-8333-333333333333',-5,gen_random_uuid(),'Bono de prueba aislada')$s$),'negative bonus rejected');
+select pg_temp.ok(pg_temp.denied($s$select public.cc394_admin_grant_shared_bonus('11111111-1111-4111-8111-111111111111',15,gen_random_uuid(),'Bono de prueba aislada')$s$),'ADMIN cannot award this promotional bonus to self');
+-- A bonus-funded activation is visible in referral status but never creates cash reward.
+insert into public.cc_clan_attributions(referred_user_id,inviter_user_id) values('33333333-3333-4333-8333-333333333333','22222222-2222-4222-8222-222222222222');
+insert into public.cc_bonus_membership_payments(request_id,user_id,service,amount_pen,period_start,period_end) values(gen_random_uuid(),'33333333-3333-4333-8333-333333333333','MI_COCHERA',15,now(),now()+interval '1 month');
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+select pg_temp.ok((public.cc394_referral_status(0)->'rows'->0->>'bonus_activation')::boolean,'bonus-funded activation is explained in referral status');
+select pg_temp.ok((public.cc394_referral_status(0)->'rows'->0->>'credited_pen')::numeric=0,'bonus activation does not invent S/5 referral credit');
+select pg_temp.ok(pg_temp.denied($s$select public.cc394_admin_overview()$s$),'ordinary users cannot view administrative totals');
+select pg_temp.ok(pg_temp.denied($s$select public.cc394_admin_directory('',0)$s$),'ordinary users cannot enumerate accounts');
+select pg_temp.ok(pg_temp.denied($s$select public.cc394_admin_records('33333333-3333-4333-8333-333333333333','wallet',0)$s$),'ordinary users cannot read another wallet');
+select pg_temp.ok(pg_temp.denied($s$select public.cc394_admin_grant_shared_bonus('33333333-3333-4333-8333-333333333333',15,gen_random_uuid(),'Intento no autorizado')$s$),'ordinary users cannot grant bonuses');
+rollback;

@@ -54,3 +54,9 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261115205718_binance_mail_fixed_quote_receipts.sql
           psql -v ON_ERROR_STOP=1 -f scripts/sql/v393-regression.sql
           bash scripts/test-v393-concurrency.sh
+      - name: V394 · ADMIN completo y bono compartido sin activaciones
+        run: |
+          psql -v ON_ERROR_STOP=1 -f scripts/sql/v394-foundation.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261118003156_account_admin_referral_audit.sql
+          psql -v ON_ERROR_STOP=1 -f scripts/sql/v394-regression.sql
+          bash scripts/test-v394-bonus-concurrency.sh

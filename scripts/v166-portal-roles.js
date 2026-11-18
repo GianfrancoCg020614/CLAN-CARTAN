@@ -32,7 +32,7 @@ let rechargeQueueBusy=false,autoRefreshTimer=null,adminLastQueueFetch=0,ownBalan
 let ownRechargeIdentity=null,ownIdentityState='idle',ownIdentityError='';
 let rechargeRows=[],rechargeState='idle',rechargeError='';
 let rechargeReady=null,rechargeSaving=false,assistedRechargeSaving=false;
-let chosenAdminRecipient=null,chosenBonusRecipient=null;
+let chosenAdminRecipient=null,chosenBonusRecipient=null,chosenBonusPerson=null;
 let auditData=null,auditRows=[],auditState='idle',auditError='';
 let data={admin:false,super:false,superPermission:false,reseller:false,members:[],subs:[],businesses:[],real:[],bonuses:[],cy:[],mc:null,ma:null,moves:[],products:[],orders:[],requests:[],plan:null,profile:null,priceDetails:[],accesses:null};
 let lastReceipt=null,purchasePending=false,membershipPending=false,businessActivationPending=null;
@@ -343,6 +343,7 @@ function adminRecords(){
  };
 }
 function adminHome(page){
+ if(window.cc394AdminHome)return window.cc394AdminHome(page,nav);
  if(adminAccountsState==='idle')void loadAdminAccounts();
  if(rechargeState==='idle')void loadAdminRecharges();
  const k=adminRecords();
@@ -562,7 +563,7 @@ function openAdminGrantRecharge(person){
 }
 function openAdminGrantBonus(person){
  if(!data.admin)return;
- chosenBonusRecipient=person?.email||null;
+ chosenBonusRecipient=person?.email||null;chosenBonusPerson=person||null;
  nav('bonuses');
 }
 async function submitAdminAssistedRecharge(target,service,amount,reference,buttonEl){
@@ -1904,6 +1905,7 @@ function adminAccountRow(person){
  if(!person.is_admin)appendBusinessStatus(expanded,accountBusinesses(person));
  expanded.append(fields);
  const actions=make('div','cc171-person-actions');
+ if(person.user_id&&window.cc394OpenRecords)actions.append(button('Actividad, saldos y clientes',()=>window.cc394OpenRecords(person),'cc166-primary cc171-small'));
  const rename=make('details','cc171-inline-details cc174-rename');
  rename.append(make('summary','','Editar nombre'));
  const tools=make('div','cc171-edit');
@@ -1991,6 +1993,7 @@ function adminApprovals(page){
 
 function adminBonuses(page){
  if(!data.admin)return overview(page);
+ if(window.cc394AdminBonus){const initial=chosenBonusPerson||adminAccounts.find(p=>p.email===chosenBonusRecipient)||null;chosenBonusRecipient=null;chosenBonusPerson=null;return window.cc394AdminBonus(page,initial);}
  if(adminAccountsState==='idle')void loadAdminAccounts();
  title(page,'Bonos para activaciones','Únicamente activaciones de COBRA YA, MI COCHERA y MI ALQUILER; nunca se usan en STREAM BULL’S.');
  const intro=card('Otorgar bono de activación','Solo para activaciones comerciales de los tres negocios compatibles. Nunca se suma a la billetera única de dinero real.');
@@ -2086,6 +2089,7 @@ async function adminGrantBonus(person,service,rawAmount,rawReason,btn){
 }
 function admin(page){
  if(!data.admin)return overview(page);
+ if(window.cc394AdminDirectory)return window.cc394AdminDirectory(page,adminAccountRow);
  title(page,'Directorio de usuarios','Registro CLAN permanente, contacto, rol y vigencia. Las autorizaciones especiales tienen una sección propia.');
  if(adminAccountsState==='idle')void loadAdminAccounts();
  const summary=make('div','cc171-top-summary');
@@ -2180,6 +2184,7 @@ function profile(page){
  form.addEventListener('input',()=>{profileDraft=Object.fromEntries(new FormData(form));profileDraftVersion++;profileMessage='Cambios sin guardar.';status.textContent=profileMessage;});
  form.addEventListener('submit',e=>{e.preventDefault();void saveProfile(new FormData(form),submit);});
  page.append(form);
+ if(window.cc394OpenPassword)page.append(button('Cambiar contraseña',()=>window.cc394OpenPassword(),'cc166-secondary'));
  page.append(button('Mis autorizaciones de correo',()=>nav('mailboxes'),'cc166-secondary'));
  if(verified&&data.admin)page.append(button('Correos de confirmación de depósitos',()=>nav('recharge-mail'),'cc166-secondary'));
  if(!profileEmail&&profileEmailOwner!==user&&!profileEmailLoading)void loadEmail();
