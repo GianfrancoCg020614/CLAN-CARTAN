@@ -1,0 +1,20 @@
+{
+  "scope": "production anonymous reads only",
+  "profile": "stress-read",
+  "max_vus": 50,
+  "configured_seconds": 100,
+  "requests": 1427,
+  "failed_requests": 1,
+  "http_failure_rate": 0.000700770847932726,
+  "rate_limited": 0,
+  "homepage_p95_ms": 187.5676365,
+  "catalog_p95_ms": 360.7551637999951,
+  "checks_passed": 1429,
+  "checks_failed": 1,
+  "limitations": [
+    "Empty public catalog",
+    "No authenticated or financial load",
+    "Not a certification for 10000 concurrent users",
+    "One failed request not conclusively attributed"
+  ]
+}

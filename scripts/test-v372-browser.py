@@ -26,11 +26,13 @@ def literal(v):
     return "'"+raw.replace("'","''")+"'"
 
 sql("update cc_internal.test_access set active=true;")
+# Browser and server must use the same owner timezone when running after midnight UTC.
+sql("begin;set local request.jwt.claim.sub='00000000-0000-4000-8000-000000000001';select public.cy372_set_timezone('America/Lima');commit;")
 sql("insert into auth.users values('"+EMPTY+"') on conflict do nothing;insert into cc_internal.test_access(user_id,active) values('"+EMPTY+"',true) on conflict(user_id) do update set active=true;")
 
 with sync_playwright() as p:
     browser=p.chromium.launch(executable_path=shutil.which('chromium') or shutil.which('google-chrome'),headless=True,args=['--no-sandbox'])
-    context=browser.new_context(viewport={'width':1280,'height':800},device_scale_factor=1)
+    context=browser.new_context(viewport={'width':1280,'height':800},device_scale_factor=1,timezone_id='America/Lima')
     errors=[]
     context.add_init_script("window.print=()=>{window.__printed=true;}")
     context.on('weberror',lambda e: errors.append(str(e.error)))
