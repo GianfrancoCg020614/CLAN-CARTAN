@@ -1,0 +1,7 @@
+-- Post-load accounting invariants for synthetic users only. Fail the job on corruption.
+\set ON_ERROR_STOP on
+select fixture393.assert(not exists(select 1 from public.cc_real_service_wallets w join auth.users u on u.id=w.user_id where u.email like 'capacity-http-%@example.test' and w.balance_pen not in(99,100)),'synthetic balances are 99 or 100');
+select fixture393.assert(not exists(select 1 from public.cc_portal_stream_orders o join auth.users u on u.id=o.buyer_id where u.email like 'capacity-http-%@example.test' group by o.buyer_id having count(*)<>1),'at most one order per buyer across all retries/stages');
+select fixture393.assert(not exists(select 1 from public.cc_real_service_wallets w join auth.users u on u.id=w.user_id where u.email like 'capacity-http-%@example.test' and 100-w.balance_pen<>(select coalesce(sum(s.amount_pen),0) from public.cc_real_wallet_spends s where s.user_id=w.user_id)),'every debit has a matching spend');
+select fixture393.assert((select sum(100-w.balance_pen) from public.cc_real_service_wallets w join auth.users u on u.id=w.user_id where u.email like 'capacity-http-%@example.test')=(select coalesce(sum(o.price_pen),0) from public.cc_portal_stream_orders o join auth.users u on u.id=o.buyer_id where u.email like 'capacity-http-%@example.test'),'orders reconcile with total wallet debits');
+select count(*) synthetic_buyers_with_orders from public.cc_portal_stream_orders o join auth.users u on u.id=o.buyer_id where u.email like 'capacity-http-%@example.test';
