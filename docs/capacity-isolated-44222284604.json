@@ -1,0 +1,82 @@
+{
+  "run_url": "https://github.com/GianfrancoCg020614/CLAN-CARTAN/actions/runs/44222284604",
+  "tested_commit": "1da1ea0",
+  "scope": "Isolated synthetic purchase/wallet API; not production capacity certification",
+  "fixture_accounts": 10000,
+  "runner_cpu": 4,
+  "runner_memory_mib": 15983,
+  "database_cpu_limit": 2,
+  "database_memory_gib_limit": 2,
+  "postgrest_pool": 30,
+  "think_time_seconds": 10,
+  "stage_duration_seconds": 30,
+  "stages": [
+    {
+      "vus": 10,
+      "exit_code": 0,
+      "passed": true,
+      "memory_guard": false,
+      "http_requests": 124,
+      "http_failures": 0,
+      "http_p95_ms": 72.02,
+      "financial_failure_rate": 0,
+      "completed_iterations": 30
+    },
+    {
+      "vus": 100,
+      "exit_code": 0,
+      "passed": true,
+      "memory_guard": false,
+      "http_requests": 1204,
+      "http_failures": 0,
+      "http_p95_ms": 217.09,
+      "financial_failure_rate": 0,
+      "completed_iterations": 300
+    },
+    {
+      "vus": 500,
+      "exit_code": 0,
+      "passed": true,
+      "memory_guard": false,
+      "http_requests": 6004,
+      "http_failures": 0,
+      "http_p95_ms": 471.52,
+      "financial_failure_rate": 0,
+      "completed_iterations": 1500
+    },
+    {
+      "vus": 1000,
+      "exit_code": 0,
+      "passed": true,
+      "memory_guard": false,
+      "http_requests": 12004,
+      "http_failures": 0,
+      "http_p95_ms": 1528.26,
+      "financial_failure_rate": 0,
+      "completed_iterations": 3000
+    },
+    {
+      "vus": 2500,
+      "exit_code": 99,
+      "passed": false,
+      "memory_guard": false,
+      "http_requests": 10092,
+      "http_failures": 19,
+      "http_p95_ms": 4782.16,
+      "financial_failure_rate": 0.00753370340999207,
+      "completed_iterations": 22
+    }
+  ],
+  "max_passing_stage": 1000,
+  "first_failed_stage": 2500,
+  "unexecuted_stages": [
+    5000,
+    10000
+  ],
+  "total_http_requests": 29428,
+  "total_http_failures": 19,
+  "accounting_invariants_passed": true,
+  "unique_synthetic_orders": 2500,
+  "postgres_deadlocks": 0,
+  "generator_peak_rss_mib": 933.54
+}
