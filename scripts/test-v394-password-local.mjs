@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+const root=process.env.CC_AUTH_LOCAL_URL||'http://127.0.0.1:55431';
+assert.ok(/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(root),'Solo se permite Auth local aislado');
+const call=async(path,method='POST',body=null,jwt=null)=>{const response=await fetch(root+path,{method,headers:{'Content-Type':'application/json',...(jwt?{Authorization:'Bearer '+jwt}:{})},...(body?{body:JSON.stringify(body)}:{})});return{ok:response.ok,status:response.status,data:await response.json().catch(()=>({}))};};
+const email='password-'+randomUUID()+'@example.test',before='PruebaLocalAnterior394!Segura',after='PruebaLocalNueva394!Distinta';
+const signup=await call('/signup','POST',{email,password:before});assert.ok(signup.ok,JSON.stringify(signup));
+const first=await call('/token?grant_type=password','POST',{email,password:before});assert.ok(first.ok&&first.data.access_token);
+const noSession=await call('/user','PUT',{password:after});assert.equal(noSession.ok,false);
+const updated=await call('/user','PUT',{password:after},first.data.access_token);assert.ok(updated.ok,JSON.stringify(updated));
+const old=await call('/token?grant_type=password','POST',{email,password:before});assert.equal(old.ok,false);
+const next=await call('/token?grant_type=password','POST',{email,password:after});assert.ok(next.ok&&next.data.access_token);
+assert.equal(next.data.user.id,signup.data.user?.id||signup.data.id,'La cuenta es la misma');
+const user=await call('/user','GET',null,next.data.access_token);assert.equal(user.data.email,email);
+console.log('PASS Auth real LOCAL: alta ficticia, ingreso inicial, rechazo sin sesión, cambio de contraseña, clave anterior rechazada, clave nueva aceptada e identidad conservada.');
