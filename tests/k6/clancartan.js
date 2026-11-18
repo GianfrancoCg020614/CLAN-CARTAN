@@ -16,8 +16,8 @@ const API = (__ENV.API_URL || (prodSite ? PROD_API : '')).replace(/\/$/, '');
 const PUBLIC_KEY = __ENV.SUPABASE_PUBLISHABLE_KEY || (API === PROD_API ? 'sb_publishable_nsp19gAqsdRak3JqWpusUg_Qd6mQr0n' : '');
 const production = prodSite || /^https?:\/\/pqalxtrcyrpmwqdlibqd\.supabase\.co(?::\d+)?$/i.test(API);
 const ISOLATED = __ENV.ISOLATED === 'YES';
-const knownProfiles = ['smoke', 'baseline', 'capacity-isolated'];
-if (!knownProfiles.includes(PROFILE)) throw new Error('Unknown PROFILE. Use smoke, baseline or capacity-isolated.');
+const knownProfiles = ['smoke', 'baseline', 'stress-read', 'capacity-isolated'];
+if (!knownProfiles.includes(PROFILE)) throw new Error('Unknown PROFILE. Use smoke, baseline, stress-read or capacity-isolated.');
 if (!/^https?:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(BASE) || !/^https?:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(API)) throw new Error('BASE_URL and API_URL must be explicit origins without paths or credentials.');
 if (!PUBLIC_KEY) throw new Error('Provide the publishable key for the isolated environment. Never use service_role.');
 if (PUBLIC_KEY.startsWith('sb_secret_')) throw new Error('Secret keys are forbidden.');
@@ -34,6 +34,12 @@ const profiles = {
     { duration: '15s', target: 1 }, { duration: '30s', target: 3 },
     { duration: '30s', target: 5 }, { duration: '15s', target: 1 },
   ] },
+  'stress-read': { executor: 'ramping-vus', startVUs: 1, gracefulRampDown: '5s', gracefulStop: '5s', stages: [
+    {duration:'15s',target:10}, {duration:'15s',target:10},
+    {duration:'15s',target:25}, {duration:'15s',target:25},
+    {duration:'15s',target:50}, {duration:'15s',target:50},
+    {duration:'10s',target:0},
+  ] },
   'capacity-isolated': { executor: 'ramping-vus', startVUs: 0, gracefulRampDown: '10s', gracefulStop: '10s', stages: [
     { duration: '30s', target: 100 }, { duration: '1m', target: 100 },
     { duration: '1m', target: 500 }, { duration: '1m', target: 500 },
@@ -48,7 +54,7 @@ const failures = new Rate('application_failures');
 const throttled = new Counter('responses_429');
 const homeTime = new Trend('homepage_ms', true);
 const catalogTime = new Trend('catalog_ms', true);
-const hardMax = PROFILE === 'capacity-isolated' ? 10000 : PROFILE === 'baseline' ? 5 : 1;
+const hardMax = PROFILE === 'capacity-isolated' ? 10000 : PROFILE === 'stress-read' ? 50 : PROFILE === 'baseline' ? 5 : 1;
 export const options = {
   scenarios: { public_reads: profiles[PROFILE] },
   discardResponseBodies: true,
@@ -59,7 +65,7 @@ export const options = {
     application_failures: [{ threshold: 'rate<0.01', abortOnFail: true, delayAbortEval: '10s' }],
     responses_429: [{ threshold: 'count<3', abortOnFail: true, delayAbortEval: '10s' }],
     homepage_ms: ['p(95)<2000'],
-    catalog_ms: ['p(95)<1500'],
+    catalog_ms: [{ threshold: 'p(95)<1500', abortOnFail: PROFILE === 'stress-read', delayAbortEval: '20s' }],
   },
   cloud: { projectID: 8503904, name: `CLAN CARTAN — ${PROFILE} — read only` },
   tags: { app: 'clan-cartan', profile: PROFILE, scope: 'public_read_only' },
@@ -97,7 +103,7 @@ export default function () {
   group('public catalog — read-only PostgREST RPC', () => {
     record(http.post(API + '/rest/v1/rpc/cc_portal_public_catalog_v3', '{}', { headers: apiHeaders, timeout: '10s', tags: { endpoint: 'catalog' } }), catalogTime);
   });
-  sleep(PROFILE === 'capacity-isolated' ? 10 : 2);
+  sleep(PROFILE === 'capacity-isolated' ? 10 : PROFILE === 'stress-read' ? 5 : 2);
 }
 export function handleSummary(data) {
   return { stdout: JSON.stringify({ profile: PROFILE, scope: 'public_read_only', metrics: data.metrics }, null, 2) + '\n' };

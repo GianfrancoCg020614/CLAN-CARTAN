@@ -5,6 +5,7 @@ assert.ok(bin,'Provide K6_BIN pointing to the verified k6 executable');
 const inspect=env=>spawnSync(bin,['inspect',...Object.entries(env).flatMap(([k,v])=>['-e',k+'='+v]),'tests/k6/clancartan.js'],{encoding:'utf8'});
 let r=inspect({});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/constant-vus/);
 r=inspect({PROFILE:'baseline'});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/ramping-vus/);
+r=inspect({PROFILE:'stress-read'});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/50/);
 for(const env of [
  {PROFILE:'capacity-isolated'},
  {PROFILE:'capacity-isolated',ISOLATED:'YES',ALLOW_LARGE_TEST:'YES'},

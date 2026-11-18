@@ -69,3 +69,23 @@ Diez ejecuciones por caso, una conexión, tiempos SQL locales:
 Pasaron las comprobaciones del total registrado, páginas acotadas, coincidencia exacta de cuenta buscada y rechazo de acceso a un usuario no administrador. La consulta posterior al ROLLBACK confirmó cero cuentas sintéticas restantes. Se comprobó que GitHub main seguía en 7fe4def antes de guardar.
 
 Conclusión limitada: el directorio funciona con ese volumen de cuentas en esta fixture. La última página resulta más costosa por ordenamiento/offset y la búsqueda usa normalización y coincidencia parcial; no se ha modificado la función ni creado índices sin demostrar necesidad con datos operativos representativos. No se probó concurrencia de 10 000 sesiones, login masivo, ni carga de operaciones financieras con esta prueba. No se requiere ninguna acción manual adicional para consultar este informe. Una certificación integral requiere una prueba representativa y monitorizada fuera de producción y dimensionar tanto el generador como los servicios; no se creó STAGING ni se adquirió infraestructura.
+
+## Ampliación solicitada: carga de lectura y funciones
+
+Se ejecutó PROFILE=stress-read sobre producción: rampas de 10, 25 y 50 usuarios virtuales, pausas de 5 s por iteración, 100 s de escenario y hasta 5 s de finalización. No se aumentó más la carga. Resultado: 1427 solicitudes, 472 iteraciones completas, 3 interrumpidas al finalizar, 1 solicitud fallida (0.0701 %), 0 respuestas 429. Todos los umbrales agregados pasaron; 1429 verificaciones pasaron y 1 falló. No es una ejecución sin fallos. p95 inicio 187.57 ms; p95 catálogo 360.76 ms. El log resumido no permite atribuir con certeza la solicitud fallida al servidor o a la cancelación del escenario. El catálogo sigue vacío; no representa consultas con volumen de productos. No hubo operaciones autenticadas ni financieras en producción.
+
+Pruebas adicionales ejecutadas localmente:
+
+- Sintaxis de 13 scripts inline y sincronización de sesión V192: aprobadas.
+- Mensajes y comprobantes V372: importes decimales, fechas, privacidad, rechazo de datos incompletos: aprobados.
+- Avisos Binance V392/V393: 25 casos aprobados, con validación de fecha, moneda, autenticación del correo, caché e idempotencia de solicitudes. Fuentes externas simuladas; no depósitos reales.
+- Integridad financiera V167: 92 comprobaciones aprobadas, sin pagos reales.
+- Administración V394 en PC y celular: cambio de contraseña mediante API simulada, nonce, directorio paginado, ficha, bono sin duplicidad ni activación, referidos y cambio de sesión: aprobado.
+- Navegación V390: COBRA YA, MI COCHERA y MI ALQUILER a 1366, 390 y 320 px: aprobada con respuestas simuladas.
+- MI COCHERA: índice completo, cargadores compartidos y workspace SQL real de la fixture local: aprobado sin errores de página.
+- MI ALQUILER: índice completo, resumen SQL real local, formularios, búsqueda, exportaciones y vencimiento en PC/390/320: aprobado. Escrituras simuladas.
+- STREAM BULL’S: 39 casos de interfaz/roles en local aprobados; escrituras simuladas.
+- Regresión SQL V394 sobre test393: aprobada y revertida.
+- Seis aprobaciones concurrentes del mismo bono en test393: un único crédito y saldos reales ficticios conservados. La fixture se limpió al finalizar.
+
+Estas verificaciones complementan la prueba de volumen, pero no equivalen a una prueba de estrés de todos los negocios. No se han probado todas sus funciones con miles de sesiones autenticadas simultáneas. El entorno generador disponible tiene límite de 8 GiB y 2 CPU y unos 367 MiB libres de disco; solo hay PostgreSQL local y fixtures reducidas, no una réplica completa local de Auth, PostgREST y Edge Functions. No se puede certificar la plataforma completa para 10 000 simultáneos con estas condiciones. No se habilitaron servicios de pago ni se ejecutaron 10 000 usuarios sobre producción.
