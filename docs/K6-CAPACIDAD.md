@@ -46,3 +46,26 @@ No se guardó ni ejecutó una prueba dentro de Grafana: no se dispone de acceso 
 ## Administración
 
 La base V394 contiene la simplificación del resumen administrativo y del otorgamiento de bono, directorio paginado y consulta de fichas. Esta entrega agrega pruebas y documentación; no modifica el panel, las reglas de bono, las políticas RLS ni la versión visible. No constituye una auditoría exhaustiva de todos los flujos administrativos.
+
+## Ejecución de Grafana aportada por el propietario
+
+https://gracefulclematis1698.grafana.net/a/k6-app/runs/9038812
+
+Evidencia: capturas del propietario, no acceso autenticado directo del agente. Muestran 36 solicitudes, 0 fallos HTTP, 1 usuario virtual, p95 global 477 ms, 5/5 umbrales y 36/36 verificaciones. El encabezado muestra 5 s mientras el script entregado configura 30 s: no se certifica la duración efectiva sin revisar el script ejecutado y los registros de esa ejecución. No se infiere capacidad masiva de este resultado.
+
+## Prueba local con 10 000 cuentas ficticias
+
+Se ejecutó scripts/sql/capacity-10000.sql en el contenedor local clan-v393-test, base test393, con la función real cc394_admin_directory de V394 y sus dependencias de la fixture de regresión. Se agregaron 10 000 cuentas sintéticas a las cuentas existentes, con códigos y nombres, dentro de una transacción finalmente revertida. El esquema Auth de la fixture es reducido; no equivale al servicio Auth de Supabase completo. Las tablas operativas de negocios no tienen volumen representativo en esta fixture.
+
+Diez ejecuciones por caso, una conexión, tiempos SQL locales:
+
+| Caso | Promedio | p95 | Máximo |
+| --- | ---: | ---: | ---: |
+| Primera página | 94.58 ms | 297.75 ms | 496.15 ms |
+| Página 500 | 414.79 ms | 443.17 ms | 457.39 ms |
+| Buscar código de cuenta 10 000 | 68.94 ms | 72.38 ms | 73.81 ms |
+| Buscar nombre de cuenta 10 000 | 69.08 ms | 70.43 ms | 70.67 ms |
+
+Pasaron las comprobaciones del total registrado, páginas acotadas, coincidencia exacta de cuenta buscada y rechazo de acceso a un usuario no administrador. La consulta posterior al ROLLBACK confirmó cero cuentas sintéticas restantes. Se comprobó que GitHub main seguía en 7fe4def antes de guardar.
+
+Conclusión limitada: el directorio funciona con ese volumen de cuentas en esta fixture. La última página resulta más costosa por ordenamiento/offset y la búsqueda usa normalización y coincidencia parcial; no se ha modificado la función ni creado índices sin demostrar necesidad con datos operativos representativos. No se probó concurrencia de 10 000 sesiones, login masivo, ni carga de operaciones financieras con esta prueba. No se requiere ninguna acción manual adicional para consultar este informe. Una certificación integral requiere una prueba representativa y monitorizada fuera de producción y dimensionar tanto el generador como los servicios; no se creó STAGING ni se adquirió infraestructura.
