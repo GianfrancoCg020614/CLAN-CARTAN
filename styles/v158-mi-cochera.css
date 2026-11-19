@@ -71,7 +71,6 @@
 #mc158layer .mc158detail-actions button,#mc158dialog .mc158detail-actions button{font-size:12px;flex:1 1 120px}
 #mc158layer .mc373-empty,#mc158layer .mc158empty{padding:25px;text-align:center;color:#aabed7;line-height:1.7}
 #mc158layer .mc373-pages,#mc158dialog .mc373-pages{display:flex;gap:9px;align-items:center;justify-content:flex-end;padding-top:12px;flex-wrap:wrap;font-size:12px}
-#mc158layer .mc373-pages:empty{display:none}
 #mc158layer .mc373-report{max-width:850px}
 #mc158layer .mc373-report p{color:#a8bdd6;margin:12px 0}
 #mc158layer .mc373-report dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}
