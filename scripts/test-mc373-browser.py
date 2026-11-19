@@ -13,6 +13,7 @@ with sync_playwright() as p:
   page.goto('http://127.0.0.1:8000/artifacts/mc373/premium.html');page.locator('#mc158rows tr [data-action=select-cart]').first.wait_for()
   assert page.locator('.mc158head').count()==1
   assert page.locator('.mc373-logo').count()==1
+  assert page.locator('.mc158kpi strong').evaluate_all("items=>items.every(x=>{const r=document.createRange();r.selectNodeContents(x);return r.getClientRects().length===1})"),'An amount must not split digits over multiple lines'
   assert page.locator('[data-action=new]').count()==1
   assert page.locator('.mc158quick').count()==0
   assert page.locator('[data-action=wallet]').count()==1
