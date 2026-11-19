@@ -17,6 +17,11 @@ with sync_playwright() as p:
     assert page.locator('#mc158dialog header h3').inner_text()=='Ficha del carrito'
     page.keyboard.press('Escape')
    assert page.locator('#mc158dialog').count()==0
+  def advanced(action):
+   scope=page.locator('#mc158dialog') if width<=850 else page.locator('.mc158detail-panel')
+   more=scope.locator('.mc395-more')
+   if more.get_attribute('open') is None:more.locator('summary').click()
+   scope.locator('[data-action='+action+']').click()
   nav('retired_due');assert page.locator('#mc158state').count()==0;assert page.locator('#mc158rows [data-action=select-cart]').count()==1;assert 'Carrito 3' in page.locator('#mc158rows').inner_text()
   page.locator('#mc158search').fill('inexistente');page.wait_for_timeout(350);assert page.locator('#mc158rows [data-action=select-cart]').count()==0
   nav('carts');nav('carts')
@@ -32,10 +37,10 @@ with sync_playwright() as p:
   page.locator('#mc158rows [data-cart="2"]').click();page.wait_for_timeout(20)
   page.locator('.mc158detail-actions [data-action=sale]').click();assert '($)' not in page.locator('#mc158sale').inner_text() # Intl unit is USD, never account PEN.
   assert 'USD' in page.locator('#mc158sale').inner_text();assert 'PEN' not in page.locator('#mc158sale').inner_text();close_form()
-  page.locator('#mc158rows [data-cart="2"]').click();page.wait_for_timeout(20);page.locator('.mc158detail-actions [data-action=historical]').click();form=page.locator('#mc385history');assert form.locator('[name=day]').is_disabled();assert form.locator('[name=amount]').is_disabled()
+  page.locator('#mc158rows [data-cart="2"]').click();page.wait_for_timeout(20);advanced('historical');form=page.locator('#mc385history');assert form.locator('[name=day]').is_disabled();assert form.locator('[name=amount]').is_disabled()
   form.locator('[name=mode]').select_option('payment');assert form.locator('[name=amount]').is_enabled();assert form.locator('[name=reason]').get_attribute('required') is not None
   form.locator('[name=joined]').fill('2026-10-01');form.locator('[name=day]').fill('2026-10-02');form.locator('[name=amount]').fill('2');form.locator('[name=reason]').fill('Referencia controlada');form.locator('button[type=submit]').click();page.wait_for_timeout(100);assert page.evaluate('__calls.at(-1).p_payment')==2
-  page.locator('#mc158rows [data-cart="2"]').click();page.wait_for_timeout(20);page.evaluate('window.__failCorrections=true');page.locator('.mc158detail-actions [data-action=corrections]').click();page.wait_for_timeout(100);assert 'No se pudieron consultar' in page.locator('#mc377items').inner_text();assert page.locator('[data-action=reverse-item]').count()==0;close_form()
+  page.locator('#mc158rows [data-cart="2"]').click();page.wait_for_timeout(20);page.evaluate('window.__failCorrections=true');advanced('corrections');page.wait_for_timeout(100);assert 'No se pudieron consultar' in page.locator('#mc377items').inner_text();assert page.locator('[data-action=reverse-item]').count()==0;close_form()
   page.locator('#mc158rows [data-cart="2"]').click();page.wait_for_timeout(20)
   page.evaluate("""()=>{const base=cc80.api;cc80.api=async(p,m,b)=>{if(p==='rpc/mc_list_corrections')return [];if(p.startsWith('mc_movements?')){const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),v=k=>parts.find(x=>x.type===k).value,day=v('year')+'-'+v('month')+'-'+v('day');return [{id:'rent',cart_id:2,kind:'RENT',amount_local:17,currency:'USD',occurred_on:day,created_at:day+'T12:00:00Z'},{id:'adjust',cart_id:2,kind:'RENT_ADJUSTMENT',amount_local:-17,currency:'USD',occurred_on:day,created_at:day+'T13:00:00Z'}];}return base(p,m,b)}}""")
   page.locator('.mc158detail-actions [data-action=calendar]').click();page.wait_for_timeout(100);assert page.locator('.mc376-review').count()==1;assert page.locator('.mc376-paid').count()==0;assert 'no se puede confirmar' in page.locator('.mc376-info').inner_text();page.screenshot(path=str(out/('v387-calendar-'+str(width)+'.png')));close_form()

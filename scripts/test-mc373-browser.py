@@ -13,6 +13,9 @@ with sync_playwright() as p:
   page.goto('http://127.0.0.1:8000/artifacts/mc373/premium.html');page.locator('#mc158rows tr [data-action=select-cart]').first.wait_for()
   assert page.locator('.mc158head').count()==1
   assert page.locator('.mc373-logo').count()==1
+  assert page.locator('[data-action=new]').count()==1
+  assert page.locator('.mc158quick').count()==0
+  assert page.locator('[data-action=wallet]').count()==1
   assert page.locator('#mc158close').is_visible()
   assert page.locator('#mc158rows tr').count()==(10 if width>850 else 5)
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
@@ -22,14 +25,24 @@ with sync_playwright() as p:
   search.fill('Rodriguez Juan');page.wait_for_timeout(400);assert page.locator('#mc158rows tr [data-action=select-cart]').count()>0
   search.fill('');page.wait_for_timeout(400)
   page.locator('#mc158rows [data-action=select-cart]').first.click()
+  detail=page.locator('#mc158dialog') if width<=850 else page.locator('.mc158detail-panel')
+  assert detail.locator('[data-action=payment]').count()==1
+  more=detail.locator('.mc395-more');assert more.get_attribute('open') is None
+  assert not more.locator('[data-action=historical]').is_visible()
+  more.locator('summary').click();assert more.locator('[data-action=historical]').is_visible()
+  more.locator('summary').click()
   if width<=850:
    assert page.locator('#mc158dialog').is_visible();page.screenshot(path=str(root/('ficha-'+str(width)+'-local.png')),full_page=True);page.locator('#mc158dialog [data-action=close-dialog]').click();assert page.locator('#mc158layer').is_visible()
   for view in ['carts','sales','collections','reports','settings','home']:
    if width<=850:page.locator('.mc158head [data-action=menu]').click()
    page.locator('.mc158sidebar [data-view='+view+']').click();page.wait_for_timeout(100)
+   assert page.locator('[data-action=new]').count()==(1 if view in ['home','carts'] else 0)
    assert page.locator('.mc158main h2').inner_text()=={'carts':'Carritos','sales':'Ventas','collections':'Cobros','reports':'Reportes','settings':'Configuración','home':'Inicio'}[view]
    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
   page.locator('[data-action=new]').click();assert page.locator('#mc158new').is_visible();page.keyboard.press('Escape');assert page.locator('#mc158dialog').count()==0
+  page.evaluate("window.__mc373Fixture=async()=>({rows:[],total:0,cart_count:0,selected:null,summary:[]});mc158Open()")
+  page.locator('.mc158empty').wait_for();assert page.locator('.mc158detail-panel').count()==0
+  assert page.locator('[data-action=new]').count()==1
   page.locator('#mc158close').click();assert page.evaluate('window.__returned===true');assert not errors,errors
   results.append({'case':'premium navigation/search/logo/return','width':width,'status':'pass'})
   page.close()
