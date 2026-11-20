@@ -4,7 +4,7 @@ from urllib.parse import urlparse,parse_qs,unquote
 from playwright.sync_api import sync_playwright
 import os,shutil,json
 OUT=Path('artifacts/sb389');OUT.mkdir(parents=True,exist_ok=True)
-Path('artifacts/v402').mkdir(parents=True,exist_ok=True)
+Path('artifacts/v403').mkdir(parents=True,exist_ok=True)
 UID='00000000-0000-4000-8000-000000000001'
 roles=['admin','super','reseller','affiliate','pending','expired','other-business']
 results=[]
@@ -79,7 +79,7 @@ with sync_playwright() as p:
    for theme in ['light','dark']:
     page.evaluate('(t)=>CCTheme.set(t)',theme);page.wait_for_timeout(100)
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
-    page.screenshot(path='artifacts/v402/stream-'+role+'-'+str(width)+'-'+theme+'.png')
+    page.screenshot(path='artifacts/v403/stream-'+role+'-'+str(width)+'-'+theme+'.png')
    if role=='super':
     go('Mis publicaciones');assert page.locator('.sb389-composer').get_attribute('open') is None;page.locator('.sb389-composer summary').click();form=page.locator('#cc166-publish-form');form.locator('[name=title]').fill('Borrador conservado');page.get_by_label('Actualizar datos',exact=True).click();page.wait_for_timeout(300);assert page.locator('#cc166-publish-form [name=title]').input_value()=='Borrador conservado';assert 'Publicación propia' in page.locator('#cc166-content').inner_text();assert 'Publicación ajena' not in page.locator('#cc166-content').inner_text();assert any('seller_id=eq.' in x for x in requests)
     approved=False;page.evaluate('CC_V53_SESSION.isAdmin=true;cc166RefreshPanel()');page.wait_for_function("document.querySelector('#cc166-role')?.textContent.startsWith('RESELLER')");assert page.locator('.cc166-navitem[aria-label="Mis publicaciones"]').count()==0;assert page.locator('#cc166-publish-form').count()==0
