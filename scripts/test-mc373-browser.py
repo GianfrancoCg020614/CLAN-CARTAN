@@ -61,11 +61,11 @@ with sync_playwright() as p:
    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
   page.locator('[data-action=new]').click();assert page.locator('#mc158new').is_visible();page.keyboard.press('Escape');assert page.locator('#mc158dialog').count()==0
   # Recovery from picker failure and late responses after switching owner.
-  page.evaluate("window.__healthyFixture=__mc373Fixture;__mc373Fixture=async b=>{if(b.p_due)throw Error('Sin conexión de prueba');return __healthyFixture(b)}")
+  page.evaluate("()=>{window.__healthyFixture=__mc373Fixture;__mc373Fixture=async b=>{if(b.p_due)throw Error('Sin conexión de prueba');return __healthyFixture(b)};}")
   page.locator('[data-action=pick-payment]').click();page.get_by_text('Sin conexión de prueba',exact=False).wait_for()
-  page.evaluate('window.__mc373Fixture=__healthyFixture')
+  page.evaluate('()=>{window.__mc373Fixture=__healthyFixture;}')
   page.locator('#mc158dialog button',has_text='Reintentar').click();page.locator('.mc396-pick').first.wait_for();page.keyboard.press('Escape')
-  page.evaluate("window.__mc373Fixture=async b=>{if(CC_V53_SESSION.userId!=='fixture-user')return{rows:[],summary:[],total:0,cart_count:0,selected:null};const r=await __healthyFixture(b);if(b.p_due)return new Promise(resolve=>window.__releasePicker=()=>resolve(r));return r}")
+  page.evaluate("()=>{window.__mc373Fixture=async b=>{if(CC_V53_SESSION.userId!=='fixture-user')return{rows:[],summary:[],total:0,cart_count:0,selected:null};const r=await __healthyFixture(b);if(b.p_due)return new Promise(resolve=>window.__releasePicker=()=>resolve(r));return r};}")
   page.locator('[data-action=pick-payment]').click();page.wait_for_function('typeof __releasePicker==="function"')
   page.evaluate("CC_V53_SESSION.userId='other-owner';mc158Open()")
   page.locator('.mc158empty').wait_for();page.evaluate('__releasePicker()');page.wait_for_timeout(100)
