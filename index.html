@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V398-20261120">
+<meta name="cc-deploy-version" content="V399-20261120">
 <script src="scripts/v398-business-theme.js?v=398"></script>
 <meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="0x4AAAAAAFgi3l7LiJrucZTP">
@@ -2498,7 +2498,7 @@ body.light .ccc-v50-maker-divider{background:#d7dce2}
 @media(max-width:650px){#cy53modal .scroll table{min-width:880px}#cy53modal button{font-size:13px}}
 </style><link rel="stylesheet" href="styles/v113-wallet.css?v=115">
 <link rel="stylesheet" href="styles/v116-account.css?v=116">
-<link rel="stylesheet" href="styles/v117-public-catalog.css?v=117">
+<link rel="stylesheet" href="styles/v117-public-catalog.css?v=399">
 <link rel="stylesheet" href="styles/v118-logout.css?v=118">
 <link rel="stylesheet" href="styles/v119-clients.css?v=119">
 <link rel="stylesheet" href="styles/v122-recharges.css?v=131">
@@ -3154,6 +3154,7 @@ function canViewClientData(o){return !!o&&(isAdmin()||currentUser().role==='affi
 function canReadClientPrivate(o){return canViewClientData(o)}
 function setRole(v){if(!isAdmin())return notify('Solo ADMIN puede cambiar identidades en la demo.','error');if(!db.users.some(u=>u.id===v))return;ui.role=v;ui.selectedProduct=null;ui.panelView='dashboard';if(currentUser().role==='visitor')ui.face='store';closeModal();render()}
 function searchStore(input){
+  if(input.id==='cc117-search'){ui.storeSearch=input.value;return;}
   const index=input.selectionStart??input.value.length;
   const position=Array.from(document.querySelectorAll('input[oninput="searchStore(this)"]')).indexOf(input);
   ui.storeSearch=input.value;
@@ -3163,81 +3164,36 @@ function searchStore(input){
   if(target){target.focus();try{target.setSelectionRange(index,index)}catch{}}
 }
 function categories(){return ['Todos',...new Set(db.products.filter(p=>p.approved).map(p=>p.category))]}
-function cc117SelectCategory(category){ui.storeCategory=category;ui.selectedProduct=null;render();}
+function cc117SelectCategory(category){ui.storeCategory=category;ui.selectedProduct=null;if(ui.face==='store'&&document.getElementById('cc117-search')){for(const b of document.querySelectorAll('.cc117-category-item')){const active=b.dataset.category===category;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));}document.dispatchEvent(new Event('cc399-catalog-filter'));return;}render();}
 function cc117CategoryButton(category){
-  return '<button type="button" class="cc117-category-item'+(ui.storeCategory===category?' active':'')+'" onclick="cc117SelectCategory('+esc(JSON.stringify(category))+')" aria-pressed="'+(ui.storeCategory===category)+'">'+esc(category)+'</button>';
+  return '<button type="button" class="cc117-category-item'+(ui.storeCategory===category?' active':'')+'" data-category="'+esc(category)+'" onclick="cc117SelectCategory('+esc(JSON.stringify(category))+')" aria-pressed="'+(ui.storeCategory===category)+'">'+esc(category)+'</button>';
 }
 function filteredProducts(){return db.products.filter(p=>p.approved).filter(p=>ui.storeCategory==='Todos'||p.category===ui.storeCategory).filter(p=>p.name.toLowerCase().includes(ui.storeSearch.toLowerCase())||p.category.toLowerCase().includes(ui.storeSearch.toLowerCase()))}
 function stats(){return {products:db.products.filter(p=>p.approved).length,accounts:db.accounts.length,activeOrders:db.orders.filter(o=>o.status==='completed').length,pendingRegs:db.registrations.filter(r=>r.status==='pending').length}}
 function renderStore(){
-  const user=currentUser();
-  const products=filteredProducts();
-  const featured=products.slice(0,4);
-  const recs=products.slice(0,5);
-  const curated=products.slice(4,7);
-  const approvedCount=db.products.filter(p=>p.approved).length;
-  const sellerCount=new Set(db.products.filter(p=>p.approved).map(p=>p.sellerId)).size;
-  const orderCount=db.orders.length;
-  const categoriesList=categories().filter(c=>c!=='Todos').slice(0,9);
-  return `
-<div class="shell">
-<header class="store-header v6 store-header-clean cc117-header" aria-label="Cabecera del catálogo público">
-  <div class="cc117-nav-main">
-    <button class="cc117-store-brand" type="button" onclick="cc77Home()" aria-label="Volver al portal CLAN CARTAN">
-      <span class="brand-emblem brand-emblem-logo" aria-hidden="true"></span>
-      <span class="cc117-brand-name">STREAM <em>BULL'S</em><small>Catálogo digital · CLAN CARTAN</small></span>
-    </button>
-    <nav class="cc117-actions-top" aria-label="Menú principal">
-      <button type="button" class="cc117-link" onclick="cc77Home()">⌂ <span>Inicio</span></button>
-      <button type="button" class="cc117-link" onclick="ui.selectedProduct=null;render();document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})">▣ <span>Productos</span></button>
-      <button type="button" class="cc117-theme" onclick="switchTheme()" title="Cambiar modo claro u oscuro" aria-label="Cambiar tema">${ui.theme==='dark'?'☼':'☾'}</button>
-      ${window.CC_V53_SESSION?.jwt?'<button type="button" class="cc117-register" onclick="cc77Home()">Mi cuenta</button>':'<button type="button" class="cc117-login" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="cc117-register" onclick="cc77Auth(true)">Crear cuenta</button>'}
-    </nav>
-  </div>
-  <nav class="cc117-category-strip" aria-label="Categorías de productos">
-    <span class="cc117-category-label">Categorías</span>
-    <div class="cc117-category-list">${categories().map(cc117CategoryButton).join('')}</div>
+ return `<div class="shell cc399-catalog">
+<header class="store-header cc117-header" aria-label="Cabecera del catálogo público">
+ <div class="cc117-nav-main">
+  <button class="cc117-store-brand" type="button" onclick="cc77Home()" aria-label="Volver al inicio de CLAN CARTAN"><span class="brand-emblem brand-emblem-logo" aria-hidden="true"></span><span class="cc117-brand-name">STREAM <em>BULL'S</em><small>Catálogo · CLAN CARTAN</small></span></button>
+  <nav class="cc117-actions-top" aria-label="Menú principal">
+   <button type="button" class="cc117-link" onclick="cc77Home()">← <span>CLAN CARTAN</span></button>
+   <button type="button" class="cc117-theme" onclick="window.CCTheme?CCTheme.toggle():switchTheme()" aria-label="Cambiar modo día o noche">◐</button>
+   ${window.CC_V53_SESSION?.jwt?'<button type="button" class="cc117-register" onclick="cc77Home()">Mi perfil</button>':'<button type="button" class="cc117-login" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="cc117-register" onclick="cc77Auth(true)">Crear cuenta</button>'}
   </nav>
+ </div>
 </header>
-<main class="store-main v6" id="inicio">
-
-  ${ui.selectedProduct&&productById(ui.selectedProduct)?.approved?storeDetailView(productById(ui.selectedProduct)):`
-  <section class="cc117-search-section" aria-labelledby="cc117-search-title">
-    <span class="cc117-overline">CATÁLOGO PÚBLICO · SIN REGISTRO</span>
-    <h2 id="cc117-search-title">Busca tu <span>producto</span></h2>
-    <p>Explora servicios digitales, consulta precios y revisa las condiciones sin iniciar sesión.</p>
-    <label class="cc117-searchbar" for="cc117-search"><span aria-hidden="true">⌕</span><input id="cc117-search" type="search" autocomplete="off" placeholder="Busca Netflix, Spotify, Game Pass..." value="${esc(ui.storeSearch)}" oninput="searchStore(this)" aria-label="Buscar productos por nombre o categoría"></label>
-  </section>
-
-  <section class="shop-panels v23-shop-panels" id="productos">
-    <div class="section-card v23-catalog-section">
-      <div class="section-head">
-        <div><span class="v23-eyebrow">CATÁLOGO DIGITAL</span><h3>Explora nuestros productos <span class="v23-count">${products.length} disponibles en tu búsqueda</span></h3><p>Elige un servicio y revisa sus condiciones antes de comprar.</p></div>
-        <button class="v23-filter-reset" onclick="ui.storeCategory='Todos';ui.storeSearch='';ui.selectedProduct=null;render()">Ver todos ↗</button>
-      </div>
-      ${products.length?`<div class="products v6-grid v23-product-grid">${products.map(p=>`
-        <article class="product lux v23-product-card">
-          <div class="product-visual" role="button" tabindex="0" aria-label="Ver ${esc(p.name)}" onclick="showStoreDetail('${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showStoreDetail('${p.id}')} ">${productCover(p)}<span class="product-ribbon">${esc(p.badge)}</span></div>
-          <div class="product-body">
-            <div class="product-topmeta"><span class="v23-product-category">${esc(p.category)}</span><span class="availability-badge">${esc(stockText(p))}</span></div>
-            <button class="product-title-link" onclick="showStoreDetail('${p.id}')">${esc(p.name)}</button>
-            <div class="v23-product-seller">Por ${esc(sellerInfo(p).name)}</div>
-            <p class="product-preview">${esc(p.description)}</p>
-            <div class="v23-card-price"><div><small>${tierLabel()}</small><strong>${money(priceForUser(p))}</strong></div><button class="v23-details-link" onclick="showStoreDetail('${p.id}')">Detalles ↗</button></div>
-          </div>
-          ${productActions(p)}
-        </article>`).join('')}</div>`:`<div class="v23-empty"><h4>No encontramos productos</h4><p>Prueba con otra categoría o búsqueda.</p><button class="btn primary" onclick="ui.storeCategory='Todos';ui.storeSearch='';render()">Ver catálogo completo</button></div>`}
-      <div class="v23-shop-note">Los precios dependen de tu nivel. Los visitantes pueden explorar sin iniciar sesión.</div>
-    </div>
-  </section>
-
-  <section class="faq v6" id="faq">
-    <details class="card faq-item" open><summary>¿Cómo recargo a mi usuario?</summary><p>La recarga por QR requiere autorización y verificación del proveedor. El saldo se acredita únicamente después de confirmar el pago.</p></details>
-    <details class="card faq-item"><summary>¿Cómo se ve el precio según el rol?</summary><p>Los visitantes observan precios públicos. Los afiliados ven valores preferenciales, mientras resellers y niveles superiores pueden ver tarifas internas y operar desde el panel.</p></details>
-    <details class="card faq-item"><summary>¿Puedo hablar con el vendedor antes de comprar?</summary><p>Sí. Cada ficha de producto muestra al vendedor, su descripción y su botón de WhatsApp. Si el servicio es “A pedido”, el cliente primero consulta disponibilidad y luego continúa.</p></details>
-  </section>`}
-</main>
-</div>`}
+<main class="store-main cc217-stream-catalog" id="inicio">
+ <section id="productos" aria-labelledby="cc117-search-title">
+  <div class="section-card v23-catalog-section">
+   <div class="section-head"><div><h1 id="cc117-search-title">Catálogo</h1><span class="v23-count" role="status" aria-live="polite">Consultando productos…</span></div></div>
+   <div class="cc117-search-section"><label class="cc117-searchbar" for="cc117-search"><span aria-hidden="true">⌕</span><input id="cc117-search" type="search" autocomplete="off" placeholder="Buscar por producto o servicio…" value="${esc(ui.storeSearch)}" oninput="searchStore(this)" aria-label="Buscar productos"></label>
+    <nav class="cc117-category-strip" aria-label="Categorías de productos">${['Todos','Streaming','Recursos'].map(cc117CategoryButton).join('')}</nav>
+   </div>
+   <div class="v23-shop-note">Consultando catálogo…</div>
+  </div>
+ </section>
+</main></div>`;
+}
 function clientsView(){
  const role=currentUser().role;
  if(!['affiliate','reseller','super','admin'].includes(role))return '<div class="card section">No disponible para tu nivel.</div>';
@@ -3983,7 +3939,7 @@ const CCC_CREATOR={business:'CLAN CARTAN EIRL.',email:'clancartan@gmail.com',ico
 function cccCreatorFooter(){return `<footer class="ccc-v50-maker" aria-label="Información del creador de la plataforma"><button type="button" class="ccc-v50-maker-mark" onclick="cccShowCreator()" title="Ver logo del creador" aria-label="Ver logo de CLAN CARTAN EIRL."><img alt="Emblema original de CLAN CARTAN" src="${CCC_CREATOR.icon}"></button><div class="ccc-v50-maker-copy"><small>Plataforma desarrollada por</small><strong>CLAN CARTAN EIRL.</strong><a class="ccc-v50-maker-email" href="mailto:clancartan@gmail.com" aria-label="Escribir a CLAN CARTAN EIRL.">✉ clancartan@gmail.com</a></div><div class="ccc-v50-maker-divider" aria-hidden="true"></div><span class="ccc-v50-maker-msg">Tecnología de Stream Bull’s y Cobra Ya · Cada negocio conserva su identidad.</span></footer>`}
 function cccShowCreator(){document.getElementById('modalRoot').innerHTML=`<div class="modal-backdrop ccc-v50-logo-overlay" onclick="if(event.target===this)closeModal()"><section role="dialog" aria-modal="true" aria-label="Logo original del creador" class="modal card ccc-v50-logo-modal"><h3>CLAN CARTAN EIRL.</h3><img src="${CCC_CREATOR.poster}" alt="Logo original CLAN CARTAN con luna y emblema"><p>Creador de Stream Bull’s y Cobra Ya</p><p><a href="mailto:clancartan@gmail.com">clancartan@gmail.com</a></p><button class="btn primary" onclick="closeModal()">Cerrar</button></section></div>`}
 
-function render(){cccMigrateBusinesses();ensurePortalData();ensureCommerceData();cccEnsureStreamCodes();lnEnsure();lnAutoRenewDue();cccStreamRenewDue();document.body.className=(ui.theme==='light'?'light ':'')+'view-'+ui.face;document.getElementById('app').innerHTML=(ui.face==='loans'?'':backgroundScene())+(ui.face==='auth'?renderAccess():ui.face==='workspaces'?renderWorkspaces():ui.face==='platform'?renderPlatformAdmin():ui.face==='store'?renderStore():ui.face==='loans'?renderLoans():ui.face==='staff'?cccRenderStaffConsole():renderPanel())+(['loans','staff'].includes(ui.face)?'':adminFloatButton())+cccCreatorFooter();if(ui.face==='loans'){lnInstallLanguageObserver();lnApplyLanguage(document.querySelector('.ln-page'))}}
+function render(){cccMigrateBusinesses();ensurePortalData();ensureCommerceData();cccEnsureStreamCodes();lnEnsure();lnAutoRenewDue();cccStreamRenewDue();document.body.className=(ui.theme==='light'?'light ':'')+'view-'+ui.face;document.getElementById('app').innerHTML=(['loans','store'].includes(ui.face)?'':backgroundScene())+(ui.face==='auth'?renderAccess():ui.face==='workspaces'?renderWorkspaces():ui.face==='platform'?renderPlatformAdmin():ui.face==='store'?renderStore():ui.face==='loans'?renderLoans():ui.face==='staff'?cccRenderStaffConsole():renderPanel())+(['loans','staff','store'].includes(ui.face)?'':adminFloatButton())+cccCreatorFooter();if(ui.face==='loans'){lnInstallLanguageObserver();lnApplyLanguage(document.querySelector('.ln-page'))}}
 
 function buyProduct(id,confirmed=false){const user=currentUser(); if(user.role==='visitor'||user.loanOnly) return notify('Inicia sesión con una cuenta habilitada de Stream Bull’s para comprar.','error'); const p=productById(id);if(!p||!p.approved)return notify('Producto no disponible.','error');if(p.mode==='A pedido'&&!confirmed)return notify('Primero consulta stock al vendedor por WhatsApp.','error');if(realStock(p)<=0)return notify('Producto sin stock.','error'); const price=priceForUser(p); if(user.wallet<price) return notify('Saldo insuficiente en la demo.','error'); let account=db.accounts.find(a=>a.productId===p.id && a.profiles.some(pr=>pr.status==='free')); let profile=null, platformShare=0, sellerShare=price; if(account){profile=account.profiles.find(pr=>pr.status==='free'); profile.status='sold'; platformShare=Number((price*(account.commissionPercent/100)).toFixed(2)); sellerShare=Number((price-platformShare).toFixed(2)); profile.assignedOrder='ORD-'+Date.now();}
  p.stock=Math.max(0,p.stock-1);const orderId='ORD-'+Date.now();const sellerDates=cccSellerDates(p),serviceStart=sellerDates.start,serviceEnd=sellerDates.end,serviceDays=sellerDates.days,serviceDateMode=sellerDates.mode; if(profile) profile.assignedOrder=orderId; user.wallet=Number((user.wallet-price).toFixed(2)); const seller=db.users.find(u=>u.id===p.sellerId); if(seller){seller.wallet=Number((seller.wallet+sellerShare).toFixed(2));} const admin=db.users.find(u=>u.id==='admin'); admin.wallet=Number((admin.wallet+platformShare).toFixed(2)); db.orders.unshift({id:orderId,productId:p.id,sellerId:p.sellerId,buyerId:user.id,accountId:account?account.id:null,profileId:profile?profile.id:null,price,platformShare,sellerShare,status:'completed',created:today(),serviceStart,serviceEnd,serviceDays,serviceDateMode,expires:serviceEnd,clientName:'',clientEmail:'',clientPhone:'',delivered:true}); db.walletMoves.push({id:uid(),userId:user.id,type:'compra',amount:-price,desc:'Compra '+p.name+' · '+orderId,created:now()}); if(sellerShare) db.walletMoves.push({id:uid(),userId:seller.id,type:'venta',amount:sellerShare,desc:'Venta '+p.name+' · '+orderId,created:now()}); if(platformShare) db.walletMoves.push({id:uid(),userId:'admin',type:'comision',amount:platformShare,desc:'Comisión '+p.name+' · '+orderId,created:now()}); audit('Compra demo: '+orderId+' por '+user.name); save(); render(); showOrder(orderId); notify('Compra de prueba realizada. Pulsa Solicitar acceso para pedir el producto al vendedor por WhatsApp.');}
@@ -5687,7 +5643,7 @@ cy60form.addEventListener('submit',async e=>{
  }catch(err){cy60feedback.style.color='#ffba96';cy60feedback.textContent='No se guardó. Revisa los datos: '+err.message;notice('Error al registrar préstamo: '+err.message)}
  finally{btn.disabled=false;btn.textContent='Guardar préstamo'}
 });
-const observer=new MutationObserver(()=>{const b=document.getElementById('cy53open');if(b)b.style.display=window.CC_V53_SESSION?'block':'none';const a=document.getElementById('cy54adminShortcut');if(a)a.style.display=window.CC_V53_SESSION?.isAdmin?'block':'none'});observer.observe(document.documentElement,{childList:true,subtree:true});
+const observer=new MutationObserver(()=>{const b=document.getElementById('cy53open');if(b)b.style.display=window.CC_V53_SESSION&&!document.body.classList.contains('view-store')?'block':'none';const a=document.getElementById('cy54adminShortcut');if(a)a.style.display=window.CC_V53_SESSION?.isAdmin&&!document.body.classList.contains('view-store')?'block':'none'});observer.observe(document.documentElement,{childList:true,subtree:true});
 return{open,close,refresh,openDetail,closeDetail,printDetail};
 })();
 </script>
@@ -5836,7 +5792,7 @@ body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
 <script>
 function cc77Home(){document.getElementById('cc80wallet').style.display='none';document.getElementById('cy53layer').style.display='none';document.getElementById('cc93-affiliate').style.display='none';document.getElementById('cc77home').style.display='block';document.getElementById('cc77home').scrollTop=0;document.getElementById('cc-real-login').style.display='none';document.getElementById('cc77back').style.display='none';document.getElementById('cc77demobanner').style.display='none';}
 function cc77Auth(create){document.getElementById('cc77home').style.display='none';document.getElementById('cc77back').style.display='block';document.getElementById('cc77demobanner').style.display='none';const gate=document.getElementById('cc-real-login');gate.style.display='flex';gate.scrollTop=0;gate.querySelector('.cc-authbox').scrollTop=0;const button=document.getElementById('cc-register-toggle');const isCreate=document.getElementById('cc-real-button').textContent.includes('Registrar mi cuenta');if(button&&isCreate!==create)button.click();}
-function cc77Store(){document.getElementById('cc77home').style.display='none';document.getElementById('cc-real-login').style.display='none';document.getElementById('cc77back').style.display='block';document.getElementById('cc77demobanner').style.display='block';if(typeof ui!=='undefined'&&typeof render==='function'){ui.role='visitor';ui.face='store';render()} }
+function cc77Store(){document.getElementById('cc77home').style.display='none';document.getElementById('cc-real-login').style.display='none';document.getElementById('cc77back').style.display='none';document.getElementById('cc77demobanner').style.display='none';if(typeof ui!=='undefined'&&typeof render==='function'){ui.role='visitor';ui.face='store';render()} }
 </script>
 
 <style>
@@ -6156,8 +6112,8 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <link rel="stylesheet" href="styles/v224-day.css?v=398">
 <script src="scripts/v223-contacto-portada.js?v=223" defer></script>
 <!-- STREAMBULLS: catálogo unificado y estilos de navegación (carga efectiva). -->
-<link rel="stylesheet" href="styles/v169-catalogo-perfil.css?v=243">
-<script src="scripts/v169-catalogo-unico.js?v=391" defer></script>
+<link rel="stylesheet" href="styles/v169-catalogo-perfil.css?v=399">
+<script src="scripts/v169-catalogo-unico.js?v=399" defer></script>
 
 <!-- V252: estilos críticos inline al final del documento para evitar caché y precedencias históricas. -->
 
@@ -6191,7 +6147,7 @@ body:not(.light) .ccc-v14-panel .table tr:hover td{background:#0a344a55!importan
 <script src="/scripts/cobra-v372-tools.js?v=372" defer></script>
 <script src="/scripts/cobra-v371.js?v=398" defer></script>
 <link rel="stylesheet" href="styles/v398-business-theme.css?v=398">
-<link rel="stylesheet" href="styles/v398-support.css?v=398">
-<script src="scripts/v398-support.js?v=398"></script>
+<link rel="stylesheet" href="styles/v398-support.css?v=399">
+<script src="scripts/v398-support.js?v=399"></script>
 </body>
 </html>
