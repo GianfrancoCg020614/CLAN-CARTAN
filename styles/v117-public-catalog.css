@@ -22,7 +22,7 @@ html body.view-store #app .v23-count{display:block;font:500 13px/1.4 system-ui;c
 html body.view-store #app .cc117-search-section{display:grid;grid-template-columns:minmax(200px,1fr) auto;gap:16px;align-items:center;margin:0 0 24px;padding:0!important;border:0!important;border-radius:0;background:none!important;box-shadow:none;max-width:none}
 html body.view-store #app .cc117-searchbar{display:flex;align-items:center;gap:12px;background:var(--cat-surface)!important;border:1px solid var(--cat-line)!important;border-radius:12px;padding:0 16px!important;min-height:50px;width:100%;margin:0;box-shadow:none}
 html body.view-store #app .cc117-searchbar>span{font-size:26px;color:var(--cat-muted)}
-html body.view-store #app #cc117-search{border:0!important;background:none!important;color:var(--cat-ink)!important;padding:12px 0!important;min-height:48px;min-width:0;width:100%;font:400 15px system-ui;box-shadow:none!important;outline-offset:4px}
+html body.view-store #app #cc117-search{border:0!important;background:none!important;color:var(--cat-ink)!important;padding:12px 0!important;min-height:48px;min-width:0;width:100%;font:400 16px system-ui;box-shadow:none!important;outline-offset:4px}
 html body.view-store #app #cc117-search::placeholder{color:var(--cat-muted);opacity:1}
 html body.view-store #app .cc117-category-strip{display:flex;align-items:center;gap:6px;flex-wrap:wrap;position:static;padding:0!important;margin:0;border:0;background:none!important}
 html body.view-store #app .cc117-category-item{min-height:44px;padding:10px 14px!important;border-radius:10px;background:var(--cat-surface)!important;border:1px solid var(--cat-line)!important;color:var(--cat-ink)!important;font:600 13px system-ui;white-space:nowrap;box-shadow:none;cursor:pointer}
