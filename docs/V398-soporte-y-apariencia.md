@@ -25,7 +25,7 @@ Mensajes e inicio de consultas usan UUID de solicitud único y bloqueos por cons
 - Storage HTTP simulado en pruebas de adjuntos; políticas verificadas en PostgreSQL. No se hizo una conversación ni subida con una cuenta real de producción.
 - Navegación: 14 casos, ambos modos en los cuatro negocios; sesión conservada, formularios y regreso al inicio.
 - MI ALQUILER: suite existente con datos/monedas/formularios/búsqueda/exportaciones/activación, tres tamaños.
-- STREAM: 39 casos de roles y regresión mediante HTTP local.
+- STREAM: 39 casos de roles y regresión mediante HTTP local. El ejecutor adicional standalone file:// no terminó en este entorno; las mismas fixtures sí pasaron mediante HTTP.
 - Preferencia visual: sistema operativo, elección explícita, recarga, sincronización entre pestañas y almacenamiento local bloqueado.
 - Sintaxis de scripts y 13 bloques inline; diff sin errores de espacios.
 - Producción: RLS, privilegios, wrapper invoker, bucket privado y dos políticas comprobados; petición anónima a soporte rechazada (401).
