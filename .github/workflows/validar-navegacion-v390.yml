@@ -35,3 +35,4 @@ jobs:
           path: |
             artifacts/v390/
             artifacts/v371-dni-navigation/
+            artifacts/v402/
