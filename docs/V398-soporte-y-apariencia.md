@@ -8,7 +8,7 @@ Preferencia día/noche compartida con el inicio y los cuatro negocios, guardada 
 
 ## Datos y permisos
 
-Migración aditiva `20261120060553_human_support_v398.sql`. Aplicada en el proyecto existente, sin modificar tablas financieras, registros anteriores, Auth ni reglas de activación.
+Migración aditiva `20261120062023_human_support_v398.sql`. Aplicada en el proyecto existente, sin modificar tablas financieras, registros anteriores, Auth ni reglas de activación.
 
 Dos tablas privadas en `cc_internal`, RLS habilitado y sin lectura/escritura directa para clientes. La API pública usa SECURITY INVOKER y llama a implementación privada con validación explícita de `auth.uid()` y ADMIN según `cc_admins`. Sin autorización basada en user_metadata. Los avisos INFO «RLS sin políticas» de estas tablas privadas son intencionados: acceso directo denegado y operaciones autorizadas únicamente por función. Referencia: https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
 
