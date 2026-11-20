@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime,timezone
 from playwright.sync_api import sync_playwright
 OUT=Path('artifacts/v390');OUT.mkdir(parents=True,exist_ok=True)
-Path('artifacts/v402').mkdir(parents=True,exist_ok=True)
+Path('artifacts/v403').mkdir(parents=True,exist_ok=True)
 results=[]
 with sync_playwright() as p:
  b=p.chromium.launch(executable_path=shutil.which('chromium') or shutil.which('google-chrome'),args=['--no-sandbox'])
@@ -58,11 +58,11 @@ with sync_playwright() as p:
     stats={'cobra':'.cy371-stats button','cochera':'.mc158kpi','alquiler':'.ma398-stats button'}[module]
     colours=page.locator(layer+' '+stats).evaluate_all("ns=>ns.map(n=>getComputedStyle(n).backgroundImage)")
     assert len(set(colours))>=3,(module,theme,colours)
-    page.screenshot(path='artifacts/v402/'+module+'-'+str(width)+'-'+theme+'.png')
+    page.screenshot(path='artifacts/v403/'+module+'-'+str(width)+'-'+theme+'.png')
     if module=='cobra':
      page.locator(layer).evaluate('(n)=>n.scrollTop=95');page.wait_for_timeout(100)
      assert page.locator('.cy371-search label').evaluate("n=>{const r=n.getBoundingClientRect();return !!document.elementFromPoint(r.right-20,r.top+r.height/2)?.closest('.cy371-header')}")
-     page.screenshot(path='artifacts/v402/cobra-scrolled-'+str(width)+'-'+theme+'.png')
+     page.screenshot(path='artifacts/v403/cobra-scrolled-'+str(width)+'-'+theme+'.png')
      page.locator(layer).evaluate('(n)=>n.scrollTop=0')
     page.locator(layer+' '+new).first.click();page.locator(modal).wait_for()
     page.keyboard.press('Escape');assert page.locator(modal).count()==0
