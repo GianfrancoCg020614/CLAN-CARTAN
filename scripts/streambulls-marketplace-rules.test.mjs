@@ -1,0 +1,447 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  activationWindow, serviceActivationWindow, canAutoPublish,
+  limaCalendarDate, contractedServiceWindow, contractedServiceStatus,
+  DEFAULT_CONTRACTED_SERVICE_DAYS,
+  ACCOUNT_SLOT_STATES, CONNECTION_DEVICE_TYPES, accountSlotSummary,
+  addAccountSlot, disableAccountSlot, allocateAccountSlot,
+  releaseAccountSlot, restoreAccountSlot, connectionEvent,
+  profileTimeCounter, profilePaymentLabel,
+  streamBullsRoleCapabilities, externalAddonRenewalWindow,
+  externalAddonAccessState, externalAddonActivationQuote,
+  allowedSelfRegistrationRoles, parsePenCents, calculateSaleSettlement,
+  reserveAvailableStock, whatsappSellerLink, summarizeSellerEarnings,
+  normalizeSmartSearch, matchesSmartSearch,
+  STREAM_BULLS_ANNUAL_PEN_CENTS, EXTERNAL_ACCOUNT_ADDON_PEN_CENTS,
+  DEFAULT_SUPER_RESELLER_COMMISSION_BPS, SERVICE_CATEGORIES
+} from './streambulls-marketplace-rules.mjs';
+
+test('STREAM BULLS: S/25 suscripción anual, inicio día 1, día 365 a las 23:59 Lima', () => {
+  assert.equal(STREAM_BULLS_ANNUAL_PEN_CENTS, 2500);
+  assert.deepEqual(serviceActivationWindow('STREAM_BULLS', '2026-10-24'), {
+    startDate: '2026-10-24', endDate: '2027-10-23',
+    displayEndsAt: '2027-10-23 23:59:59',
+    expiresAtExclusiveLima: '2027-10-24 00:00',
+    durationDays: 365, timezone: 'America/Lima'
+  });
+});
+
+test('otros tres negocios: día de activación = día 1 y día 30 a las 23:59', () => {
+  for (const service of ['COBRA_YA', 'MI_COCHERA', 'MI_ALQUILER']) {
+    const w = serviceActivationWindow(service, '2026-10-02');
+    assert.equal(w.endDate, '2026-10-31');
+    assert.equal(w.displayEndsAt, '2026-10-31 23:59:59');
+    assert.equal(w.expiresAtExclusiveLima, '2026-11-01 00:00');
+  }
+});
+
+test('fecha calendario respeta meses de 28, 29, 30 y 31 días', () => {
+  assert.equal(activationWindow('2026-02-01', 30).endDate, '2026-03-02');
+  assert.equal(activationWindow('2028-02-01', 30).endDate, '2028-03-01');
+  assert.throws(() => activationWindow('2026-02-30', 30));
+  assert.throws(() => activationWindow('2026-10-02', 0));
+});
+
+test('un usuario se registra solo como AFILIADO o RESELLER, nunca SUPER_RESELLER', () => {
+  assert.deepEqual(allowedSelfRegistrationRoles(), ['AFFILIATE', 'RESELLER']);
+  assert.ok(!allowedSelfRegistrationRoles().includes('SUPER_RESELLER'));
+});
+
+test('solo nombramiento administrativo vigente habilita publicación sin validación individual', () => {
+  const active = { role: 'SUPER_RESELLER', assignedByAdmin: true,
+    membershipStart: '2026-10-24', referenceDay: '2027-10-23' };
+  assert.equal(canAutoPublish(active), true);
+  assert.equal(canAutoPublish({ ...active, referenceDay: '2027-10-24' }), false);
+  assert.equal(canAutoPublish({ ...active, assignedByAdmin: false }), false);
+  assert.equal(canAutoPublish({ ...active, role: 'RESELLER' }), false);
+  assert.equal(canAutoPublish({ ...active, role: 'AFFILIATE' }), false);
+  assert.equal(canAutoPublish({ ...active, suspended: true }), false);
+});
+
+test('comisión ADMIN del 20% sobre ganancia, no sobre bruto, con costo recuperado', () => {
+  const sale = calculateSaleSettlement({unitPriceCents: 5000, unitCostCents: 3000});
+  assert.equal(DEFAULT_SUPER_RESELLER_COMMISSION_BPS, 2000);
+  assert.equal(sale.grossCents, 5000);
+  assert.equal(sale.supplierCostCents, 3000);
+  assert.equal(sale.grossProfitCents, 2000);
+  assert.equal(sale.adminCommissionCents, 400);
+  assert.equal(sale.sellerNetProfitCents, 1600);
+  assert.equal(sale.sellerPayableCents, 4600);
+});
+
+test('tasa ADMIN variable por vendedor, aplicada a todas sus ventas', () => {
+  const one = calculateSaleSettlement({unitPriceCents: 5000,unitCostCents: 3000,commissionBps: 3000});
+  const second = calculateSaleSettlement({unitPriceCents: 1500,unitCostCents: 500,quantity: 3,commissionBps: 3000});
+  assert.equal(one.adminCommissionCents, 600);
+  assert.equal(second.adminCommissionCents, 900);
+  assert.equal(one.sellerPayableCents + one.adminCommissionCents, one.grossCents);
+  assert.equal(second.sellerPayableCents + second.adminCommissionCents, second.grossCents);
+});
+
+test('importe usa céntimos exactos y evita costos ficticios mayores a precio', () => {
+  assert.equal(parsePenCents('25.00'), 2500);
+  assert.equal(parsePenCents('0.10'), 10);
+  assert.throws(() => parsePenCents('19.999'));
+  assert.throws(() => calculateSaleSettlement({unitPriceCents:100,unitCostCents:120}));
+  assert.throws(() => calculateSaleSettlement({unitPriceCents:200,unitCostCents:100,commissionBps:12000}));
+});
+
+test('stock disminuye solo tras reserva confirmada; rechaza sobreventa', () => {
+  assert.equal(reserveAvailableStock(8,1), 7);
+  assert.equal(reserveAvailableStock(8,8), 0);
+  assert.throws(() => reserveAvailableStock(8,9));
+  assert.throws(() => reserveAvailableStock(8,-1));
+});
+
+test('WhatsApp se calcula del teléfono comercial vigente, no del producto', () => {
+  const product = 'Canva Pro 30 días';
+  const old = whatsappSellerLink('987654321', product);
+  const changed = whatsappSellerLink('+51 912 345 678', product);
+  assert.match(old, /^https:\/\/wa\.me\/51987654321\?/);
+  assert.match(changed, /^https:\/\/wa\.me\/51912345678\?/);
+  assert.notEqual(old, changed);
+  assert.throws(() => whatsappSellerLink('555'));
+});
+
+test('informe ADMIN separa en espera, confirmados, comisiones, pagos y saldo', () => {
+  const first = calculateSaleSettlement({unitPriceCents:5000,unitCostCents:3000});
+  const second = calculateSaleSettlement({unitPriceCents:1500,unitCostCents:500});
+  const result = summarizeSellerEarnings([
+    {id:'o1',sellerId:'s1',status:'DELIVERED_VERIFIED',...first},
+    {id:'o2',sellerId:'s1',status:'PAID_AWAITING_DELIVERY',...second},
+    {id:'o3',sellerId:'s2',status:'DELIVERED_VERIFIED',...first},
+    {id:'o4',sellerId:'s1',status:'REFUNDED',...first}
+  ],[
+    {id:'p1',sellerId:'s1',status:'EXECUTED_VERIFIED',amountCents:2000},
+    {id:'p2',sellerId:'s1',status:'REQUESTED',amountCents:3000}
+  ],'s1');
+  assert.equal(result.revenueCents,5000);
+  assert.equal(result.commissionCents,400);
+  assert.equal(result.heldCents,1500);
+  assert.equal(result.payableEarnedCents,4600);
+  assert.equal(result.paidOutCents,2000);
+  assert.equal(result.availableForPayoutCents,2600);
+});
+
+test('no duplica órdenes ni desembolsos verificados', () => {
+  const order = {id:'x',sellerId:'s',status:'DELIVERED_VERIFIED',grossCents:500,
+    adminCommissionCents:100,sellerPayableCents:400};
+  assert.throws(() => summarizeSellerEarnings([order,order],[],'s'));
+  assert.throws(() => summarizeSellerEarnings([],[{id:'p',sellerId:'s',status:'EXECUTED_VERIFIED',amountCents:100},
+    {id:'p',sellerId:'s',status:'EXECUTED_VERIFIED',amountCents:100}],'s'));
+});
+
+test('sobregiro de liquidación no genera saldo negativo disponible', () => {
+  const order = {id:'x',sellerId:'s',status:'DELIVERED_VERIFIED',grossCents:500,
+    adminCommissionCents:100,sellerPayableCents:400};
+  const r = summarizeSellerEarnings([order],
+    [{id:'p',sellerId:'s',status:'EXECUTED_VERIFIED',amountCents:800}],'s');
+  assert.equal(r.availableForPayoutCents,0);
+  assert.equal(r.amountToRecoverCents,400);
+});
+
+test('buscador inteligente admite coincidencia por servicio, cliente, placa y tildes', () => {
+  assert.equal(normalizeSmartSearch('  CRUNCHYRÓLL  '),'crunchyroll');
+  assert.ok(matchesSmartSearch('netf cuenta', ['Netflix Premium','Cuenta P2']));
+  assert.ok(matchesSmartSearch('aBc-123', ['Toyota', 'ABC-123']));
+  assert.ok(matchesSmartSearch('garcia', ['Juan García']));
+  assert.equal(matchesSmartSearch('disney', ['Netflix Premium']),false);
+});
+
+test('categorías extensibles y módulo externo optativo de S/10', () => {
+  assert.equal(EXTERNAL_ACCOUNT_ADDON_PEN_CENTS,1000);
+  for(const x of ['NETFLIX','HBO_MAX','YOUTUBE','CHATGPT','PARAMOUNT_PLUS','PRIME_VIDEO','CANVA','CRUNCHYROLL','OTROS'])
+    assert.ok(SERVICE_CATEGORIES.includes(x));
+});
+
+
+test('RESELLER compra en la web y revende FUERA sin permisos de catálogo ni compradores propios del portal', () => {
+  const r = streamBullsRoleCapabilities('RESELLER');
+  assert.equal(r.canPurchaseInMarketplace, true);
+  assert.equal(r.canPublishMarketplaceProducts, false);
+  assert.equal(r.canTrackOwnMarketplaceBuyers, false);
+  assert.equal(r.canResellPrivatelyOutsidePortal, true);
+  assert.equal(r.canOfferPrivateExternalAccountAddon, true);
+  const s = streamBullsRoleCapabilities('SUPER_RESELLER');
+  assert.equal(s.canPublishMarketplaceProducts, true);
+  assert.equal(s.canTrackOwnMarketplaceBuyers, true);
+  assert.equal(s.canOfferPrivateExternalAccountAddon, false);
+  const affiliate = streamBullsRoleCapabilities('AFFILIATE');
+  assert.equal(affiliate.canPurchaseInMarketplace, true);
+  assert.equal(affiliate.canPublishMarketplaceProducts, false);
+  assert.equal(affiliate.canOfferPrivateExternalAccountAddon, false);
+});
+
+test('pestaña externa independiente cuesta S/10 por 30 días, día del pago = día 1', () => {
+  const r = externalAddonRenewalWindow('2026-10-24');
+  assert.equal(r.startDate, '2026-10-24');
+  assert.equal(r.endDate, '2026-11-22');
+  assert.equal(r.displayEndsAt, '2026-11-22 23:59:59');
+  assert.equal(r.expiresAtExclusiveLima, '2026-11-23 00:00');
+  assert.equal(r.durationDays, 30);
+});
+
+test('al vencer la pestaña, ocultar registros sin borrar ninguna cuenta o cliente', () => {
+  const before = externalAddonAccessState({ role:'RESELLER', addonStartsOn:'2026-10-24',
+    addonEndsOn:'2026-11-22', today:'2026-11-22' });
+  assert.equal(before.active, true);
+  assert.equal(before.canReadExternalRecords, true);
+  assert.equal(before.canWriteExternalRecords, true);
+  const expired = externalAddonAccessState({role:'RESELLER', addonStartsOn:'2026-10-24',
+    addonEndsOn:'2026-11-22', today:'2026-11-23'});
+  assert.equal(expired.active, false);
+  assert.equal(expired.showPrivateExternalRecords, false);
+  assert.equal(expired.canReadExternalRecords, false);
+  assert.equal(expired.canWriteExternalRecords, false);
+  assert.equal(expired.canExportExternalRecords, false);
+  assert.equal(expired.showActivationCard, true);
+  assert.equal(expired.shouldDeleteStoredRecords, false);
+});
+
+test('pestaña de cuentas externas NO es visible para AFILIADO o SÚPER RESELLER', () => {
+  for (const role of ['AFFILIATE','SUPER_RESELLER','ADMIN']) {
+    const state = externalAddonAccessState({role, addonStartsOn:'2026-10-24',
+      addonEndsOn:'2026-11-22', today:'2026-10-25'});
+    assert.equal(state.active,false);
+    assert.equal(state.showActivationCard,false);
+    assert.equal(state.shouldDeleteStoredRecords,false);
+  }
+});
+
+test('cobro S/10 requiere autorización explícita y fondos REALES suficientes', () => {
+  const base={role:'RESELLER',mainMembershipActive:true,walletRealBalanceCents:1000,
+    today:'2026-11-23'};
+  const noConsent = externalAddonActivationQuote({...base,consentedForThisPurchase:false});
+  assert.equal(noConsent.permitted,false);
+  assert.equal(noConsent.reason,'CONFIRMATION_REQUIRED');
+  const noFunds = externalAddonActivationQuote({...base,walletRealBalanceCents:999,
+    consentedForThisPurchase:true});
+  assert.equal(noFunds.permitted,false);
+  assert.equal(noFunds.reason,'INSUFFICIENT_REAL_BALANCE');
+  const confirmed = externalAddonActivationQuote({...base,consentedForThisPurchase:true});
+  assert.equal(confirmed.permitted,true);
+  assert.equal(confirmed.amountCents,1000);
+  assert.equal(confirmed.automaticRecurringCharge,false);
+  assert.equal(confirmed.entitlementPeriod.startDate,'2026-11-23');
+  assert.equal(confirmed.entitlementPeriod.endDate,'2026-12-22');
+});
+
+test('complemento RESELLER no requiere revisión ADMIN pero nunca lo activa otro rol', () => {
+  for (const role of ['AFFILIATE','SUPER_RESELLER','ADMIN']) {
+    assert.equal(externalAddonActivationQuote({role,mainMembershipActive:true,
+      walletRealBalanceCents:9000,consentedForThisPurchase:true,today:'2026-10-24'}).permitted,false);
+  }
+  assert.equal(externalAddonActivationQuote({role:'RESELLER',mainMembershipActive:false,
+    walletRealBalanceCents:9000,consentedForThisPurchase:true,today:'2026-10-24'}).permitted,false);
+});
+
+test('renovación anticipada del add-on conserva días restantes y añade 30 nuevos', () => {
+  const q = externalAddonActivationQuote({role:'RESELLER',mainMembershipActive:true,
+    walletRealBalanceCents:3000,consentedForThisPurchase:true,today:'2026-11-20',
+    currentAddonEndOn:'2026-11-22'});
+  assert.equal(q.permitted,true);
+  assert.equal(q.entitlementPeriod.startDate,'2026-11-23');
+  assert.equal(q.entitlementPeriod.endDate,'2026-12-22');
+  assert.throws(() => externalAddonRenewalWindow('2026-11-20','2026-02-30'));
+});
+
+test('rol suspendido no ve datos ni tiene derecho de comprar complemento', () => {
+  const state = externalAddonAccessState({role:'RESELLER',addonStartsOn:'2026-10-24',
+    addonEndsOn:'2026-11-22',today:'2026-10-25',suspended:true});
+  assert.equal(state.active,false);
+  assert.equal(state.shouldDeleteStoredRecords,false);
+  const quote = externalAddonActivationQuote({role:'RESELLER',mainMembershipActive:true,
+    walletRealBalanceCents:1000,consentedForThisPurchase:true,today:'2026-10-25',suspended:true});
+  assert.equal(quote.permitted,false);
+});
+
+
+test('Netflix, HBO, Prime, YouTube, Spotify, ChatGPT admiten número variable de slots', () => {
+  for (const service of ['NETFLIX','HBO_MAX','PRIME_VIDEO','YOUTUBE','SPOTIFY','CHATGPT','OTRO']) {
+    let slots = [];
+    for (let i = 1; i <= 9; i++) slots = addAccountSlot(slots, service + ':P' + i);
+    assert.equal(accountSlotSummary(slots).free, 9);
+    assert.equal(accountSlotSummary(slots).activeCapacity, 9);
+    assert.equal(accountSlotSummary(slots).label,'DISPONIBLE');
+  }
+  assert.ok(ACCOUNT_SLOT_STATES.includes('DISABLED'));
+});
+
+test('baja lógica de slot libre conserva ID pero NO cuenta como disponible', () => {
+  const slots = [
+    {id:'P1', status:'ASSIGNED'},
+    {id:'P2', status:'FREE'},
+    {id:'P3', status:'FREE'}
+  ];
+  const result = disableAccountSlot(slots,'P2');
+  assert.equal(result.length,3);
+  assert.equal(result[1].id,'P2');
+  assert.equal(result[1].status,'DISABLED');
+  assert.equal(accountSlotSummary(result).availableForAssignment,1);
+  assert.equal(accountSlotSummary(result).disabled,1);
+  assert.equal(slots[1].status,'FREE'); // inmutable
+  assert.throws(() => allocateAccountSlot(result,'P2'),/no disponible/);
+});
+
+test('si elimino el único slot libre, se verá SIN ESPACIOS LIBRES y no libre', () => {
+  const slots = disableAccountSlot([{id:'P1',status:'ASSIGNED'},{id:'P2',status:'FREE'}],'P2');
+  const summary = accountSlotSummary(slots);
+  assert.equal(summary.label,'SIN_ESPACIOS_LIBRES');
+  assert.equal(summary.free,0);
+  assert.equal(summary.occupied,1);
+  assert.equal(summary.disabled,1);
+  assert.equal(summary.activeCapacity,1);
+});
+
+test('todos los slots dados de baja se ven SIN CUPOS ACTIVOS, no ocupado por falsos clientes', () => {
+  const slots = disableAccountSlot([{id:'P1',status:'FREE'}],'P1');
+  assert.deepEqual([accountSlotSummary(slots).label,accountSlotSummary(slots).free],
+    ['SIN_CUPOS_ACTIVOS',0]);
+  assert.equal(accountSlotSummary(slots).totalRegistered,1);
+});
+
+test('eliminar slot ocupado respeta servicio del cliente, queda pendiente hasta liberar', () => {
+  const original = [{id:'P1',status:'ASSIGNED'}];
+  const marked = disableAccountSlot(original,'P1');
+  assert.equal(marked[0].status,'DISABLED_PENDING_RELEASE');
+  assert.equal(accountSlotSummary(marked).free,0);
+  assert.equal(accountSlotSummary(marked).occupied,1);
+  assert.throws(() => allocateAccountSlot(marked,'P1'));
+  const closed = releaseAccountSlot(marked,'P1');
+  assert.equal(closed[0].status,'DISABLED');
+  assert.equal(accountSlotSummary(closed).free,0);
+});
+
+test('desactivar slot reservado obliga a cancelar reserva; ID duplicado no permitido', () => {
+  assert.throws(() => disableAccountSlot([{id:'P1',status:'RESERVED'}],'P1'),/Cancelar reserva/);
+  assert.throws(() => accountSlotSummary([{id:'P1',status:'FREE'},{id:'P1',status:'FREE'}]));
+  assert.throws(() => addAccountSlot([{id:'P1',status:'FREE'}],'P1'));
+  assert.throws(() => disableAccountSlot([{id:'P1',status:'FREE'}],'P2'));
+});
+
+test('slot ocupado puede liberarse y reutilizarse; otro deshabilitado solo restauración explícita', () => {
+  const assigned = allocateAccountSlot([{id:'P1',status:'FREE'}],'P1');
+  assert.equal(accountSlotSummary(assigned).free,0);
+  const freed = releaseAccountSlot(assigned,'P1');
+  assert.equal(accountSlotSummary(freed).free,1);
+  const disabled = disableAccountSlot(freed,'P1');
+  assert.equal(accountSlotSummary(disabled).free,0);
+  assert.equal(accountSlotSummary(restoreAccountSlot(disabled,'P1')).free,1);
+});
+
+test('fecha y hora real de conexión guardada junto con tipo de equipo', () => {
+  const dt = '2026-10-24T20:35:00-05:00';
+  const examples = ['CELULAR','LAPTOP','TV','TABLET','COMPUTADORA','OTRO'];
+  for(const deviceType of examples) {
+    const e = connectionEvent({deviceType,connectedAt:dt,deviceName:'Equipo de prueba'});
+    assert.equal(e.connectedAt,'2026-10-25T01:35:00.000Z');
+    assert.equal(e.deviceType,deviceType);
+    assert.equal(e.deviceName,'Equipo de prueba');
+  }
+  assert.ok(CONNECTION_DEVICE_TYPES.includes('TV'));
+  assert.throws(() => connectionEvent({deviceType:'DRONE',connectedAt:dt}));
+  assert.throws(() => connectionEvent({deviceType:'TV',connectedAt:'2026-10-24'}));
+});
+
+test('contador de un perfil con días y HORAS de vigencia independientes', () => {
+  const c = profileTimeCounter(
+    '2026-10-24T00:00-05:00','2026-11-23T00:00-05:00',
+    '2026-11-20T13:30-05:00');
+  assert.equal(c.status,'VIGENTE');
+  assert.equal(c.remainingDays,2);
+  assert.equal(c.remainingHours,10);
+  assert.equal(c.remainingExtraMinutes,30);
+  assert.equal(c.expired,false);
+  const expired=profileTimeCounter('2026-10-24T00:00-05:00',
+    '2026-11-23T00:00-05:00','2026-11-23T00:00-05:00');
+  assert.equal(expired.remainingMinutes,0);
+  assert.equal(expired.status,'VENCIDO');
+});
+
+test('PAGADO en verde, DEBE en rojo, sin modificar la ocupación del perfil', () => {
+  const paid=profilePaymentLabel('PAGADO'), due=profilePaymentLabel('DEBE');
+  assert.equal(paid.color,'green');
+  assert.equal(due.color,'red');
+  assert.equal(paid.freesSlot,false);
+  assert.equal(due.freesSlot,false);
+  assert.equal(profilePaymentLabel('PARCIAL').color,'amber');
+  assert.throws(() => profilePaymentLabel('NO_SÉ'));
+});
+
+
+test('contratos digitales: predeterminado 30 días, personalizable 1/7/15/45/60/90', () => {
+  assert.equal(DEFAULT_CONTRACTED_SERVICE_DAYS, 30);
+  assert.equal(contractedServiceWindow('2026-10-02T23:50:00-05:00').endDate, '2026-10-31');
+  for (const [days, expected] of [
+    [1,'2026-10-02'],[7,'2026-10-08'],[15,'2026-10-16'],
+    [45,'2026-11-15'],[60,'2026-11-30'],[90,'2026-12-30']
+  ]) {
+    const w = contractedServiceWindow('2026-10-02T15:00:00-05:00',days);
+    assert.equal(w.durationDays, days);
+    assert.equal(w.endDate, expected);
+    assert.equal(w.displayEndsAt, expected+' 23:59:59');
+    assert.equal(w.cutoffSecondLima, expected+' 23:59:59');
+    assert.equal(w.startDayCountsAsOne, true);
+  }
+  assert.throws(() => contractedServiceWindow('2026-10-02', 0));
+  assert.throws(() => contractedServiceWindow('2026-10-02', -7));
+  assert.throws(() => contractedServiceWindow('2026-10-02', 1.5));
+});
+
+test('activar a las 00:00 o a las 23:59 del mismo día genera exactamente la misma fecha de término', () => {
+  const early = contractedServiceWindow('2026-10-02T00:00:00-05:00');
+  const late = contractedServiceWindow('2026-10-02T23:59:00-05:00');
+  assert.equal(early.startDate, late.startDate);
+  assert.equal(early.endDate, late.endDate);
+  assert.equal(early.expiresAtExclusiveLima, '2026-11-01 00:00');
+});
+
+test('zona horaria Perú aunque recibamos un timestamp UTC que cae el día anterior', () => {
+  const w = contractedServiceWindow('2026-10-03T02:00:00Z'); // en Lima: 02/oct 21:00
+  assert.equal(w.startDate, '2026-10-02');
+  assert.equal(w.endDate, '2026-10-31');
+  assert.equal(limaCalendarDate('2026-11-01T04:59:59Z'),'2026-10-31');
+  assert.equal(limaCalendarDate('2026-11-01T05:00:00Z'),'2026-11-01');
+});
+
+test('a las 23:59:59 del último día está VIGENTE, 00:00:00 siguiente VENCIDO', () => {
+  const w = contractedServiceWindow('2026-10-02T18:27:01-05:00');
+  assert.equal(contractedServiceStatus(w,'2026-10-31T23:59:59-05:00'),'VIGENTE');
+  assert.equal(contractedServiceStatus(w,'2026-11-01T00:00:00-05:00'),'VENCIDO');
+  assert.equal(contractedServiceStatus(w,'2026-10-02T18:26:59-05:00'),'PENDIENTE');
+  assert.equal(contractedServiceStatus(w,'2026-10-02T18:27:01-05:00'),'VIGENTE');
+});
+
+test('un día contratado vence la misma noche aunque se active a las 23:59', () => {
+  const w = contractedServiceWindow('2026-10-24T23:59:15-05:00',1);
+  assert.equal(w.endDate,'2026-10-24');
+  assert.equal(contractedServiceStatus(w,'2026-10-24T23:59:59-05:00'),'VIGENTE');
+  assert.equal(contractedServiceStatus(w,'2026-10-25T00:00:00-05:00'),'VENCIDO');
+});
+
+test('al renovar el perfil con una nueva activación deja de estar vencido', () => {
+  const old = contractedServiceWindow('2026-10-02T15:00:00-05:00');
+  assert.equal(contractedServiceStatus(old,'2026-11-01T08:00:00-05:00'),'VENCIDO');
+  const renewed = contractedServiceWindow('2026-11-01T08:00:00-05:00',30);
+  assert.equal(contractedServiceStatus(renewed,'2026-11-01T08:00:00-05:00'),'VIGENTE');
+  assert.equal(renewed.endDate,'2026-11-30');
+});
+
+test('la duración variable de perfil NO modifica membresía fija STREAM BULLS de 365 días', () => {
+  const membership = serviceActivationWindow('STREAM_BULLS','2026-10-24');
+  const p1 = contractedServiceWindow('2026-10-24T23:05:00-05:00',90);
+  const p2 = contractedServiceWindow('2026-10-24T23:05:00-05:00',30);
+  assert.equal(membership.durationDays, 365);
+  assert.equal(p1.durationDays,90);
+  assert.equal(p2.durationDays,30);
+  assert.equal(p1.startDate,p2.startDate);
+  assert.notEqual(p1.endDate,p2.endDate);
+});
+
+test('fechas sin hora son fechas calendario elegidas directamente en Perú', () => {
+  const w = contractedServiceWindow('2026-10-02');
+  assert.equal(w.startDate,'2026-10-02');
+  assert.throws(() => contractedServiceWindow('2026-02-30'));
+  assert.throws(() => contractedServiceWindow('2026-10-02T19:00:00')); // sin zona
+});
