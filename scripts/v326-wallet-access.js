@@ -41,7 +41,8 @@ function slots(){
  const hosts=document.querySelectorAll('#cc166-panel .cc166-top>div:first-child,#cc77home .cc77top,#app .cc117-header,#mc158layer .mc158head>div:first-child,#ma1611layer .ma1611-brand>div,#cy53layer .cc127-cobra-brand>div,[data-cc-wallet-host]');
  for(const host of hosts){
   let badge=host.querySelector(':scope > .cc326-wallet-summary');
-  if(!identity()){badge?.remove();continue;}
+  const panel=host.closest('#cc166-panel');
+  if(!identity()||(panel?.dataset.cc401Wallet==='true'&&panel.querySelector('.cc-wallet-overview'))){badge?.remove();continue;}
   if(!badge){badge=node('div','cc326-wallet-summary');badge.setAttribute('role','status');badge.setAttribute('aria-live','polite');host.append(badge);}
   set(badge,'Billetera CLAN CARTAN · '+(value===null?(error||'Consultando saldo…'):money(value)));
  }
