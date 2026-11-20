@@ -82,7 +82,7 @@ with sync_playwright() as p:
    if width<=850:
     page.locator('[data-sb389-menu]').click();assert page.locator('.cc166-sidebar').is_visible();page.keyboard.press('Escape');assert not page.locator('#cc166-panel').evaluate('(e)=>e.classList.contains("sb389-menu-open")')
    if page.locator('.sb389-exit').count()==0:go('Inicio STREAM')
-   page.locator('.sb389-exit').click();assert page.locator('#cc166-panel.sb389-mode').count()==0;assert page.locator('.cc167-tab').count()==4;assert page.evaluate('CC_V53_SESSION.userId')==UID;assert not errors,(role,width,errors)
+   page.locator('.sb389-exit').click();assert page.locator('#cc166-panel').is_hidden();assert page.locator('#cc77home').is_visible();assert page.evaluate('CC_V53_SESSION.userId')==UID;assert not errors,(role,width,errors)
    results.append({'role':role,'width':width,'status':'pass','simulated_writes':len(writes),'errors':errors});print('PASS',role,width,flush=True);c.close()
  b.close()
 (OUT/'results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2));print('PASS STREAM V389:',len(results),'isolated role/browser cases; no production writes.')

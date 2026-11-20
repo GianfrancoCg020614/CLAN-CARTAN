@@ -45,14 +45,25 @@ with sync_playwright() as p:
     page.locator(new).first.click();page.locator('dialog[open] [name=full_name]').fill('Cliente anterior');page.locator('dialog[open] [type=submit]').click();page.wait_for_timeout(250);assert len(pending)==1
     page.locator('dialog[open] [data-action=close-modal]').click();page.locator(new).first.click();page.locator('dialog[open] [name=full_name]').fill('Nuevo borrador');page.evaluate('window.__draft=document.querySelector("dialog[open]")');pending.pop().fulfill(json={'id':'synthetic-client'});page.wait_for_timeout(400)
     assert page.evaluate('__draft===document.querySelector("dialog[open]")');assert page.locator('dialog[open] [name=full_name]').input_value()=='Nuevo borrador';page.keyboard.press('Escape')
+   for theme in ['light','dark']:
+    page.evaluate('(v)=>CCTheme.set(v)',theme);page.wait_for_timeout(350)
+    assert page.locator(layer+' [data-cc-theme-toggle]').count()==1
+    assert page.locator(layer+' [data-cc-theme-toggle]').is_visible()
+    page.locator(layer+' '+new).first.click();page.locator(modal).wait_for()
+    page.keyboard.press('Escape');assert page.locator(modal).count()==0
+    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
+    page.screenshot(path='artifacts/v398/'+module+'-'+str(width)+'-'+theme+'.png')
    page.screenshot(path=str(OUT/(module+'-'+str(width)+'.png')));page.locator(layer+' '+back).click()
-   if module=='cochera':
+   if module in ['cobra','cochera','alquiler']:
     assert page.locator('#cc166-panel').is_hidden();assert page.locator('#cc77home').is_visible()
     assert page.evaluate('CC_V53_SESSION.jwt')=='fixture-token'
     page.evaluate('cc166OpenPanel();cc166ReturnToBusinesses()')
    page.wait_for_selector('#cc166-panel:not([hidden]) .cc167-tab');assert page.locator('.cc167-tab').count()==4;assert not page.locator(layer).is_visible();assert page.evaluate('CC_V53_SESSION.jwt')=='fixture-token';assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
    results.append({'module':module,'width':width,'status':'pass'});print('PASS',module,width,flush=True)
-  page.locator('.cc167-tab').first.click();page.wait_for_selector('#cc166-panel.sb389-mode');page.locator('.sb389-exit').click();assert page.locator('.cc167-tab').count()==4;assert not errors,errors;assert len(writes)==1
+  page.locator('.cc167-tab').first.click();page.wait_for_selector('#cc166-panel.sb389-mode');
+  for theme in ['light','dark']:
+   page.evaluate('(v)=>CCTheme.set(v)',theme);page.wait_for_timeout(350);assert page.locator('#cc166-panel [data-cc-theme-toggle]').count()==1;page.screenshot(path='artifacts/v398/stream-'+str(width)+'-'+theme+'.png')
+  page.locator('.sb389-exit').click();assert page.locator('#cc166-panel').is_hidden();assert page.locator('#cc77home').is_visible();assert not errors,errors;assert len(writes)==1
   results.append({'module':'stream','width':width,'status':'pass'});c.close()
  # The actual mobile cart detail must survive a secondary form and preserve its DOM/scroll.
  for width in [390,320]:

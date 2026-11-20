@@ -66,7 +66,11 @@ function actionButton(name,label,extra=''){return '<button type="button" data-ma
 function renderProperties(){
  const displayed=properties.filter(p=>matches([p.name,p.address,...units.filter(u=>Number(u.property_id)===Number(p.id)).map(unitText)].join(' ')));
  const occupied=units.filter(u=>currentLease(u.id)).length;
- const stats='<div class="ma1612-stats"><div><b>'+properties.length+'</b> Inmuebles</div><div><b>'+units.length+'</b> Habitaciones y locales</div><div><b>'+occupied+'</b> Ocupados</div><div><b>'+Math.max(0,units.length-occupied)+'</b> Registrados no ocupados</div></div>';
+ const available=units.filter(u=>u.state==='READY'&&!currentLease(u.id)).length;
+ const percent=units.length?Math.round(occupied/units.length*100):0;
+ const overview='<section class="ma398-overview" aria-label="Ocupación y disponibilidad"><article><small>Ocupación actual</small><strong>'+occupied+' <span>de '+units.length+' unidades</span></strong><progress max="100" value="'+percent+'" aria-label="Ocupación '+percent+' por ciento"></progress><small>'+percent+'% de las unidades registradas</small></article><article><small>Disponibles para alquilar</small><strong>'+available+'</strong><p>Unidades listas y sin contrato activo.</p></article></section>';
+ const stats='<div class="ma1612-stats ma398-stats">'+[['Inmuebles',properties.length,'inmuebles'],['Habitaciones y locales',units.length,'inmuebles'],['Inquilinos',tenants.length,'inquilinos'],['Contratos activos',leases.filter(l=>l.state==='ACTIVE').length,'contratos']].map(([label,value,view])=>'<button type="button" data-ma-action="go-area" data-target-area="'+view+'"><b>'+value+'</b><span>'+label+'</span></button>').join('')+'</div>';
+ const quick='<div class="ma398-quick" aria-label="Acciones principales">'+actionButton('new-property','＋ Registrar inmueble')+actionButton('new-tenant','＋ Registrar inquilino')+actionButton('new-lease','Crear contrato',available?'':'disabled title="Registra una unidad disponible primero"')+'</div>';
  const blocks=pageItems(displayed).map(p=>{
   const within=units.filter(u=>Number(u.property_id)===Number(p.id));
   return '<article class="ma1612-box"><header><div><h4>'+esc(p.name)+'</h4><small>'+esc(p.address||'Sin dirección')+'</small></div>'+actionButton('new-unit','＋ Cuarto/local','data-property="'+p.id+'"')+'</header>'+
@@ -76,7 +80,7 @@ function renderProperties(){
    return '<div class="ma1612-line"><div><strong>'+esc(ucode(u))+' · '+esc(u.alias)+'</strong><small>'+esc(u.kind==='LOCAL'?'Local':'Habitación')+' · Piso '+esc(u.floor||'—')+' · '+esc(status)+'</small><small>Día '+money(u.daily_rate,u.currency)+' · Mes '+money(u.monthly_rate,u.currency)+'</small>'+(l?'<small>Inquilino: '+esc(t.full_name||'')+'</small>':'')+'</div><div class="ma1612-actions">'+(!l&&u.state!=='READY'?actionButton('ready','Lista para alquilar','data-unit="'+u.id+'"'):'')+(!l&&u.state==='READY'?actionButton('disable','Inhabilitar','data-unit="'+u.id+'"'):'')+'</div></div>';
   }).join('')+'</div>':'<p>Aún no hay habitaciones ni locales registrados.</p>')+'</article>';
  }).join('');
- return section('Habitaciones y locales','Disponibilidad, tarifas y ocupación de tus unidades.',stats+'<div class="ma1612-actions">'+actionButton('new-property','＋ Registrar inmueble')+'</div>'+pages(displayed)+(blocks||'<p>No hay inmuebles que coincidan. Registra uno para comenzar.</p>'));
+ return section('Habitaciones y locales','Disponibilidad, tarifas y ocupación de tus unidades.',overview+stats+quick+'<section class="ma398-property-list" aria-label="Tus inmuebles">'+pages(displayed)+(blocks||(properties.length?'<div class="ma398-empty"><h4>Sin coincidencias</h4><p>Prueba otro nombre, documento o código en el buscador.</p></div>':'<div class="ma398-empty"><h4>Comienza con tu primer inmueble</h4><p>Después podrás añadir habitaciones o locales, registrar inquilinos y crear contratos.</p></div>'))+'</section>');
 }
 function renderTenants(){
  const shown=tenants.filter(t=>matches([tenantText(t),...leases.filter(l=>l.tenant_id===t.id).map(l=>unitText(unit(l.unit_id)))].join(' ')));
@@ -137,6 +141,7 @@ async function onClick(e){const b=e.target.closest('[data-ma-action]');if(!b)ret
  if(act==='prev-page'||act==='next-page'){listPage=Math.max(0,listPage+(act==='next-page'?1:-1));rerender();return;}
  if(act!=='close'&&act!=='reload'&&(!account?.active||uid!==session()?.userId)){note('Renueva tu acceso antes de continuar.',true);return;}
  if(act==='close'){$('ma1612dialog')?.remove();return;}
+ if(act==='go-area'){const next=b.dataset.targetArea;if(!['inmuebles','inquilinos','contratos'].includes(next))return;document.querySelector('.ma1611-nav [data-area="'+next+'"]')?.click();if(next==='inmuebles')document.querySelector('.ma398-property-list')?.scrollIntoView({block:'start',behavior:'auto'});return;}
  if(act==='new-property'){newProperty();return;}
  if(act==='new-unit'){newUnit(b.dataset.property);return;}
  if(act==='new-tenant'){tenantForm(null);return;}
