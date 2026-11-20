@@ -202,3 +202,4 @@ html[data-cc-theme] :is(#cy53layer.cy371-layer,#mc158layer,#ma1611layer.ma388-la
 html[data-cc-theme] #cy53layer.cy371-layer .cy371-board .cy371-empty{border:0;border-radius:0;background:transparent}
 html[data-cc-theme] #mc158layer .mc158kpi{grid-template-columns:40px minmax(0,1fr) 13px}
 @media(max-width:600px){html[data-cc-theme] #mc158layer .mc158kpi{grid-template-columns:32px minmax(0,1fr);gap:8px}}
+html[data-cc-theme] #ma1611layer.ma388-layer .ma398-overview strong>span{letter-spacing:normal;line-height:1.5}
