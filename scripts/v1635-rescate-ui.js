@@ -7,31 +7,13 @@
 const el=id=>document.getElementById(id);
 const KEY='cc164-theme';
 function theme(){
- let setting='dark';
- try{if(localStorage.getItem(KEY)==='light')setting='light';}catch(_){}
- const home=el('cc77home');
- const actions=home?.querySelector('.cc77top .cc77actions');
- if(!actions)return;
- const existing=el('cc164-theme-toggle');
- const button=existing||document.createElement('button');
- if(!existing){
-  button.id='cc164-theme-toggle';
-  button.type='button';
-  button.className='cc164-theme-btn';
-  actions.prepend(button);
- }
- function paint(){
-  document.documentElement.dataset.ccTheme=setting;
-  button.textContent=setting==='dark'?'☀️ Modo día':'🌙 Modo noche';
-  button.setAttribute('aria-pressed',String(setting==='light'));
-  button.setAttribute('aria-label','Cambiar a modo '+(setting==='dark'?'día':'noche'));
- }
- if(!existing)button.addEventListener('click',()=>{
-  setting=setting==='dark'?'light':'dark';
-  try{localStorage.setItem(KEY,setting);}catch(_){}
-  paint();
- });
- paint();
+ const actions=el('cc77home')?.querySelector('.cc77top .cc77actions');if(!actions)return;
+ let button=el('cc164-theme-toggle');if(!button){button=document.createElement('button');button.id='cc164-theme-toggle';button.type='button';button.className='cc164-theme-btn';actions.prepend(button);}
+ // Same controller and existing preference for the homepage and all businesses.
+ if(window.CCTheme){button.setAttribute('data-cc-theme-toggle','');window.CCTheme.set(window.CCTheme.get(),false);return;}
+ let setting='dark';try{if(localStorage.getItem(KEY)==='light')setting='light';}catch{}
+ const paint=()=>{document.documentElement.dataset.ccTheme=setting;button.textContent=setting==='dark'?'☀ Día':'☾ Noche';button.setAttribute('aria-label','Cambiar a modo '+(setting==='dark'?'día':'noche'));};
+ button.onclick=()=>{setting=setting==='dark'?'light':'dark';try{localStorage.setItem(KEY,setting);}catch{}paint();};paint();
 }
 function rentalCard(){
  const card=el('ma1611card');

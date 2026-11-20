@@ -49,7 +49,7 @@ function restorePanelState(uid){
   const saved=JSON.parse(sessionStorage.getItem(PANEL_CONTEXT)||'null');
   if(saved?.uid!==uid)return null;
   const allowed=['home','attention','approvals','bonuses','wallet','businesses','movements',
-   'stream-operations','orders','publish','sales','admin','profile','shop','codes','delivery','mailboxes','delivery-requests','delivery-admin','finance','referrals','recharges','recharge-mail'];
+   'stream-operations','orders','publish','sales','admin','profile','shop','codes','delivery','mailboxes','delivery-requests','delivery-admin','finance','referrals','recharges','recharge-mail','support'];
   const tabs=['summary','manual','automatic','movements','recharges','audit'];
   const normalize=state=>{
    const v=String(state?.view||'');
@@ -238,7 +238,7 @@ function renderNav(){
   ['OPERACIONES',verified&&admin?[['sales','◈','Supervisar pedidos'],['approvals','✓','Súper reseller'],['delivery-admin','⌁','Entregas y códigos']]:[
    ...(verified&&superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas'],['delivery','▦','Mis cuentas'],['mailboxes','✉','Mis correos'],['delivery-requests','◷','Solicitudes pendientes']]:[]),
    ...(!admin?[['shop','▣','Catálogo'],['orders','◱','Mis compras'],['codes','⌁','Obtener código']]:[])]],
-  ['MI CUENTA',[['wallet','▤','Billetera'],['profile','♙','Mi perfil']]]
+  ['MI CUENTA',[['wallet','▤','Billetera'],['profile','♙','Mi perfil'],['support','✉','Soporte humano']]]
  ]:[
   ['GENERAL',[['home','◫',admin?'Resumen':'Inicio']]],
   ['OPERACIONES',[
@@ -247,7 +247,7 @@ function renderNav(){
    ...(superRole?[['publish','▣','Mis publicaciones'],['sales','◈','Mis ventas'],['delivery','▦','Mis cuentas'],['mailboxes','✉','Mis correos'],['delivery-requests','◷','Solicitudes pendientes']]:[]),
    ...(!admin?[['codes','⌁','Obtener código'],['shop','▣','Catálogo'],['orders','◱','Mis compras']]:[]),
    ['wallet','▤','Billetera']]],
-  ['MI CUENTA',[['referrals','◇','Mis referidos y ganancias'],['businesses','▦','Negocios'],['profile','♙','Mi perfil']]]
+  ['MI CUENTA',[['referrals','◇','Mis referidos y ganancias'],['businesses','▦','Negocios'],['profile','♙','Mi perfil'],['support','✉','Soporte humano']]]
  ];
  const primaryIds=streamContext?(admin?['stream-operations','sales','delivery-admin']:superRole?['stream-operations','sales','publish']:['stream-operations','shop','orders']):admin?['home','admin','wallet']:superRole?['home','codes','sales']:['home','codes','shop'];
  const primary=make('div','cc308-nav-primary');
@@ -297,10 +297,10 @@ function applyStreamShell(top,role,heading){
  if(!streamContext){app.classList.remove('sb389-menu-open');app.querySelector('.sb389-logo')?.remove();app.querySelector('.sb389-scrim')?.remove();sidebar?.removeAttribute('inert');if(brand)brand.innerHTML='◈ <span>CLAN CARTAN<small>Panel de control</small></span>';if(small)small.textContent='CLAN CARTAN · V394 · PANEL ÚNICO';return;}
  if(brand)brand.textContent='Mi espacio';
  if(!app.querySelector('.sb389-logo')){const logo=make('img','sb389-logo');logo.src='assets/logo-streambulls-v304.avif';logo.alt='STREAM BULL’S · CLAN CARTAN';logo.width=110;logo.height=68;head?.prepend(logo);}
- if(small)small.textContent='V389 · SERVICIOS DIGITALES';if(heading)heading.textContent=data.admin?'Supervisión':data.super?'Mi negocio':'Mi espacio';
+ if(small)small.textContent='V398 · SERVICIOS DIGITALES';if(heading)heading.textContent=data.admin?'Supervisión':data.super?'Mi negocio':'Mi espacio';
  role.textContent=(verified?(data.admin?'ADMIN · Supervisión':data.super?'SÚPER RESELLER · Publicaciones y ventas':access('STREAM_BULLS').ok?'RESELLER · Gestión y compras':'AFILIADO · Catálogo y compras'):'VERIFICANDO ACCESOS');
  top.replaceChildren();const menu=button('☰',()=>{if(!matchMedia('(max-width:850px)').matches){const collapsed=app.classList.toggle('sb389-collapsed');menu.setAttribute('aria-expanded',String(!collapsed));return;}const open=app.classList.toggle('sb389-menu-open');sidebar?.toggleAttribute('inert',!open&&matchMedia('(max-width:850px)').matches);menu.setAttribute('aria-expanded',String(open));},'sb389-menu');menu.dataset.sb389Menu='';menu.setAttribute('aria-label','Abrir menú de STREAM BULL’S');menu.setAttribute('aria-expanded',String(matchMedia('(max-width:850px)').matches?app.classList.contains('sb389-menu-open'):!app.classList.contains('sb389-collapsed')));top.append(menu);
- if(['wallet','profile'].includes(view)&&navigationHistory.length)top.append(button('← Atrás',()=>nav('back'),'cc166-secondary sb389-back'));else top.append(button('← Volver a CLAN CARTAN',()=>{streamContext=false;navigationHistory=[];view='businesses';render(true);},'cc166-secondary sb389-exit'));
+ if(['wallet','profile'].includes(view)&&navigationHistory.length)top.append(button('← Atrás',()=>nav('back'),'cc166-secondary sb389-back'));else top.append(button('← Volver a CLAN CARTAN',closeToHome,'cc166-secondary sb389-exit'));
  const update=button('↻',()=>void load(),'cc166-secondary');update.setAttribute('aria-label','Actualizar datos');top.append(update);
  if(!app.querySelector('.sb389-scrim')){const scrim=button('',()=>closePanelMenu(),'sb389-scrim');scrim.setAttribute('aria-label','Cerrar menú de STREAM BULL’S');app.append(scrim);}
  sidebar?.toggleAttribute('inert',matchMedia('(max-width:850px)').matches&&!app.classList.contains('sb389-menu-open'));
@@ -2244,7 +2244,6 @@ function other(page){
  orders:['Pedidos y renovaciones','Los detalles completos están disponibles dentro del negocio de origen.'],
  affiliate:['Afiliados CLAN','Tus códigos y referidos originales continúan disponibles en el portal.'],
  external:['Control externo','S/ 10 por un mes. Activación con débito auditado todavía no habilitada.'],
- support:['Soporte','Gestiona incidencias desde el negocio correspondiente.'],
  profile:['Mi perfil','Los datos personales siguen en la cuenta original, sin duplicarlos aquí.']
  };
  const [heading,sub]=labels[view]||['Mi panel',''];title(page,heading,sub);
@@ -2370,6 +2369,7 @@ function render(startAtTop=false){
  case 'sales':sales(page);break;
  case 'admin':admin(page);break;
  case 'profile':profile(page);break;
+ case 'support':title(page,'Soporte humano','Problemas, consultas y sugerencias dentro de CLAN CARTAN.');page.append(button(data.admin?'Abrir bandeja de soporte':'Mis consultas',()=>window.cc398Support?.open(),'cc166-primary'));break;
  default:other(page);
  }
  restoreAdminReviewDrafts(rechargeDrafts);

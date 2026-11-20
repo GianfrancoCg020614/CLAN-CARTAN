@@ -111,7 +111,7 @@ function setup(){
  if(sub)gate.append(sub);
  const retry=document.createElement('button');retry.type='button';retry.dataset.action='check-access';retry.textContent='Comprobar activación';gate.append(retry);
  shell=document.createElement('div');shell.className='cy371-layout';shell.hidden=true;
- shell.innerHTML=`<button class="cy371-scrim" data-action="menu" aria-label="Cerrar menú" type="button"></button><aside class="cy371-sidebar"><nav aria-label="Secciones COBRA YA">${Object.entries(labels).map(([k,v])=>button(icon(navIcons[k])+`<span>${v}</span>`,'nav:'+k)).join('')}</nav><small>V372 · COBRA YA</small></aside>
+ shell.innerHTML=`<button class="cy371-scrim" data-action="menu" aria-label="Cerrar menú" type="button"></button><aside class="cy371-sidebar"><nav aria-label="Secciones COBRA YA">${Object.entries(labels).map(([k,v])=>button(icon(navIcons[k])+`<span>${v}</span>`,'nav:'+k)).join('')}</nav><small>V398 · COBRA YA</small></aside>
  <main class="cy371-main"><div id="cy371summary"></div><div class="cy371-actions">${button(icon('profile')+'<span>Nuevo Cliente</span>','new-client','purple')}${button(icon('loan')+'<span>Nuevo Préstamo</span>','new-loan','blue')}${button(icon('pay')+'<span>Registrar Abono</span>','new-payment','green')}</div>
  <section class="cy371-board"><nav class="cy371-tabs" aria-label="Vista de cartera">${[['home','loan','Préstamos activos'],['due','calendar','Vencimientos'],['clients','clients','Clientes'],['reports','report','Reportes']].map(([key,i,text])=>button(icon(i)+`<span>${text}</span>`,'nav:'+key)).join('')}</nav><div id="cy371controls"></div><div id="cy371content" aria-live="polite"></div><div id="cy371pages"></div></section></main>`;
  const message=document.createElement('p');message.id='cy371status';message.className='cy371-status';message.setAttribute('role','status');
@@ -402,7 +402,7 @@ async function handle(e){
  const b=e.target.closest('[data-action]');if(!b||b.disabled)return;const [action,a,c,d]=b.dataset.action.split(':');
  try{
   if(action==='close-modal'){closeModal();return;}
-  if(action==='back'){window.cy53.close();window.cc166ReturnToBusinesses?.();return;}
+  if(action==='back'){window.cy53.close();if(window.cc166CloseToHome)window.cc166CloseToHome();else window.cc77Home?.();return;}
   if(action==='check-access'){await checkAccess(true);return;}
   if(action==='profile'){window.cy53.close();window.cc166OpenProfile?.(()=>window.cy53.open());return;}
   if(!access?.allowed)return;
