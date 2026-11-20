@@ -35,3 +35,4 @@ jobs:
           path: |
             artifacts/sb389/*.png
             artifacts/sb389/*results.json
+            artifacts/v402/

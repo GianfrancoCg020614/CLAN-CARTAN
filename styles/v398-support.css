@@ -19,3 +19,5 @@ html body.view-store #app .cc117-actions-top #cc398-support-launcher[hidden]{dis
 /* V401: one existing help control inside each business toolbar. */
 #cc398-support-launcher.cc401-inline-help{position:static!important;inset:auto;margin:0;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:44px;min-height:44px;padding:8px 12px;border:1px solid var(--ui-line,#435669);border-radius:12px;box-shadow:none;font:600 12px system-ui;background:var(--ui-surface,#222e3b);color:var(--ui-text,#e4eaf0)}
 #cc398-support-launcher.cc401-inline-help[hidden]{display:none!important}
+/* V402: reset the floating launcher's stacking level when reused inline. */
+#cc398-support-launcher.cc401-inline-help{position:static!important;z-index:auto!important;max-width:100%}
