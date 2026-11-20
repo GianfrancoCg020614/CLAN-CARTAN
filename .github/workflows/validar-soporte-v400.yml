@@ -1,0 +1,40 @@
+name: Soporte V400 · cierre, sesión e historial
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - index.html
+      - scripts/v398-support.js
+      - styles/v398-support.css
+      - scripts/test-v400-support-races.py
+      - .github/workflows/validar-soporte-v400.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  soporte:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Sintaxis y navegador
+        run: |
+          node --check scripts/v398-support.js
+          node scripts/test-v304-inline-syntax.mjs
+          pip install playwright==1.62.0
+      - name: Probar respuestas tardías y cambio de cuenta sin servicios reales
+        run: |
+          python -m http.server 8173 --bind 127.0.0.1 > /tmp/v400-http.log 2>&1 &
+          curl --retry 10 --retry-connrefused --retry-delay 1 -fsS http://127.0.0.1:8173/ -o /dev/null
+          python scripts/test-v400-support-races.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soporte-v400-regresiones
+          path: artifacts/v400/
