@@ -13,12 +13,11 @@ with sync_playwright() as p:
    page.locator('.mc158sidebar [data-view='+view+']').click();page.wait_for_timeout(100)
   def close_form():
    page.locator('#mc158dialog [data-action=close-dialog]').click()
-   if width<=850:
-    assert page.locator('#mc158dialog header h3').inner_text()=='Ficha del carrito'
-    page.keyboard.press('Escape')
+   assert page.locator('#mc158dialog header h3').inner_text()=='Ficha del carrito'
+   page.keyboard.press('Escape')
    assert page.locator('#mc158dialog').count()==0
   def advanced(action):
-   scope=page.locator('#mc158dialog') if width<=850 else page.locator('.mc158detail-panel')
+   scope=page.locator('#mc158dialog')
    more=scope.locator('.mc395-more')
    if more.get_attribute('open') is None:more.locator('summary').click()
    scope.locator('[data-action='+action+']').click()
