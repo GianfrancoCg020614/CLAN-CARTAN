@@ -49,6 +49,10 @@ with sync_playwright() as p:
     page.evaluate('(v)=>CCTheme.set(v)',theme);page.wait_for_timeout(350)
     assert page.locator(layer+' [data-cc-theme-toggle]').count()==1
     assert page.locator(layer+' [data-cc-theme-toggle]').is_visible()
+    host={'cobra':'.cc398-theme-bar','cochera':'.mc395-toolbar','alquiler':'.cc401-tools'}[module]
+    page.wait_for_function("([layer,host])=>!!document.querySelector(layer+' '+host+' #cc398-support-launcher')",arg=[layer,host])
+    assert page.locator('#cc398-support-launcher').evaluate("n=>getComputedStyle(n).position==='static'")
+    assert page.locator('#cc398-support-launcher').is_visible()
     page.locator(layer+' '+new).first.click();page.locator(modal).wait_for()
     page.keyboard.press('Escape');assert page.locator(modal).count()==0
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')

@@ -1,0 +1,34 @@
+name: Billetera V401 · interfaz y saldo único
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  billetera:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          pip install playwright==1.62.0
+          node --check scripts/v166-portal-roles.js
+          node --check scripts/v326-wallet-access.js
+          node --check scripts/v398-business-theme.js
+          node scripts/test-v304-inline-syntax.mjs
+      - run: |
+          python -m http.server 8173 --bind 127.0.0.1 > /tmp/v401-http.log 2>&1 &
+          curl --retry 10 --retry-connrefused --retry-delay 1 -fsS http://127.0.0.1:8173/ -o /dev/null
+          python scripts/test-v401-wallet-browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: billetera-v401-PC-celular
+          path: artifacts/v401/

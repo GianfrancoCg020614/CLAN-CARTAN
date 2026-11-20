@@ -16,3 +16,6 @@ body>#cc398-support-launcher{bottom:calc(94px + env(safe-area-inset-bottom))}
 html body.view-store #app .cc117-actions-top #cc398-support-launcher{position:static;inset:auto;margin:0;min-height:44px;padding:10px 14px;font-size:12px;border-radius:10px;box-shadow:none}
 html body.view-store #app .cc117-actions-top #cc398-support-launcher[hidden]{display:none!important}
 #cc398-support-dialog [hidden]{display:none!important}#cc398-support-dialog .cc399-purchase-fields{display:grid;gap:12px}#cc398-support-dialog .cc399-purchase-pagination{font-size:12px}
+/* V401: one existing help control inside each business toolbar. */
+#cc398-support-launcher.cc401-inline-help{position:static!important;inset:auto;margin:0;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:44px;min-height:44px;padding:8px 12px;border:1px solid var(--ui-line,#435669);border-radius:12px;box-shadow:none;font:600 12px system-ui;background:var(--ui-surface,#222e3b);color:var(--ui-text,#e4eaf0)}
+#cc398-support-launcher.cc401-inline-help[hidden]{display:none!important}

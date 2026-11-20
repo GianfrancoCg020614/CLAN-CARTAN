@@ -18,7 +18,7 @@ let user=null,token=null,serial=0,app=null,view='home',busy=false,verified=false
 let profileEmail='',profileEmailOwner=null,profileEmailLoading=false;
 let profileDraft=null,profileDraftVersion=0,profileSaveRequest=null,profileMessage='';
 let adminAccounts=[],adminAccountsState='idle',adminAccountsError='',adminActionBusy=false;
-let walletTab='summary',rechargeMode='manual';
+let walletTab='summary',rechargeMode='manual',walletMovementPage=0;
 let renderedLocation='';
 let adminDirectoryQuery='',adminDirectoryRole='ALL',adminDirectoryService='ALL';
 const adminOpenFiles=new Set();
@@ -76,7 +76,7 @@ function reset(){
  profileEmail='';profileEmailOwner=null;profileEmailLoading=false;
  profileDraft=null;profileDraftVersion=0;profileSaveRequest=null;profileMessage='';
  adminAccounts=[];adminAccountsState='idle';adminAccountsError='';adminActionBusy=false;
- walletTab='summary';rechargeMode='manual';navigationHistory=[];moduleReturn=null;
+ walletTab='summary';rechargeMode='manual';walletMovementPage=0;navigationHistory=[];moduleReturn=null;
  adminDirectoryQuery='';adminDirectoryRole='ALL';adminDirectoryService='ALL';adminOpenFiles.clear();
  autoMethods=[];autoState='idle';autoError='';bonusSaving=false;personalTopupSaving=false;
  adminRechargeFormOpen=false;salesFilter='all';purchaseFilter='all';publishing=false;discardPublishDraft=false;deliveriesPending.clear();
@@ -282,7 +282,7 @@ function renderNav(){
  const role=el('cc166-role');
  role.textContent=userRole()+' · '+(verified?'Cuenta verificada':'Verificando datos…');
  const heading=app.querySelector('.cc166-top h1');
- if(heading)heading.textContent='Panel CLAN CARTAN';
+ if(heading)heading.textContent=view==='wallet'?(data.admin?'Supervisión financiera':'Mi billetera'):'Panel CLAN CARTAN';
  const top=el('cc166-top-actions');top.replaceChildren();
  if(view!=='home'&&(navigationHistory.length||moduleReturn))
   top.append(button('← Atrás',()=>nav('back'),'cc166-secondary cc177-back'));
@@ -295,10 +295,10 @@ function renderNav(){
 function applyStreamShell(top,role,heading){
  app.classList.toggle('sb389-mode',streamContext);
  const sidebar=app.querySelector('.cc166-sidebar'),brand=app.querySelector('.cc166-brand'),head=app.querySelector('.cc166-top>div:first-child'),small=head?.querySelector('small');
- if(!streamContext){app.classList.remove('sb389-menu-open');app.querySelector('.sb389-logo')?.remove();app.querySelector('.sb389-scrim')?.remove();sidebar?.removeAttribute('inert');if(brand)brand.innerHTML='◈ <span>CLAN CARTAN<small>Panel de control</small></span>';if(small)small.textContent='CLAN CARTAN · V394 · PANEL ÚNICO';return;}
+ if(!streamContext){app.classList.remove('sb389-menu-open');app.querySelector('.sb389-logo')?.remove();app.querySelector('.sb389-scrim')?.remove();sidebar?.removeAttribute('inert');if(brand)brand.innerHTML='◈ <span>CLAN CARTAN<small>Panel de control</small></span>';if(small)small.textContent='CLAN CARTAN · V401 · PANEL ÚNICO';return;}
  if(brand)brand.textContent='Mi espacio';
  if(!app.querySelector('.sb389-logo')){const logo=make('img','sb389-logo');logo.src='assets/logo-streambulls-v304.avif';logo.alt='STREAM BULL’S · CLAN CARTAN';logo.width=110;logo.height=68;head?.prepend(logo);}
- if(small)small.textContent='V398 · SERVICIOS DIGITALES';if(heading)heading.textContent=data.admin?'Supervisión':data.super?'Mi negocio':'Mi espacio';
+ if(small)small.textContent='V401 · SERVICIOS DIGITALES';if(heading)heading.textContent=view==='wallet'?(data.admin?'Supervisión financiera':'Mi billetera'):data.admin?'Supervisión':data.super?'Mi negocio':'Mi espacio';
  role.textContent=(verified?(data.admin?'ADMIN · Supervisión':data.super?'SÚPER RESELLER · Publicaciones y ventas':access('STREAM_BULLS').ok?'RESELLER · Gestión y compras':'AFILIADO · Catálogo y compras'):'VERIFICANDO ACCESOS');
  top.replaceChildren();const menu=button('☰',()=>{if(!matchMedia('(max-width:850px)').matches){const collapsed=app.classList.toggle('sb389-collapsed');menu.setAttribute('aria-expanded',String(!collapsed));return;}const open=app.classList.toggle('sb389-menu-open');sidebar?.toggleAttribute('inert',!open&&matchMedia('(max-width:850px)').matches);menu.setAttribute('aria-expanded',String(open));},'sb389-menu');menu.dataset.sb389Menu='';menu.setAttribute('aria-label','Abrir menú de STREAM BULL’S');menu.setAttribute('aria-expanded',String(matchMedia('(max-width:850px)').matches?app.classList.contains('sb389-menu-open'):!app.classList.contains('sb389-collapsed')));top.append(menu);
  if(['wallet','profile'].includes(view)&&navigationHistory.length)top.append(button('← Atrás',()=>nav('back'),'cc166-secondary sb389-back'));else top.append(button('← Volver a CLAN CARTAN',closeToHome,'cc166-secondary sb389-exit'));
@@ -318,11 +318,11 @@ function businessTabs(page){
  }
  page.append(tabs);
 }
-function movementList(page,max){
+function movementList(page,max,offset=0){
  const box=make('div','cc166-list');
  // Las transferencias contables entre servicios no son movimientos del cliente:
  // un único saldo no debe mostrar débitos/créditos internos duplicados.
- const moves=data.moves.filter(m=>m.movement_type!=='TRANSFER').slice(0,max);
+ const moves=data.moves.filter(m=>m.movement_type!=='TRANSFER').slice(offset,offset+max);
  if(!moves.length)box.append(make('p','cc166-empty',verified?'No se encontraron movimientos reales.':'Consultando movimientos…'));
  for(const m of moves){
   const row=make('div','cc166-movement'),a=make('div','');
@@ -1147,7 +1147,7 @@ function personalManualRecharge(page){
  page.append(box);
 }
 function wallet(page){
- title(page,'Billetera única',data.admin?'Recargas confirmadas, saldo común y auditoría financiera.':'Saldo verificado y movimientos de todos tus negocios, en una sola cuenta.');
+ page.append(make('p','cc401-wallet-intro',data.admin?'Recargas, fondos comunes y auditoría de la plataforma.':'Un solo saldo real para tus cuatro negocios.'));
  if(data.admin){
   adminWalletTabs(page);
   if(walletTab==='recharges'){adminRecharges(page);return;}
@@ -1168,18 +1168,21 @@ function wallet(page){
   else summary.append(make('p','cc166-note','Consultando el resumen financiero…'));
   page.append(summary);return;
  }
- page.append(adminSectionTabs([
+ if(walletTab==='summary')page.append(walletBalancesPanel(false));
+ const tabs=adminSectionTabs([
   ['summary','Resumen'],['manual','Recarga manual'],['automatic','Recarga automática'],['movements','Movimientos']
- ],walletTab,id=>{walletTab=id;render(true);}));
+ ],walletTab,id=>{walletTab=id;walletMovementPage=0;render(true);});tabs.classList.add('cc401-wallet-tabs');tabs.querySelectorAll('button').forEach((b,i)=>b.prepend(walletIcon(['summary','manual','automatic','movements'][i])));tabs.setAttribute('aria-label','Secciones de mi billetera');page.append(tabs);
  if(['manual','automatic'].includes(walletTab)&&typeof window.cc321Render==='function'){window.cc321Render(page,walletTab,{uid:user,jwt:token,root:session()?.root,key:session()?.key,api,nav,openRecharge:mode=>finance(mode),admin:false});return;}
  if(walletTab==='manual'){personalManualRecharge(page);return;}
  if(walletTab==='automatic'){personalAutoRecharge(page);return;}
- if(walletTab==='movements'){movementList(page,120);return;}
- const summary=walletBalancesPanel(false);page.append(summary);
- const actions=make('div','cc167-actions');actions.append(button('Recargar saldo real',()=>finance('manual'),'cc166-primary'));page.append(actions);
+ if(walletTab==='movements'){
+  const total=data.moves.filter(m=>m.movement_type!=='TRANSFER').length,size=8;walletMovementPage=Math.max(0,Math.min(walletMovementPage,Math.ceil(total/size)-1));
+  const box=card('Movimientos','Solicitudes y operaciones consultadas de tu billetera.');movementList(box,size,walletMovementPage*size);
+  if(total>size){const pager=make('nav','cc401-wallet-pager');pager.setAttribute('aria-label','Páginas de movimientos');const prev=button('← Anteriores',()=>{walletMovementPage--;render();},'cc166-secondary'),next=button('Siguientes →',()=>{walletMovementPage++;render();},'cc166-secondary');prev.disabled=walletMovementPage===0;next.disabled=(walletMovementPage+1)*size>=total;pager.append(prev,make('span','',String(walletMovementPage*size+1)+'–'+Math.min((walletMovementPage+1)*size,total)+' de '+total+' consultados'),next);box.append(pager);}page.append(box);return;
+ }
  if(Number(data.financeWallet?.pending_reversal_pen)>0)page.append(make('p','cc166-note','El saldo real disponible ya descuenta '+price(data.financeWallet.pending_reversal_pen)+' por operaciones anuladas.'));
  const latest=card('Últimos movimientos','Los depósitos pendientes no aumentan tu saldo.');
- movementList(latest,8);page.append(latest);
+ movementList(latest,3);page.append(latest);
 }
 function businessPeriod(code){
  if(Array.isArray(data.accesses)){const row=data.accesses.find(x=>x.service===code);return row?.active_until?{end:row.active_until}:null;}
@@ -1210,19 +1213,20 @@ function bonusBalance(code){
  if(!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(code))return 0;
  return ['Bono COBRA YA','Bono MI COCHERA','Bono MI ALQUILER'].reduce((sum,label)=>sum+Math.max(0,Number(data.bonuses?.find(x=>x.label===label)?.amount||0)),0);
 }
+function walletIcon(kind){
+ const paths={real:'M3 7h17v14H3V7Zm0 0 13-5 2 5M15 12h7v5h-7v-5Z',bonus:'M20 12v10H4V12M2 7h20v5H2V7ZM12 22V7M12 7H7.5A2.5 2.5 0 1 1 10 4.5L12 7ZM12 7h4.5A2.5 2.5 0 1 0 14 4.5L12 7Z',summary:'M3 10 12 2l9 8M5 9v13h5v-7h4v7h5V9',manual:'M4 4h16v16H4V4ZM12 7v10M7 12h10',automatic:'M21 12a9 9 0 1 1-3-6.7M21 3v6h-6M12 7v5l3 2',movements:'M4 6h16M4 12h16M4 18h16'};
+ const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('fill','none');icon.setAttribute('stroke','currentColor');icon.setAttribute('stroke-width','1.8');icon.setAttribute('aria-hidden','true');const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',paths[kind]||paths.real);icon.append(path);return icon;
+}
 function walletBalancesPanel(compact=false){
- const wrap=make('section','cc-wallet-overview');
- wrap.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0 18px';
- const tile=(heading,value,sub,accent)=>{
-  const c=make('div','cc-wallet-tile');c.style.cssText='padding:18px 20px;border:1px solid '+accent+';border-radius:15px;background:linear-gradient(130deg,#103947,#10243b);color:#eaffff;min-width:0';
-  const h=make('div','',heading);h.style.cssText='font-size:14px;font-weight:700;opacity:.92';c.append(h);
-  const v=make('strong','',verified?price(value):'Consultando…');v.style.cssText='display:block;font-size:clamp(24px,3vw,34px);margin:7px 0;line-height:1.2';if(heading==='Saldo real')v.setAttribute('data-cc-wallet-amount','');c.append(v);
-  if(sub){const d=make('p','',sub);d.style.cssText='font-size:12px;opacity:.83;margin:0';c.append(d);}return c;
+ const wrap=make('section','cc-wallet-overview');wrap.setAttribute('aria-label','Saldos de la billetera única');
+ const tile=(heading,value,sub,kind)=>{
+  const c=make('article','cc-wallet-tile cc401-wallet-'+kind),head=make('div','cc401-balance-heading');
+  const icon=walletIcon(kind);head.append(icon,make('span','',heading));c.append(head);
+  const v=make('strong','',verified?price(value):'Consultando…');if(kind==='real')v.setAttribute('data-cc-wallet-amount','');c.append(v,make('p','',sub));return c;
  };
- wrap.append(tile('Saldo real',realBalance(),'Recargas confirmadas y ganancias por referidos · cuatro negocios','#168fa2'));
- const bonusTotal=bonusBalance('COBRA_YA');
- wrap.append(tile('Bono compartido',bonusTotal,'Para COBRA YA, MI COCHERA y MI ALQUILER','#b58b42'));
- if(!compact){const note=make('p','cc166-note','El bono es un único saldo promocional para los tres negocios permitidos. STREAM BULL’S acepta únicamente saldo real.');note.style.cssText='grid-column:1/-1;margin:0';wrap.append(note);}
+ wrap.append(tile('Saldo real',realBalance(),'PEN · Recargas y referidos','real'));
+ wrap.append(tile('Bono compartido',bonusBalance('COBRA_YA'),'PEN · Activaciones permitidas','bonus'));
+ if(!compact){const rules=make('details','cc401-wallet-rules');rules.append(make('summary','','¿Cómo se utiliza cada saldo?'),make('p','cc166-note','El saldo real se comparte entre los cuatro negocios. El bono es un único saldo promocional para COBRA YA, MI COCHERA y MI ALQUILER; STREAM BULL’S acepta únicamente saldo real.'));wrap.append(rules);}
  return wrap;
 }
 let pendingMembershipRecharge=null;
@@ -2345,6 +2349,7 @@ function render(startAtTop=false){
  const publishDraft=view==='publish'&&data.super&&!data.admin&&!discardPublishDraft?el('cc166-publish-form'):null;
  el('cc177-return-panel')?.remove();
  if(view==='business:STREAM_BULLS'||view==='stream-operations')streamContext=true;
+ app.dataset.cc401Wallet=String(view==='wallet');
  mountLauncher();renderNav();const page=el('cc166-content');page.dataset.cc316StreamOperations=String(view==='stream-operations'||view==='business:STREAM_BULLS');page.dataset.sb389Role=data.admin?'admin':data.super?'super':access('STREAM_BULLS').ok?'reseller':'affiliate';page.dataset.sb389Verified=String(verified);page.replaceChildren();
  if(['recharges','recharge-mail'].includes(view)){if(typeof window.cc321Render==='function')window.cc321Render(page,view,{uid:user,jwt:token,root:session()?.root,key:session()?.key,api,nav,admin:verified&&data.admin});else page.append(make('p','cc166-note','Preparando recargas…'));savePanelState();return;}
  if(['finance','referrals'].includes(view)){if(typeof window.cc320Render==='function')window.cc320Render(page,view,{uid:user,jwt:token,root:session()?.root,key:session()?.key,api,nav,admin:verified&&data.admin});else page.append(make('p','cc166-note','Preparando finanzas…'));savePanelState();return;}

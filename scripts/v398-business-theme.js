@@ -36,8 +36,12 @@ function ensure(){
    button=document.createElement('button');button.type='button';button.className='cc398-theme-button';button.setAttribute('data-cc-theme-toggle','');
    if(host.matches('.cy371-main,#ma1611content')){const bar=document.createElement('div');bar.className='cc398-theme-bar';bar.append(button);host.prepend(bar);}else host.append(button);
   }
+  if(root.id==='ma1611layer'){
+   const header=root.querySelector(hostSelector);if(header){let group=header.querySelector('.cc401-tools');if(!group){group=document.createElement('div');group.className='cc401-tools';const refresh=header.querySelector('[data-ma-action=reload],[data-ma3-action=refresh],[data-ma4-action=refresh]');if(refresh)group.append(refresh);header.append(group);}if(button.parentElement!==group)group.append(button);}
+  }
   paintButton(button);
  }
+ for(const group of document.querySelectorAll('.cc-wallet-overview'))group.classList.toggle('cc401-wide-values',[...group.querySelectorAll('.cc-wallet-tile strong')].some(n=>n.textContent.trim().length>12));
 }
 function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(ensure);}}
 window.CCTheme=Object.freeze({get:()=>value,set,toggle:()=>set(value==='dark'?'light':'dark')});

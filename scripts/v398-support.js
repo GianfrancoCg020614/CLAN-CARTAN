@@ -161,11 +161,18 @@ function sync(){
  const candidates=[...document.querySelectorAll('#ma1611layer,#mc158layer,#cy53layer,#cc166-panel')].filter(n=>!n.hidden&&n.getBoundingClientRect().width&&getComputedStyle(n).display!=='none').sort((a,b)=>(parseInt(getComputedStyle(b).zIndex)||0)-(parseInt(getComputedStyle(a).zIndex)||0));
  const home=document.getElementById('cc77home');
  const catalogHost=document.body.classList.contains('view-store')&&(!home||getComputedStyle(home).display==='none')?document.querySelector('#app .cc117-actions-top'):null;
- const host=candidates[0]||catalogHost||document.body;if(launcher.parentNode!==host)host.append(launcher);
+ const root=candidates[0];
+ const moduleHost=root?.id==='cy53layer'?root.querySelector('.cc398-theme-bar'):root?.id==='mc158layer'?root.querySelector('.mc395-toolbar'):root?.id==='ma1611layer'?root.querySelector('.cc401-tools'):root?.id==='cc166-panel'?root.querySelector('#cc166-top-actions'):null;
+ const host=moduleHost||catalogHost||document.body;
+ const inline=host!==document.body;launcher.classList.toggle('cc401-inline-help',inline);const label=inline?'Ayuda':'Soporte humano';if(launcher.textContent!==label)launcher.textContent=label;
+ if(launcher.parentNode!==host)host.append(launcher);
  launcher.hidden=!session()?.jwt;
  if(dialog&&(!session()?.jwt||owner!==session()?.userId))close();
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
+function initSupport(){
+ sync();let scheduled=false;new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;sync();});}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','hidden']});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initSupport,{once:true});else initSupport();
 document.addEventListener('cc192-session-refreshed',sync);
 setInterval(sync,1000);
 setInterval(()=>{if(dialog?.open&&ticket&&!busy&&document.visibilityState==='visible')void loadThread(false,true);},10000);

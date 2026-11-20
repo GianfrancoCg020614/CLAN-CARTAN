@@ -24,7 +24,7 @@ export function cleanupFixture(){
  html+='<script>'+fs.readFileSync('scripts/v116-account.js','utf8')+'</script><script>'+fs.readFileSync('scripts/v132-wallet-movements.js','utf8')+'</script><script>'+fs.readFileSync('scripts/v158-mi-cochera.js','utf8')+'</script>';
  const probe=`(async()=>{const wait=ms=>new Promise(r=>setTimeout(r,ms));await wait(800);const q=s=>document.querySelector(s),checks={};
  try{
- cc80.open();checks.oldWalletRoutesToCurrent=!q('#cc166-panel').hidden&&q('.cc166-section-title')?.textContent.includes('Billetera');checks.oldHostHidden=q('#cc80wallet').hidden;
+ cc80.open();checks.oldWalletRoutesToCurrent=!q('#cc166-panel').hidden&&/billetera/i.test(q('#cc166-panel h1')?.textContent||'');checks.oldHostHidden=q('#cc80wallet').hidden;
  window.cc116OpenRecharge();await wait(60);checks.rechargeRoutesCurrent=q('.cc175-tab.selected')?.textContent==='Recarga manual';
  window.cc166OpenWallet('summary');await wait(60);const balances=[...document.querySelectorAll('#cc166-panel .cc-wallet-tile strong')];
  checks.sharedRealBalance=balances[0]?.textContent.includes('17.00')===true;checks.bonusSeparate=balances[1]?.textContent.includes('50.00')===true&&!q('#cc166-content').textContent.includes('67.00');
