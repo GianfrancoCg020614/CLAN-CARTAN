@@ -40,7 +40,7 @@ try{
    'const offers=document.querySelectorAll(".cc169-offer:not(.cc169-example)");',
    'const noDemo=!document.getElementById("demo-offer")||!!document.getElementById("demo-offer")?.closest(".cc169-showcase");',
    mode==='no-offers'
-     ?'const sample=document.querySelector(".cc169-demo-grid");const safeSample=!!sample&&sample.querySelectorAll(".cc169-example").length===6&&[...sample.querySelectorAll("button")].every(b=>b.disabled)&&[...sample.querySelectorAll(".cc169-cover-status")].every(e=>e.textContent.startsWith("Ejemplo · "))&&!sample.textContent.includes("S/ 12.00")&&document.querySelector("#productos").textContent.includes("no representan stock ni ofertas disponibles");'
+     ?'const safeSample=!document.querySelector(".cc169-demo-grid")&&!document.querySelector(".cc169-example")&&document.querySelector("#productos").textContent.includes("Todavía no hay productos disponibles");'
      :'const safeSample=!document.querySelector(".cc169-demo-grid");',
    mode==='no-offers'
      ?'const correctOffers=offers.length===0;'
@@ -67,7 +67,7 @@ try{
   const mark=run.stdout.match(/<output id="catalog-smoke" data-status="(pass|fail)">([^<]*)<\/output>/);
   assert.ok(mark,'Prueba sin resultado '+mode);
   assert.equal(mark[1],'pass',mode+' '+mark[2]);
-  console.log('PASS catálogo V169 '+mode+' · checkout verificado/anon/ejemplos seguros');
+  console.log('PASS catálogo V169 '+mode+' · checkout verificado/anon/sin inventario ficticio');
  }
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
 

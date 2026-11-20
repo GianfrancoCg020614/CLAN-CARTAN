@@ -116,6 +116,7 @@ function access(code){
  return {ok:false,reason:'Membresía pendiente o vencida'};
 }
 function addReturnControl(){
+ if(document.body.classList.contains('view-store'))return; // Catalogue owns its header navigation.
  if(['cobra','cochera','alquiler'].includes(document.documentElement.dataset.ccActiveModule))return; // Each module owns its single return control.
  if(!user||!session()?.jwt)return;
  let host=el('cc177-return-panel');

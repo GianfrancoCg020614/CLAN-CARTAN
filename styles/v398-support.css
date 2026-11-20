@@ -12,3 +12,7 @@ html[data-cc-theme=dark] #cc398-support-dialog{--support-bg:#222e3b;--support-al
 #cc398-support-dialog .cc398-attachment{font-size:11px}#cc398-support-dialog .cc398-attachment input{font-size:12px;padding:5px;min-height:32px}#cc398-support-dialog .cc398-capture-preview{position:absolute;inset:0;z-index:2;background:var(--support-bg);margin:0;padding:16px;display:flex;flex-direction:column;gap:12px}#cc398-support-dialog .cc398-capture-preview img{min-height:0;flex:1;width:100%;object-fit:contain}
 /* Leave the existing visitor contact control accessible on the public homepage. */
 body>#cc398-support-launcher{bottom:calc(94px + env(safe-area-inset-bottom))}
+/* In the catalogue, support is part of the one header, not a floating overlay. */
+html body.view-store #app .cc117-actions-top #cc398-support-launcher{position:static;inset:auto;margin:0;min-height:44px;padding:10px 14px;font-size:12px;border-radius:10px;box-shadow:none}
+html body.view-store #app .cc117-actions-top #cc398-support-launcher[hidden]{display:none!important}
+#cc398-support-dialog [hidden]{display:none!important}#cc398-support-dialog .cc399-purchase-fields{display:grid;gap:12px}#cc398-support-dialog .cc399-purchase-pagination{font-size:12px}

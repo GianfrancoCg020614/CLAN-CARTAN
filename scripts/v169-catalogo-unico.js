@@ -64,15 +64,14 @@
       image.onerror=()=>{
         cover.classList.remove('cc170-cover-with-image');
         cover.replaceChildren(text('span','cc169-cover-brand',"STREAM BULL'S"),
-          text('strong','cc169-cover-title',product.service),
-          text('span','cc169-cover-status','Publicación activa'));
+          text('strong','cc169-cover-title',product.service));
       };
       preview.prepend(image);
       cover.append(preview);
     }else{
       cover.append(text('span','cc169-cover-brand',"STREAM BULL'S"));
       cover.append(text('strong','cc169-cover-title',product.service));
-      cover.append(text('span','cc169-cover-status','Publicación activa'));
+
     }
     const body=text('div','product-body');
     const meta=text('div','product-topmeta');
@@ -83,14 +82,11 @@
     body.append(text('p','product-preview',product.description||'Servicio digital. Revisa las condiciones de acceso, entrega y renovación antes de confirmar.'));
     const details=text('dl','cc169-product-facts');
     const fact=(label,value)=>{const item=text('div','cc169-product-fact');item.append(text('dt','',label),text('dd','',value));details.append(item);};
-    fact('Stock disponible',String(product.stock)+' unidad'+(Number(product.stock)===1?'':'es'));
     fact('Vendedor',String(product.seller_name||product.seller_display_name||'Vendedor verificado').trim());
-    fact('Servicio',product.service);
     fact('Vigencia',product.duration_days+' días');
     fact('Entrega','Según condiciones de la publicación');
     fact('Modalidad','Acceso digital');
-    fact('Precio aplicable',product.price_tier==='DISTRIBUTOR'?'Distribuidor · membresía activa':'Público · afiliados y visitantes');
-    body.append(details);
+    const disclosure=text('details','cc399-conditions');disclosure.append(text('summary','',product.duration_days+' días · Ver condiciones'),details);body.append(disclosure);
     const priceBox=text('div','v23-card-price');
     const tier=product.price_tier==='DISTRIBUTOR';
     const amount=text('div','');
@@ -99,43 +95,10 @@
     if(window.cc391Usd)amount.append(window.cc391Usd.amount(product.price_pen));
     priceBox.append(amount);body.append(priceBox);
     const actions=text('div','product-actions cc117-one-action');
-    actions.append(button(window.CC_V53_SESSION?.jwt?'Comprar con billetera':'Regístrate gratis para comprar',
+    actions.append(button(window.CC_V53_SESSION?.jwt?'Comprar con billetera':'Ingresar para comprar',
       function(){purchase(product,this)},'btn primary cc169-buy'));
     card.append(cover,body,actions);
     return card;
-  }
-  function exampleCard(item){
-    // Presentación visual sin inventario, vendedores, precios ni compras reales.
-    const card=text('article','product lux v23-product-card cc169-offer cc169-example');
-    const cover=text('div','product-visual cc169-offer-cover');
-    cover.append(text('span','cc169-cover-brand','STREAMBULLS'),text('strong','cc169-cover-title',item.service),text('span','cc169-cover-status','Ejemplo · '+item.status));
-    const body=text('div','product-body');
-    body.append(text('h3','cc169-offer-title',item.title));
-    body.append(text('p','product-preview',item.description));
-    const details=text('dl','cc169-product-facts');
-    for(const [label,value] of [['Modalidad','Ejemplo: '+item.mode],['Vigencia','Según publicación'],['Atención',item.attention],['Disponibilidad','Ejemplo: '+item.status],['Precio','Por confirmar']]){
-      const row=text('div','cc169-product-fact');row.append(text('dt','',label),text('dd','',value));details.append(row);
-    }
-    body.append(details);
-    const actions=text('div','product-actions cc117-one-action');
-    const unavailable=text('button','btn cc169-example-disabled','No disponible para compra');unavailable.type='button';unavailable.disabled=true;
-    actions.append(unavailable);card.append(cover,body,actions);return card;
-  }
-  const showcase=[
-    {service:'Netflix',title:'Netflix · Perfil Premium',status:'Disponible',mode:'Entrega inmediata',attention:'Dentro del horario publicado',description:'Perfil digital. Acceso, renovación y condiciones según el vendedor.'},
-    {service:'Disney+',title:'Disney+ · Perfil Premium',status:'A pedido',mode:'Activación a pedido',attention:'Confirmación del vendedor',description:'Solicitud de perfil digital con entrega sujeta a confirmación.'},
-    {service:'Spotify',title:'Spotify · Plan Premium',status:'Sin stock',mode:'Sin entrega inmediata',attention:'Próxima reposición por confirmar',description:'Presentación de un servicio temporalmente agotado.'},
-    {service:'YouTube Premium',title:'YouTube Premium · 30 días',status:'Fuera de horario',mode:'Según disponibilidad',attention:'Horario del vendedor pendiente',description:'Servicio sujeto al horario de atención publicado por su vendedor.'},
-    {service:'HBO Max',title:'HBO Max · Perfil',status:'Ausente',mode:'Atención pausada',attention:'Regreso por confirmar',description:'El vendedor podrá indicar su ausencia temporal y la hora de regreso.'},
-    {service:'Canva',title:'Canva · Acceso digital',status:'Renovable',mode:'Renovación según condiciones',attention:'Confirmación del vendedor',description:'Ejemplo de publicación con vigencia y renovación informadas.'}
-  ];
-  function showcaseMatches(item){
-    const chosen=(typeof ui!=='undefined'&&ui.storeCategory)||'Todos';
-    const streaming=['Netflix','Disney+','Spotify','YouTube Premium','HBO Max'].includes(item.service);
-    if(chosen==='Streaming'&&!streaming)return false;
-    if(chosen==='Recursos'&&streaming)return false;
-    const term=el('cc117-search')?.value??(typeof ui!=='undefined'?ui.storeSearch:'');
-    return matchesTerms([item.service,item.title,item.description,item.status],term);
   }
   function unifyProfileLink(){
     const link=document.querySelector('#app .cc117-header .cc117-actions-top .cc117-register');
@@ -155,74 +118,12 @@
   // Ordenar acciones existentes sin sustituir sus eventos ni permisos.
   const officialWhatsApp='https://wa.me/51923319637?text='+encodeURIComponent('Hola, necesito información sobre STREAMBULLS de CLAN CARTAN.');
   function ensureCatalogWhatsApp(){
-    if(!document.body.classList.contains('view-store'))return;
-    const header=document.querySelector('#app .cc117-header');
-    const actions=header?.querySelector('.cc117-actions-top');
+    const actions=document.querySelector('#app .cc117-header .cc117-actions-top');
     if(!actions)return;
-    let link=document.getElementById('cc169-whatsapp-admin');
-    if(!link){
-      link=text('a','cc169-whatsapp-admin cc169-admin-shortcut','WhatsApp ADMIN');
-      link.id='cc169-whatsapp-admin';link.target='_blank';link.rel='noopener noreferrer';
-      link.setAttribute('aria-label','Contactar al administrador de STREAMBULLS por WhatsApp');
-    }
-    link.href=officialWhatsApp;
-    link.title='Contactar por WhatsApp';
-    if(link.parentElement!==document.body)document.body.append(link);
-    // Evitar accesos flotantes de WhatsApp duplicados en la vista de tienda.
-    for(const other of document.querySelectorAll('a[href*="wa.me/51923319637"]')){
-      if(other===link||other.closest('.cc169-offer'))continue;
-      if(other.matches('.cc169-whatsapp-admin')||other.id==='cc169-whatsapp-admin')continue;
-      other.hidden=true;other.style.setProperty('display','none','important');
-    }
-  }
-  function tidyCatalogBack(){
-    if(!document.body.classList.contains('view-store'))return;
-    const header=document.querySelector('#app .cc117-header');
-    const actions=header?.querySelector('.cc117-actions-top');
-    if(!actions)return;
-    // Ya existe "Inicio" en el menú original: no agregar otro botón de regreso.
-    document.getElementById('cc169-back-home')?.remove();
-    const home=actions.querySelector('.cc117-link[onclick*="cc77Home"]');
-    if(home){home.setAttribute('aria-label','Volver a CLAN CARTAN');home.title='Volver a CLAN CARTAN';}
-    for(const node of document.querySelectorAll('a,button')){
-      if(!node.isConnected||node.closest('#cc166-panel')||node===home)continue;
-      const label=(node.textContent||'').trim();
-      if(/^(←\\s*)?CLAN CARTAN$/i.test(label)&&node.closest('.cc117-header')!==header){
-        node.hidden=true;node.style.setProperty('display','none','important');
-      }
-    }
-  }
-  function tidyMobileHeader(){
-    if(!document.body.classList.contains('view-store'))return;
-    // El catálogo es público: los accesos administrativos no pertenecen a esta vista.
-    for(const node of document.querySelectorAll('button,a')){
-      if(!node.isConnected||node.id==='cc169-whatsapp-admin')continue;
-      const label=(node.textContent||'').trim().replace(/^[^A-Za-zÁÉÍÓÚÑáéíóúñ]+/,'').trim();
-      if(/^(Abrir COBRA YA|SOLICITUDES RESELLER)$/i.test(label)){
-        node.hidden=true;node.style.setProperty('display','none','important');
-      }
-    }
-  }
-  function cleanLegacyCatalog(){
-    if(!document.body.classList.contains('view-store'))return;
-    // La tienda antigua genera estos elementos fuera de la barra de acciones.
-    for(const node of document.querySelectorAll('#app button,#app a')){
-      if(node.id==='cc169-whatsapp-admin'||node.id==='cc169-back-home')continue;
-      const label=(node.innerText||node.textContent||'').replace(/[^\p{L}\p{N} ]/gu,' ').replace(/\s+/g,' ').trim().toUpperCase();
-      if(/^(ABRIR COBRA YA|SOLICITUDES RESELLER|CLAN CARTAN)$/.test(label)){
-        if(!node.hidden)node.hidden=true;
-        if(node.style.display!=='none')node.style.setProperty('display','none','important');
-      }
-    }
-    // Retirar el aviso informativo del catálogo antiguo; no habilita ventas.
-    for(const node of document.querySelectorAll('#productos p,#productos div,#productos aside')){
-      if(node.children.length>2)continue;
-      const t=(node.textContent||'').trim();
-      if(t.length<230&&/Estas imágenes son SOLO ejemplos/i.test(t)){
-        node.hidden=true;
-        if(node.style.display!=='none')node.style.setProperty('display','none','important');
-      }
-    }
+    let link=el('cc169-whatsapp-admin');
+    if(window.CC_V53_SESSION?.jwt){link?.remove();return;}
+    if(!link){link=text('a','cc169-whatsapp-admin','Contacto');link.id='cc169-whatsapp-admin';link.target='_blank';link.rel='noopener noreferrer';link.href=officialWhatsApp;link.setAttribute('aria-label','Consultar por WhatsApp');}
+    if(link.parentElement!==actions)actions.append(link);
   }
   function render(){
     // Nunca conservar tarifas de distribuidor en pantalla después de cerrar sesión.
@@ -231,14 +132,9 @@
       void refresh();
     }
     unifyProfileLink();
-    tidyMobileHeader();
-    tidyCatalogBack();
     ensureCatalogWhatsApp();
-    cleanLegacyCatalog();
     const section=document.querySelector('#productos .v23-catalog-section');
     if(!section)return;
-    const oldBanner=el('cc77demobanner');
-    if(oldBanner)oldBanner.style.display='none'; // Estado de venta ya figura en el catálogo.
     const chosen=(typeof ui!=='undefined'?ui.storeCategory:'Todos');
     const term=el('cc117-search')?.value??(typeof ui!=='undefined'?ui.storeSearch:'');
     const state=revision+'|'+chosen+'|'+term+'|'+!!window.CC_V53_SESSION?.jwt+'|'+section.querySelectorAll('.cc169-result').length;
@@ -248,7 +144,7 @@
     section.querySelectorAll('.v23-product-grid,.v23-empty,.cc169-result').forEach(n=>n.remove());
     const matches=rows.filter(x=>categoryMatches(x)&&searchMatches(x));
     const count=section.querySelector('.v23-count');
-    if(count)count.textContent=loading?' Consultando…':loaded?matches.length+' publicaciones verificadas':' Sin verificación';
+    if(count)count.textContent=loading?' Consultando…':loaded?matches.length+' producto'+(matches.length===1?'':'s'):' Sin verificación';
     const holder=text('div','cc169-result');
     if(loading&&!loaded)holder.append(text('p','cc169-status','Consultando publicaciones disponibles…'));
     else if(error) {
@@ -257,16 +153,13 @@
     } else if(!matches.length){
       holder.append(text('p','cc169-status',rows.length?
         'No encontramos servicios publicados para esta búsqueda.':
-        'Todavía no hay productos publicados y verificados. Vuelve pronto para consultar los servicios disponibles.'));
-      // La muestra es visual y no pertenece a la lista de productos reales.
-      if(!rows.length&&!error&&!loading){holder.append(text('p','cc169-status','Ejemplos visuales: no representan stock ni ofertas disponibles.'));const demo=text('div','cc169-verified-grid cc169-demo-grid');showcase.filter(showcaseMatches).forEach(item=>demo.append(exampleCard(item)));holder.append(demo);}
+        'Todavía no hay productos disponibles. Las nuevas publicaciones aparecerán aquí.'));
     } else {
       const grid=text('div','products v6-grid v23-product-grid cc169-verified-grid');
       grid.dataset.cc169Source='verified';matches.forEach(p=>grid.append(buildCard(p)));holder.append(grid);
     }
     if(authNotice)holder.append(text('p','cc169-status',authNotice));
     const controls=text('div','cc169-catalog-controls');
-    controls.append(text('small','',rows.length?'Productos y precios confirmados por CLAN CARTAN. El pago requiere sesión y saldo real.':'No hay productos ni precios verificados disponibles para compra.'));
     controls.append(button('↻ Actualizar catálogo',()=>{void refresh()},'btn cc169-refresh'));
     if(rows.length&&window.cc391Usd)controls.append(window.cc391Usd.note());
     holder.append(controls);
@@ -346,6 +239,7 @@
     void refresh();
   }
   function init(){
+    document.addEventListener('cc399-catalog-filter',schedule);
     document.addEventListener('input',event=>{if(event.target.id==='cc117-search')schedule();});
     // Actualizar las tarifas cuando el usuario regresa a la tienda desde
     // otra pestaña o se renueva su membresía.
