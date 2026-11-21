@@ -53,25 +53,15 @@ jobs:
                   assets_ok=true
                   for asset in scripts/v113-wallet.js styles/v113-wallet.css scripts/v116-account.js styles/v116-account.css styles/v117-public-catalog.css styles/v118-logout.css scripts/v119-clients.js styles/v119-clients.css scripts/v122-recharges.js styles/v122-recharges.css scripts/v132-wallet-movements.js styles/v132-wallet-movements.css; do
                     response_asset="artifact-$(basename "$asset")"
-                    case "$asset" in
-                      scripts/v116-account.js) asset_marker='CLAN CARTAN V127' ;;
-                      styles/v116-account.css) asset_marker='CLAN CARTAN V116' ;;
-                      *v119*) asset_marker='CLAN CARTAN V119' ;;
-                      *v118*) asset_marker='CLAN CARTAN V118' ;;
-                      *v117*) asset_marker='CLAN CARTAN V117' ;;
-                      scripts/v122-recharges.js) asset_marker='CLAN CARTAN V131.2' ;;
-                      scripts/v132-wallet-movements.js) asset_marker='CLAN CARTAN V132' ;;
-                      styles/v132-wallet-movements.css) asset_marker='CLAN CARTAN V132' ;;
-                      styles/v122-recharges.css) asset_marker='V131.2' ;;
-                      *) asset_marker='CLAN CARTAN V115' ;;
-                    esac
-                    if curl --fail --silent --show-error --location --connect-timeout 8 --max-time 20 \
-                       "${main}${asset}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o "$response_asset" \
-                       && grep -Fq "$asset_marker" "$response_asset"; then
-                      echo "✓ Recurso vigente: $asset"
-                    else
+                    if ! curl --fail --silent --show-error --location --connect-timeout 8 --max-time 20 \
+                       "${main}${asset}?clan_check=${GITHUB_RUN_ID}-${attempt}" -o "$response_asset"; then
                       assets_ok=false
-                      echo "::warning::El recurso $asset falta o es de una versión anterior"
+                      echo "::warning::No se pudo descargar $asset"
+                    elif ! cmp -s "$asset" "$response_asset"; then
+                      assets_ok=false
+                      echo "::warning::El contenido de $asset no coincide con el commit verificado"
+                    else
+                      echo "✓ Recurso vigente: $asset"
                     fi
                   done
                   if [[ "$assets_ok" == true ]]; then
@@ -80,14 +70,16 @@ jobs:
                     echo "Cloudflare publica **$expected**, con JS/CSS, en [www.clancartan.com]($main)." >> "$GITHUB_STEP_SUMMARY"
                     exit 0
                   fi
+                  echo "La versión $expected está publicada, pero falta verificar uno o más recursos."
+                else
+                  echo "HTTPS responde, pero todavía no muestra $expected."
                 fi
-                echo "HTTPS responde, pero todavía no muestra $expected."
               fi
               if [[ "$attempt" != '4' ]]; then sleep 15; fi
             done
             echo "::error::El dominio resuelve, pero no fue posible verificar la versión $expected."
             echo "### Despliegue no confirmado" >> "$GITHUB_STEP_SUMMARY"
-            echo "El dominio resuelve pero no presenta la versión **$expected**: revisa **Deployments** en Cloudflare Pages." >> "$GITHUB_STEP_SUMMARY"
+            echo "No se pudo confirmar la versión **$expected** junto con todos sus recursos: revisa los mensajes del job y **Deployments** en Cloudflare Pages." >> "$GITHUB_STEP_SUMMARY"
           fi
           if curl --fail --silent --show-error --location --max-time 15 \
              "${backup}?clan_check=${GITHUB_RUN_ID}-backup" -o cloudflare-backup.html; then
