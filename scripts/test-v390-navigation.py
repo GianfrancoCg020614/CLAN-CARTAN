@@ -2,9 +2,10 @@
 import json,shutil
 from pathlib import Path
 from datetime import datetime,timezone
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect,sync_playwright
 OUT=Path('artifacts/v390');OUT.mkdir(parents=True,exist_ok=True)
 Path('artifacts/v403').mkdir(parents=True,exist_ok=True)
+BACK=Path('artifacts/v405');BACK.mkdir(parents=True,exist_ok=True)
 results=[]
 with sync_playwright() as p:
  b=p.chromium.launch(executable_path=shutil.which('chromium') or shutil.which('google-chrome'),args=['--no-sandbox'])
@@ -40,6 +41,37 @@ with sync_playwright() as p:
    ('cochera','mc158Open()','#mc158layer','#mc158close','#mc158dialog','[data-action=new]'),
    ('alquiler','ma1611MiAlquiler.open()','#ma1611layer','#ma1611close','#ma1612dialog','[data-ma-action=new-property]')]:
    page.evaluate(opener);page.locator(layer+' '+new).first.wait_for();page.locator(layer+' '+new).first.click();page.locator(modal).wait_for();page.keyboard.press('Escape');assert page.locator(modal).count()==0;assert page.locator(layer).is_visible()
+   if module=='cobra':
+    page.locator('.cy371-tabs [data-action="nav:clients"]').click()
+    page.locator('#cy371sort').select_option('name')
+    page.locator('.cy371-tabs [data-action="nav:reports"]').click()
+    previous=page.locator('[data-action=previous-view]')
+    page.screenshot(path=str(BACK/f'cobra-{width}.png'))
+    previous.click()
+    assert page.locator('#cy371sort').input_value()=='name'
+    previous.click()
+    expect(previous).to_be_hidden()
+   elif module=='cochera':
+    page.locator('.mc396-tabs [data-view=carts]').click()
+    page.locator('#mc158state').select_option('RETIRED')
+    page.locator('.mc396-tabs [data-view=reports]').click()
+    expect(page.locator('.mc158main h2')).to_have_text('Reportes')
+    previous=page.locator('[data-action=previous-section]')
+    page.screenshot(path=str(BACK/f'cochera-{width}.png'))
+    previous.click()
+    assert page.locator('#mc158state').input_value()=='RETIRED'
+    previous.click()
+    expect(previous).to_be_hidden()
+   else:
+    for area in ('inquilinos','contratos'):
+     if width<=850:page.locator('.ma1611-head [data-ma388-menu]').click()
+     page.locator(f'[data-area={area}]').click()
+    previous=page.locator('.ma388-previous')
+    page.screenshot(path=str(BACK/f'alquiler-{width}.png'))
+    previous.click()
+    assert page.locator('[data-area=inquilinos]').get_attribute('aria-current')=='page'
+    previous.click()
+    expect(previous).to_be_hidden()
    wallet={'cobra':'[data-action=wallet]','cochera':'[data-action=wallet]','alquiler':'[data-ma388-wallet]'}[module]
    page.locator(layer+' '+wallet).first.click();page.locator('#cc166-panel .cc177-back').click();assert page.locator(layer).is_visible()
    if module=='cobra':
@@ -76,12 +108,22 @@ with sync_playwright() as p:
    page.wait_for_selector('#cc166-panel:not([hidden]) .cc167-tab');assert page.locator('.cc167-tab').count()==4;assert not page.locator(layer).is_visible();assert page.evaluate('CC_V53_SESSION.jwt')=='fixture-token';assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
    results.append({'module':module,'width':width,'status':'pass'});print('PASS',module,width,flush=True)
   page.locator('.cc167-tab').first.click();page.wait_for_selector('#cc166-panel.sb389-mode');
+  if width<=850:page.locator('[data-sb389-menu]').click()
+  page.get_by_role('button',name='Mis compras',exact=True).click()
+  assert page.locator('#cc166-nav [aria-label="Mis compras"]').get_attribute('aria-current')=='page'
+  assert page.locator('.sb389-exit').is_visible()
+  previous=page.locator('.sb389-back')
+  expect(previous).to_be_in_viewport()
+  previous.hover()
+  page.screenshot(path=str(BACK/f'stream-{width}.png'))
+  previous.click()
+  assert page.locator('#cc166-nav [aria-label="Mis compras"]').get_attribute('aria-current')=='false'
   for theme in ['light','dark']:
    page.evaluate('(v)=>CCTheme.set(v)',theme);page.wait_for_timeout(350);assert page.locator('#cc166-panel [data-cc-theme-toggle]').count()==1;page.screenshot(path='artifacts/v398/stream-'+str(width)+'-'+theme+'.png')
   page.locator('.sb389-exit').click();assert page.locator('#cc166-panel').is_hidden();assert page.locator('#cc77home').is_visible();assert not errors,errors;assert len(writes)==1
   results.append({'module':'stream','width':width,'status':'pass'});c.close()
  # The actual mobile cart detail must survive a secondary form and preserve its DOM/scroll.
  for width in [390,320]:
-  page=b.new_page(viewport={'width':width,'height':844});page.goto('http://127.0.0.1:8000/artifacts/mc373/premium.html');page.locator('[data-action=select-cart]').first.click();page.locator('#mc158dialog').wait_for();page.evaluate('window.__detail=document.querySelector("#mc158dialog")');page.locator('#mc158dialog [data-action=payment]').click();page.locator('#mc158pay').wait_for();page.keyboard.press('Escape');assert page.evaluate('__detail===document.querySelector("#mc158dialog")');assert 'Ficha del carrito' in page.locator('#mc158dialog').inner_text();page.keyboard.press('Escape');assert page.locator('#mc158dialog').count()==0;page.locator('[data-action=select-cart]').first.click();page.locator('#mc158dialog').wait_for();page.evaluate("CC_V53_SESSION.userId='other-owner';mc158Open()");page.wait_for_timeout(150);assert page.locator('#mc158dialog').count()==0;results.append({'module':'cochera nested return','width':width,'status':'pass'});page.close()
+  page=b.new_page(viewport={'width':width,'height':844});page.goto('http://127.0.0.1:8000/artifacts/mc373/premium.html');page.locator('[data-action=select-cart]').first.click();page.locator('#mc158dialog').wait_for();page.evaluate('window.__detail=document.querySelector("#mc158dialog")');page.locator('#mc158dialog [data-action=payment]').click();page.locator('#mc158pay').wait_for();page.locator('[data-action=previous-dialog]').click();assert page.evaluate('__detail===document.querySelector("#mc158dialog")');assert 'Ficha del carrito' in page.locator('#mc158dialog').inner_text();page.keyboard.press('Escape');assert page.locator('#mc158dialog').count()==0;page.locator('[data-action=select-cart]').first.click();page.locator('#mc158dialog').wait_for();page.evaluate("CC_V53_SESSION.userId='other-owner';mc158Open()");page.wait_for_timeout(150);assert page.locator('#mc158dialog').count()==0;results.append({'module':'cochera nested return','width':width,'status':'pass'});page.close()
  b.close()
 (OUT/'results.json').write_text(json.dumps(results,indent=2));print('PASS',len(results),'navigation cases, controlled data only')

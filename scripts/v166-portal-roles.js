@@ -295,13 +295,18 @@ function renderNav(){
 function applyStreamShell(top,role,heading){
  app.classList.toggle('sb389-mode',streamContext);
  const sidebar=app.querySelector('.cc166-sidebar'),brand=app.querySelector('.cc166-brand'),head=app.querySelector('.cc166-top>div:first-child'),small=head?.querySelector('small');
+ app.querySelector('.sb389-back')?.remove();
  if(!streamContext){app.classList.remove('sb389-menu-open');app.querySelector('.sb389-logo')?.remove();app.querySelector('.sb389-scrim')?.remove();sidebar?.removeAttribute('inert');if(brand)brand.innerHTML='◈ <span>CLAN CARTAN<small>Panel de control</small></span>';if(small)small.textContent='CLAN CARTAN · V401 · PANEL ÚNICO';return;}
  if(brand)brand.textContent='Mi espacio';
  if(!app.querySelector('.sb389-logo')){const logo=make('img','sb389-logo');logo.src='assets/logo-streambulls-v304.avif';logo.alt='STREAM BULL’S · CLAN CARTAN';logo.width=110;logo.height=68;head?.prepend(logo);}
  if(small)small.textContent='V401 · SERVICIOS DIGITALES';if(heading)heading.textContent=view==='wallet'?(data.admin?'Supervisión financiera':'Mi billetera'):data.admin?'Supervisión':data.super?'Mi negocio':'Mi espacio';
  role.textContent=(verified?(data.admin?'ADMIN · Supervisión':data.super?'SÚPER RESELLER · Publicaciones y ventas':access('STREAM_BULLS').ok?'RESELLER · Gestión y compras':'AFILIADO · Catálogo y compras'):'VERIFICANDO ACCESOS');
  top.replaceChildren();const menu=button('☰',()=>{if(!matchMedia('(max-width:850px)').matches){const collapsed=app.classList.toggle('sb389-collapsed');menu.setAttribute('aria-expanded',String(!collapsed));return;}const open=app.classList.toggle('sb389-menu-open');sidebar?.toggleAttribute('inert',!open&&matchMedia('(max-width:850px)').matches);menu.setAttribute('aria-expanded',String(open));},'sb389-menu');menu.dataset.sb389Menu='';menu.setAttribute('aria-label','Abrir menú de STREAM BULL’S');menu.setAttribute('aria-expanded',String(matchMedia('(max-width:850px)').matches?app.classList.contains('sb389-menu-open'):!app.classList.contains('sb389-collapsed')));top.append(menu);
- if(['wallet','profile'].includes(view)&&navigationHistory.length)top.append(button('← Atrás',()=>nav('back'),'cc166-secondary sb389-back'));else top.append(button('← Volver a CLAN CARTAN',closeToHome,'cc166-secondary sb389-exit'));
+ if(navigationHistory.length||moduleReturn)el('cc166-content').before(button('← Atrás',()=>{
+  nav('back');
+  if(!app.hidden)(app.querySelector('.sb389-back,.cc177-back')||top.querySelector('button'))?.focus({preventScroll:true});
+ },'cc166-secondary sb389-back cc405-back'));
+ top.append(button('← Volver a CLAN CARTAN',closeToHome,'cc166-secondary sb389-exit'));
  const update=button('↻',()=>void load(),'cc166-secondary');update.setAttribute('aria-label','Actualizar datos');top.append(update);
  if(!app.querySelector('.sb389-scrim')){const scrim=button('',()=>closePanelMenu(),'sb389-scrim');scrim.setAttribute('aria-label','Cerrar menú de STREAM BULL’S');app.append(scrim);}
  sidebar?.toggleAttribute('inert',matchMedia('(max-width:850px)').matches&&!app.classList.contains('sb389-menu-open'));

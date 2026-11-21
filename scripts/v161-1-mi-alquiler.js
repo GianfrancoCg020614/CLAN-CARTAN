@@ -7,6 +7,7 @@
   const $ = id => document.getElementById(id);
   const session = () => window.CC_V53_SESSION;
   let currentArea='inmuebles',openedUser=null;
+  const areaHistory=[];
   const areas = Object.freeze([
     { id: 'inmuebles', emoji: '🏘️', title: 'Inmuebles', summary: 'Códigos H-001 y L-001, disponibilidad y tarifas por día o mes.' },
     { id: 'inquilinos', emoji: '👥', title: 'Inquilinos', summary: 'Documento, datos de contacto y WhatsApp particular de cada cliente.' },
@@ -73,17 +74,30 @@
       '<label class="ma388-search"><span aria-hidden="true">⌕</span><input id="ma388search" type="search" placeholder="Buscar inmueble, inquilino, DNI o código…" aria-label="Buscar en MI ALQUILER" autocomplete="off" maxlength="120"></label>'+
       '<button type="button" data-ma388-wallet aria-label="Billetera única CLAN CARTAN"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h17v14H3V7Zm0 0 13-5 2 5M15 12h7v5h-7v-5Z"/></svg></button><button type="button" data-ma388-profile aria-label="Abrir perfil"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M17 7a5 5 0 1 1-10 0 5 5 0 0 1 10 0"/></svg></button></header>'+
       '<div class="ma388-layout"><button type="button" class="ma388-scrim" data-ma388-menu aria-label="Cerrar menú"></button><aside class="ma388-sidebar"><nav class="ma1611-nav" aria-label="Secciones de Mi Alquiler"></nav><small>MI ALQUILER · V398</small></aside>'+
-      '<main id="ma1611content" class="ma1611-content" tabindex="-1"></main></div></div>';
+      '<div class="ma388-main"><button type="button" class="cc405-back ma388-previous" hidden>← Atrás</button><main id="ma1611content" class="ma1611-content" tabindex="-1"></main></div></div></div>';
     layer.querySelector('#ma1611close').addEventListener('click',()=>{close();if(window.cc166CloseToHome)window.cc166CloseToHome();else window.cc77Home?.();});
     layer.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('#ma1612dialog,#ma3dialog')){layer.classList.remove('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',matchMedia('(max-width:850px)').matches);layer.querySelector('[data-ma388-menu]').setAttribute('aria-expanded','false');}});
     layer.addEventListener('click',e=>{if(e.target.closest('[data-ma388-menu]')){if(matchMedia('(max-width:850px)').matches){layer.classList.toggle('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',!layer.classList.contains('ma388-menu-open'));layer.querySelector('[data-ma388-menu]').setAttribute('aria-expanded',String(layer.classList.contains('ma388-menu-open')));}else layer.classList.toggle('ma388-collapsed');}if(e.target.closest('[data-ma388-wallet]')){close();window.cc166OpenWallet?.('summary',()=>open());}if(e.target.closest('[data-ma388-profile]')){close();window.cc166OpenProfile?.(()=>open());}});
     layer.querySelector('#ma388search').addEventListener('input',e=>document.dispatchEvent(new CustomEvent('ma388-search',{detail:{query:e.target.value}})));
+    const previous=layer.querySelector('.ma388-previous');
+    previous.addEventListener('click',()=>{
+      const area=areaHistory.pop();
+      if(!area)return;
+      renderArea(area);
+      (previous.hidden?layer.querySelector('[data-ma388-menu]'):previous).focus({preventScroll:true});
+    });
     const nav = layer.querySelector('.ma1611-nav');
     for (const area of areas) {
       const btn = document.createElement('button');
       btn.type = 'button'; btn.dataset.area = area.id;
       btn.textContent = area.emoji + ' ' + area.title;
-      btn.addEventListener('click', () => renderArea(area.id));
+      btn.addEventListener('click', () => {
+        if(currentArea!==area.id){
+          areaHistory.push(currentArea);
+          if(areaHistory.length>30)areaHistory.shift();
+        }
+        renderArea(area.id);
+      });
       nav.append(btn);
     }
     return layer;
@@ -96,7 +110,7 @@
       btn.setAttribute('aria-current', active ? 'page' : 'false');
       btn.classList.toggle('active', active);
     });
-    const layer=$('ma1611layer');if(layer){layer.scrollTop=0;layer.querySelector('.ma1611-content').scrollTop=0;layer.classList.remove('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',matchMedia('(max-width:850px)').matches);layer.querySelector('[data-ma388-menu]').setAttribute('aria-expanded','false');}
+    const layer=$('ma1611layer');if(layer){layer.querySelector('.ma388-previous').hidden=!areaHistory.length;layer.scrollTop=0;layer.querySelector('.ma1611-content').scrollTop=0;layer.classList.remove('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',matchMedia('(max-width:850px)').matches);layer.querySelector('[data-ma388-menu]').setAttribute('aria-expanded','false');}
     // Solo texto estático: nunca mostrar cifras o personas inventadas.
     target.innerHTML = '<div class="ma1611-summary"><div class="ma1611-hero-icon" aria-hidden="true">' + area.emoji + '</div>' +
       '<div><small>MI ALQUILER</small><h3>' + area.title + '</h3><p>' + area.summary + '</p></div></div>' +
@@ -136,7 +150,7 @@
       if (typeof window.cc77Auth === 'function') window.cc77Auth(false);
       return;
     }
-    if(openedUser!==current.userId){openedUser=current.userId;currentArea='inmuebles';window.ma1612Reset?.();if($('ma388search'))$('ma388search').value='';}
+    if(openedUser!==current.userId){openedUser=current.userId;areaHistory.length=0;currentArea='inmuebles';window.ma1612Reset?.();if($('ma388search'))$('ma388search').value='';}
     // Mostrar la interfaz inmediatamente. La autorización y los datos permanecen
     // protegidos por ma_ensure_account y las políticas RLS del servidor.
     try {
@@ -182,7 +196,7 @@
   }
   function init() {
     mount();
-    document.addEventListener('cc192-session-ended',()=>{openedUser=null;currentArea='inmuebles';if($('ma388search'))$('ma388search').value='';close();window.ma1612Reset?.();});
+    document.addEventListener('cc192-session-ended',()=>{openedUser=null;areaHistory.length=0;currentArea='inmuebles';if($('ma388search'))$('ma388search').value='';close();window.ma1612Reset?.();});
     matchMedia('(max-width:850px)').addEventListener('change',()=>{const layer=$('ma1611layer');if(layer){layer.classList.remove('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',matchMedia('(max-width:850px)').matches);}});
     const observer = new MutationObserver(changes => {
       if (changes.some(change => change.type === 'childList' && change.addedNodes.length)) scheduleMount();

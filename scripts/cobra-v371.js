@@ -39,7 +39,7 @@ function fail(e){
  if(e.code==='42501'||e.status===401||e.status===403){void checkAccess();return;}
  status(e.name==='AbortError'?'La conexión tardó demasiado. Vuelve a intentar.':e.message||'No se pudo conectar. Vuelve a intentar.',true);
 }
-const modalHistory=[];
+const modalHistory=[],viewHistory=[];
 function closeModal(){
  if(!modal)return;modal.close();modal.remove();
  const prior=modalHistory.pop();modal=prior?.node||null;
@@ -52,7 +52,7 @@ function dialog(title,body){
  if(modal){modal.close();modal.remove();if(!replacing)modalHistory.push({node:modal,focus:returnFocus});}
  if(!replacing)returnFocus=document.activeElement;
  modal=document.createElement('dialog');modal.className='cy371-dialog';modal.setAttribute('aria-labelledby','cy371dialogTitle');
- modal.innerHTML=`<header><h2 id="cy371dialogTitle">${esc(title)}</h2><div class="cy371-dialog-nav">${button(icon('close'),'close-modal','cy371-icon')}</div></header><div class="cy371-dialog-body">${body}</div>`;
+ modal.innerHTML=`<header><h2 id="cy371dialogTitle">${esc(title)}</h2><div class="cy371-dialog-nav">${modalHistory.length?button('← Atrás','previous-modal','cc405-back'):''}${button(icon('close'),'close-modal','cy371-icon')}</div></header><div class="cy371-dialog-body">${body}</div>`;
  layer.append(modal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});modal.addEventListener('cancel',e=>{e.preventDefault();closeModal();});modal.showModal();return modal;
 }
 const field=(label,name,value='',extra='',type='text')=>`<label>${label}<input name="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
@@ -112,7 +112,7 @@ function setup(){
  const retry=document.createElement('button');retry.type='button';retry.dataset.action='check-access';retry.textContent='Comprobar activación';gate.append(retry);
  shell=document.createElement('div');shell.className='cy371-layout';shell.hidden=true;
  shell.innerHTML=`<button class="cy371-scrim" data-action="menu" aria-label="Cerrar menú" type="button"></button><aside class="cy371-sidebar"><nav aria-label="Secciones COBRA YA">${Object.entries(labels).map(([k,v])=>button(icon(navIcons[k])+`<span>${v}</span>`,'nav:'+k)).join('')}</nav><small>V398 · COBRA YA</small></aside>
- <main class="cy371-main"><div id="cy371summary"></div><div class="cy371-actions">${button(icon('profile')+'<span>Nuevo Cliente</span>','new-client','purple')}${button(icon('loan')+'<span>Nuevo Préstamo</span>','new-loan','blue')}${button(icon('pay')+'<span>Registrar Abono</span>','new-payment','green')}</div>
+ <main class="cy371-main">${button('← Atrás','previous-view','cc405-back')}<div id="cy371summary"></div><div class="cy371-actions">${button(icon('profile')+'<span>Nuevo Cliente</span>','new-client','purple')}${button(icon('loan')+'<span>Nuevo Préstamo</span>','new-loan','blue')}${button(icon('pay')+'<span>Registrar Abono</span>','new-payment','green')}</div>
  <section class="cy371-board"><nav class="cy371-tabs" aria-label="Vista de cartera">${[['home','loan','Préstamos activos'],['due','calendar','Vencimientos'],['clients','clients','Clientes'],['reports','report','Reportes']].map(([key,i,text])=>button(icon(i)+`<span>${text}</span>`,'nav:'+key)).join('')}</nav><div id="cy371controls"></div><div id="cy371content" aria-live="polite"></div><div id="cy371pages"></div></section></main>`;
  const message=document.createElement('p');message.id='cy371status';message.className='cy371-status';message.setAttribute('role','status');
  // Replace duplicate chrome at its source; no hidden legacy header, logo, menu or empty card remains.
@@ -137,7 +137,7 @@ function setup(){
 }
 async function open(){
  if(!session()?.jwt){window.cc77Auth?.(false);return;}
- if(owner!==session().userId){owner=session().userId;timeZone=readTimeZone();zoneLoaded=false;clockOffset=0;financialReport=null;epoch++;checking=false;access=null;clearModals();hideResults();searchSeq++;summary=null;rows=[];view='home';filter='active';currency='';portfolioCurrency='';page=0;query='';$('cy371search').value='';$('cy371summary').replaceChildren();$('cy371content').replaceChildren();}
+ if(owner!==session().userId){owner=session().userId;timeZone=readTimeZone();zoneLoaded=false;clockOffset=0;financialReport=null;epoch++;checking=false;access=null;clearModals();hideResults();searchSeq++;summary=null;rows=[];viewHistory.length=0;view='home';filter='active';currency='';portfolioCurrency='';page=0;query='';$('cy371search').value='';$('cy371summary').replaceChildren();$('cy371content').replaceChildren();}
  else if(opened&&checking)return;
  opened=true;layer.style.display='block';layer.scrollTop=0;document.documentElement.dataset.ccActiveModule='cobra';
  // Synchronize the existing portal before leaving it; it must not reopen over this module.
@@ -201,11 +201,19 @@ function renderSummary(wallet){
  const tab=layer.querySelector('.cy371-tabs [data-action="nav:home"] span');if(tab)tab.textContent='Préstamos activos ('+summary.active+')';
  const badge=$('cy371bellCount'),count=summary.attention;badge.textContent=count;badge.hidden=!count;
 }
-async function navigate(next,nextFilter){view=next;filter=nextFilter||(next==='due'?'today':'active');page=0;query='';shell.classList.remove('drawer-open');await loadList();}
+async function navigate(next,nextFilter,nextCurrency=currency){
+ const targetFilter=nextFilter||(next==='due'?'today':'active');
+ if(view!==next||filter!==targetFilter||currency!==nextCurrency){
+  viewHistory.push({view,filter,currency,page,sort,query});
+  if(viewHistory.length>30)viewHistory.shift();
+ }
+ view=next;filter=targetFilter;currency=nextCurrency;page=0;query='';shell.classList.remove('drawer-open');await loadList();
+}
 function markNav(){layer.querySelectorAll('[data-action^="nav:"]').forEach(b=>{const selected=b.dataset.action==='nav:'+view;b.classList.toggle('active',selected);if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});}
 async function loadList(){
  if(!access?.allowed)return;
  const seq=++loadSeq,generation=epoch;markNav();
+ shell.querySelector('[data-action=previous-view]').hidden=!viewHistory.length;
  if(view==='due'){await loadAgenda(seq);return;}if(view==='settings'){renderSettings();return;}if(view==='reports'){await reports();return;}
  $('cy371content').innerHTML='<div class="cy371-empty">Cargando registros…</div>';
  const clients=view==='clients',payments=view==='payments';
@@ -401,7 +409,14 @@ function printCurrent(){if(!currentLoan)return;const l=currentLoan,w=window.open
 async function handle(e){
  const b=e.target.closest('[data-action]');if(!b||b.disabled)return;const [action,a,c,d]=b.dataset.action.split(':');
  try{
-  if(action==='close-modal'){closeModal();return;}
+  if(action==='close-modal'||action==='previous-modal'){closeModal();return;}
+  if(action==='previous-view'){
+   const prior=viewHistory.pop();if(!prior)return;
+   ({view,filter,currency,page,sort,query}=prior);
+   await loadList();
+   (shell.querySelector('[data-action=previous-view]:not([hidden])')||shell.querySelector('.cy371-tabs [data-action="nav:'+view+'"]')||layer.querySelector('.cy371-menu'))?.focus({preventScroll:true});
+   return;
+  }
   if(action==='back'){window.cy53.close();if(window.cc166CloseToHome)window.cc166CloseToHome();else window.cc77Home?.();return;}
   if(action==='check-access'){await checkAccess(true);return;}
   if(action==='profile'){window.cy53.close();window.cc166OpenProfile?.(()=>window.cy53.open());return;}
@@ -409,7 +424,7 @@ async function handle(e){
   if(action==='wallet'){window.cy53.close();window.cc166OpenWallet?.('summary',()=>window.cy53.open());}
   else if(action==='menu'){if(matchMedia('(max-width: 1000px)').matches)shell.classList.toggle('drawer-open');else shell.classList.toggle('sidebar-collapsed');const m=layer.querySelector('.cy371-menu');m.setAttribute('aria-expanded',String(shell.classList.contains('drawer-open')));}
   else if(action==='nav')await navigate(a);
-  else if(action==='stat'){currency='';await navigate(a==='clients'?'clients':['today','late'].includes(a)?'due':'loans',a==='today'?'today':a==='late'?'late':'active');}
+  else if(action==='stat'){await navigate(a==='clients'?'clients':['today','late'].includes(a)?'due':'loans',a==='today'?'today':a==='late'?'late':'active','');}
   else if(action==='attention-filter'){closeModal();await navigate('due',a);}
   else if(action==='attention')await attention();
   else if(action==='refresh')await reload();
