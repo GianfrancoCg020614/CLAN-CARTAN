@@ -203,3 +203,21 @@ html[data-cc-theme] #cy53layer.cy371-layer .cy371-board .cy371-empty{border:0;bo
 html[data-cc-theme] #mc158layer .mc158kpi{grid-template-columns:40px minmax(0,1fr) 13px}
 @media(max-width:600px){html[data-cc-theme] #mc158layer .mc158kpi{grid-template-columns:32px minmax(0,1fr);gap:8px}}
 html[data-cc-theme] #ma1611layer.ma388-layer .ma398-overview strong>span{letter-spacing:normal;line-height:1.5}
+
+.cc405-back:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--ui-line, currentColor);
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.cc405-back[hidden] { display: none !important; }
+.cy371-main > .cc405-back,
+.mc158main > .cc405-back { margin-bottom: 8px; }
+.ma388-main { min-width: 0; }
+.ma388-main > .cc405-back { margin: 12px 16px 0; }
+.cc405-dialog-actions { display: flex; align-items: center; gap: 8px; }

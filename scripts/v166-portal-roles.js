@@ -301,7 +301,12 @@ function applyStreamShell(top,role,heading){
  if(small)small.textContent='V401 · SERVICIOS DIGITALES';if(heading)heading.textContent=view==='wallet'?(data.admin?'Supervisión financiera':'Mi billetera'):data.admin?'Supervisión':data.super?'Mi negocio':'Mi espacio';
  role.textContent=(verified?(data.admin?'ADMIN · Supervisión':data.super?'SÚPER RESELLER · Publicaciones y ventas':access('STREAM_BULLS').ok?'RESELLER · Gestión y compras':'AFILIADO · Catálogo y compras'):'VERIFICANDO ACCESOS');
  top.replaceChildren();const menu=button('☰',()=>{if(!matchMedia('(max-width:850px)').matches){const collapsed=app.classList.toggle('sb389-collapsed');menu.setAttribute('aria-expanded',String(!collapsed));return;}const open=app.classList.toggle('sb389-menu-open');sidebar?.toggleAttribute('inert',!open&&matchMedia('(max-width:850px)').matches);menu.setAttribute('aria-expanded',String(open));},'sb389-menu');menu.dataset.sb389Menu='';menu.setAttribute('aria-label','Abrir menú de STREAM BULL’S');menu.setAttribute('aria-expanded',String(matchMedia('(max-width:850px)').matches?app.classList.contains('sb389-menu-open'):!app.classList.contains('sb389-collapsed')));top.append(menu);
- if(['wallet','profile'].includes(view)&&navigationHistory.length)top.append(button('← Atrás',()=>nav('back'),'cc166-secondary sb389-back'));else top.append(button('← Volver a CLAN CARTAN',closeToHome,'cc166-secondary sb389-exit'));
+ if(navigationHistory.length||moduleReturn)top.append(button('← Atrás',()=>{
+  nav('back');
+  const actions=el('cc166-top-actions');
+  if(!app.hidden)(actions.querySelector('.sb389-back,.cc177-back')||actions.querySelector('button'))?.focus({preventScroll:true});
+ },'cc166-secondary sb389-back'));
+ top.append(button('← Volver a CLAN CARTAN',closeToHome,'cc166-secondary sb389-exit'));
  const update=button('↻',()=>void load(),'cc166-secondary');update.setAttribute('aria-label','Actualizar datos');top.append(update);
  if(!app.querySelector('.sb389-scrim')){const scrim=button('',()=>closePanelMenu(),'sb389-scrim');scrim.setAttribute('aria-label','Cerrar menú de STREAM BULL’S');app.append(scrim);}
  sidebar?.toggleAttribute('inert',matchMedia('(max-width:850px)').matches&&!app.classList.contains('sb389-menu-open'));
