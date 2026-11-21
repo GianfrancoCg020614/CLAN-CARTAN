@@ -1,0 +1,105 @@
+.cc-ui-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex: none;
+}
+
+.cc-ui-icon-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.cc-ui-icon-label > .cc-ui-icon,
+.cc398-theme-button > .cc-ui-icon {
+  width: 16px;
+  height: 16px;
+}
+
+html[data-cc-theme] #cc166-panel.cc176-admin :is(.cc166-navitem, .cc308-more-button) > .cc407-nav-icon {
+  --icon-color: #84e3df;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--icon-color) 15%, transparent);
+  color: var(--icon-color);
+}
+
+html[data-cc-theme='light'] #cc166-panel.cc176-admin :is(.cc166-navitem, .cc308-more-button) > .cc407-nav-icon {
+  --icon-color: #136c72;
+}
+
+html[data-cc-theme='dark'] #cc166-panel.cc176-admin .cc407-nav-icon[data-icon]:is([data-icon='gift'], [data-icon='shield'], [data-icon='clock']) {
+  --icon-color: #f5d297;
+}
+
+html[data-cc-theme='light'] #cc166-panel.cc176-admin .cc407-nav-icon[data-icon]:is([data-icon='gift'], [data-icon='shield'], [data-icon='clock']) {
+  --icon-color: #81580e;
+}
+
+html[data-cc-theme='dark'] #cc166-panel.cc176-admin .cc407-nav-icon[data-icon]:is([data-icon='wallet'], [data-icon='recharge'], [data-icon='pay'], [data-icon='report']) {
+  --icon-color: #94dfae;
+}
+
+html[data-cc-theme='light'] #cc166-panel.cc176-admin .cc407-nav-icon[data-icon]:is([data-icon='wallet'], [data-icon='recharge'], [data-icon='pay'], [data-icon='report']) {
+  --icon-color: #176744;
+}
+
+html[data-cc-theme='dark'] #cc166-panel.cc176-admin .cc407-nav-icon[data-icon]:is([data-icon='bag'], [data-icon='box'], [data-icon='chat'], [data-icon='mail'], [data-icon='key']) {
+  --icon-color: #c7b8ff;
+}
+
+html[data-cc-theme='light'] #cc166-panel.cc176-admin .cc407-nav-icon[data-icon]:is([data-icon='bag'], [data-icon='box'], [data-icon='chat'], [data-icon='mail'], [data-icon='key']) {
+  --icon-color: #624a92;
+}
+
+html[data-cc-theme] #cc166-panel.cc176-admin :is(.cc166-navitem.selected, .cc308-more-button.selected) > .cc407-nav-icon {
+  --icon-color: currentColor;
+  color: inherit;
+  background: #ffffff24;
+}
+
+#cc166-panel .cc407-nav-icon > svg {
+  width: 18px;
+  height: 18px;
+}
+
+#ma1611layer .ma1611-nav .cc-ui-icon-label {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+#ma1611layer .ma1611-nav .cc-ui-icon,
+#ma1611layer .ma1611-hero-icon .cc-ui-icon {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 540px) {
+  html[data-cc-theme] #cc166-panel.cc176-admin .cc308-nav-primary .cc407-nav-icon,
+  html[data-cc-theme] #cc166-panel.cc176-admin .cc308-more-button > .cc407-nav-icon {
+    width: 25px;
+    height: 23px;
+    background: transparent;
+  }
+}
+
+#cc398-support-launcher > .cc-ui-icon,
+.cc117-actions-top .cc-ui-icon {
+  width: 16px;
+  height: 16px;
+}
+
+#cc398-support-launcher > .cc-ui-icon {
+  margin-inline-end: 5px;
+}
+
+@media (max-width: 540px) {
+  #cc398-support-launcher.cc401-inline-help > .cc-ui-icon {
+    display: none;
+  }
+}

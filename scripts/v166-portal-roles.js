@@ -188,7 +188,7 @@ function mountLauncher(){
  if(!actions)return;
  let launcher=el('cc166-open-button');
  if(!launcher){
-  launcher=button('◈ Panel de control',()=>{sync();if(app){app.hidden=false;render();}},'cc166-home-launch');
+  launcher=addPanelIcon(button('Panel de control',()=>{sync();if(app){app.hidden=false;render();}},'cc166-home-launch'),'grid');
   launcher.id='cc166-open-button';actions.prepend(launcher);
  }
  launcher.hidden=!user;
@@ -229,6 +229,18 @@ function appendBusinessStatus(parent,rows){
   list.append(item);
  }parent.append(list);
 }
+const navIcons = {
+ home:'home', 'stream-operations':'screen', shop:'store', orders:'bag', codes:'key',
+ wallet:'wallet', profile:'profile', support:'chat', referrals:'gift', businesses:'grid',
+ admin:'people', approvals:'shield', sales:'report', recharges:'recharge',
+ 'recharge-mail':'mail', finance:'pay', bonuses:'gift', publish:'upload', delivery:'box',
+ 'delivery-admin':'box', mailboxes:'mail', 'delivery-requests':'clock'
+};
+function addPanelIcon(button, name){
+ const icon=window.CCIcons?.node(name);
+ if(icon){button.classList.add('cc-ui-icon-label');button.prepend(icon);}
+ return button;
+}
 function renderNav(){
  const menu=el('cc166-nav');menu.replaceChildren();
  // Una sola interfaz para los 4 roles. El servidor decide los permisos.
@@ -261,7 +273,12 @@ function renderNav(){
    const b=button('',()=>nav(id),'cc166-navitem'+(selected?' selected':''));
    b.setAttribute('aria-current',selected?'page':'false');
    b.setAttribute('aria-label',labelText);b.title=labelText;
-   b.append(make('span','',icon),make('span','',labelText));
+   const iconHolder=make('span','cc407-nav-icon');
+   iconHolder.setAttribute('aria-hidden','true');
+   const iconName=navIcons[id];
+   iconHolder.dataset.icon=iconName;
+   iconHolder.append(window.CCIcons?.node(iconName)||icon);
+   b.append(iconHolder,make('span','',labelText));
    (primaryIds.includes(id)?primary:secondary).append(b);
   }
  }
@@ -273,7 +290,10 @@ function renderNav(){
  more.id='cc308-more';more.setAttribute('aria-label','Más opciones del panel');
  more.setAttribute('aria-expanded',String(app.classList.contains('cc308-menu-open')));
  more.setAttribute('aria-controls',secondary.id);
- more.append(make('span','','☰'),make('span','','Más'));
+ const menuIcon=make('span','cc407-nav-icon');
+ menuIcon.setAttribute('aria-hidden','true');
+ menuIcon.append(window.CCIcons?.node('menu')||'☰');
+ more.append(menuIcon,make('span','','Más'));
  menu.append(primary,secondary,more);
  const aside=el('cc166-aside-foot');aside.replaceChildren();
  aside.append(make('p','cc176-side-note',
@@ -285,11 +305,11 @@ function renderNav(){
  if(heading)heading.textContent=view==='wallet'?(data.admin?'Supervisión financiera':'Mi billetera'):'Panel CLAN CARTAN';
  const top=el('cc166-top-actions');top.replaceChildren();
  if(view!=='home'&&(navigationHistory.length||moduleReturn))
-  top.append(button('← Atrás',()=>nav('back'),'cc166-secondary cc177-back'));
+  top.append(addPanelIcon(button('Atrás',()=>nav('back'),'cc166-secondary cc177-back'),'back'));
  const localRefresh=view==='admin'||['recharges','recharge-mail'].includes(view)||(view==='wallet'&&data.admin);
  if(view!=='home'&&!localRefresh&&view!=='bonuses'&&view!=='profile')
-  top.append(button('↻ Actualizar',()=>load(),'cc166-secondary'));
- top.append(button('✕ Cerrar',closeToHome,'cc166-x'));
+  top.append(addPanelIcon(button('Actualizar',()=>load(),'cc166-secondary'),'refresh'));
+ top.append(addPanelIcon(button('Cerrar',closeToHome,'cc166-x'),'close'));
  applyStreamShell(top,role,heading);
 }
 function applyStreamShell(top,role,heading){
@@ -301,13 +321,13 @@ function applyStreamShell(top,role,heading){
  if(!app.querySelector('.sb389-logo')){const logo=make('img','sb389-logo');logo.src='assets/logo-streambulls-v304.avif';logo.alt='STREAM BULL’S · CLAN CARTAN';logo.width=110;logo.height=68;head?.prepend(logo);}
  if(small)small.textContent='V401 · SERVICIOS DIGITALES';if(heading)heading.textContent=view==='wallet'?(data.admin?'Supervisión financiera':'Mi billetera'):data.admin?'Supervisión':data.super?'Mi negocio':'Mi espacio';
  role.textContent=(verified?(data.admin?'ADMIN · Supervisión':data.super?'SÚPER RESELLER · Publicaciones y ventas':access('STREAM_BULLS').ok?'RESELLER · Gestión y compras':'AFILIADO · Catálogo y compras'):'VERIFICANDO ACCESOS');
- top.replaceChildren();const menu=button('☰',()=>{if(!matchMedia('(max-width:850px)').matches){const collapsed=app.classList.toggle('sb389-collapsed');menu.setAttribute('aria-expanded',String(!collapsed));return;}const open=app.classList.toggle('sb389-menu-open');sidebar?.toggleAttribute('inert',!open&&matchMedia('(max-width:850px)').matches);menu.setAttribute('aria-expanded',String(open));},'sb389-menu');menu.dataset.sb389Menu='';menu.setAttribute('aria-label','Abrir menú de STREAM BULL’S');menu.setAttribute('aria-expanded',String(matchMedia('(max-width:850px)').matches?app.classList.contains('sb389-menu-open'):!app.classList.contains('sb389-collapsed')));top.append(menu);
- if(navigationHistory.length||moduleReturn)el('cc166-content').before(button('← Atrás',()=>{
+ top.replaceChildren();const menu=button('☰',()=>{if(!matchMedia('(max-width:850px)').matches){const collapsed=app.classList.toggle('sb389-collapsed');menu.setAttribute('aria-expanded',String(!collapsed));return;}const open=app.classList.toggle('sb389-menu-open');sidebar?.toggleAttribute('inert',!open&&matchMedia('(max-width:850px)').matches);menu.setAttribute('aria-expanded',String(open));},'sb389-menu');menu.dataset.sb389Menu='';menu.setAttribute('aria-label','Abrir menú de STREAM BULL’S');menu.setAttribute('aria-expanded',String(matchMedia('(max-width:850px)').matches?app.classList.contains('sb389-menu-open'):!app.classList.contains('sb389-collapsed')));menu.replaceChildren(window.CCIcons?.node('menu')||'☰');top.append(menu);
+ if(navigationHistory.length||moduleReturn)el('cc166-content').before(addPanelIcon(button('Atrás',()=>{
   nav('back');
   if(!app.hidden)(app.querySelector('.sb389-back,.cc177-back')||top.querySelector('button'))?.focus({preventScroll:true});
- },'cc166-secondary sb389-back cc405-back'));
- top.append(button('← Volver a CLAN CARTAN',closeToHome,'cc166-secondary sb389-exit'));
- const update=button('↻',()=>void load(),'cc166-secondary');update.setAttribute('aria-label','Actualizar datos');top.append(update);
+ },'cc166-secondary sb389-back cc405-back'),'back'));
+ top.append(addPanelIcon(button('Volver a CLAN CARTAN',closeToHome,'cc166-secondary sb389-exit'),'back'));
+ const update=button('',()=>void load(),'cc166-secondary');update.setAttribute('aria-label','Actualizar datos');update.append(window.CCIcons?.node('refresh')||'↻');top.append(update);
  if(!app.querySelector('.sb389-scrim')){const scrim=button('',()=>closePanelMenu(),'sb389-scrim');scrim.setAttribute('aria-label','Cerrar menú de STREAM BULL’S');app.append(scrim);}
  sidebar?.toggleAttribute('inert',matchMedia('(max-width:850px)').matches&&!app.classList.contains('sb389-menu-open'));
 }
@@ -1219,6 +1239,9 @@ function bonusBalance(code){
  return ['Bono COBRA YA','Bono MI COCHERA','Bono MI ALQUILER'].reduce((sum,label)=>sum+Math.max(0,Number(data.bonuses?.find(x=>x.label===label)?.amount||0)),0);
 }
 function walletIcon(kind){
+ const name={real:'wallet',bonus:'gift',summary:'home',manual:'recharge',automatic:'clock',movements:'list'}[kind]||'wallet';
+ const shared=window.CCIcons?.node(name);
+ if(shared)return shared;
  const paths={real:'M3 7h17v14H3V7Zm0 0 13-5 2 5M15 12h7v5h-7v-5Z',bonus:'M20 12v10H4V12M2 7h20v5H2V7ZM12 22V7M12 7H7.5A2.5 2.5 0 1 1 10 4.5L12 7ZM12 7h4.5A2.5 2.5 0 1 0 14 4.5L12 7Z',summary:'M3 10 12 2l9 8M5 9v13h5v-7h4v7h5V9',manual:'M4 4h16v16H4V4ZM12 7v10M7 12h10',automatic:'M21 12a9 9 0 1 1-3-6.7M21 3v6h-6M12 7v5l3 2',movements:'M4 6h16M4 12h16M4 18h16'};
  const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('fill','none');icon.setAttribute('stroke','currentColor');icon.setAttribute('stroke-width','1.8');icon.setAttribute('aria-hidden','true');const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',paths[kind]||paths.real);icon.append(path);return icon;
 }

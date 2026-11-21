@@ -10,8 +10,10 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V406-20261121">
-<script src="scripts/v398-business-theme.js?v=401"></script>
+<meta name="cc-deploy-version" content="V407-20261121">
+<link rel="stylesheet" href="/styles/ui-icons.css?v=407">
+<script src="/scripts/ui-icons.js?v=407"></script>
+<script src="scripts/v398-business-theme.js?v=407"></script>
 <meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="0x4AAAAAAFgi3l7LiJrucZTP">
 <style>
@@ -3176,7 +3178,7 @@ function renderStore(){
  <div class="cc117-nav-main">
   <button class="cc117-store-brand" type="button" onclick="cc77Home()" aria-label="Volver al inicio de CLAN CARTAN"><span class="brand-emblem brand-emblem-logo" aria-hidden="true"></span><span class="cc117-brand-name">STREAM <em>BULL'S</em><small>Catálogo · CLAN CARTAN</small></span></button>
   <nav class="cc117-actions-top" aria-label="Menú principal">
-   <button type="button" class="cc117-link" onclick="cc77Home()">← <span>CLAN CARTAN</span></button>
+   <button type="button" class="cc117-link" onclick="cc77Home()">${window.CCIcons?.svg('back')||'←'} <span>CLAN CARTAN</span></button>
    <button type="button" class="cc117-theme" onclick="window.CCTheme?CCTheme.toggle():switchTheme()" aria-label="Cambiar modo día o noche">◐</button>
    ${window.CC_V53_SESSION?.jwt?'<button type="button" class="cc117-register" onclick="cc77Home()">Mi perfil</button>':'<button type="button" class="cc117-login" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="cc117-register" onclick="cc77Auth(true)">Crear cuenta</button>'}
   </nav>
@@ -3186,7 +3188,7 @@ function renderStore(){
  <section id="productos" aria-labelledby="cc117-search-title">
   <div class="section-card v23-catalog-section">
    <div class="section-head"><div><h1 id="cc117-search-title">Catálogo</h1><span class="v23-count" role="status" aria-live="polite">Consultando productos…</span></div></div>
-   <div class="cc117-search-section"><label class="cc117-searchbar" for="cc117-search"><span aria-hidden="true">⌕</span><input id="cc117-search" type="search" autocomplete="off" placeholder="Buscar por producto o servicio…" value="${esc(ui.storeSearch)}" oninput="searchStore(this)" aria-label="Buscar productos"></label>
+   <div class="cc117-search-section"><label class="cc117-searchbar" for="cc117-search"><span aria-hidden="true">${window.CCIcons?.svg('search')||'⌕'}</span><input id="cc117-search" type="search" autocomplete="off" placeholder="Buscar por producto o servicio…" value="${esc(ui.storeSearch)}" oninput="searchStore(this)" aria-label="Buscar productos"></label>
     <nav class="cc117-category-strip" aria-label="Categorías de productos">${['Todos','Streaming','Recursos'].map(cc117CategoryButton).join('')}</nav>
    </div>
    <div class="v23-shop-note">Consultando catálogo…</div>
@@ -6076,7 +6078,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <link rel="stylesheet" href="styles/v158-mi-cochera.css?v=406">
 <link rel="stylesheet" href="styles/v159-cobra-logo-cleanup.css?v=159">
 <link rel="stylesheet" href="styles/v160-stream-bulls-brand.css?v=160">
-<script src="scripts/v158-mi-cochera.js?v=406" defer></script>
+<script src="scripts/v158-mi-cochera.js?v=407" defer></script>
 <link rel="stylesheet" href="styles/v172-clan-referrals.css?v=172">
 <script src="scripts/v160-invitation-register.js?v=373" defer></script>
 <script src="scripts/v172-clan-referrals.js?v=172" defer></script>
@@ -6086,20 +6088,20 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 <!-- V163.5: UI recuperada sobre main actual, sin modificar sistema financiero ni Auth -->
 <link rel="stylesheet" href="styles/v161-1-mi-alquiler.css?v=388">
 <link rel="stylesheet" href="styles/v164-portal-4-negocios.css?v=388">
-<script src="scripts/v161-1-mi-alquiler.js?v=405" defer></script>
+<script src="scripts/v161-1-mi-alquiler.js?v=407" defer></script>
 <link rel="stylesheet" href="styles/v161-2-mi-alquiler.css?v=388">
-<script src="scripts/v161-2-mi-alquiler.js?v=398" defer></script>
+<script src="scripts/v161-2-mi-alquiler.js?v=407" defer></script>
 <link rel="stylesheet" href="styles/v161-3-mi-alquiler.css?v=388">
-<script src="scripts/v161-3-mi-alquiler.js?v=388" defer></script>
+<script src="scripts/v161-3-mi-alquiler.js?v=407" defer></script>
 <link rel="stylesheet" href="styles/v161-4-mi-alquiler.css?v=388">
-<script src="scripts/v161-4-mi-alquiler.js?v=388" defer></script>
+<script src="scripts/v161-4-mi-alquiler.js?v=407" defer></script>
 <script src="scripts/v1635-rescate-ui.js?v=398" defer></script>
 <link rel="stylesheet" href="styles/v391-usd-reference.css?v=391">
 <script src="scripts/v391-usd-reference.js?v=391"></script>
 <link rel="stylesheet" href="styles/v394-account-admin.css?v=394">
 <script src="scripts/v394-account-admin.js?v=394"></script>
 <script src="scripts/v394-social-auth.js?v=394"></script>
-<script src="scripts/v151-portal-polish.js?v=405"></script>
+<script src="scripts/v151-portal-polish.js?v=407"></script>
 <script src="scripts/v311-business-dialogs.js?v=317" defer></script>
 <link rel="stylesheet" href="styles/v318-delivery-codes.css?v=319">
 <script src="scripts/v318-delivery-codes.js?v=319" defer></script>
@@ -6147,9 +6149,9 @@ body:not(.light) .ccc-v14-panel .table tr:hover td{background:#0a344a55!importan
 
 <link rel="stylesheet" href="/styles/cobra-v371.css?v=372">
 <script src="/scripts/cobra-v372-tools.js?v=372" defer></script>
-<script src="/scripts/cobra-v371.js?v=405" defer></script>
+<script src="/scripts/cobra-v371.js?v=407" defer></script>
 <link rel="stylesheet" href="styles/v398-business-theme.css?v=405">
 <link rel="stylesheet" href="styles/v398-support.css?v=402">
-<script src="scripts/v398-support.js?v=401"></script>
+<script src="scripts/v398-support.js?v=407"></script>
 </body>
 </html>

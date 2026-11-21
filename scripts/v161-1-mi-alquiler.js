@@ -8,12 +8,13 @@
   const session = () => window.CC_V53_SESSION;
   let currentArea='inmuebles',openedUser=null;
   const areaHistory=[];
+  const uiIcon=(name,fallback='')=>window.CCIcons?.svg(name)||fallback;
   const areas = Object.freeze([
-    { id: 'inmuebles', emoji: '🏘️', title: 'Inmuebles', summary: 'Códigos H-001 y L-001, disponibilidad y tarifas por día o mes.' },
-    { id: 'inquilinos', emoji: '👥', title: 'Inquilinos', summary: 'Documento, datos de contacto y WhatsApp particular de cada cliente.' },
-    { id: 'contratos', emoji: '📋', title: 'Contratos', summary: 'Contratos diarios y mensuales, ampliaciones y retiros.' },
-    { id: 'finanzas', emoji: '💳', title: 'Cobros y servicios', summary: 'Abonos, deudas, medidores, tarifas fijas, gastos y garantías.' },
-    { id: 'avisos', emoji: '🔔', title: 'Avisos y reportes', summary: 'WhatsApp del inquilino, alertas, búsquedas y exportaciones.' }
+    { id: 'inmuebles', icon: 'building', emoji: '🏘️', title: 'Inmuebles', summary: 'Códigos H-001 y L-001, disponibilidad y tarifas por día o mes.' },
+    { id: 'inquilinos', icon: 'people', emoji: '👥', title: 'Inquilinos', summary: 'Documento, datos de contacto y WhatsApp particular de cada cliente.' },
+    { id: 'contratos', icon: 'document', emoji: '📋', title: 'Contratos', summary: 'Contratos diarios y mensuales, ampliaciones y retiros.' },
+    { id: 'finanzas', icon: 'pay', emoji: '💳', title: 'Cobros y servicios', summary: 'Abonos, deudas, medidores, tarifas fijas, gastos y garantías.' },
+    { id: 'avisos', icon: 'bell', emoji: '🔔', title: 'Avisos y reportes', summary: 'WhatsApp del inquilino, alertas, búsquedas y exportaciones.' }
   ]);
   function mountStyles() {
     if ($('ma1611styles')||document.querySelector('link[href*="styles/v161-1-mi-alquiler.css"]')) return;
@@ -68,11 +69,11 @@
     layer.setAttribute('aria-label', 'MI ALQUILER: gestión de habitaciones y locales');
     layer.className='ma388-layer';
     layer.innerHTML = '<div class="ma1611-wrap"><header class="ma1611-head">'+
-      '<button type="button" data-ma388-menu aria-label="Abrir menú" aria-expanded="false">☰</button>'+
+      '<button type="button" data-ma388-menu aria-label="Abrir menú" aria-expanded="false">'+uiIcon('menu','☰')+'</button>'+
       '<img class="ma1611-brand-logo" src="assets/logo-alquiler-v304.avif" alt="MI ALQUILER · CLAN CARTAN" width="100" height="68">'+
       '<button type="button" id="ma1611close" class="ma1611-close">← <span>Volver a<br>CLAN CARTAN</span></button>'+
-      '<label class="ma388-search"><span aria-hidden="true">⌕</span><input id="ma388search" type="search" placeholder="Buscar inmueble, inquilino, DNI o código…" aria-label="Buscar en MI ALQUILER" autocomplete="off" maxlength="120"></label>'+
-      '<button type="button" data-ma388-wallet aria-label="Billetera única CLAN CARTAN"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h17v14H3V7Zm0 0 13-5 2 5M15 12h7v5h-7v-5Z"/></svg></button><button type="button" data-ma388-profile aria-label="Abrir perfil"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M17 7a5 5 0 1 1-10 0 5 5 0 0 1 10 0"/></svg></button></header>'+
+      '<label class="ma388-search"><span aria-hidden="true">'+uiIcon('search','⌕')+'</span><input id="ma388search" type="search" placeholder="Buscar inmueble, inquilino, DNI o código…" aria-label="Buscar en MI ALQUILER" autocomplete="off" maxlength="120"></label>'+
+      '<button type="button" data-ma388-wallet aria-label="Billetera única CLAN CARTAN">'+uiIcon('wallet','<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h17v14H3V7Zm0 0 13-5 2 5M15 12h7v5h-7v-5Z"/></svg>')+'</button><button type="button" data-ma388-profile aria-label="Abrir perfil">'+uiIcon('profile','<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M17 7a5 5 0 1 1-10 0 5 5 0 0 1 10 0"/></svg>')+'</button></header>'+
       '<div class="ma388-layout"><button type="button" class="ma388-scrim" data-ma388-menu aria-label="Cerrar menú"></button><aside class="ma388-sidebar"><nav class="ma1611-nav" aria-label="Secciones de Mi Alquiler"></nav><small>MI ALQUILER · V398</small></aside>'+
       '<div class="ma388-main"><button type="button" class="cc405-back ma388-previous" hidden>← Atrás</button><main id="ma1611content" class="ma1611-content" tabindex="-1"></main></div></div></div>';
     layer.querySelector('#ma1611close').addEventListener('click',()=>{close();if(window.cc166CloseToHome)window.cc166CloseToHome();else window.cc77Home?.();});
@@ -90,7 +91,9 @@
     for (const area of areas) {
       const btn = document.createElement('button');
       btn.type = 'button'; btn.dataset.area = area.id;
-      btn.textContent = area.emoji + ' ' + area.title;
+      const icon=window.CCIcons?.node(area.icon);
+      if(icon){btn.classList.add('cc-ui-icon-label');btn.append(icon,area.title);}
+      else btn.textContent=area.emoji+' '+area.title;
       btn.addEventListener('click', () => {
         if(currentArea!==area.id){
           areaHistory.push(currentArea);
@@ -112,7 +115,7 @@
     });
     const layer=$('ma1611layer');if(layer){layer.querySelector('.ma388-previous').hidden=!areaHistory.length;layer.scrollTop=0;layer.querySelector('.ma1611-content').scrollTop=0;layer.classList.remove('ma388-menu-open');layer.querySelector('.ma388-sidebar').toggleAttribute('inert',matchMedia('(max-width:850px)').matches);layer.querySelector('[data-ma388-menu]').setAttribute('aria-expanded','false');}
     // Solo texto estático: nunca mostrar cifras o personas inventadas.
-    target.innerHTML = '<div class="ma1611-summary"><div class="ma1611-hero-icon" aria-hidden="true">' + area.emoji + '</div>' +
+    target.innerHTML = '<div class="ma1611-summary"><div class="ma1611-hero-icon" aria-hidden="true">' + uiIcon(area.icon,area.emoji) + '</div>' +
       '<div><small>MI ALQUILER</small><h3>' + area.title + '</h3><p>' + area.summary + '</p></div></div>' +
       '<div class="ma1611-placeholder"><span aria-hidden="true">🔐</span><div><strong>Verificando acceso a los datos</strong>' +
       '<p>El servidor determina qué información puedes consultar y administrar.</p></div></div>';
