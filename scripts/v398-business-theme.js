@@ -7,8 +7,13 @@ let explicit=null;
 try{const saved=localStorage.getItem(KEY);if(saved==='light'||saved==='dark')explicit=saved;}catch{}
 let value=explicit||(media.matches?'dark':'light'),scheduled=false;
 function paintButton(b){
- const next=value==='dark'?'light':'dark',label='Cambiar a modo '+(next==='light'?'día':'noche'),text=next==='light'?'☀ Día':'☾ Noche';
- if(b.textContent!==text)b.textContent=text;
+ const next=value==='dark'?'light':'dark',label='Cambiar a modo '+(next==='light'?'día':'noche');
+ if(b.dataset.themeIcon!==next){
+  const icon=window.CCIcons?.node(next==='light'?'sun':'moon');
+  const text=next==='light'?'Día':'Noche';
+  b.replaceChildren(icon|| (next==='light'?'☀':'☾'),text);
+  b.dataset.themeIcon=next;
+ }
  if(b.getAttribute('aria-label')!==label)b.setAttribute('aria-label',label);
  if(b.title!==label)b.title=label;
  if(b.getAttribute('aria-pressed')!==String(value==='light'))b.setAttribute('aria-pressed',String(value==='light'));

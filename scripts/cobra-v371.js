@@ -17,7 +17,7 @@ const paths={menu:'M4 6h16M4 12h16M4 18h16',back:'m11 5-7 7 7 7M4 12h17',search:
  report:'M3 21h18M6 18v-5M12 18V9M18 18V4M4 9l6-5 5 2 6-5',settings:'M9 3h6l1 3 3 1 2 5-2 4-3 1-1 4H9l-1-4-3-1-2-4 2-5 3-1 1-3ZM16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
  bell:'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4',profile:'M20 21a8 8 0 0 0-16 0M17 7a5 5 0 1 1-10 0 5 5 0 0 1 10 0',
  plus:'M12 4v16M4 12h16',eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',chevron:'m9 5 7 7-7 7',close:'m5 5 14 14M5 19 19 5',more:'M12 4v1M12 11v1M12 18v1'};
-const icon=n=>`<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[n]||paths.loan}"/></svg>`;
+const icon=n=>window.CCIcons?.svg(({clients:"people",calendar:"document"})[n]||n)||`<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[n]||paths.loan}"/></svg>`;
 let layer,sub,shell,gate,owner='',epoch=0,access=null,summary=null,view='home',filter='active',currency='',portfolioCurrency='',page=0,sort='recent',query='',rows=[],total=0,searchTimer,searchSeq=0,loadSeq=0,opened=false,checking=false,expiryTimer,returnFocus=null,modal=null;
 const mobileLayout=matchMedia('(max-width: 1000px)');let pageSize=mobileLayout.matches?5:15;
 const labels={home:'Inicio',clients:'Clientes',loans:'Préstamos',payments:'Cobros',due:'Vencimientos',reports:'Reportes',settings:'Configuración'};

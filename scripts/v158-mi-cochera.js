@@ -66,7 +66,7 @@ function currencyCountryChanged(event){
 }
 function person(id){return people.find(p=>p.id===id)||{};}
 const icons={menu:'M4 6h16M4 12h16M4 18h16',back:'m11 5-7 7 7 7M4 12h17',search:'m21 21-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',home:'m3 10 9-8 9 8M5 9v12h5v-7h4v7h5V9',cart:'M2 4h3l3 12h11l3-8H6M9 20h1M18 20h1',pay:'M2 18h5l4 3 9-6c2-2-1-4-3-2l-5 2M7 18v-6h5c3 0 3 4 0 4H9M13 2l7 3v5l-7 3-5-3V5l5-3Z',sales:'M3 7h18v14H3V7ZM3 7l3-5h12l3 5M9 11h6',report:'M3 21h18M6 18v-5M12 18V9M18 18V4',settings:'M9 3h6l1 3 3 1 2 5-2 4-3 1-1 4H9l-1-4-3-1-2-4 2-5 3-1 1-3ZM16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',user:'M20 21a8 8 0 0 0-16 0M17 7a5 5 0 1 1-10 0 5 5 0 0 1 10 0',wallet:'M3 7h17v14H3V7Zm0 0 13-5 2 5M15 12h7v5h-7v-5Z',eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',close:'m5 5 14 14M5 19 19 5',refresh:'M20 7V2l-4 4a8 8 0 1 0 4 8M20 2h-5',chevron:'m6 9 6 6 6-6'};
-const icon=name=>'<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+icons[name]+'"/></svg>';
+const icon=name=>window.CCIcons?.svg(({sales:'box',user:'profile'})[name]||name)||'<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+icons[name]+'"/></svg>';
 const sections={home:['home','Inicio'],carts:['cart','Carritos'],sales:['sales','Ventas'],collections:['pay','Cobros'],retired_due:['pay','Retirados con deuda'],reports:['report','Reportes'],settings:['settings','Configuración']};
 let section='home',listPage=0,serverTotal=0,allCartCount=0,selectedData=null,workspaceSummary=[],summaryCurrency='',searchTimer,historySequence=0;
 const sectionHistory=[];

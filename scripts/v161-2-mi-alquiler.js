@@ -32,7 +32,7 @@ const currentLease=id=>leases.find(l=>Number(l.unit_id)===Number(id)&&l.state===
 const tenantText=t=>[t?.full_name,t?.document_number,t?.whatsapp,String(t?.whatsapp||'').replace(/\D/g,'')].join(' ');
 const unitText=u=>[ucode(u),u.alias,u.floor,prop(u.property_id).name,prop(u.property_id).address,tenantText(tenancy(currentLease(u.id)?.tenant_id))].join(' ');
 function note(msg,error){const el=$('ma1612dialogstatus')||$('ma1612notice');if(el){el.textContent=String(msg);el.classList.toggle('error',!!error);}else if(error)console.warn('MI ALQUILER: '+msg);}
-function section(title,summary,content){return '<div class="ma1612-top"><div><small>MI ALQUILER</small><h3>'+title+'</h3><p>'+summary+'</p></div><button type="button" data-ma-action="reload">↻ Actualizar</button></div><p id="ma1612notice" role="status"></p>'+content;}
+function section(title,summary,content){return '<div class="ma1612-top"><div><small>MI ALQUILER</small><h3>'+title+'</h3><p>'+summary+'</p></div><button type="button" class="cc-ui-icon-label" data-ma-action="reload">'+(window.CCIcons?.svg('refresh')||'↻')+' Actualizar</button></div><p id="ma1612notice" role="status"></p>'+content;}
 async function refresh(seq){
  const s=session();if(!s?.jwt||!s.userId){reset();throw Error('Inicia sesión para acceder a MI ALQUILER');}
  const actor=s.userId,jwt=s.jwt,current=()=>generation===seq&&session()?.userId===actor&&session()?.jwt===jwt;
@@ -62,7 +62,11 @@ function locked(){
  return section('Acceso a MI ALQUILER','La información de cada RESELLER está protegida.',
  '<div class="ma1612-locked"><strong>'+esc(status)+'</strong><p>Tu cuenta '+esc(account?.invite_code||'')+' permanece registrada y su información histórica se conservará. La membresía puede renovarse con un bono autorizado o saldo real verificado. No se acreditan recargas desde esta pantalla.</p>'+ (admin?'<p>ADMIN podrá operar sus propios inmuebles.</p>':'')+'</div>');
 }
-function actionButton(name,label,extra=''){return '<button type="button" data-ma-action="'+name+'" '+extra+'>'+label+'</button>';}
+function actionButton(name,label,extra=''){
+ const icon=label.startsWith('＋ ')?window.CCIcons?.svg('plus'):'';
+ const content=icon?icon+label.slice(2):label;
+ return '<button type="button" data-ma-action="'+name+'" '+(icon?'class="cc-ui-icon-label" ':'')+extra+'>'+content+'</button>';
+}
 function renderProperties(){
  const displayed=properties.filter(p=>matches([p.name,p.address,...units.filter(u=>Number(u.property_id)===Number(p.id)).map(unitText)].join(' ')));
  const occupied=units.filter(u=>currentLease(u.id)).length;

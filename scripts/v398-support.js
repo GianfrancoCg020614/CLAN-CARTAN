@@ -6,7 +6,12 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 let dialog,launcher,owner='',admin=false,ticket=null,state='OPEN',query='',rows=[],busy=false,epoch=0,request=null,draft='',messages=[],focus,searchTimer,listSeq=0,threadSeq=0,uploadRequest=null,uploadPath='',purchases=[],purchaseSeq=0,hasOlderMessages=false;
 const $=s=>dialog?.querySelector(s);
 const date=v=>new Date(v).toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'});
-const btn=(text,action,extra='')=>`<button type="button" data-support="${action}" ${extra}>${text}</button>`;
+const icons={close:'close',new:'plus',refresh:'refresh',list:'back',open:'clock',resolved:'check',retry:'refresh'};
+function btn(text,action,extra=''){
+ const icon=window.CCIcons?.svg(icons[action]);
+ const label=icon?text.replace(/^[×+←]\s*/,''):text;
+ return `<button type="button" data-support="${action}" ${icon?'class="cc-ui-icon-label"':''} ${extra}>${icon||''}${label}</button>`;
+}
 async function api(action,data={}){
  const s=session(),generation=epoch;
  if(!s?.jwt||s.userId!==owner)throw Error('Inicia sesión nuevamente para consultar soporte.');
@@ -28,7 +33,7 @@ async function storage(path,body,file=false){
 function status(text,error=false){const n=$('[role=status]');if(n){n.textContent=text;n.classList.toggle('error',error);}}
 function close(){epoch++;listSeq++;threadSeq++;purchaseSeq++;clearTimeout(searchTimer);busy=false;dialog?.close();dialog?.remove();dialog=null;ticket=null;request=null;draft='';focus?.focus?.();}
 function chrome(){
- dialog.innerHTML=`<header><div><strong>CLAN CARTAN</strong><h2 id="support398-title">Soporte humano</h2></div>${btn('×','close','aria-label="Cerrar soporte y volver a la misma vista"')}</header><p class="cc398-support-note">Déjanos tu consulta. Un administrador te responderá aquí.</p><div class="cc398-support-content"></div><p role="status" aria-live="polite"></p>`;
+ dialog.innerHTML=`<header><div><strong>CLAN CARTAN</strong><h2 id="support398-title" class="cc-ui-icon-label">${window.CCIcons?.svg('chat')||''}Soporte humano</h2></div>${btn('×','close','aria-label="Cerrar soporte y volver a la misma vista"')}</header><p class="cc398-support-note">Déjanos tu consulta. Un administrador te responderá aquí.</p><div class="cc398-support-content"></div><p role="status" aria-live="polite"></p>`;
 }
 function listView(){
  ticket=null;request=null;chrome();
@@ -164,7 +169,12 @@ function sync(){
  const root=candidates[0];
  const moduleHost=root?.id==='cy53layer'?root.querySelector('.cc398-theme-bar'):root?.id==='mc158layer'?root.querySelector('.mc395-toolbar'):root?.id==='ma1611layer'?root.querySelector('.cc401-tools'):root?.id==='cc166-panel'?root.querySelector('#cc166-top-actions'):null;
  const host=moduleHost||catalogHost||document.body;
- const inline=host!==document.body;launcher.classList.toggle('cc401-inline-help',inline);const label=inline?'Ayuda':'Soporte humano';if(launcher.textContent!==label)launcher.textContent=label;
+ const inline=host!==document.body;launcher.classList.toggle('cc401-inline-help',inline);const label=inline?'Ayuda':'Soporte humano';
+ if(launcher.dataset.ccSupportLabel!==label){
+  const icon=window.CCIcons?.node('chat');
+  launcher.replaceChildren(...(icon?[icon,label]:[label]));
+  launcher.dataset.ccSupportLabel=label;
+ }
  if(launcher.parentNode!==host)host.append(launcher);
  launcher.hidden=!session()?.jwt;
  if(dialog&&(!session()?.jwt||owner!==session()?.userId))close();
