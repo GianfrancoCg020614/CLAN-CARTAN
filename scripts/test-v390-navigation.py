@@ -112,8 +112,11 @@ with sync_playwright() as p:
   page.get_by_role('button',name='Mis compras',exact=True).click()
   assert page.locator('#cc166-nav [aria-label="Mis compras"]').get_attribute('aria-current')=='page'
   assert page.locator('.sb389-exit').is_visible()
+  previous=page.locator('.sb389-back')
+  expect(previous).to_be_in_viewport()
+  previous.hover()
   page.screenshot(path=str(BACK/f'stream-{width}.png'))
-  page.locator('.sb389-back').click()
+  previous.click()
   assert page.locator('#cc166-nav [aria-label="Mis compras"]').get_attribute('aria-current')=='false'
   for theme in ['light','dark']:
    page.evaluate('(v)=>CCTheme.set(v)',theme);page.wait_for_timeout(350);assert page.locator('#cc166-panel [data-cc-theme-toggle]').count()==1;page.screenshot(path='artifacts/v398/stream-'+str(width)+'-'+theme+'.png')
