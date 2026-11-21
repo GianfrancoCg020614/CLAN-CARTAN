@@ -163,15 +163,17 @@ function board(root,s,uid,jwt){
  const header=E('div','sb195-head');header.append(E('h2','','Atención de hoy'),E('p','sb195-muted','Clientes, cuentas, vencimientos y espacios realmente disponibles.'));
  root.append(header);
  const indicators=[
- ['due','POR VENCER',expiring.length],
- ['debts','DEUDORES',debtors.length],
- ['free','LIBRES AHORA',free.length],
- ['release','PRÓXIMOS A LIBERARSE',releasing.length],
- ['main','CUENTAS POR RENOVAR',main.length]
+ ['due','POR VENCER',expiring.length,'clock'],
+ ['debts','DEUDORES',debtors.length,'wallet'],
+ ['free','LIBRES AHORA',free.length,'check'],
+ ['release','PRÓXIMOS A LIBERARSE',releasing.length,'key'],
+ ['main','CUENTAS POR RENOVAR',main.length,'refresh']
  ];
  const row=E('div','sb195-indicators');
- for(const [key,name,value] of indicators){
+ for(const [key,name,value,iconName] of indicators){
   const b=B('',()=>{tab=key;listPage=0;board(root,s,uid,jwt);},'sb195-tile'+(tab===key?' active':''));
+  const icon=window.CCIcons?.node(iconName);
+  if(icon){const badge=E('span','cc408-indicator-icon');badge.append(icon);b.append(badge);}
   b.append(E('strong','',value),E('small','',name));row.append(b);
  }
  root.append(row);

@@ -63,8 +63,9 @@ function locked(){
  '<div class="ma1612-locked"><strong>'+esc(status)+'</strong><p>Tu cuenta '+esc(account?.invite_code||'')+' permanece registrada y su información histórica se conservará. La membresía puede renovarse con un bono autorizado o saldo real verificado. No se acreditan recargas desde esta pantalla.</p>'+ (admin?'<p>ADMIN podrá operar sus propios inmuebles.</p>':'')+'</div>');
 }
 function actionButton(name,label,extra=''){
- const icon=label.startsWith('＋ ')?window.CCIcons?.svg('plus'):'';
- const content=icon?icon+label.slice(2):label;
+ const actionIcons={'new-property':'building','new-tenant':'profile','new-lease':'document'};
+ const icon=window.CCIcons?.svg(actionIcons[name]||(label.startsWith('＋ ')?'plus':''));
+ const content=icon?icon+label.replace(/^＋ /,''):label;
  return '<button type="button" data-ma-action="'+name+'" '+(icon?'class="cc-ui-icon-label" ':'')+extra+'>'+content+'</button>';
 }
 function renderProperties(){
@@ -72,8 +73,22 @@ function renderProperties(){
  const occupied=units.filter(u=>currentLease(u.id)).length;
  const available=units.filter(u=>u.state==='READY'&&!currentLease(u.id)).length;
  const percent=units.length?Math.round(occupied/units.length*100):0;
- const overview='<section class="ma398-overview" aria-label="Ocupación y disponibilidad"><article><small>Ocupación actual</small><strong>'+occupied+' <span>de '+units.length+' unidades</span></strong><progress max="100" value="'+percent+'" aria-label="Ocupación '+percent+' por ciento"></progress><small>'+percent+'% de las unidades registradas</small></article><article><small>Disponibles para alquilar</small><strong>'+available+'</strong><p>Unidades listas y sin contrato activo.</p></article></section>';
- const stats='<div class="ma1612-stats ma398-stats">'+[['Inmuebles',properties.length,'inmuebles'],['Habitaciones y locales',units.length,'inmuebles'],['Inquilinos',tenants.length,'inquilinos'],['Contratos activos',leases.filter(l=>l.state==='ACTIVE').length,'contratos']].map(([label,value,view])=>'<button type="button" data-ma-action="go-area" data-target-area="'+view+'"><b>'+value+'</b><span>'+label+'</span></button>').join('')+'</div>';
+ const indicatorIcon=name=>{
+  const icon=window.CCIcons?.svg(name);
+  return icon?'<span class="cc408-indicator-icon" aria-hidden="true">'+icon+'</span>':'';
+ };
+ const overview='<section class="ma398-overview" aria-label="Ocupación y disponibilidad">'+
+  '<article><small class="ma398-metric-label">'+indicatorIcon('building')+'Ocupación actual</small><strong>'+occupied+' <span>de '+units.length+' unidades</span></strong><progress max="100" value="'+percent+'" aria-label="Ocupación '+percent+' por ciento"></progress><small>'+percent+'% de las unidades registradas</small></article>'+
+  '<article><small class="ma398-metric-label">'+indicatorIcon('key')+'Disponibles para alquilar</small><strong>'+available+'</strong><p>Unidades listas y sin contrato activo.</p></article></section>';
+ const counters=[
+  ['Inmuebles',properties.length,'inmuebles','building'],
+  ['Habitaciones y locales',units.length,'inmuebles','key'],
+  ['Inquilinos',tenants.length,'inquilinos','people'],
+  ['Contratos activos',leases.filter(l=>l.state==='ACTIVE').length,'contratos','document']
+ ];
+ const stats='<div class="ma1612-stats ma398-stats">'+counters.map(([label,value,view,icon])=>
+  '<button type="button" data-ma-action="go-area" data-target-area="'+view+'">'+indicatorIcon(icon)+'<b>'+value+'</b><span>'+label+'</span></button>'
+ ).join('')+'</div>';
  const quick='<div class="ma398-quick" aria-label="Acciones principales">'+actionButton('new-property','＋ Registrar inmueble')+actionButton('new-tenant','＋ Registrar inquilino')+actionButton('new-lease','Crear contrato',available?'':'disabled title="Registra una unidad disponible primero"')+'</div>';
  const blocks=pageItems(displayed).map(p=>{
   const within=units.filter(u=>Number(u.property_id)===Number(p.id));
