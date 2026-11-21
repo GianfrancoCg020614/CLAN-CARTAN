@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://www.clancartan.com/">
 <meta property="og:site_name" content="CLAN CARTAN E.I.R.L.">
 <meta name="theme-color" content="#07070d">
-<meta name="cc-deploy-version" content="V403-20261120">
+<meta name="cc-deploy-version" content="V404-20261121">
 <script src="scripts/v398-business-theme.js?v=401"></script>
 <meta name="cc-clan-feature-version" content="V172-20261023">
 <meta name="cc-turnstile-sitekey" content="0x4AAAAAAFgi3l7LiJrucZTP">
@@ -5744,6 +5744,8 @@ const cy55refresh=cy54.refreshAuth;cy54.refreshAuth=async function(){await cy55r
    El portal conserva su scroll propio; el documento solo desplaza al abrir un módulo. */
 html:has(#cc77home[style*="display: block"]),
 body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
+/* La portada oficial es la única accesible cuando está abierta. */
+body:has(#cc77home:not([style*="display: none"])) #app .a1-portal { display:none; }
 #cc77home{scrollbar-gutter:stable;overscroll-behavior:contain}
 #cc77home *{box-sizing:border-box}
 .cc77wrap{max-width:1080px;margin:auto}
@@ -5778,7 +5780,7 @@ body:has(#cc77home[style*="display: block"]) { overflow-y:hidden!important; }
 <section id="cc77home" class="cc304-home" aria-label="Página principal CLAN CARTAN">
  <div class="cc77wrap">
   <header class="cc77top"><div class="cc77brand"><span class="cc78main-logo" aria-label="Logo original de CLAN CARTAN"></span><span>CLAN CARTAN<small>EIRL. · Plataforma de negocios digitales</small></span></div><div class="cc77actions"><div id="cc95-user" style="display:none;align-items:center;gap:9px;background:#10253e;border:1px solid #345574;border-radius:30px;padding:6px 13px 6px 6px;color:#fff"><span id="cc95-avatar" style="width:35px;height:35px;display:grid;place-items:center;border-radius:50%;background:#159be2;font-weight:800">U</span><span style="display:flex;flex-direction:column;line-height:1.2"><strong id="cc95-name" style="font-size:13px">Usuario</strong><small id="cc95-role" style="color:#80def6">Usuario</small></span><div id="cc116-account-balances" class="cc116-account-balances" aria-label="Saldos de tus billeteras reales y de prueba"><span class="cc127-wallet-pill">COBRA · Real <b id="cc116-cobra">S/ --</b><small id="cc127-cobra-test">Prueba S/ --</small></span><span class="cc127-wallet-pill">BULL · Real <b id="cc116-bull">S/ --</b><small id="cc127-bull-test">Prueba S/ --</small></span><span class="cc127-wallet-pill">COCHERA · Total <b id="mc158-home-wallet">S/ --</b></span></div><button type="button" class="cc116-recharge" onclick="cc116OpenRecharge()">＋ Recargar</button><button type="button" class="cc118-logout cc118-profile-logout" onclick="cc54SwitchAccount()" aria-label="Cerrar sesión" title="Cerrar sesión"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button></div><button type="button" id="cc92-admin-button" style="display:none;background:#f0c76c;color:#111b2d;font-weight:900;border-color:#f0c76c" onclick="cc92OpenAdmin()">⚙ PANEL ADMIN</button><button type="button" class="cc98-guest-action" onclick="cc77Auth(false)">Ingresar</button><button type="button" class="primary cc98-guest-action" onclick="cc77Auth(true)">Crear cuenta</button></div></header>
-  <div class="cc77intro"><h1>CLAN CARTAN · Una cuenta, todos tus servicios</h1><p>Cuatro negocios, una sola cuenta. Explora STREAM BULL’S, organiza tus cobranzas en COBRA YA, administra cocheras y trabajadores en MI COCHERA, y gestiona habitaciones y locales en MI ALQUILER. Consulta la información de tus negocios desde una sola cuenta. La billetera REAL única se integrará cuando concluya la conciliación y las pruebas financieras.</p></div>
+  <div class="cc77intro"><h1>CLAN CARTAN · Una cuenta, todos tus servicios</h1><p>Cuatro negocios, una sola cuenta. Consulta tu saldo real y tu bono promocional por separado en la billetera de CLAN CARTAN.</p></div>
   <div class="cc77cards">
    <article class="cc77card"><div class="cc77tag">CATÁLOGO PÚBLICO · SIN REGISTRO</div><div class="cc78service"><span class="cc78service-logo cc78stream" role="img" aria-label="Logo original de Stream Bull’s"></span><h2>STREAM BULL'S</h2></div><p>Streaming y software digital. Los visitantes y afiliados ven precios públicos. Los RESELLERS y SÚPER RESELLERS con membresía vigente de STREAM BULL’S ven precios de distribuidor. La membresía anual se muestra y activa únicamente desde tu panel con confirmación de pago real.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc77Store()">Ver catálogo público</button><button type="button" onclick="cc79StreamBenefits()">Acceder a beneficios</button></div></article>
    <article class="cc77card cc127-cobra-card"><div class="cc77tag">GESTIÓN PROFESIONAL DE PRÉSTAMOS</div><div class="cc78service"><span class="cc78service-logo cc78cobra" role="img" aria-label="Logo original de COBRA YA"></span><h2>COBRA YA</h2></div><p>Lleva el control de tus préstamos sin complicaciones: registra clientes, crea cronogramas, anota abonos y revisa vencimientos desde un solo panel. Mantén tu cartera organizada y tus movimientos claros, con acceso a tu billetera y suscripción desde la plataforma.</p><div class="cc77actions"><button type="button" class="primary" onclick="cc79Cobra()">Ingresar a Cobra Ya</button></div></article>
@@ -6108,7 +6110,7 @@ window.cc82legal=function(type){const el=document.getElementById('cc82-legal-mod
 
 <!-- V217: portada aprobada sobre el proyecto original. Funciones de botones intactas. -->
 <link rel="stylesheet" href="styles/v217-home.css?v=307">
-<script src="scripts/v217-home.js?v=337" defer></script>
+<script src="scripts/v217-home.js?v=404" defer></script>
 <link rel="stylesheet" href="styles/v224-day.css?v=398">
 <script src="scripts/v223-contacto-portada.js?v=223" defer></script>
 <!-- STREAMBULLS: catálogo unificado y estilos de navegación (carga efectiva). -->

@@ -12,9 +12,8 @@ function apply(){
  const home=document.getElementById('cc77home');const grid=home?.querySelector('.cc77cards');if(!grid)return;
  const intro=home.querySelector('.cc77intro');
  if(intro){
-  const title=intro.querySelector('h1');const lead=intro.querySelector('p');
+  const title=intro.querySelector('h1');
   if(title&&!title.querySelector('span')&&title.textContent!=='CLAN CARTAN')title.textContent='CLAN CARTAN';
-  if(lead&&lead.textContent!=='Soluciones digitales para tu día a día')lead.textContent='Soluciones digitales para tu día a día';
  }
  const found={};
  for(const card of [...grid.children]){
