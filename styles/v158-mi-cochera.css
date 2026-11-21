@@ -39,8 +39,8 @@
 #mc158layer .mc373-unit{display:flex;align-items:center;gap:8px;color:var(--mc-muted);font-size:12px}
 #mc158layer .mc373-unit select{padding:7px;min-height:40px}
 #mc158layer .mc406-heading{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;min-width:0}
-html #mc158layer .mc406-heading button.mc395-refresh{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 10px;background:#17643f;border-color:#4da477;color:#fff;font-size:12px}
-html #mc158layer .mc406-heading button.mc395-refresh:hover{background:#1c7448}
+#mc158layer .mc158main .mc158panel-title .mc406-heading button.mc395-refresh{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 10px;background:#17643f;border-color:#4da477;color:#fff;font-size:12px}
+#mc158layer .mc158main .mc158panel-title .mc406-heading button.mc395-refresh:hover{background:#1c7448}
 #mc158layer .mc395-refresh svg{width:16px;height:16px;flex:none}
 #mc158layer .mc395-new{display:flex;align-items:center;gap:8px;background:var(--mc-red);border-color:#CF6455}
 #mc158layer .mc396-overview{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px}
