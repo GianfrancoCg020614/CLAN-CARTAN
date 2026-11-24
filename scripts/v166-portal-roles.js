@@ -193,9 +193,18 @@ function mountLauncher(){
  }
  launcher.hidden=!user;
 }
-function businessLive(row){return row?.status==='ACTIVE'&&Date.parse(row.active_until)>Date.now();}
+function businessLive(row){
+ return row?.status==='ACTIVE'&&(row.funding==='COURTESY'&&row.active_until===null||Date.parse(row.active_until)>Date.now());
+}
+function complimentaryBusiness(code){
+ const row=data.accesses?.find(x=>x.service===code);
+ return row?.funding==='COURTESY'&&businessLive(row);
+}
 function businessStateLabel(row){
- if(businessLive(row))return 'Vigente hasta '+trialDate(row.active_until);
+ if(businessLive(row)){
+  if(row.funding==='COURTESY')return row.active_until?'Cortesía hasta '+trialDate(Date.parse(row.active_until)-1):'Cortesía activa';
+  return 'Vigente hasta '+trialDate(row.active_until);
+ }
  if(row?.status==='SUSPENDED')return 'Suspendido';
  if(row?.status==='EXPIRED'||row?.status==='ACTIVE'&&Date.parse(row.active_until)<=Date.now())return 'Vencido · '+trialDate(row.active_until);
  if(row?.status==='PENDING')return 'Activación pendiente';
@@ -225,7 +234,7 @@ function appendBusinessStatus(parent,rows){
  for(const row of rows){const item=make('li',businessLive(row)?'cc316-live':'');
   item.append(make('strong','',serviceName(row.service)),make('span','',businessStateLabel(row)));
   if(businessLive(row)){const days=Math.ceil((Date.parse(row.active_until)-Date.now())/86400000);if(days<=7)item.append(make('small','cc316-renew-soon',days<=1?'Vence en menos de 24 horas':'Vence en '+days+' días'));}
-  if(businessLive(row)&&row.funding)item.append(make('small','',row.funding==='BONUS'?'Última activación con bono promocional':row.funding==='VERIFIED_REAL'||row.funding==='REAL_WALLET'?'Activación con saldo real':'Origen de activación registrado'));
+  if(businessLive(row)&&row.funding&&row.funding!=='COURTESY')item.append(make('small','',row.funding==='BONUS'?'Última activación con bono promocional':row.funding==='VERIFIED_REAL'||row.funding==='REAL_WALLET'?'Activación con saldo real':'Origen de activación registrado'));
   list.append(item);
  }parent.append(list);
 }
@@ -338,7 +347,7 @@ function businessTabs(page){
   const accessInfo=access(code),selected=view==='business:'+code;
   const tab=button('',()=>nav('business:'+code),'cc167-tab'+(selected?' selected':'')+(accessInfo.ok?'':' locked'));
   tab.append(make('strong','',serviceName(code)));
-  tab.append(make('small','',accessInfo.ok?'● Membresía activa':'○ No habilitado · Activar'));
+  tab.append(make('small','',accessInfo.ok?(complimentaryBusiness(code)?'● Cortesía activa':'● Membresía activa'):'○ No habilitado · Activar'));
   tabs.append(tab);
  }
  page.append(tabs);
@@ -1223,6 +1232,13 @@ function businessPeriod(code){
  return periods.filter(p=>p.end&&Number.isFinite(Date.parse(p.end))).sort((a,b)=>Date.parse(b.end)-Date.parse(a.end))[0]||null;
 }
 function businessPeriodInfo(box,code){
+ if(complimentaryBusiness(code)){
+  const row=data.accesses.find(x=>x.service===code);
+  const cost=Number(data.financeRates?.find(rate=>rate.service===code)?.amount_pen);
+  box.append(make('p','cc166-note',businessStateLabel(row)+'. Al finalizar, tú confirmas el pago para continuar'+
+   (cost>0?' · Mensualidad vigente '+price(cost)+'.':'.')));
+  return;
+ }
  const period=businessPeriod(code);
  if(!period)return;
  const fmt=x=>x&&Number.isFinite(Date.parse(x))?new Date(x).toLocaleDateString('es-PE',{timeZone:'America/Lima'}):'No registrada';
@@ -1275,7 +1291,7 @@ function pendingMembershipReturn(page){
  },'cc166-secondary'));
 }
 function businessPayButtons(box,code,active){
- if(data.admin||code==='STREAM_BULLS')return;
+ if(data.admin||code==='STREAM_BULLS'||complimentaryBusiness(code))return;
  const cost=monthlyPrice(code);
  if(active){
   const period=businessPeriod(code);
@@ -1289,7 +1305,7 @@ function businessPayButtons(box,code,active){
  box.append(trigger);
 }
 function openBusinessActivationModal(code,active){
- if(data.admin||code==='STREAM_BULLS'||!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(code))return;
+ if(data.admin||code==='STREAM_BULLS'||complimentaryBusiness(code)||!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(code))return;
  document.getElementById('cc345-business-modal')?.remove();
  const cost=monthlyPrice(code),valid=verified&&Number.isFinite(cost)&&cost>0;
  const overlay=make('div','cc345-business-modal');overlay.id='cc345-business-modal';
@@ -1384,12 +1400,13 @@ async function activateBusiness(code,b,intent='ACTIVATE',funding='REAL'){
 function memberships(page){
  title(page,'Negocios · activaciones y renovaciones',
    'Elige saldo real o bono promocional para COBRA YA, MI COCHERA y MI ALQUILER. STREAM BULL’S acepta solo saldo real.');
+ if(data.admin&&window.cc409Courtesy)page.append(button('Gestionar cortesías',()=>nav('courtesy'),'cc166-primary'));
  page.append(walletBalancesPanel(true));
  pendingMembershipReturn(page);
  page.append(button('Recargar billetera',()=>finance('manual'),'cc166-secondary'));
  const list=make('div','cc176-attention-grid');
  for(const [code] of services){
-  const active=access(code).ok,cardEl=card(serviceName(code),active?'✅ Membresía activa':'○ No habilitado · Activar');
+  const active=access(code).ok,cardEl=card(serviceName(code),active?(complimentaryBusiness(code)?'Cortesía activa':'✅ Membresía activa'):'○ No habilitado · Activar');
   businessPeriodInfo(cardEl,code);
   if(code==='STREAM_BULLS'){
    const cost=monthlyPrice('STREAM_BULLS');
@@ -1454,8 +1471,8 @@ function businessPage(page,code){
   if(info.ok&&!data.admin){const cost=monthlyPrice('STREAM_BULLS');if(cost>0)actions.append(button('Renovar suscripción · '+price(cost),()=>void buyStreamMembership(cost,'RENEW'),'cc166-secondary'));}
   shell.append(actions);page.append(shell);
  }else{
-  const shell=card(info.ok?'Membresía activa':'Activa tu membresía',
-   info.ok?'Tu membresía está vigente.':'Elige saldo real o bono promocional disponible para este negocio. Solo se descontará el medio confirmado.');
+  const shell=card(info.ok?(complimentaryBusiness(code)?'Acceso de cortesía':'Membresía activa'):'Activa tu membresía',
+   info.ok?(complimentaryBusiness(code)?'Puedes operar con tu acceso gratuito.':'Tu membresía está vigente.'):'Elige saldo real o bono promocional disponible para este negocio. Solo se descontará el medio confirmado.');
   businessPeriodInfo(shell,code);
   businessPayButtons(shell,code,info.ok);
   if(info.ok||data.admin)shell.append(button('Ingresar a '+serviceName(code),()=>{
@@ -1953,6 +1970,14 @@ function adminAccountRow(person){
   quick.append(button('Otorgar recarga',()=>openAdminGrantRecharge(person),'cc166-secondary cc171-small'));
   quick.append(button('Otorgar bono',()=>openAdminGrantBonus(person),'cc166-secondary cc171-small'));
   actions.append(quick);
+  if(person.user_id&&window.cc409Courtesy){
+   const courtesy=make('details','cc171-inline-details');
+   courtesy.append(make('summary','','Cortesía por negocio'));
+   courtesy.addEventListener('toggle',()=>{
+    if(courtesy.open&&!courtesy.querySelector('.cc409-grid'))window.cc409Courtesy.mount(courtesy,{api,target:person.user_id});
+   });
+   actions.append(courtesy);
+  }
   const isApproved=person.role_assigned==='SUPER_RESELLER'&&!!person.super_enabled;
   const pendingSuper=person.role_assigned==='SUPER_RESELLER'&&!person.super_enabled;
   const paid=!!(person.paid_until&&Date.parse(person.paid_until)>Date.now());
@@ -2397,6 +2422,12 @@ function render(startAtTop=false){
  case 'shop':shop(page);break;
  case 'wallet':wallet(page);break;
  case 'businesses':memberships(page);break;
+ case 'courtesy':
+  if(!data.admin||!window.cc409Courtesy){overview(page);break;}
+  title(page,'Cortesía por negocio','Decide quién puede operar gratis. STREAM BULL’S conserva su plan de pago.');
+  page.append(button('Buscar un cliente',()=>nav('admin'),'cc166-secondary'));
+  window.cc409Courtesy.mount(page,{api});
+  break;
  case 'movements':movements(page);break;
  case 'orders':orders(page);break;
  case 'publish':data.super&&!data.admin?publish(page):streamContext?streamOperations(page):overview(page);break;
@@ -2589,7 +2620,7 @@ function init(){
   if(!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(code))return;
   if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
   const owner=user,jwt=token;
-  if(!verified){
+  if(!verified||complimentaryBusiness(code)){
    if(!busy)await load();
    // Nunca abrir el módulo mientras no esté verificada la vigencia.
    if(!verified||owner!==user||jwt!==token){app.hidden=false;nav('business:'+code);return;}

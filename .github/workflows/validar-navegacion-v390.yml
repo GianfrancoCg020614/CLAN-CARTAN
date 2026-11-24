@@ -27,6 +27,7 @@ jobs:
           node scripts/fixture-mc373.mjs
           python -m http.server 8000 > /tmp/v390-http.log 2>&1 &
           python scripts/test-v390-navigation.py
+          python scripts/test-v409-courtesy-browser.py
           python scripts/test-v371-dni-navigation.py
       - uses: actions/upload-artifact@v4
         if: always()
@@ -37,3 +38,4 @@ jobs:
             artifacts/v371-dni-navigation/
             artifacts/v403/
             artifacts/v405/
+            artifacts/v409/
