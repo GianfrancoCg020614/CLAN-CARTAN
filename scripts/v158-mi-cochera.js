@@ -37,9 +37,11 @@ async function load(syncRents=true){
  const uid=encodeURIComponent(id);
  const detail=await window.cc80.api('mc_accounts?select=country&user_id=eq.'+uid);if(!current())return;
  account.country=detail?.[0]?.country||'PE';
- const courtesy=await api('rpc/cc409_my_courtesy',{p_service:'MI_COCHERA'}).catch(()=>null);
- if(!current())return;
- account.courtesy=courtesy;
+ if(!account.suspended&&!(Date.parse(account.subscription_until)>Date.now())){
+  const courtesy=await window.cc80.api('rpc/cc409_my_courtesy?p_service=MI_COCHERA','GET').catch(()=>null);
+  if(!current())return;
+  account.courtesy=courtesy;
+ }
  const wallet=await api('rpc/cc_finance_wallet');if(!current())return;
  if(wallet?.available_pen==null||!Number.isFinite(Number(wallet.available_pen)))throw Error('No se pudo verificar tu saldo disponible. Actualiza para continuar.');
  walletAvailable=Number(wallet.available_pen);window.cc326Wallet?.accept({userId:id,jwt,wallet});void refreshHomeWallet();
