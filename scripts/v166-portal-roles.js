@@ -2620,7 +2620,7 @@ function init(){
   if(!['COBRA_YA','MI_COCHERA','MI_ALQUILER'].includes(code))return;
   if(!session()?.jwt||!app){window.cc77Auth?.(false);return;}
   const owner=user,jwt=token;
-  if(!verified||complimentaryBusiness(code)){
+  if(!verified||(!data.admin&&(complimentaryBusiness(code)||!access(code).ok))){
    if(!busy)await load();
    // Nunca abrir el módulo mientras no esté verificada la vigencia.
    if(!verified||owner!==user||jwt!==token){app.hidden=false;nav('business:'+code);return;}
