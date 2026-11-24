@@ -1,0 +1,30 @@
+#cc166-panel .cc409-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 12px;
+}
+#cc166-panel .cc409-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-width: 0;
+}
+#cc166-panel .cc409-card :is(h3, p) { margin: 0; }
+#cc166-panel .cc409-card label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+#cc166-panel .cc409-card input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+}
+#cc166-panel .cc409-card summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 10px 0;
+}
+#cc166-panel .cc409-card details[open] > :is(p, label, button) {
+  margin-bottom: 10px;
+}

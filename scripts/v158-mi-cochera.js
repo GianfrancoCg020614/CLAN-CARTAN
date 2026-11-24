@@ -13,7 +13,12 @@ const api=(p,b)=>window.cc80.api(p,"POST",b||{});
 let account=null,carts=[],moves=[],people=[],accounts=[],walletAvailable=null,busy=false,filter="",cartState="ALL",ownerId=null,loadSequence=0,selectedCartId=null;
 const normalize=value=>String(value||" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 function note(msg){const el=$('mc158dialogStatus')||$('mc158notice');if(el)el.textContent=msg;}
-function active(){return ses()?.isAdmin||account&&!account.suspended&&new Date(account.subscription_until)>new Date();}
+function active(){
+ return ses()?.isAdmin||account&&!account.suspended&&(
+  Date.parse(account.subscription_until)>Date.now()||
+  account.courtesy?.active&&(account.courtesy.ends_at===null||Date.parse(account.courtesy.ends_at)>Date.now())
+ );
+}
 async function open(){
  if(!ses()?.jwt){if(typeof window.cc77Auth==="function")window.cc77Auth(false);return;}
  const r=host();r.style.display="block";document.documentElement.dataset.ccActiveModule="cochera";const portal=$("cc166-panel");if(portal)portal.hidden=true;if($("cc77home"))$("cc77home").style.display="none";
@@ -32,6 +37,11 @@ async function load(syncRents=true){
  const uid=encodeURIComponent(id);
  const detail=await window.cc80.api('mc_accounts?select=country&user_id=eq.'+uid);if(!current())return;
  account.country=detail?.[0]?.country||'PE';
+ if(!account.suspended&&!(Date.parse(account.subscription_until)>Date.now())){
+  const courtesy=await window.cc80.api('rpc/cc409_my_courtesy?p_service=MI_COCHERA','GET').catch(()=>null);
+  if(!current())return;
+  account.courtesy=courtesy;
+ }
  const wallet=await api('rpc/cc_finance_wallet');if(!current())return;
  if(wallet?.available_pen==null||!Number.isFinite(Number(wallet.available_pen)))throw Error('No se pudo verificar tu saldo disponible. Actualiza para continuar.');
  walletAvailable=Number(wallet.available_pen);window.cc326Wallet?.accept({userId:id,jwt,wallet});void refreshHomeWallet();
@@ -114,7 +124,9 @@ function renderList(){
  let content=list;
  if(section==='reports')content='<section class="mc158panel mc373-report">'+tabs+'<h3>Resumen de hoy · '+esc(summaryCurrency)+'</h3><p>Zona de cobro: America/Lima. Cada moneda se consulta por separado.</p><dl><div><dt>Alquiler registrado</dt><dd>'+currency(s.rent_today,summaryCurrency)+'</dd></div><div><dt>Ventas añadidas a deuda</dt><dd>'+currency(s.product_today,summaryCurrency)+'</dd></div><div><dt>Pagos recibidos</dt><dd>'+currency(s.paid_today,summaryCurrency)+'</dd></div><div><dt>Saldo pendiente</dt><dd>'+currency(s.debt,summaryCurrency)+'</dd></div></dl><button type="button" data-action="export">Descargar resumen CSV</button></section>';
  if(section==='sales')content='<section class="mc158panel">'+tabs+'<div class="mc158panel-title"><h3>Ventas de productos</h3><button type="button" data-action="pick-sale" '+(!hasActive?'disabled':'')+'>Agregar producto</button></div><p>Los productos se añaden a la deuda hasta registrar el pago.</p><div id="mc373sales">Consultando movimientos…</div></section>';
- if(section==='settings')content='<section class="mc158panel mc373-report"><h3>Mi cuenta MI COCHERA</h3><dl><div><dt>Activación vigente hasta</dt><dd>'+esc(new Date(account.subscription_until).toLocaleDateString('es-PE'))+'</dd></div><div><dt>Moneda de operación</dt><dd>'+esc(account.currency)+'</dd></div></dl><p>La sesión y la Billetera única pertenecen a CLAN CARTAN.</p><div class="mc158detail-actions"><button type="button" data-action="currency">Configurar país y moneda</button><button type="button" data-action="wallet">Abrir billetera</button><button type="button" data-action="profile">Abrir mi perfil</button></div></section>';
+ if(section==='settings')content='<section class="mc158panel mc373-report"><h3>Mi cuenta MI COCHERA</h3><dl><div><dt>Acceso</dt><dd>'+esc(Date.parse(account.subscription_until)>Date.now()
+  ?'Activación vigente hasta '+new Date(account.subscription_until).toLocaleDateString('es-PE')
+  :account.courtesy?.ends_at?'Cortesía hasta '+new Date(Date.parse(account.courtesy.ends_at)-1).toLocaleDateString('es-PE',{timeZone:'America/Lima'}):'Cortesía activa')+'</dd></div><div><dt>Moneda de operación</dt><dd>'+esc(account.currency)+'</dd></div></dl><p>La sesión y la Billetera única pertenecen a CLAN CARTAN.</p><div class="mc158detail-actions"><button type="button" data-action="currency">Configurar país y moneda</button><button type="button" data-action="wallet">Abrir billetera</button><button type="button" data-action="profile">Abrir mi perfil</button></div></section>';
  $('mc158body').innerHTML='<div class="mc158dashboard">'+navHTML()+'<main class="mc158main">'+(sectionHistory.length?'<button type="button" class="cc405-back" data-action="previous-section">← Atrás</button>':'')+controls+(section==='home'?hero+stats+quick:'')+content+'<p id="mc158notice" role="status"></p></main></div>';
  $('mc373unit').onchange=e=>{summaryCurrency=e.target.value;renderList();};
  if($('mc158state')){$('mc158state').value=cartState;$('mc158state').onchange=e=>{cartState=e.target.value;listPage=0;renderRows();void load(false).catch(err=>note(err.message));};}renderRows();
